@@ -1,26 +1,53 @@
+import { Resend } from "resend";
 import { logger } from "./logger";
 import { config } from "../config/env";
 
-const API_KEY = config.resendApiKey;
-const FROM = config.emailFrom;
+const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
+const FROM = config.emailFrom || "onboarding@resend.dev";
 const ADMIN_EMAIL = config.adminEmail;
 
 async function send(to: string, subject: string, html: string): Promise<void> {
-  if (!API_KEY) return; // email not configured — skip silently
+  if (!resend) return; // email not configured — skip silently
   try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${API_KEY}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: FROM, to, subject, html }),
-      signal: AbortSignal.timeout(8000),
+    const { data, error } = await resend.emails.send({
+      from: FROM,
+      to,
+      subject,
+      html,
     });
-    if (!res.ok) {
-      const text = await res.text();
-      logger.warn({ status: res.status, text }, "Email send failed");
+    if (error) {
+      // If the domain is not yet verified on Resend, automatically fallback to onboarding@resend.dev
+      if (error.message?.includes("domain is not verified") && FROM !== "onboarding@resend.dev") {
+        logger.warn("Custom domain not verified yet on Resend. Falling back to onboarding@resend.dev");
+        const fallback = await resend.emails.send({
+          from: "onboarding@resend.dev",
+          to,
+          subject,
+          html,
+        });
+        if (!fallback.error) {
+          logger.info({ id: fallback.data?.id, to }, "Email delivered via Resend onboarding domain");
+          return;
+        }
+      }
+      logger.warn({ error }, "Email send failed via Resend");
+    } else {
+      logger.info({ id: data?.id, to }, "Email delivered via Resend");
     }
   } catch (err) {
     logger.warn({ err }, "Email send error (non-fatal)");
   }
+}
+
+/**
+ * Send a verification / test email to confirm Resend is working.
+ */
+export async function sendTestEmail(to = "abhijith.bloombiz@gmail.com"): Promise<void> {
+  await send(
+    to,
+    "Hello World",
+    "<p>Congrats on sending your <strong>first email</strong>!</p>"
+  );
 }
 
 export async function sendBookingConfirmation(order: {

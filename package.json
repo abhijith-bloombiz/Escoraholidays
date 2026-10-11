@@ -13,7 +13,8 @@
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./apps/**\" --filter \"./scripts\" --if-present run typecheck",
     "db:init": "pnpm --filter @workspace/db run push",
     "db:seed": "pnpm --filter @workspace/db run seed:all",
-    "test:api": "pnpm --filter @workspace/db exec tsx ../../scripts/test-api.ts"
+    "test:api": "pnpm --filter @workspace/db exec tsx ../../scripts/test-api.ts",
+    "test:email": "pnpm --filter scripts exec tsx --env-file=../.env test-email.ts"
   },
   "private": true,
   "devDependencies": {

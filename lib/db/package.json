@@ -9,12 +9,12 @@
     "./models": "./src/models/index.ts"
   },
   "scripts": {
-    "push": "tsx src/seeds/init-indexes.ts",
-    "push-force": "tsx src/seeds/init-indexes.ts",
-    "init": "tsx src/seeds/init-indexes.ts",
-    "seed": "tsx src/seeds/seed-initial.ts",
-    "seed:all": "tsx src/seeds/index.ts",
-    "seed:kerala": "tsx src/seeds/seed-kerala.ts"
+    "push": "node --env-file-if-exists=../../.env --env-file-if-exists=.env --import tsx src/seeds/init-indexes.ts",
+    "push-force": "node --env-file-if-exists=../../.env --env-file-if-exists=.env --import tsx src/seeds/init-indexes.ts",
+    "init": "node --env-file-if-exists=../../.env --env-file-if-exists=.env --import tsx src/seeds/init-indexes.ts",
+    "seed": "node --env-file-if-exists=../../.env --env-file-if-exists=.env --import tsx src/seeds/seed-initial.ts",
+    "seed:all": "node --env-file-if-exists=../../.env --env-file-if-exists=.env --import tsx src/seeds/index.ts",
+    "seed:kerala": "node --env-file-if-exists=../../.env --env-file-if-exists=.env --import tsx src/seeds/seed-kerala.ts"
   },
   "dependencies": {
     "mongoose": "^8.12.0",

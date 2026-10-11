@@ -21,7 +21,8 @@ export async function runAllSeeds(): Promise<void> {
   await import("./seed-kerala");
 }
 
-if (process.argv[1]?.endsWith("seeds/index.ts") || process.argv[1]?.endsWith("seed.ts")) {
+const scriptPath = process.argv[1]?.replace(/\\/g, "/") ?? "";
+if (scriptPath.endsWith("seeds/index.ts") || scriptPath.endsWith("seed.ts")) {
   runAllSeeds().catch((err) => {
     console.error("Seeding failed:", err);
     process.exit(1);

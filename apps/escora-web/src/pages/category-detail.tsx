@@ -376,7 +376,7 @@ export default function CategoryDetail() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {data.highlights.map((h, i) => (
-              <div key={i} className="group">
+              <div key={i} className="group portal-card">
                 <div className="aspect-[16/9] overflow-hidden mb-5">
                   <img
                     src={h.img}

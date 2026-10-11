@@ -1,0 +1,104 @@
+/**
+ * Melodrama Font Family
+ * Indian Type Foundry / Fontshare
+ */
+
+@font-face {
+  font-family: 'Melodrama';
+  src: url('./melodrama/Melodrama-Light.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Light.woff') format('woff');
+  font-weight: 300;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melodrama';
+  src: url('./melodrama/Melodrama-Regular.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Regular.woff') format('woff');
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melodrama';
+  src: url('./melodrama/Melodrama-Medium.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Medium.woff') format('woff');
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melodrama';
+  src: url('./melodrama/Melodrama-Semibold.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Semibold.woff') format('woff');
+  font-weight: 600;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melodrama';
+  src: url('./melodrama/Melodrama-Bold.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Bold.woff') format('woff');
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melodrama-Variable';
+  src: url('./melodrama/Melodrama-Variable.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Variable.woff') format('woff');
+  font-weight: 300 700;
+  font-display: swap;
+  font-style: normal;
+}
+
+/* Named variants */
+@font-face {
+  font-family: 'Melodrama-Light';
+  src: url('./melodrama/Melodrama-Light.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Light.woff') format('woff');
+  font-weight: 300;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melodrama-Regular';
+  src: url('./melodrama/Melodrama-Regular.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Regular.woff') format('woff');
+  font-weight: 400;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melodrama-Medium';
+  src: url('./melodrama/Melodrama-Medium.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Medium.woff') format('woff');
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melodrama-Semibold';
+  src: url('./melodrama/Melodrama-Semibold.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Semibold.woff') format('woff');
+  font-weight: 600;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Melodrama-Bold';
+  src: url('./melodrama/Melodrama-Bold.woff2') format('woff2'),
+       url('./melodrama/Melodrama-Bold.woff') format('woff');
+  font-weight: 700;
+  font-display: swap;
+  font-style: normal;
+}

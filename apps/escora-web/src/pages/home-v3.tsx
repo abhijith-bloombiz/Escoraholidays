@@ -300,19 +300,25 @@ export default function HomeV3() {
     return () => clearTimeout(t);
   }, [loaded]);
 
-  /* Scroll reveal for .rv and .mr2 */
+  /* Bidirectional scroll reveal for .rv and .mr2 */
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+          if (e.isIntersecting) {
+            e.target.classList.add("in", "card-in-view");
+          } else {
+            if (!e.target.closest(".v3-hero")) {
+              e.target.classList.remove("in", "card-in-view");
+            }
+          }
         });
       },
-      { threshold: 0.1, rootMargin: "0px 0px -5% 0px" }
+      { threshold: [0, 0.12], rootMargin: "0px 0px -40px 0px" }
     );
     document.querySelectorAll(".v3home .rv, .v3home .mr2").forEach((el) => io.observe(el));
     const heroEls = document.querySelectorAll(".v3-hero .rv, .v3-hero .mr2");
-    const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in")), 150);
+    const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in", "card-in-view")), 150);
     return () => { io.disconnect(); clearTimeout(t); };
   }, [loaded]);
 

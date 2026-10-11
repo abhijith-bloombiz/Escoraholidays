@@ -95,7 +95,7 @@ export default function About() {
                 body: "Every quote we send is line-itemised. You know where your money goes and who benefits from your visit.",
               },
             ].map(v => (
-              <div key={v.title} className="reveal-up">
+              <div key={v.title} className="reveal-up portal-card">
                 <div className="w-10 h-[1px] bg-gold mb-6" />
                 <h3 className="font-serif text-2xl text-ink font-light mb-4">{v.title}</h3>
                 <p className="font-sans text-ink-mute text-sm leading-relaxed">{v.body}</p>
@@ -120,7 +120,7 @@ export default function About() {
           </div>
 
           {/* Founder card — large editorial layout */}
-          <div className="reveal-up about-founder-card">
+          <div className="reveal-up about-founder-card portal-card">
             {/* Photo */}
             <div style={{ position: "relative", overflow: "hidden", minHeight: "min(480px, 60vw)" }}>
               <img

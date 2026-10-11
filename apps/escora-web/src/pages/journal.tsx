@@ -103,7 +103,7 @@ export default function Journal() {
       {featuredPost && (
         <section className="py-24 bg-bg border-b border-line">
           <div className="container mx-auto px-6 md:px-12">
-            <Link href={`/journal/${featuredPost.id}`} className="group block reveal-up">
+            <Link href={`/journal/${featuredPost.id}`} className="group block reveal-up portal-card">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div className="aspect-[4/3] w-full overflow-hidden relative">
                   <img 
@@ -166,7 +166,7 @@ export default function Journal() {
                 <Link 
                   key={post.id} 
                   href={`/journal/${post.id}`}
-                  className="group block reveal-up flex flex-col h-full"
+                  className="group block reveal-up portal-card flex flex-col h-full"
                   style={{ transitionDelay: `${(i % 3) * 0.15}s` }}
                 >
                   <div className="aspect-[4/3] w-full overflow-hidden relative mb-6">

@@ -371,7 +371,7 @@ export default function JournalDetail() {
 
       {/* ── Author card ── */}
       <div className="jd-author-card-wrap">
-        <div className="jd-author-card">
+        <div className="jd-author-card portal-card">
           {authorImageUrl ? (
             <img src={authorImageUrl} alt={authorName} className="jd-author-card-av" />
           ) : (
@@ -399,7 +399,7 @@ export default function JournalDetail() {
             </div>
             <div className="jd-related-grid">
               {relatedPosts.map((rp, i) => (
-                <Link key={(rp as any).id} href={`/journal/${(rp as any).id}`} className="jd-rcard">
+                <Link key={(rp as any).id} href={`/journal/${(rp as any).id}`} className="jd-rcard portal-card">
                   <div className="jd-rcard-img-wrap">
                     <img
                       src={(rp as any).imageUrl ?? "https://images.unsplash.com/photo-1444927714506-8492d94b4e3d?auto=format&fit=crop&w=800&q=80"}

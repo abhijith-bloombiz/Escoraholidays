@@ -82,7 +82,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
     <Layout>
       <style>{`
         @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap");
-        .itinerary-share-page .font-serif { font-family: 'Playfair Display', Georgia, serif; }
+        .itinerary-share-page .font-serif { font-family: 'Melodrama', 'Playfair Display', Georgia, serif; }
       `}</style>
       <div className="bg-bg cursor-auto itinerary-share-page">
       {/* Hidden A4 dossier used only for Download PDF — the visible page below is the web view. */}

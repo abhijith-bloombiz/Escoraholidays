@@ -4,6 +4,7 @@ import { useListPackages, useListDestinations, useCreateEnquiry } from "@workspa
 import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
 import { ExploreCoverflow } from "@/components/ExploreCoverflow";
+import { TravelTypeCoverflow, TravelTypeItem } from "@/components/TravelTypeCoverflow";
 import { MapPin, Compass, Calendar, Users, Search, ChevronDown } from "lucide-react";
 import "./home-v2.css";
 
@@ -16,6 +17,14 @@ const FALLBACK_PACKAGES = [
 
 import escoraLogo from "@assets/escora/escora-logo-green.png";
 import heroBg from "@assets/escora/hero-bg.jpeg";
+import typeAlleppey from "@assets/escora/collections/alleppey-backwaters.jpeg";
+import typeWildlife from "@assets/escora/collections/nature-wildlife-hero.jpg";
+import typeHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
+import typeCoastal from "@assets/escora/collections/varkala-cliffs.jpeg";
+import typeHoneymoon from "@assets/escora/collections/honeymoon-hero.jpg";
+import typeAyurveda from "@assets/escora/collections/panchakarma.jpg";
+import typeHighland from "@assets/escora/collections/munnar-tea-estate.jpeg";
+import typeMedicine from "@assets/escora/collections/medical-tourism.jpeg";
 import { KERALA_DESTINATIONS, DESTINATION_BADGES } from "@/lib/keralaDestinations";
 
 const FALLBACK_DESTINATIONS = KERALA_DESTINATIONS;
@@ -33,7 +42,92 @@ const HERO_DESTINATIONS = [
   { id: "kannur", name: "Kannur", src: DESTINATION_BADGES.kannur },
 ];
 
-/* ── Static data ── */
+/* ── Travel by Type (3D Coverflow Items — Preserving Exact Original Contents) ── */
+const TRAVEL_TYPE_ITEMS: TravelTypeItem[] = [
+  {
+    id: "honeymoon",
+    label: "Honeymoon",
+    img: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1200&q=80",
+    name: <>Honey-<br/><em>moon</em></>,
+    desc: "Candlelit houseboats, private shores and moments composed only for two — along the most romantic waterways in India.",
+    price: "₹6,99,000",
+    priceLabel: "from / couple",
+    count: "12 journeys",
+    link: "/collections/honeymoon",
+  },
+  {
+    id: "health-wellness",
+    label: "Wellness",
+    img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1200&q=80",
+    name: <>Health &amp;<br/><em>Wellness</em></>,
+    desc: "Ayurveda, yoga, panchakarma and deep rest — under Kerala's ancient canopy, guided by resident physicians.",
+    price: "₹8,200",
+    priceLabel: "from / night",
+    count: "9 programmes",
+    link: "/collections/health-wellness",
+  },
+  {
+    id: "nature-wildlife",
+    label: "Wildlife",
+    img: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1200&q=80",
+    name: <>Nature &amp;<br/><em>Wildlife</em></>,
+    desc: "Tiger reserves, elephant corridors and shola forests — Kerala's biodiversity, led by expert field naturalists.",
+    price: "₹4,50,000",
+    priceLabel: "from / person",
+    count: "7 routes",
+    link: "/collections/nature-wildlife",
+  },
+  {
+    id: "hill-stations",
+    label: "Hills",
+    img: "https://images.unsplash.com/photo-1444927714506-8492d94b4e3d?auto=format&fit=crop&w=1200&q=80",
+    name: <>Hill<br/><em>Stations</em></>,
+    desc: "Tea gardens, cardamom forests and colonial planter's bungalows — Kerala's highlands at their most unhurried.",
+    price: "₹5,20,000",
+    priceLabel: "from / person",
+    count: "8 itineraries",
+    link: "/collections/hill-stations",
+  },
+  {
+    id: "backwaters",
+    label: "Backwaters",
+    img: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80",
+    name: <>Back-<br/><em>waters</em></>,
+    desc: "Private kettuvallam on 900 km of lagoons and canals — the slow, silent world of Kerala's interior waterways.",
+    price: "₹3,80,000",
+    priceLabel: "from / couple",
+    count: "11 journeys",
+    link: "/collections/backwaters",
+  },
+  {
+    id: "beaches",
+    label: "Beaches",
+    img: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=80",
+    name: <>Kerala<br/><em>Beaches</em></>,
+    desc: "Sun, cliffs, sea and slow mornings. Clifftop yoga at Varkala, white sands at Marari and fortress shores at Bekal.",
+    count: "11 coastal journeys",
+    link: "/collections/beaches",
+  },
+  {
+    id: "functional-medicine",
+    label: "Medicine",
+    img: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=1200&q=80",
+    name: <>Functional<br/><em>Medicine</em></>,
+    desc: "Advanced diagnostics, physician-led protocols and root-cause healing — where Ayurveda meets integrative science.",
+    count: "6 programmes",
+    link: "/collections/functional-medicine",
+  },
+  {
+    id: "historical-heritage",
+    label: "Heritage",
+    img: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1200&q=80",
+    name: <>Historical<br/><em>&amp; Heritage</em></>,
+    desc: "Fort Kochi's spice routes, Padmanabhapuram's wood-carved halls and five centuries of colonial layering.",
+    count: "8 heritage routes",
+    link: "/collections/historical-heritage",
+  },
+];
+
 const CAT_CARDS = [
   {
     id: "honeymoon",
@@ -304,13 +398,13 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleHeroMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const relX = (e.clientX - rect.left) / rect.width - 0.5;
     const relY = (e.clientY - rect.top) / rect.height - 0.5;
     setHeroMouseOffset({
-      x: Math.round(relX * 16),
-      y: Math.round(relY * 10),
+      x: Math.round(relX * 24),
+      y: Math.round(relY * 16),
     });
   };
 
@@ -326,6 +420,29 @@ export default function Home() {
   const categoriesRef = useRef<HTMLElement>(null);
   const packagesRef = useRef<HTMLElement>(null);
   const exploreSectionRef = useRef<HTMLElement>(null);
+  const heroSectionRef = useRef<HTMLElement>(null);
+  const [heroRevealKey, setHeroRevealKey] = useState(0);
+
+  useEffect(() => {
+    const el = heroSectionRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    let hasInitiallyEntered = false;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (hasInitiallyEntered) {
+            setHeroRevealKey((k) => k + 1);
+          }
+          hasInitiallyEntered = true;
+        }
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -379,20 +496,27 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [loaded]);
 
-  /* Scroll reveal for .rv and .mr2 */
+  /* Bidirectional scroll reveal for .rv, .mr2 and cards (triggers on scroll forward & backward) */
   useEffect(() => {
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+          if (e.isIntersecting) {
+            e.target.classList.add("in", "card-in-view");
+          } else {
+            // Keep hero elements visible, but toggle other elements bidirectionally
+            if (!e.target.closest(".hero-editorial, .hero2")) {
+              e.target.classList.remove("in", "card-in-view");
+            }
+          }
         });
       },
-      { threshold: 0.1, rootMargin: "0px 0px -5% 0px" }
+      { threshold: [0, 0.12], rootMargin: "0px 0px -40px 0px" }
     );
-    document.querySelectorAll(".rv, .mr2").forEach((el) => io.observe(el));
-    /* Also reveal elements already in view */
-    const heroEls = document.querySelectorAll(".hero2 .rv, .hero2 .mr2");
-    const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in")), 200);
+    document.querySelectorAll(".rv, .mr2, .why-card, .rcard, .t2card, .process-step, .stat-cell").forEach((el) => io.observe(el));
+    /* Also reveal elements already in view in hero */
+    const heroEls = document.querySelectorAll(".hero-editorial .rv, .hero-editorial .mr2, .hero2 .rv, .hero2 .mr2");
+    const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in", "card-in-view")), 200);
     return () => { io.disconnect(); clearTimeout(t); };
   }, [loaded]);
 
@@ -409,21 +533,29 @@ export default function Home() {
     tags: [pkg.category || "Private"],
   }));
 
+  /* Helper to scroll smoothly using Lenis 60fps */
+  function smoothScrollTo(el: HTMLElement | null, offset = -100) {
+    if (!el) return;
+    if (window.__lenis) {
+      window.__lenis.scrollTo(el, { offset, duration: 1.25 });
+    } else {
+      window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY + offset, behavior: "smooth" });
+    }
+  }
+
   /* Scroll to categories + activate filter */
   function jumpToCategory(id: string) {
     setActiveCat(id === "all" ? "all" : id);
     setActiveFilter(id === "all" ? "all" : id);
     const el = id === "all" ? categoriesRef.current : packagesRef.current;
-    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: "smooth" });
+    smoothScrollTo(el, -100);
   }
 
   /* Cat strip click → sync pkg filter + scroll to packages */
   function onCatStripClick(id: string) {
     setActiveCat(id);
     setActiveFilter(id);
-    if (packagesRef.current) {
-      window.scrollTo({ top: packagesRef.current.getBoundingClientRect().top + window.scrollY - 120, behavior: "smooth" });
-    }
+    smoothScrollTo(packagesRef.current, -100);
   }
 
   function handleHeroSearch() {
@@ -439,18 +571,12 @@ export default function Home() {
     }
     if (selectedDest) {
       if (exploreSectionRef.current) {
-        window.scrollTo({
-          top: exploreSectionRef.current.getBoundingClientRect().top + window.scrollY - 120,
-          behavior: "smooth",
-        });
+        smoothScrollTo(exploreSectionRef.current, -100);
         return;
       }
     }
     if (categoriesRef.current) {
-      window.scrollTo({
-        top: categoriesRef.current.getBoundingClientRect().top + window.scrollY - 120,
-        behavior: "smooth",
-      });
+      smoothScrollTo(categoriesRef.current, -100);
     }
   }
 
@@ -494,7 +620,13 @@ export default function Home() {
       </div>
 
       {/* ═══════════════════════════════ HERO EDITORIAL ═══════════════════════════════ */}
-      <section className="hero-editorial" aria-label="Escora — Kerala, your way">
+      <section
+        className="hero-editorial"
+        aria-label="Escora — Kerala, your way"
+        ref={heroSectionRef}
+        onMouseMove={handleHeroMouseMove}
+        onMouseLeave={handleHeroMouseLeave}
+      >
         <div
           className="hero-art-bg"
           style={{ backgroundImage: `url(${heroBg})` }}
@@ -514,24 +646,31 @@ export default function Home() {
             <h1 className="hero-main-title-sr">ESCORA</h1>
 
             <svg
+              key={heroRevealKey}
               className="hero-main-title-svg"
-              viewBox="0 0 1000 150"
+              viewBox="0 0 1000 156"
               preserveAspectRatio="xMidYMid meet"
               aria-hidden="true"
             >
               <defs>
-                <clipPath id="escora-text-clip">
-                  <text
-                    x="500"
-                    y="126"
-                    textAnchor="middle"
-                    fontFamily="'Cinzel', 'Playfair Display', 'Cormorant Garamond', Georgia, serif"
-                    fontWeight="700"
-                    fontSize="146"
-                    letterSpacing="0.05em"
-                  >
-                    ESCORA
-                  </text>
+                {/* 6 Individual letter clip paths with exact Melodrama metrics */}
+                <clipPath id="escora-clip-0">
+                  <text className="escora-clip-char" x="151.53" y="126">E</text>
+                </clipPath>
+                <clipPath id="escora-clip-1">
+                  <text className="escora-clip-char" x="263.38" y="126">S</text>
+                </clipPath>
+                <clipPath id="escora-clip-2">
+                  <text className="escora-clip-char" x="357.94" y="126">C</text>
+                </clipPath>
+                <clipPath id="escora-clip-3">
+                  <text className="escora-clip-char" x="478.39" y="126">O</text>
+                </clipPath>
+                <clipPath id="escora-clip-4">
+                  <text className="escora-clip-char" x="607.53" y="126">R</text>
+                </clipPath>
+                <clipPath id="escora-clip-5">
+                  <text className="escora-clip-char" x="727.98" y="126">A</text>
                 </clipPath>
 
                 <linearGradient id="escora-editorial-tint" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -546,42 +685,52 @@ export default function Home() {
                 </filter>
               </defs>
 
-              <g clipPath="url(#escora-text-clip)" filter="url(#escora-text-depth)">
-                {/* Dark baseline fill */}
-                <rect width="100%" height="100%" fill="#122417" />
-
-                {/* Slideshow of destination images with parallax and Ken Burns zoom */}
-                {HERO_DESTINATIONS.map((dest, i) => {
-                  const isActive = i === heroDestIdx;
-
-                  return (
-                    <g
-                      key={dest.id}
-                      className={`escora-dest-slide ${isActive ? "is-active" : ""}`}
-                      style={{
-                        transform: `translate(${heroMouseOffset.x}px, ${heroMouseOffset.y}px)`,
-                      }}
-                    >
-                      <image
-                        href={dest.src}
-                        x="-14%"
-                        y="-14%"
-                        width="128%"
-                        height="128%"
-                        preserveAspectRatio="xMidYMid slice"
-                        className={`escora-zoom-img ${isActive ? "anim-active" : ""}`}
-                      />
-                    </g>
-                  );
-                })}
-
-                {/* Editorial emerald luxury tint overlay */}
-                <rect
-                  width="100%"
-                  height="100%"
-                  fill="url(#escora-editorial-tint)"
-                  style={{ mixBlendMode: "multiply", pointerEvents: "none" }}
-                />
+              {/* 6 letters revealed smoothly from 0% to 100% with live responsive parallax */}
+              <g filter="url(#escora-text-depth)">
+                {[
+                  { id: "0", cls: "escora-letter-1" },
+                  { id: "1", cls: "escora-letter-2" },
+                  { id: "2", cls: "escora-letter-3" },
+                  { id: "3", cls: "escora-letter-4" },
+                  { id: "4", cls: "escora-letter-5" },
+                  { id: "5", cls: "escora-letter-6" },
+                ].map((letter) => (
+                  <g
+                    key={letter.id}
+                    className={`escora-letter-g ${letter.cls}`}
+                    clipPath={`url(#escora-clip-${letter.id})`}
+                  >
+                    <rect width="100%" height="100%" fill="#122417" />
+                    {HERO_DESTINATIONS.map((dest, i) => {
+                      const isActive = i === heroDestIdx;
+                      return (
+                        <g
+                          key={dest.id}
+                          className={`escora-dest-slide ${isActive ? "is-active" : ""}`}
+                          style={{
+                            transform: `translate(${heroMouseOffset.x}px, ${heroMouseOffset.y}px)`,
+                          }}
+                        >
+                          <image
+                            href={dest.src}
+                            x="-14%"
+                            y="-14%"
+                            width="128%"
+                            height="128%"
+                            preserveAspectRatio="xMidYMid slice"
+                            className={`escora-zoom-img ${isActive ? "anim-active" : ""}`}
+                          />
+                        </g>
+                      );
+                    })}
+                    <rect
+                      width="100%"
+                      height="100%"
+                      fill="url(#escora-editorial-tint)"
+                      style={{ mixBlendMode: "multiply", pointerEvents: "none" }}
+                    />
+                  </g>
+                ))}
               </g>
             </svg>
           </div>
@@ -831,7 +980,7 @@ export default function Home() {
       </div>
 
 
-      {/* ═══════════════════════ CATEGORY BENTO GRID ═══════════════════════ */}
+      {/* ═══════════════════════ CATEGORY CARDS / TRAVEL BY TYPE ═══════════════════════ */}
       <section className="cat-section" id="categories" ref={categoriesRef}>
         <div className="wrap">
           <div className="cat-section-head">
@@ -846,66 +995,7 @@ export default function Home() {
             </p>
           </div>
 
-          {/* 5-card bento */}
-          <div className="cat-bento">
-            {CAT_CARDS.map((card, i) => (
-              <Link
-                key={card.id}
-                href={`/collections/${card.id}`}
-                className={`cat-card rv${i > 0 ? ` d${i}` : ""}`}
-                aria-label={`${card.label} journeys in Kerala`}
-                style={{ textAlign: "left", display: "block" }}
-              >
-                <div className="bg-img" style={{ backgroundImage: `url('${card.img}')` }} />
-                <div className="scrim" />
-                <span className="c-label">{card.label}</span>
-                <div className="content">
-                  <div className="c-name">{card.name}</div>
-                  <div className="c-reveal">
-                    <p>{card.desc}</p>
-                  </div>
-                  <div className="c-meta">
-                    <div>
-                      <div className="c-count">{card.count}</div>
-                    </div>
-                    <div>
-                      <div className="c-cta">Explore <span className="arr" /></div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Beaches · Functional Medicine · Historical & Heritage — row of 3 */}
-          <div className="cat-row3">
-            {CAT_CARDS_ROW2.map((card) => (
-              <Link
-                key={card.id}
-                href={`/collections/${card.id}`}
-                className="cat-card rv"
-                aria-label={`${card.label} journeys in Kerala`}
-                style={{ textAlign: "left", display: "block" }}
-              >
-                <div className="bg-img" style={{ backgroundImage: `url('${card.img}')` }} />
-                <div className="scrim" />
-                <span className="c-label">{card.label}</span>
-                <div className="content">
-                  <div className="c-name" style={{ fontSize: "clamp(28px,3.5vw,48px)" }}>{card.name}</div>
-                  <div className="c-reveal">
-                    <p>{card.desc}</p>
-                  </div>
-                  <div className="c-meta">
-                    <div className="c-count">{card.count}</div>
-                    <div className="c-cta">Explore <span className="arr" /></div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Mobile swipe hint */}
-          <p className="cat-swipe-hint">Swipe to explore all 8 journeys</p>
+          <TravelTypeCoverflow items={TRAVEL_TYPE_ITEMS} />
         </div>
       </section>
 
@@ -928,12 +1018,12 @@ export default function Home() {
       {/* ═══════════════════════ WHY ESCORA ════════════════════════════ */}
       <section className="why-escora-section">
         <div className="wrap">
-          <div className="why-escora-head rv">
-            <div className="eyebrow"><span className="dot" />Nº 02 — Why Escora</div>
-            <h2 className="display-md" style={{ marginTop: 16, maxWidth: "28ch" }}>
+          <div className="why-escora-head">
+            <div className="eyebrow rv"><span className="dot" />Nº 02 — Why Escora</div>
+            <h2 className="display-md rv d1" style={{ marginTop: 16, maxWidth: "28ch" }}>
               Why the world's discerning travellers <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>choose Escora</em>
             </h2>
-            <p style={{ color: "var(--ink-mute)", fontSize: 15, lineHeight: 1.75, maxWidth: "48ch", marginTop: 16 }}>
+            <p className="rv d2" style={{ color: "var(--ink-mute)", fontSize: 15, lineHeight: 1.75, maxWidth: "48ch", marginTop: 16 }}>
               We don't sell packages. We compose journeys — built entirely around you, from the first conversation to the final farewell.
             </p>
           </div>
@@ -984,12 +1074,12 @@ export default function Home() {
       {/* ════════════════════ PLANNING PROCESS ════════════════════════════ */}
       <section className="process-section">
         <div className="wrap">
-          <div className="process-head rv">
-            <div className="eyebrow"><span className="dot" />Nº 03 — How It Works</div>
-            <h2 className="display-md" style={{ marginTop: 16, maxWidth: "24ch" }}>
+          <div className="process-head">
+            <div className="eyebrow rv"><span className="dot" />Nº 03 — How It Works</div>
+            <h2 className="display-md rv d1" style={{ marginTop: 16, maxWidth: "24ch" }}>
               How your <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>journey begins</em>
             </h2>
-            <p style={{ color: "var(--ink-mute)", fontSize: 15, lineHeight: 1.75, maxWidth: "48ch", marginTop: 16 }}>
+            <p className="rv d2" style={{ color: "var(--ink-mute)", fontSize: 15, lineHeight: 1.75, maxWidth: "48ch", marginTop: 16 }}>
               Luxury clients deserve to know exactly what happens after they reach out. Here's how we build your journey — from first message to final farewell.
             </p>
           </div>

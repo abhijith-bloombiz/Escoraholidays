@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import ScrollToTop from "@/components/ScrollToTop";
+import SmoothScroll from "@/components/SmoothScroll";
 
 import Home from "@/pages/home";
 import HomeClassic from "@/pages/home-classic";
@@ -67,7 +68,7 @@ function Router() {
       </Route>
       <Route path="/" component={Home} />
       <Route path="/classic" component={HomeClassic} />
-      <Route path="/destinations" component={Destinations} />
+      <Route path="/destinations" component={DestinationsV3} />
       <Route path="/destinations/:name" component={DestinationDetail} />
       <Route path="/journeys" component={Journeys} />
       <Route path="/journeys/:id" component={JourneyDetail} />
@@ -94,8 +95,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <ScrollToTop />
-          <Router />
+          <SmoothScroll>
+            <ScrollToTop />
+            <Router />
+          </SmoothScroll>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

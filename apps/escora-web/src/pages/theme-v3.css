@@ -54,7 +54,7 @@ html.theme-v3 {
 
   /* Modern geometric sans throughout: headings bold, body regular/medium,
      labels small medium-weight. */
-  --f-display: 'Manrope', system-ui, sans-serif;
+  --f-display: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
   --f-body: 'Manrope', system-ui, sans-serif;
   --f-mono: 'Manrope', system-ui, sans-serif;
   --f-sans: 'Manrope', system-ui, sans-serif;
@@ -64,36 +64,22 @@ html.theme-v3 {
 }
 html.theme-v3 body { background: var(--v3-white); color: var(--ink); }
 
-/* Tailwind's @theme inline bakes the font stacks into these utilities, so
-   swapping the variables alone doesn't reach them. Manrope is already
-   loaded by index.css. */
+/* Headings use Melodrama */
 html.theme-v3 .font-serif,
-html.theme-v3 .font-mono,
-html.theme-v3 .font-sans { font-family: 'Manrope', system-ui, sans-serif; }
-
-/* Manrope has no true italic — emphasis is carried by colour instead of a
-   faux-oblique slant. */
-html.theme-v3 em,
-html.theme-v3 .italic { font-style: normal; }
-
-/* The live pages set their serif display headings at weight 300/400; the
-   brief asks for bold, clean sans headings. */
 html.theme-v3 h1,
 html.theme-v3 h2,
 html.theme-v3 h3,
-html.theme-v3 .font-serif { font-weight: 700; letter-spacing: -0.025em; }
-html.theme-v3 h4 { font-weight: 600; }
+html.theme-v3 h4,
+html.theme-v3 h5,
+html.theme-v3 h6 { font-family: 'Melodrama', 'Cormorant Garamond', Georgia, serif; }
+html.theme-v3 .font-mono { font-family: 'JetBrains Mono', 'Manrope', monospace; font-weight: 600; letter-spacing: 0.12em; }
+html.theme-v3 .font-sans { font-family: 'Manrope', system-ui, sans-serif; }
 
-/* Some live pages set weight/italics as inline styles, which only an
-   !important rule can override. */
-html.theme-v3 h1[style], html.theme-v3 h2[style], html.theme-v3 h3[style] { font-weight: 700 !important; }
-html.theme-v3 h4[style] { font-weight: 600 !important; }
-html.theme-v3 [style*="italic"] { font-style: normal !important; }
+/* Preserve Melodrama serif emphasis & weights */
+html.theme-v3 em,
+html.theme-v3 .italic { font-style: italic; }
 
-/* Labels that used the mono face were tracked very wide; tighten for Manrope. */
-html.theme-v3 .font-mono { font-weight: 600; letter-spacing: 0.12em; }
-
-/* Live buttons flip to `--bg` text on hover; keep it legible. */
+/* Modern minimal pill buttons */
 html.theme-v3 .btn:hover { color: var(--v3-white); }
 html.theme-v3 .btn.primary { color: var(--v3-white); border-radius: 999px; }
 html.theme-v3 .btn { border-radius: 999px; }
@@ -120,14 +106,14 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
 .v3-nav {
   position: fixed;
   top: 18px; left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) !important;
   z-index: 200;
   display: flex; align-items: center; gap: 8px;
   width: min(1180px, calc(100vw - 32px));
   padding: 8px 8px 8px 22px;
   border-radius: 999px;
   font-family: var(--f-body);
-  background: rgba(254, 254, 254, 0.9);
+  background: rgba(254, 254, 254, 0.92);
   backdrop-filter: blur(22px) saturate(150%);
   -webkit-backdrop-filter: blur(22px) saturate(150%);
   border: 1px solid rgba(26, 63, 44, 0.08);
@@ -135,18 +121,9 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   transition: top .45s cubic-bezier(0.16,1,0.3,1), background .45s, border-color .45s, box-shadow .45s;
 }
 .v3-nav.is-scrolled { top: 12px; }
-.v3-nav.is-over-hero {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  top: 34px;
-}
 
 .v3-nav-brand { display: flex; align-items: center; margin-right: auto; }
 .v3-nav-brand img { height: 34px; width: auto; display: block; transition: height .4s; }
-.v3-nav.is-over-hero .v3-nav-brand img { height: 32px; }
 
 .v3-nav-links { display: flex; gap: 2px; }
 .v3-nav-link {
@@ -158,9 +135,9 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
 }
 .v3-nav-link:hover { color: #1A3F2C; background: rgba(26, 63, 44, 0.06); }
 .v3-nav-link.active { color: #1A3F2C; font-weight: 700; }
-.v3-nav.is-over-hero .v3-nav-link { color: rgba(254, 254, 254, 0.86); }
+.v3-nav.is-over-hero .v3-nav-link { color: #3F5630; }
 .v3-nav.is-over-hero .v3-nav-link:hover,
-.v3-nav.is-over-hero .v3-nav-link.active { color: #FEFEFE; background: rgba(254, 254, 254, 0.1); }
+.v3-nav.is-over-hero .v3-nav-link.active { color: #1A3F2C; background: rgba(26, 63, 44, 0.06); }
 
 .v3-nav-dd { position: relative; }
 .v3-nav-panel {
@@ -190,7 +167,6 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   font-size: 14px; font-weight: 700; color: #1A3F2C;
   text-decoration: none; white-space: nowrap;
 }
-.v3-nav.is-over-hero .v3-nav-phone { color: #FEFEFE; }
 .v3-nav-cta {
   background: #1A3F2C; color: #FEFEFE;
   padding: 10px 20px; border-radius: 999px;
@@ -198,8 +174,6 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   transition: background .35s, transform .35s;
 }
 .v3-nav-cta:hover { background: #293D1F; transform: translateY(-1px); }
-.v3-nav.is-over-hero .v3-nav-cta { background: #FEFEFE; color: #1A3F2C; }
-.v3-nav.is-over-hero .v3-nav-cta:hover { background: #E7EFE9; }
 
 .v3-nav-burger {
   display: none; flex-direction: column; justify-content: center; align-items: center;
@@ -211,7 +185,6 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   background: #1A3F2C;
   transition: transform .3s cubic-bezier(0.16,1,0.3,1), opacity .2s;
 }
-.v3-nav.is-over-hero .v3-nav-burger span { background: #FEFEFE; }
 
 @media (max-width: 1060px) {
   .v3-nav-phone { display: none; }
@@ -307,3 +280,87 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   .v3-footer-col ul { align-items: center; }
   .v3-footer-bottom { flex-direction: column; text-align: center; }
 }
+
+/* ============================================================
+   MODERN MINIMAL PORTAL REFINEMENTS (Theme V3)
+   ============================================================ */
+
+/* Clean pill buttons across all pages */
+html.theme-v3 a.btn,
+html.theme-v3 button.btn,
+html.theme-v3 .btn-primary,
+html.theme-v3 a[href="/plan"],
+html.theme-v3 a[href="/contact"] {
+  border-radius: 999px !important;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), background 0.3s, box-shadow 0.3s, color 0.3s;
+}
+
+html.theme-v3 a.btn:hover,
+html.theme-v3 button.btn:hover,
+html.theme-v3 a[href="/plan"]:hover,
+html.theme-v3 a[href="/contact"]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(26,63,44,0.12);
+}
+
+/* Modern minimal filter chips */
+html.theme-v3 .chips button,
+html.theme-v3 button.font-mono.tracking-widest {
+  border-radius: 999px !important;
+  font-family: var(--f-body) !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: none !important;
+  padding: 8px 20px !important;
+  transition: background 0.25s, color 0.25s, border-color 0.25s, transform 0.25s;
+}
+
+html.theme-v3 select.font-mono {
+  border-radius: 999px !important;
+  font-family: var(--f-body) !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  padding: 8px 16px !important;
+}
+
+/* Portal cards minimal aesthetic */
+html.theme-v3 .portal-card {
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.45s cubic-bezier(0.16,1,0.3,1), box-shadow 0.45s, border-color 0.45s;
+}
+
+html.theme-v3 .portal-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(26,63,44,0.08);
+}
+
+html.theme-v3 .portal-card img {
+  border-radius: 14px;
+}
+
+/* Forms minimal input fields */
+html.theme-v3 input:not([type="checkbox"]):not([type="radio"]),
+html.theme-v3 select,
+html.theme-v3 textarea {
+  border-radius: 12px !important;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):focus,
+html.theme-v3 select:focus,
+html.theme-v3 textarea:focus {
+  border-color: var(--gold) !important;
+  background: #FEFEFE;
+  box-shadow: 0 0 0 3px rgba(26,63,44,0.08);
+  outline: none;
+}
+

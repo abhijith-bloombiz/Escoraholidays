@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Manrope:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap");
+@import "./fonts/melodrama.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
@@ -57,7 +58,9 @@
   --color-line-strong: var(--line-strong);
 
   --font-sans: 'Manrope', sans-serif;
-  --font-serif: 'Cormorant Garamond', serif;
+  --font-serif: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
+  --font-heading: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
+  --font-display: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   --text-xs: 0.75rem;
@@ -94,23 +97,39 @@
 }
 
 :root {
-  --bg: #142719;
-  --bg-2: #1a3324;
-  --bg-3: #214030;
-  --bg-elev: #264736;
-  
-  --gold: #cbab6e;
-  --gold-bright: #e0c489;
-  
-  --ink: #f0ebe0;
-  --ink-soft: #d2d0c2;
-  --ink-mute: #94a092;
-  --ink-dim: #5e6c5c;
-  
-  --line: #2a4030;
-  --line-strong: #3a543f;
+  --v3-deep: #1A3F2C;
+  --v3-botanical: #293D1F;
+  --v3-forest: #3F5630;
+  --v3-sage: #597043;
+  --v3-soft: #788A63;
+  --v3-white: #FEFEFE;
+  --v3-grey: #CCD7D2;
+  --v3-mist: #E7EFE9;
 
-  --f-display: 'Cormorant Garamond', Georgia, serif;
+  --bg: #FEFEFE;
+  --bg-2: #E7EFE9;
+  --bg-3: #F3F7F4;
+  --bg-elev: #CCD7D2;
+  
+  --gold: #1A3F2C;
+  --gold-bright: #3F5630;
+  
+  --ink: #293D1F;
+  --ink-soft: #3F5630;
+  --ink-mute: #56664C;
+  --ink-dim: #788A63;
+  
+  --line: #CCD7D2;
+  --line-strong: #AFC0B6;
+
+  --hair: #CCD7D2;
+  --hair-soft: #DCE5E0;
+  --tint: rgba(26, 63, 44, 0.07);
+  --tint-strong: rgba(26, 63, 44, 0.3);
+
+  --f-display: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
+  --f-serif: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
+  --f-heading: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
   --f-body: 'Manrope', system-ui, sans-serif;
   --f-mono: 'JetBrains Mono', ui-monospace, monospace;
 }
@@ -138,17 +157,256 @@
   body {
     @apply font-sans antialiased bg-background text-foreground selection:bg-primary selection:text-primary-foreground cursor-none;
   }
+
+  h1, h2, h3, h4, h5, h6,
+  .h1, .h2, .h3, .h4, .h5, .h6 {
+    font-family: var(--f-heading);
+  }
 }
 
-/* Scroll reveal utility classes */
+/* Ensure all headings and display classes use Melodrama */
+h1, h2, h3, h4, h5, h6,
+.display-xl, .display-lg, .display-md, .display-sm {
+  font-family: var(--f-heading);
+}
+
+/* ============================================================
+   GLOBAL PUBLIC PORTAL HEADINGS: SMOOTH SCROLL REVEAL TRANSITION
+   Bidirectional: Smoothly reveals when scrolling forward & backward
+   ============================================================ */
+.heading-reveal,
+.reveal-heading,
+.rv,
 .reveal-up {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  transform: translateY(32px);
+  transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
 }
-.reveal-up.is-revealed {
+
+.heading-reveal.heading-in-view,
+.heading-reveal.in,
+.heading-reveal.is-revealed,
+.reveal-heading.heading-in-view,
+.reveal-heading.in,
+.reveal-heading.is-revealed,
+.rv.in,
+.rv.heading-in-view,
+.rv.is-revealed,
+.reveal-up.is-revealed,
+.reveal-up.heading-in-view,
+.reveal-up.in {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* Stagger Delays for Eyebrows, Headings, and Subtext */
+.rv.d1, .heading-reveal.d1, .reveal-up.d1 { transition-delay: 0.12s; }
+.rv.d2, .heading-reveal.d2, .reveal-up.d2 { transition-delay: 0.24s; }
+.rv.d3, .heading-reveal.d3, .reveal-up.d3 { transition-delay: 0.36s; }
+.rv.d4, .heading-reveal.d4, .reveal-up.d4 { transition-delay: 0.48s; }
+
+/* ============================================================
+   GLOBAL PUBLIC PORTAL CARDS: SMOOTH 0% TO 100% SCALE REVEAL
+   Bidirectional: Triggers smoothly when scrolling forward & backward
+   ============================================================ */
+.why-card,
+.rcard,
+.t2card,
+.process-step,
+.stat-cell,
+.explore-card:not(.coverflow-card),
+.dest-card,
+.pkg-card,
+.pkg2-card,
+.p2card,
+.v3-tile,
+.v3-retreat-card,
+.v3-way-card,
+.v3-explore-card,
+.v3-stat,
+.about-founder-card,
+.about-team-card,
+.jd-author-card,
+.jd-rcard,
+.portal-card,
+.scale-card,
+[data-scale-card] {
+  transform: scale(0) !important;
+  opacity: 0 !important;
+  transform-origin: center center;
+  transition: transform 0.68s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.52s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+/* Stagger delays on reveal */
+.why-card.card-in-view.d1, .why-card.in.d1,
+.rcard.card-in-view.d1, .rcard.in.d1,
+.t2card.card-in-view.d1, .t2card.in.d1,
+.process-step.card-in-view.d1, .process-step.in.d1,
+.stat-cell.card-in-view.d1, .stat-cell.in.d1,
+.portal-card.card-in-view.d1, .portal-card.in.d1 {
+  transition-delay: 0.08s;
+}
+
+.why-card.card-in-view.d2, .why-card.in.d2,
+.rcard.card-in-view.d2, .rcard.in.d2,
+.t2card.card-in-view.d2, .t2card.in.d2,
+.process-step.card-in-view.d2, .process-step.in.d2,
+.stat-cell.card-in-view.d2, .stat-cell.in.d2,
+.portal-card.card-in-view.d2, .portal-card.in.d2 {
+  transition-delay: 0.16s;
+}
+
+.why-card.card-in-view.d3, .why-card.in.d3,
+.rcard.card-in-view.d3, .rcard.in.d3,
+.t2card.card-in-view.d3, .t2card.in.d3,
+.process-step.card-in-view.d3, .process-step.in.d3,
+.stat-cell.card-in-view.d3, .stat-cell.in.d3,
+.portal-card.card-in-view.d3, .portal-card.in.d3 {
+  transition-delay: 0.24s;
+}
+
+.why-card.card-in-view.d4, .why-card.in.d4,
+.rcard.card-in-view.d4, .rcard.in.d4,
+.t2card.card-in-view.d4, .t2card.in.d4,
+.process-step.card-in-view.d4, .process-step.in.d4,
+.stat-cell.card-in-view.d4, .stat-cell.in.d4,
+.portal-card.card-in-view.d4, .portal-card.in.d4 {
+  transition-delay: 0.32s;
+}
+
+/* In-viewport: smooth 100% size */
+.why-card.card-in-view, .why-card.in,
+.rcard.card-in-view, .rcard.in,
+.t2card.card-in-view, .t2card.in,
+.process-step.card-in-view, .process-step.in,
+.stat-cell.card-in-view, .stat-cell.in,
+.explore-card.card-in-view:not(.coverflow-card), .explore-card.in:not(.coverflow-card),
+.dest-card.card-in-view, .dest-card.in,
+.pkg-card.card-in-view, .pkg-card.in,
+.pkg2-card.card-in-view, .pkg2-card.in,
+.p2card.card-in-view, .p2card.in,
+.v3-tile.card-in-view, .v3-tile.in,
+.v3-retreat-card.card-in-view, .v3-retreat-card.in,
+.v3-way-card.card-in-view, .v3-way-card.in,
+.v3-explore-card.card-in-view, .v3-explore-card.in,
+.v3-stat.card-in-view, .v3-stat.in,
+.about-founder-card.card-in-view, .about-founder-card.in,
+.about-team-card.card-in-view, .about-team-card.in,
+.jd-author-card.card-in-view, .jd-author-card.in,
+.jd-rcard.card-in-view, .jd-rcard.in,
+.portal-card.card-in-view, .portal-card.in,
+.scale-card.card-in-view, .scale-card.in,
+[data-scale-card].card-in-view, [data-scale-card].in {
+  transform: scale(1) !important;
+  opacity: 1 !important;
+}
+
+/* Interactive hover once revealed */
+.why-card.card-in-view:hover, .why-card.in:hover,
+.t2card.card-in-view:hover, .t2card.in:hover,
+.process-step.card-in-view:hover, .process-step.in:hover,
+.stat-cell.card-in-view:hover, .stat-cell.in:hover,
+.about-founder-card.card-in-view:hover, .about-founder-card.in:hover,
+.about-team-card.card-in-view:hover, .about-team-card.in:hover,
+.portal-card.card-in-view:hover, .portal-card.in:hover,
+.scale-card.card-in-view:hover, .scale-card.in:hover,
+[data-scale-card].card-in-view:hover, [data-scale-card].in:hover {
+  transform: scale(1.02) !important;
+}
+
+.rcard.card-in-view:hover, .rcard.in:hover {
+  transform: scale(1.02) translateY(-5px) translateZ(0) !important;
+}
+
+.pkg-card.card-in-view:hover, .pkg-card.in:hover,
+.pkg2-card.card-in-view:hover, .pkg2-card.in:hover,
+.p2card.card-in-view:hover, .p2card.in:hover,
+.dest-card.card-in-view:hover, .dest-card.in:hover,
+.v3-tile.card-in-view:hover, .v3-tile.in:hover,
+.v3-retreat-card.card-in-view:hover, .v3-retreat-card.in:hover,
+.v3-way-card.card-in-view:hover, .v3-way-card.in:hover,
+.v3-explore-card.card-in-view:hover, .v3-explore-card.in:hover,
+.jd-rcard.card-in-view:hover, .jd-rcard.in:hover {
+  transform: scale(1.02) translateY(-6px) translateZ(0) !important;
+}
+
+/* ============================================================
+   LENIS 60FPS SMOOTH SCROLL & PERFORMANCE OPTIMIZATIONS
+   ============================================================ */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* GPU hardware acceleration for smooth 60fps rendering */
+.heading-reveal,
+.reveal-heading,
+.rv,
+.reveal-up,
+.why-card,
+.rcard,
+.t2card,
+.process-step,
+.stat-cell,
+.portal-card,
+.v3-tile,
+.dest-card,
+.pkg-card,
+.pkg2-card,
+.p2card,
+.v3-retreat-card,
+.v3-way-card,
+.v3-explore-card,
+.v3-stat,
+.about-founder-card,
+.about-team-card,
+.jd-author-card,
+.jd-rcard,
+.scale-card,
+[data-scale-card],
+.v3-nav {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Ensure smooth image zoom transforms without stutter */
+.portal-card img,
+.explore-card img,
+.v3-tile img,
+.why-card img,
+.rcard img {
+  will-change: transform;
+  transform: translateZ(0);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .why-card, .rcard, .t2card, .process-step, .stat-cell,
+  .explore-card, .dest-card, .pkg-card, .pkg2-card, .p2card,
+  .v3-tile, .v3-retreat-card, .v3-way-card, .v3-explore-card, .v3-stat,
+  .about-founder-card, .about-team-card, .jd-author-card, .jd-rcard,
+  .portal-card, .scale-card, [data-scale-card] {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
+  }
 }
 
 .ken-burns {

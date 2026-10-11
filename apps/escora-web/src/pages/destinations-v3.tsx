@@ -115,7 +115,7 @@ export default function DestinationsV3() {
                   const img = DESTINATION_PHOTOS[slug] || dest.imageUrl || FALLBACK_IMG;
                   const isSaved = saved.includes(slug);
                   return (
-                    <div key={dest.id} className="v3-tile">
+                    <div key={dest.id} className="v3-tile portal-card">
                       <img src={img} alt="" loading="lazy" />
                       <div className="scrim" />
                       <div className="caption">

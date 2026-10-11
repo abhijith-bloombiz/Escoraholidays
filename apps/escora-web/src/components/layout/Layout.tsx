@@ -38,7 +38,16 @@ function useKeepLinksInV3(enabled: boolean) {
       const [path, hash] = href.split("#");
       navigate(path || "/");
       if (hash) {
-        setTimeout(() => document.getElementById(hash)?.scrollIntoView({ behavior: "smooth" }), 120);
+        setTimeout(() => {
+          const el = document.getElementById(hash);
+          if (el) {
+            if (window.__lenis) {
+              window.__lenis.scrollTo(el, { offset: -85, duration: 1.25 });
+            } else {
+              el.scrollIntoView({ behavior: "smooth" });
+            }
+          }
+        }, 120);
       }
     }
 
@@ -48,16 +57,18 @@ function useKeepLinksInV3(enabled: boolean) {
 }
 
 export default function Layout({ children, hideFooter = false }: LayoutProps) {
-  const v3 = useIsV3();
   useScrollReveal();
-  useKeepLinksInV3(v3);
+
+  useEffect(() => {
+    document.documentElement.classList.add("theme-v3");
+  }, []);
 
   return (
     <div className="min-h-[100dvh] flex flex-col w-full selection:bg-gold selection:text-bg">
       <CustomCursor />
-      {v3 ? <NavbarV3 /> : <Navbar />}
+      <NavbarV3 />
       <main className="flex-1 w-full app-main">{children}</main>
-      {!hideFooter && (v3 ? <FooterV3 /> : <Footer />)}
+      {!hideFooter && <FooterV3 />}
       <WhatsAppFab />
       <MobileBottomNav />
     </div>

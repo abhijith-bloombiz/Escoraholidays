@@ -17,7 +17,7 @@
   color: var(--botanical);
   background: var(--white);
 }
-.v3dest h1, .v3dest h2 { font-family: inherit; margin: 0; color: var(--botanical); }
+.v3dest h1, .v3dest h2 { font-family: 'Melodrama', 'Cormorant Garamond', Georgia, serif; margin: 0; color: var(--botanical); }
 .v3dest em { font-style: normal; color: var(--sage); }
 .v3dest-wrap { max-width: 1320px; margin: 0 auto; padding: 0 clamp(20px, 4vw, 56px); }
 .v3dest-eyebrow {
@@ -90,9 +90,7 @@
   border-radius: 16px;
   background: var(--mist);
   box-shadow: 0 10px 30px rgba(26, 63, 44, 0.08);
-  animation: v3tile .7s var(--ease) both;
 }
-@keyframes v3tile { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 .v3-tile img {
   position: absolute; inset: 0; width: 100%; height: 100%;
   object-fit: cover; display: block;

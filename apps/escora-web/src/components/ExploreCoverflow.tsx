@@ -171,30 +171,57 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
   };
 
   const [isInView, setIsInView] = useState(false);
+  const [hasEntered, setHasEntered] = useState(false);
+  const [isRevealing, setIsRevealing] = useState(false);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* Viewport visibility: only auto-play when the carousel is in the user's viewport */
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* Viewport visibility: reveal entrance when scrolling forward or reverse into exact viewport */
   useEffect(() => {
     const el = carouselRef.current;
     if (!el) return;
 
     if (typeof IntersectionObserver === "undefined") {
       setIsInView(true);
+      setHasEntered(true);
       return;
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        setIsInView(entry.isIntersecting && entry.intersectionRatio >= 0.2);
+        // Enters viewport (either scrolling forward/down or reverse/up)
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.18) {
+          setIsInView(true);
+          setHasEntered((prev) => {
+            if (!prev) {
+              setIsRevealing(true);
+              if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+              revealTimerRef.current = setTimeout(() => {
+                setIsRevealing(false);
+              }, 1000);
+              return true;
+            }
+            return prev;
+          });
+        }
+        // Fully leaves viewport (scrolled away up or down)
+        else if (!entry.isIntersecting || entry.intersectionRatio <= 0.02) {
+          setIsInView(false);
+          setHasEntered(false);
+          setIsRevealing(false);
+          if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+        }
       },
-      {
-        threshold: [0, 0.2, 0.5],
-      }
+      { threshold: [0, 0.05, 0.18, 0.4] }
     );
 
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    };
   }, []);
 
   /* Scroll detection: do not auto-scroll cards while the user is actively scrolling */
@@ -307,10 +334,16 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
 
   if (!destinations || destinations.length === 0) return null;
 
+  const entranceClass = !hasEntered
+    ? "coverflow-entrance-pending"
+    : isRevealing
+    ? "coverflow-entrance-revealing"
+    : "coverflow-entrance-complete";
+
   return (
     <div
       ref={carouselRef}
-      className="explore-coverflow-wrap"
+      className={`explore-coverflow-wrap ${entranceClass}`}
       tabIndex={0}
       role="region"
       aria-label="Explore Kerala 3D Coverflow"

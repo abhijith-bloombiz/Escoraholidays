@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
-import escoraWordmark from "@assets/escora/escora-wordmark.png";
+import escoraLogoDark from "@assets/escora/escora-logo-dark.png";
 import escoraMark from "@assets/escora/escora-logo-mark.png";
 
 const COLLECTIONS = [
@@ -15,6 +15,7 @@ const COLLECTIONS = [
 ];
 
 const LINKS_AFTER = [
+  { href: "/journeys", label: "Journeys" },
   { href: "/destinations", label: "Explore Kerala" },
   { href: "/journal", label: "Journal" },
   { href: "/about", label: "About" },
@@ -64,7 +65,7 @@ export default function NavbarV3() {
     <>
       <nav className={`v3-nav${overHero ? " is-over-hero" : ""}${scrolled ? " is-scrolled" : ""}`}>
         <Link href="/" className="v3-nav-brand" aria-label="Escora — Home">
-          <img src={overHero ? escoraWordmark : escoraMark} alt="Escora" />
+          <img src={escoraLogoDark} alt="Escora" />
         </Link>
 
         <div className="v3-nav-links nav-links-row">

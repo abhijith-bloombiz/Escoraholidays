@@ -97,7 +97,7 @@ export default function Destinations() {
                       key={dest.id}
                       href={`/destinations/${slug}`}
                       id={dest.id.toString()}
-                      className="explore-card explore-card-badge reveal-up"
+                      className="explore-card explore-card-badge reveal-up portal-card"
                       aria-label={`Explore ${dest.name}, Kerala`}
                     >
                       <img src={badge} alt={`${dest.name} — Escora Holidays`} className="badge-img" />
@@ -119,7 +119,7 @@ export default function Destinations() {
                     key={dest.id}
                     href={`/destinations/${slug}`}
                     id={dest.id.toString()}
-                    className="explore-card reveal-up"
+                    className="explore-card reveal-up portal-card"
                     aria-label={`Explore ${dest.name}, Kerala`}
                   >
                     <div className="bg-img" style={{ backgroundImage: `url('${dest.imageUrl || "https://images.unsplash.com/photo-1444927714506-8492d94b4e3d?auto=format&fit=crop&w=800&q=80"}')` }} />

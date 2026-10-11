@@ -138,7 +138,7 @@ export default function Journeys() {
                 <Link 
                   key={pkg.id} 
                   href={`/journeys/${pkg.id}`}
-                  className="group block reveal-up"
+                  className="group block reveal-up portal-card"
                   style={{ transitionDelay: `${(i % 2) * 0.2}s` }}
                 >
                   <div className="aspect-[4/3] w-full overflow-hidden relative mb-6">

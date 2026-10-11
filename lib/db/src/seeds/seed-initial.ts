@@ -6,15 +6,14 @@
 import { connectDB, disconnectDB } from "../connection";
 import { DestinationModel, PackageModel, JournalPostModel, syncSequence } from "../models";
 
-async function main() {
+export async function seedInitial(): Promise<boolean> {
   await connectDB();
 
   // ── Guard: skip if already seeded ─────────────────────────────────────────
   const existingDests = await DestinationModel.countDocuments();
   if (existingDests > 0) {
     console.log(`Seed skipped — database already has ${existingDests} destinations.`);
-    await disconnectDB();
-    process.exit(0);
+    return false;
   }
 
   console.log("Seeding database…");
@@ -789,11 +788,18 @@ async function main() {
   console.log(`✓ ${journalPostsData.length} journal posts inserted`);
 
   console.log("\n✅ Seed complete — 5 destinations, 4 packages, 18 journal posts");
-  await disconnectDB();
-  process.exit(0);
+  return true;
 }
 
-main().catch((err) => {
-  console.error("Seed failed:", err);
-  process.exit(1);
-});
+const scriptPath = process.argv[1]?.replace(/\\/g, "/") ?? "";
+if (scriptPath.endsWith("seed-initial.ts")) {
+  seedInitial()
+    .then(async () => {
+      await disconnectDB();
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error("Seed failed:", err);
+      process.exit(1);
+    });
+}

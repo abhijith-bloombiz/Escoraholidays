@@ -258,7 +258,7 @@ const KERALA_DESTINATIONS = [
   },
 ];
 
-async function main() {
+export async function seedKerala(): Promise<boolean> {
   await connectDB();
   const slugs = KERALA_DESTINATIONS.map((d) => d.slug);
   const existing = await DestinationModel.find(
@@ -297,11 +297,18 @@ async function main() {
     console.log("No existing destinations needed a highlights/howToReach backfill.");
   }
 
-  await disconnectDB();
-  process.exit(0);
+  return true;
 }
 
-main().catch((err) => {
-  console.error("Seed failed:", err);
-  process.exit(1);
-});
+const scriptPath = process.argv[1]?.replace(/\\/g, "/") ?? "";
+if (scriptPath.endsWith("seed-kerala.ts")) {
+  seedKerala()
+    .then(async () => {
+      await disconnectDB();
+      process.exit(0);
+    })
+    .catch((err) => {
+      console.error("Seed failed:", err);
+      process.exit(1);
+    });
+}

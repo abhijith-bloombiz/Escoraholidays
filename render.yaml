@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: starter
     buildCommand: npm install -g pnpm && pnpm install --frozen-lockfile && pnpm run build:prod
-    startCommand: pnpm run db:init && pnpm run db:seed && node --enable-source-maps ./apps/api-server/dist/index.mjs
+    startCommand: node --enable-source-maps ./apps/api-server/dist/index.mjs
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:

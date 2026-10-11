@@ -134,7 +134,7 @@ The project is configured out-of-the-box for Render via [render.yaml](file:///d:
    ```
 3. **Start Command**:
    ```bash
-   pnpm run db:init && pnpm run db:seed && node --enable-source-maps ./apps/api-server/dist/index.mjs
+   node --enable-source-maps ./apps/api-server/dist/index.mjs
    ```
 4. **Environment Variables**:
    - `MONGODB_URI`: Your MongoDB Atlas connection URI (`mongodb+srv://...`)

@@ -3,6 +3,9 @@
  * Runs initial foundation seed, index initialization, and additive Kerala destination seeding.
  */
 import { initIndexes } from "./init-indexes";
+import { seedInitial } from "./seed-initial";
+import { seedKerala } from "./seed-kerala";
+import { disconnectDB } from "../connection";
 
 export async function runAllSeeds(): Promise<void> {
   console.log("==========================================");
@@ -14,11 +17,14 @@ export async function runAllSeeds(): Promise<void> {
 
   // 2. Initial Foundation Seed
   console.log("\n[1/2] Checking foundation seed...");
-  await import("./seed-initial");
+  await seedInitial();
 
   // 3. Additive Kerala Destinations Seed
   console.log("\n[2/2] Checking Kerala destinations seed...");
-  await import("./seed-kerala");
+  await seedKerala();
+
+  console.log("\n✅ Database seeding process complete.");
+  await disconnectDB();
 }
 
 const scriptPath = process.argv[1]?.replace(/\\/g, "/") ?? "";
@@ -28,3 +34,4 @@ if (scriptPath.endsWith("seeds/index.ts") || scriptPath.endsWith("seed.ts")) {
     process.exit(1);
   });
 }
+

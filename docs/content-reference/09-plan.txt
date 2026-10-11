@@ -1,0 +1,86 @@
+PAGE: PLAN YOUR JOURNEY
+URL: /plan
+================================================================================
+
+STEP 1 OF 5 — TRAVEL STYLE
+-----------------------------
+How would you like to travel?
+This helps us shape the tone and pace of your journey.
+
+  Honeymoon           Intimate escapes for two
+  Family              Memories across generations
+  Solo                Your pace, your way
+  Wellness            Ayurveda, rest and renewal
+  Bespoke Group       Curated for private groups
+
+  [ Continue ]
+
+
+STEP 2 OF 5 — DESTINATIONS
+-----------------------------
+Where do you want to go?
+Select one or more — we'll weave them into a seamless journey.
+
+  Alleppey / Munnar / Fort Kochi / Thekkady / Kovalam /
+  Wayanad / Varkala / Kumarakom
+  (Additional destinations loaded from database)
+
+  [ ← Back ]  [ Continue ]
+
+
+STEP 3 OF 5 — TRIP DETAILS
+-----------------------------
+Tell us about your trip.
+Approximate dates and group size help us plan the right experiences.
+
+  Arrival date
+  Departure date
+  Adults        − [count] +
+  Children      − [count] +
+  Approximate budget per person:
+    Under ₹1 Lakh / ₹1L – ₹2L / ₹2L – ₹5L / ₹5L – ₹10L / Above ₹10L
+
+  [ ← Back ]  [ Continue ]
+
+
+STEP 4 OF 5 — PREFERENCES
+-----------------------------
+Anything we should know?
+Special occasions, dietary requirements, accommodation preferences, pace of
+travel — tell us everything.
+
+  (e.g. celebrating our anniversary, prefer heritage stays, vegetarian,
+  leisurely pace with no early mornings…)
+
+  [ ← Back ]  [ Almost there ]
+
+
+STEP 5 OF 5 — CONTACT DETAILS
+--------------------------------
+How can we reach you?
+A journey designer will be in touch within 24 hours.
+
+  Full name *        (Your name)
+  Email *            (you@example.com)
+  Phone *            (+91 98765 43210)
+
+  Your itinerary summary:
+    Travel style   [selected type]
+    Destinations   [selected destinations]
+    Dates          [arrival – departure]
+    Travellers     [adults + children]
+    Budget         [selected range]
+
+  We'll never share your details. By submitting you agree to our privacy policy.
+
+  [ ← Back ]  [ Send Enquiry ]
+
+
+SUCCESS SCREEN
+--------------
+✦
+Your journey begins, [first name].
+We've received your itinerary. A journey designer will be in touch within
+24 hours to start crafting your experience.
+
+  [ Return home ]

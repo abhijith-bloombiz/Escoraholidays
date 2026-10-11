@@ -1,0 +1,47 @@
+PAGE: CONTACT
+URL: /contact
+================================================================================
+
+HERO
+----
+Contact
+
+Start a conversation
+
+Whether you have a specific journey in mind or simply want to explore what's
+possible, we're here to help. Our team responds within one business day.
+
+
+GET IN TOUCH
+------------
+Get in touch
+
+  Phone:     +91 8157 003 344
+  WhatsApp:  +91 8157 003 344
+  Email:     hello@escoraholidays.com
+
+
+FIND US
+-------
+Find us
+
+  Escora Journey Studio
+  Fort Kochi, Kerala 682001
+  India
+  Monday – Saturday · 09:00 – 18:00 IST
+
+
+ENQUIRY FORM
+------------
+Send a message
+
+  Name *          (Your name)
+  Phone           (+91)
+  Email *         (you@email.com)
+  Message *       (How can we help you plan your journey?)
+
+  [ Send Message ]
+
+On submission:
+  ✓ Message received
+  Thank you for reaching out. We'll reply within one business day.

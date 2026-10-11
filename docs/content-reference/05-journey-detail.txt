@@ -1,0 +1,79 @@
+PAGE: JOURNEY DETAIL
+URL: /journeys/[id]
+================================================================================
+
+NOTE: This is a dynamic page. Content below covers all four sample journeys
+and the shared page structure.
+
+
+JOURNEY 1 — THE MALABAR ESCAPE
+-------------------------------
+Category:  Honeymoon
+Duration:  5 Nights
+Route:     Kochi · Munnar · Alleppey
+
+Weave through the lush heartland of Kerala on a private itinerary designed for
+two. Begin in the colonial lanes of Fort Kochi, ascend to the misty tea estates
+of Munnar, and finish aboard a traditional ketuvallam houseboat drifting the
+Alleppey backwaters.
+
+
+JOURNEY 2 — CARDAMOM HILLS RETREAT
+-------------------------------------
+Category:  Wellness
+Duration:  4 Nights
+Route:     Munnar · Thekkady
+
+Retreat into the cool highlands where cardamom perfumes the air. Spend your days
+with guided spice-estate walks, sunrise yoga on dew-wet lawns, and unhurried
+ayurvedic treatments before evenings around a fire.
+
+
+JOURNEY 3 — SPICE COAST ODYSSEY
+---------------------------------
+Category:  Culture
+Duration:  7 Nights
+Route:     Kochi · Marari · Kumarakom
+
+Follow the footsteps of traders who once sailed for Kerala's black gold. Visit
+working spice markets in Kochi, unwind on Marari's unspoiled beach, and drift
+the Kumarakom bird sanctuary by private boat.
+
+
+JOURNEY 4 — WAYANAD WILDS
+---------------------------
+Category:  Adventure
+Duration:  3 Nights
+Route:     Calicut · Wayanad
+
+Escape to India's most biodiverse forests. Stay in a sustainably built forest
+lodge, trek to hidden waterfalls with a local guide, and join a tribal-heritage
+walk that few travellers ever experience.
+
+
+PAGE SECTIONS (shared structure)
+---------------------------------
+  The Experience        — narrative description
+  Journey Unfolds       — day-by-day itinerary (Day 1, Day 2 …)
+  Where You'll Rest     — accommodation details
+  Inclusions            — what is included
+  Exclusions            — what is not included
+  Visual Glimpses       — photo gallery
+
+
+BOOKING SIDEBAR
+---------------
+Reserve Your Journey
+Our concierge will contact you to finalize dates and details.
+
+  Name
+  Email
+  Phone
+  Travel Date
+  Guests
+  Special Requests
+
+  [ Request to Book ]
+
+On submission:
+  Booking Enquiry Sent — Our concierge will contact you shortly to confirm details.

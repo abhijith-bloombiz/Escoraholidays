@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/admin/"
+title = "Escora — Admin Portal"
+version = "1.0.0"
+id = "artifacts/escora-admin"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/admin/" ]
+localPort = 19732
+
+[services.development]
+run = "pnpm --filter @workspace/escora-admin run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/escora-admin", "run", "build" ]
+publicDir = "artifacts/escora-admin/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19732"
+BASE_PATH = "/admin/"

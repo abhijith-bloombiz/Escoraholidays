@@ -1,0 +1,41 @@
+PAGE: DESTINATIONS
+URL: /destinations
+================================================================================
+
+HERO
+----
+The Canvas
+
+Curated Destinations
+
+From misty tea gardens to emerald backwaters, discover the varied landscapes
+that make Kerala God's Own Country.
+
+
+FILTERS
+-------
+All | Backwaters | Hills | Heritage | Wildlife | Wellness | Coastal | Spice
+
+
+DESTINATIONS
+------------
+
+  MUNNAR
+  Category: Hills
+  Recommended Stay: 2 Nights  |  Best Time: All Year
+
+  ALLEPPEY
+  Category: Backwaters
+  Recommended Stay: 1 Night  |  Best Time: Oct – Mar
+
+  FORT KOCHI
+  Category: Heritage
+  Recommended Stay: 2 Nights  |  Best Time: All Year
+
+  WAYANAD
+  Category: Hills
+  Recommended Stay: 2 Nights  |  Best Time: Sep – May
+
+  THEKKADY
+  Category: Spice
+  Recommended Stay: 1 Night  |  Best Time: All Year

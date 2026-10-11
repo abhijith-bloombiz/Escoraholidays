@@ -1,0 +1,329 @@
+PAGE: COLLECTION / CATEGORY DETAIL
+URL: /collections/[slug]
+================================================================================
+
+NOTE: Dynamic page — one per travel type. All 8 collections documented below.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COLLECTION 1 — HONEYMOON  (/collections/honeymoon)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Where every moment is composed for two
+Duration: 5–10 nights
+
+Kerala offers the most romantic backdrop in India — private houseboats drifting
+through silent lagoons, heritage villas on mist-covered hillsides, and candlelit
+dinners on your own stretch of shore. Every Escora honeymoon is crafted from
+scratch: no package tours, no shared itineraries.
+
+INCLUSIONS:
+  - Private luxury kettuvallam (houseboat) with personal chef
+  - Couples' Ayurveda rituals — Abhyanga, Shirodhara, Kizhi
+  - Candlelit dinner on a private rice-barge or cliff terrace
+  - Vintage car transfers between destinations
+  - Heritage manor or boutique villa accommodation throughout
+  - Sunset cruise on Vembanad Lake or Ashtamudi backwaters
+  - Personalised welcome — rose petals, champagne, fresh florals
+  - 24-hour Escora concierge throughout your journey
+
+HIGHLIGHTS:
+  Alleppey Backwaters
+  Three days on a private kettuvallam, drifting through rice paddies and
+  palm-fringed canals.
+
+  Munnar Tea Hills
+  A heritage planter's bungalow surrounded by cardamom forest and morning mist.
+
+  Fort Kochi Nights
+  Colonial heritage, Portuguese architecture and waterfront dining in
+  Kerala's most storied city.
+
+  Varkala Cliffs
+  Clifftop yoga, black-sand beaches and seafood at sunset —
+  Kerala's most dramatic coastline.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COLLECTION 2 — HEALTH & WELLNESS  (/collections/health-wellness)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ancient healing, physician-led and deeply restorative
+Duration: 7–21 nights
+
+Kerala is the birthplace of Ayurveda. Escora's wellness programmes are designed
+by resident physicians — not spa menus — combining authentic panchakarma, yoga
+and naturopathy in properties that are themselves places of healing.
+Slow down. Go deep.
+
+INCLUSIONS:
+  - Full physician consultation and personalised health assessment
+  - Daily Ayurvedic treatments — Abhyanga, Shirodhara, Navara Kizhi
+  - Authentic panchakarma (for programmes of 14 nights or more)
+  - Twice-daily yoga and pranayama with resident teacher
+  - Therapeutic vegetarian and sattvic cuisine
+  - Meditation and breathwork sessions
+  - Herbal supplements and take-home wellness kit
+  - Follow-up physician consultation 30 days after departure
+
+HIGHLIGHTS:
+  Panchakarma
+  The complete Ayurvedic detox — five-stage purification under
+  daily physician supervision.
+
+  Yoga & Pranayama
+  Morning asana and breathwork on the banks of Vembanad Lake as the mist lifts.
+
+  Sattvic Kitchen
+  Farm-to-table vegetarian cuisine cooked with medicinal herbs and
+  traditional spices.
+
+  Forest Silence
+  Guided forest walks and digital detox in Wayanad's sacred groves.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COLLECTION 3 — NATURE & WILDLIFE  (/collections/nature-wildlife)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Into Kerala's ancient forests and living ecosystems
+Duration: 4–8 nights
+
+Kerala is home to some of South Asia's most biodiverse ecosystems — tiger
+reserves, elephant corridors, shola grasslands and mangrove estuaries. Escora's
+nature journeys are led by field naturalists who have spent decades in
+these forests.
+
+INCLUSIONS:
+  - Expert field naturalist guide for all safaris and treks
+  - Jeep safari in Periyar Tiger Reserve and Wayanad Wildlife Sanctuary
+  - Night spotlight safari (where permitted by forest authorities)
+  - Guided birding walks — Kerala has over 500 bird species
+  - Boat safari on Periyar Lake at dawn
+  - Ethical elephant observation at sanctioned sites
+  - Jungle lodge or forest tented camp accommodation
+  - All meals including field picnics and campfire dinners
+
+HIGHLIGHTS:
+  Periyar Tiger Reserve
+  Boat safaris across the reservoir at dawn — elephant herds, gaur and
+  the occasional tiger track.
+
+  Wayanad Sanctuaries
+  Dhoni Hills, Muthanga and Tholpetty — three connected reserves with
+  leopard, tiger and flying squirrel.
+
+  Shola Grasslands
+  The rolling shola-grassland mosaic above Munnar — a unique highland
+  ecosystem found nowhere else on Earth.
+
+  Mangrove Estuaries
+  Canoe through Kannur's mangroves at high tide — birds, crabs and
+  the strange silence of the tidal forest.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COLLECTION 4 — HILL STATIONS  (/collections/hill-stations)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tea gardens, cardamom forests and colonial-era planter's life
+Duration: 3–7 nights
+
+At altitude — Munnar at 1,600m, Vagamon at 1,100m, Wayanad's plateau —
+Kerala becomes a different country: cold mornings, British-era bungalows,
+rolling carpets of tea and the scent of cardamom on every breeze. Escora's
+hill-station journeys open doors that most travellers never find.
+
+INCLUSIONS:
+  - Private heritage planter's bungalow or boutique estate stay
+  - Guided tea estate walk with resident tea-master
+  - Sunrise viewpoint trek with breakfast in the fields
+  - Spice and cardamom plantation tour with harvest experience
+  - Waterfall treks — Attukad, Lakkam, Nyayamakad
+  - Private cooking session with estate-grown produce
+  - All meals at the estate; plantation-fresh and local
+  - 4WD mountain road transfers
+
+HIGHLIGHTS:
+  Munnar Tea Estates
+  The Kanan Devan Hills — 30,000 acres of contiguous tea,
+  the largest private estate in India.
+
+  Vagamon Meadows
+  Pine-clad meadows and paragliding cliffs — a secret hill station
+  that few tourists discover.
+
+  Wayanad Plateau
+  Coffee, pepper and cardamom — a tribal plateau with ancient dolmens
+  and Edakkal cave inscriptions.
+
+  Nelliyampathy Hills
+  Kerala's quietest hill station — orange groves, a mirror lake and
+  zero tourist infrastructure.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COLLECTION 5 — BACKWATERS  (/collections/backwaters)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+The slow world of lagoons, canals and rice-barge life
+Duration: 2–5 nights
+
+The backwaters of Kerala — 900 kilometres of interconnected lakes, lagoons,
+rivers and canals — are one of the world's great slow-travel experiences.
+Escora charters private kettuvallam for journeys that have nothing to do
+with the tourist houseboat circuit.
+
+INCLUSIONS:
+  - Exclusive private kettuvallam charter (no shared boats, ever)
+  - On-board personal chef serving Kerala cuisine
+  - Village immersion — coir weaving, toddy tapping, country-boat ride
+  - Sunrise canoe through narrow village canals
+  - Kathakali or Mohiniyattam performance at a heritage venue
+  - Sunset cocktails on the sundeck
+  - Bird watching with a local naturalist on board
+  - Optional: private Ayurveda treatments on board
+
+HIGHLIGHTS:
+  Alleppey Lagoons
+  Vembanad Lake and its finger-like network of canals —
+  the heartland of the Kerala backwaters.
+
+  Kumarakom Bird Sanctuary
+  Dawn on the water with over 150 species — egrets, kingfishers,
+  darters and migratory Siberian storks.
+
+  Kuttanad Rice Fields
+  The only place in Asia where farming happens below sea level —
+  a landscape unlike anything else in India.
+
+  Ashtamudi Estuary
+  Kollam's vast eight-armed estuary — mangroves, prawn farms and
+  a quiet that the Alleppey circuit never reaches.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COLLECTION 6 — BEACHES  (/collections/beaches)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sun, cliffs, sea and Kerala's quietest shores
+Duration: 3–6 nights
+
+Kerala's 580-kilometre coastline holds beaches that range from the dramatic
+red laterite cliffs of Varkala to the white sands of Marari and the
+fortress-backed shores of Bekal. Escora's beach journeys are slow by design:
+clifftop yoga at dawn, seafood pulled from the water that morning,
+afternoons with nowhere to be.
+
+INCLUSIONS:
+  - Private beachfront villa or boutique cliff-resort accommodation
+  - Sunrise yoga or Kalaripayattu on the beach
+  - Boat trip to secluded coves inaccessible by road
+  - Locally caught seafood dinner at the water's edge
+  - Sunset sailing on a traditional vallam
+  - Snorkelling or kayaking (seasonal)
+  - Coastal heritage walk — fishing villages, Chinese nets, spice wharfs
+  - All beach transfers and day excursions
+
+HIGHLIGHTS:
+  Varkala Cliffs
+  Kerala's most dramatic shoreline — 15-metre laterite cliffs, natural spring
+  water and Jatayu's mythic shadow.
+
+  Marari Sands
+  A long, uncrowded beach backed by a fishing village —
+  still, white and entirely unhurried.
+
+  Bekal Fort Beach
+  The ancient Bekal fort jutting into the Arabian Sea —
+  Kerala's most photogenic coastal monument.
+
+  Kovalam Lighthouse
+  Three connected coves, a colonial lighthouse and the southernmost tip
+  of the Malabar coast.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COLLECTION 7 — FUNCTIONAL MEDICINE  (/collections/functional-medicine)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Advanced diagnostics, root-cause medicine and integrative healing
+Duration: 7–14 nights
+
+Escora's Functional Medicine programmes combine the diagnostic rigour of modern
+integrative medicine with Kerala's deep wellness traditions. Designed for those
+who want answers — not just symptom management — these programmes pair advanced
+biomarker testing with personalised Ayurvedic and naturopathic protocols.
+
+INCLUSIONS:
+  - Comprehensive functional health assessment — over 80 biomarkers
+  - One-on-one consultations with integrative medicine physician
+  - Personalised therapeutic protocol — Ayurveda, naturopathy or combined
+  - Advanced gut health analysis and microbiome review
+  - Hormonal and metabolic panel (thyroid, cortisol, insulin, lipids)
+  - Nutritional therapy and anti-inflammatory dietary plan
+  - Supervised therapeutic fasting (where clinically indicated)
+  - Detailed take-home report and 3-month follow-up plan
+
+HIGHLIGHTS:
+  Advanced Diagnostics
+  Full biomarker panel assessed by integrative physicians —
+  not a wellness questionnaire.
+
+  Integrative Protocols
+  Bridging Ayurvedic tradition with evidence-based functional medicine —
+  the best of both lineages.
+
+  Gut & Metabolic Health
+  Kerala's sattvic cuisine as medicine — combined with targeted
+  supplementation and therapeutic interventions.
+
+  NABH Accredited Care
+  All clinical care delivered at NABH-accredited facilities by
+  licensed medical practitioners.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COLLECTION 8 — HISTORICAL & HERITAGE  (/collections/historical-heritage)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Tracing Kerala's spice routes, kingdoms and colonial legacy
+Duration: 4–8 nights
+
+Kerala's history is the history of the world's desire for spice. Portuguese,
+Dutch, Chinese, Arab and British trade routes all converged here, layering
+architecture, food, religion and art into something uniquely complex. Escora's
+heritage journeys are led by historians and curators who open private collections,
+forgotten temples and unvisited palaces.
+
+INCLUSIONS:
+  - Private guided heritage walk — Fort Kochi's Jewish Quarter and Mattancherry
+  - Exclusive after-hours access to Padmanabhapuram Palace
+  - Expert-led tour of Dutch and Portuguese colonial architecture
+  - Spice exchange history trail — Malabar coast to Cochin harbour
+  - Kathakali and Mohiniyattam performance at a heritage venue
+  - Lunch at a Paradesi Jewish community home (seasonal)
+  - Antique and art market tour with a specialist curator
+  - Handloom and Kasavu weaving village visit
+
+HIGHLIGHTS:
+  Fort Kochi
+  The oldest European settlement in India — Chinese fishing nets, a Portuguese
+  church, a Dutch palace and a Jewish synagogue within one square kilometre.
+
+  Padmanabhapuram Palace
+  The finest wooden palace in Asia — 500 years of Kerala craftsmanship,
+  maintained by the Royal Family of Travancore.
+
+  Malabar Spice Coast
+  The Calicut coast where Vasco da Gama first landed —
+  the route that changed world history.
+
+  Thrissur Pooram
+  Kerala's greatest festival — 200 caparisoned elephants, 500-year-old
+  percussion traditions and a crowd of half a million.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SHARED CTA (appears on every collection page)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Ready to begin?
+Let us compose your [collection] journey.
+Every Escora journey is built from scratch — your dates, your pace, your
+companions. Tell us what you're imagining.
+
+  [ Send an Enquiry ]
+  [ WhatsApp us ]
+  [ Plan this journey ]

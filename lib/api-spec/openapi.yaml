@@ -1,0 +1,1553 @@
+openapi: "3.1.0"
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: "1.0.0"
+servers:
+  - url: /api
+
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      summary: Health check
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  # ── Destinations ──────────────────────────────────────────────
+  /destinations:
+    get:
+      operationId: listDestinations
+      summary: List all destinations
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+        - in: query
+          name: published
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Destination"
+    post:
+      operationId: createDestination
+      summary: Create a destination
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DestinationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Destination"
+
+  /destinations/{id}:
+    get:
+      operationId: getDestination
+      summary: Get destination by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Destination"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateDestination
+      summary: Update a destination
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DestinationUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Destination"
+    delete:
+      operationId: deleteDestination
+      summary: Delete a destination
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Packages ──────────────────────────────────────────────────
+  /packages:
+    get:
+      operationId: listPackages
+      summary: List all packages
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: published
+          schema:
+            type: boolean
+        - in: query
+          name: featured
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Package"
+    post:
+      operationId: createPackage
+      summary: Create a package
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackageInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+
+  /packages/{id}:
+    get:
+      operationId: getPackage
+      summary: Get package by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+        "404":
+          description: Not found
+    patch:
+      operationId: updatePackage
+      summary: Update a package
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PackageUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Package"
+    delete:
+      operationId: deletePackage
+      summary: Delete a package
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Itineraries ───────────────────────────────────────────────
+  /itineraries:
+    get:
+      operationId: listItineraries
+      summary: List all itineraries
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Itinerary"
+    post:
+      operationId: createItinerary
+      summary: Create an itinerary
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Itinerary"
+
+  /itineraries/share/{token}:
+    get:
+      operationId: getItineraryByShareToken
+      summary: Get itinerary by public share token
+      parameters:
+        - in: path
+          name: token
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Itinerary"
+        "404":
+          description: Not found
+
+  /itineraries/{id}:
+    get:
+      operationId: getItinerary
+      summary: Get itinerary by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Itinerary"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateItinerary
+      summary: Update an itinerary
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Itinerary"
+    delete:
+      operationId: deleteItinerary
+      summary: Delete an itinerary
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Travel Categories ─────────────────────────────────────────
+  /travel-categories:
+    get:
+      operationId: listTravelCategories
+      summary: List all travel categories
+      parameters:
+        - in: query
+          name: published
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TravelCategory"
+    post:
+      operationId: createTravelCategory
+      summary: Create a travel category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TravelCategoryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TravelCategory"
+
+  /travel-categories/{id}:
+    get:
+      operationId: getTravelCategory
+      summary: Get travel category by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TravelCategory"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateTravelCategory
+      summary: Update a travel category
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TravelCategoryUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TravelCategory"
+    delete:
+      operationId: deleteTravelCategory
+      summary: Delete a travel category
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Orders / Enquiries ────────────────────────────────────────
+  /orders:
+    get:
+      operationId: listOrders
+      summary: List all orders/enquiries
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Order"
+    post:
+      operationId: createOrder
+      summary: Submit an enquiry or booking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      summary: Get order by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateOrder
+      summary: Update order status or details
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+    delete:
+      operationId: deleteOrder
+      summary: Delete an order
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Contact Enquiries ────────────────────────────────────────
+  /enquiries:
+    get:
+      operationId: listEnquiries
+      summary: List contact enquiries
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Enquiry"
+    post:
+      operationId: createEnquiry
+      summary: Submit a contact enquiry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnquiryInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Enquiry"
+
+  /enquiries/{id}:
+    get:
+      operationId: getEnquiry
+      summary: Get enquiry by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Enquiry"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateEnquiry
+      summary: Update enquiry status
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnquiryUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Enquiry"
+    delete:
+      operationId: deleteEnquiry
+      summary: Delete an enquiry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Journal Posts ─────────────────────────────────────────────
+  /journal:
+    get:
+      operationId: listJournalPosts
+      summary: List journal posts
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: published
+          schema:
+            type: boolean
+        - in: query
+          name: tag
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/JournalPost"
+    post:
+      operationId: createJournalPost
+      summary: Create a journal post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalPostInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalPost"
+
+  /journal/{id}:
+    get:
+      operationId: getJournalPost
+      summary: Get journal post by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalPost"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateJournalPost
+      summary: Update a journal post
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalPostUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalPost"
+    delete:
+      operationId: deleteJournalPost
+      summary: Delete a journal post
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Media ─────────────────────────────────────────────────────
+  /media:
+    get:
+      operationId: listMedia
+      summary: List uploaded media
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Media"
+
+  /media/upload:
+    post:
+      operationId: uploadMedia
+      summary: Upload a media file
+      responses:
+        "201":
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Media"
+
+  /media/{id}:
+    delete:
+      operationId: deleteMedia
+      summary: Delete a media file
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Dashboard ─────────────────────────────────────────────────
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      summary: Get dashboard statistics
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+
+    # ── Destination ──────────────────────────────────────────────
+    Destination:
+      type: object
+      required: [id, name, slug, region, type, published, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        region:
+          type: string
+        type:
+          type: string
+        description:
+          type: ["string", "null"]
+        shortDesc:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        galleryImages:
+          type: ["string", "null"]
+        latitude:
+          type: ["number", "null"]
+        longitude:
+          type: ["number", "null"]
+        bestSeason:
+          type: ["string", "null"]
+        elevation:
+          type: ["string", "null"]
+        nightsMin:
+          type: ["integer", "null"]
+        nightsMax:
+          type: ["integer", "null"]
+        highlights:
+          type: ["string", "null"]
+        howToReach:
+          type: ["string", "null"]
+        published:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    DestinationInput:
+      type: object
+      required: [name, slug, region, type]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        region:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        shortDesc:
+          type: string
+        imageUrl:
+          type: string
+        galleryImages:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        bestSeason:
+          type: string
+        elevation:
+          type: string
+        nightsMin:
+          type: integer
+        nightsMax:
+          type: integer
+        highlights:
+          type: string
+        howToReach:
+          type: string
+        published:
+          type: boolean
+
+    DestinationUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        region:
+          type: string
+        type:
+          type: string
+        description:
+          type: string
+        shortDesc:
+          type: string
+        imageUrl:
+          type: string
+        galleryImages:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        bestSeason:
+          type: string
+        elevation:
+          type: string
+        nightsMin:
+          type: integer
+        nightsMax:
+          type: integer
+        highlights:
+          type: string
+        howToReach:
+          type: string
+        published:
+          type: boolean
+
+    # ── Travel Category ──────────────────────────────────────────
+    TravelCategory:
+      type: object
+      required: [id, slug, label, sortOrder, published, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        label:
+          type: string
+        description:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        priceFrom:
+          type: ["string", "null"]
+        priceLabel:
+          type: ["string", "null"]
+        journeyCount:
+          type: ["string", "null"]
+        sortOrder:
+          type: integer
+        published:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TravelCategoryInput:
+      type: object
+      required: [slug, label]
+      properties:
+        slug:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        priceFrom:
+          type: string
+        priceLabel:
+          type: string
+        journeyCount:
+          type: string
+        sortOrder:
+          type: integer
+        published:
+          type: boolean
+
+    TravelCategoryUpdate:
+      type: object
+      properties:
+        slug:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        priceFrom:
+          type: string
+        priceLabel:
+          type: string
+        journeyCount:
+          type: string
+        sortOrder:
+          type: integer
+        published:
+          type: boolean
+
+    # ── Package ──────────────────────────────────────────────────
+    Package:
+      type: object
+      required: [id, name, slug, category, durationNights, published, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+        description:
+          type: ["string", "null"]
+        shortDesc:
+          type: ["string", "null"]
+        durationNights:
+          type: integer
+        route:
+          type: ["string", "null"]
+        bestFor:
+          type: ["string", "null"]
+        season:
+          type: ["string", "null"]
+        priceFrom:
+          type: ["integer", "null"]
+        heroImageUrl:
+          type: ["string", "null"]
+        galleryImages:
+          type: ["string", "null"]
+        itinerary:
+          type: ["string", "null"]
+        inclusions:
+          type: ["string", "null"]
+        exclusions:
+          type: ["string", "null"]
+        faqs:
+          type: ["string", "null"]
+        accommodations:
+          type: ["string", "null"]
+        tags:
+          type: ["string", "null"]
+        featured:
+          type: boolean
+        published:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    PackageInput:
+      type: object
+      required: [name, slug, category, durationNights]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        shortDesc:
+          type: string
+        durationNights:
+          type: integer
+        route:
+          type: string
+        bestFor:
+          type: string
+        season:
+          type: string
+        priceFrom:
+          type: integer
+        heroImageUrl:
+          type: string
+        galleryImages:
+          type: string
+        itinerary:
+          type: string
+        inclusions:
+          type: string
+        exclusions:
+          type: string
+        faqs:
+          type: string
+        accommodations:
+          type: string
+        tags:
+          type: string
+        featured:
+          type: boolean
+        published:
+          type: boolean
+
+    PackageUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        shortDesc:
+          type: string
+        durationNights:
+          type: integer
+        route:
+          type: string
+        bestFor:
+          type: string
+        season:
+          type: string
+        priceFrom:
+          type: integer
+        heroImageUrl:
+          type: string
+        galleryImages:
+          type: string
+        itinerary:
+          type: string
+        inclusions:
+          type: string
+        exclusions:
+          type: string
+        faqs:
+          type: string
+        accommodations:
+          type: string
+        tags:
+          type: string
+        featured:
+          type: boolean
+        published:
+          type: boolean
+
+    # ── Itinerary ────────────────────────────────────────────────
+    Itinerary:
+      type: object
+      required: [id, shareToken, customerName, title, days, stays, pricing, currency, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        shareToken:
+          type: string
+        customerName:
+          type: string
+        customerEmail:
+          type: ["string", "null"]
+        customerPhone:
+          type: ["string", "null"]
+        title:
+          type: string
+        destination:
+          type: ["string", "null"]
+        startDate:
+          type: ["string", "null"]
+        endDate:
+          type: ["string", "null"]
+        coverImageUrl:
+          type: ["string", "null"]
+        summary:
+          type: ["string", "null"]
+        days:
+          type: string
+        stays:
+          type: string
+        inclusions:
+          type: ["string", "null"]
+        exclusions:
+          type: ["string", "null"]
+        pricing:
+          type: string
+        currency:
+          type: string
+        status:
+          type: string
+        createdBy:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    ItineraryInput:
+      type: object
+      required: [customerName, title]
+      properties:
+        customerName:
+          type: string
+        customerEmail:
+          type: string
+        customerPhone:
+          type: string
+        title:
+          type: string
+        destination:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        coverImageUrl:
+          type: string
+        summary:
+          type: string
+        days:
+          type: string
+        stays:
+          type: string
+        inclusions:
+          type: string
+        exclusions:
+          type: string
+        pricing:
+          type: string
+        currency:
+          type: string
+        status:
+          type: string
+        createdBy:
+          type: string
+
+    ItineraryUpdate:
+      type: object
+      properties:
+        customerName:
+          type: string
+        customerEmail:
+          type: string
+        customerPhone:
+          type: string
+        title:
+          type: string
+        destination:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        coverImageUrl:
+          type: string
+        summary:
+          type: string
+        days:
+          type: string
+        stays:
+          type: string
+        inclusions:
+          type: string
+        exclusions:
+          type: string
+        pricing:
+          type: string
+        currency:
+          type: string
+        status:
+          type: string
+        createdBy:
+          type: string
+
+    # ── Order ────────────────────────────────────────────────────
+    Order:
+      type: object
+      required: [id, guestName, guestEmail, guestPhone, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        packageId:
+          type: ["integer", "null"]
+        packageName:
+          type: ["string", "null"]
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestPhone:
+          type: string
+        travelDate:
+          type: ["string", "null"]
+        guestCount:
+          type: ["integer", "null"]
+        specialRequests:
+          type: ["string", "null"]
+        status:
+          type: string
+        totalAmount:
+          type: ["integer", "null"]
+        notes:
+          type: ["string", "null"]
+        travelStyle:
+          type: ["string", "null"]
+        destinations:
+          type: ["string", "null"]
+        departureDate:
+          type: ["string", "null"]
+        budgetRange:
+          type: ["string", "null"]
+        ipAddress:
+          type: ["string", "null"]
+        userAgent:
+          type: ["string", "null"]
+        referrerUrl:
+          type: ["string", "null"]
+        landingPage:
+          type: ["string", "null"]
+        utmSource:
+          type: ["string", "null"]
+        utmMedium:
+          type: ["string", "null"]
+        utmCampaign:
+          type: ["string", "null"]
+        browserLanguage:
+          type: ["string", "null"]
+        screenResolution:
+          type: ["string", "null"]
+        timezone:
+          type: ["string", "null"]
+        geoCountry:
+          type: ["string", "null"]
+        geoRegion:
+          type: ["string", "null"]
+        geoCity:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    OrderInput:
+      type: object
+      required: [guestName, guestEmail, guestPhone]
+      properties:
+        packageId:
+          type: integer
+        packageName:
+          type: string
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestPhone:
+          type: string
+        travelDate:
+          type: string
+        departureDate:
+          type: string
+        travelStyle:
+          type: string
+        destinations:
+          type: string
+        budgetRange:
+          type: string
+        guestCount:
+          type: integer
+        specialRequests:
+          type: string
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        referrerUrl:
+          type: string
+        landingPage:
+          type: string
+        utmSource:
+          type: string
+        utmMedium:
+          type: string
+        utmCampaign:
+          type: string
+        browserLanguage:
+          type: string
+        screenResolution:
+          type: string
+        timezone:
+          type: string
+        geoCountry:
+          type: string
+        geoRegion:
+          type: string
+        geoCity:
+          type: string
+
+    OrderUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+        totalAmount:
+          type: integer
+        notes:
+          type: string
+        travelDate:
+          type: string
+        guestCount:
+          type: integer
+
+    # ── Enquiry ──────────────────────────────────────────────────
+    Enquiry:
+      type: object
+      required: [id, name, email, message, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: ["string", "null"]
+        message:
+          type: string
+        status:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    EnquiryInput:
+      type: object
+      required: [name, email, message]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        message:
+          type: string
+
+    EnquiryUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+
+    # ── Journal Post ─────────────────────────────────────────────
+    JournalPost:
+      type: object
+      required: [id, title, slug, category, published, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+        excerpt:
+          type: ["string", "null"]
+        content:
+          type: ["string", "null"]
+        authorName:
+          type: ["string", "null"]
+        authorRole:
+          type: ["string", "null"]
+        authorImageUrl:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        readTimeMinutes:
+          type: ["integer", "null"]
+        published:
+          type: boolean
+        publishedAt:
+          type: ["string", "null"]
+        tags:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    JournalPostInput:
+      type: object
+      required: [title, slug, category]
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        authorName:
+          type: string
+        authorRole:
+          type: string
+        authorImageUrl:
+          type: string
+        imageUrl:
+          type: string
+        readTimeMinutes:
+          type: integer
+        published:
+          type: boolean
+        publishedAt:
+          type: string
+
+    JournalPostUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        authorName:
+          type: string
+        authorRole:
+          type: string
+        authorImageUrl:
+          type: string
+        imageUrl:
+          type: string
+        readTimeMinutes:
+          type: integer
+        published:
+          type: boolean
+        publishedAt:
+          type: string
+
+    # ── Media ────────────────────────────────────────────────────
+    Media:
+      type: object
+      required: [id, filename, url, mimeType, createdAt]
+      properties:
+        id:
+          type: integer
+        filename:
+          type: string
+        url:
+          type: string
+        mimeType:
+          type: string
+        sizeBytes:
+          type: ["integer", "null"]
+        createdAt:
+          type: string
+
+    # ── Dashboard ────────────────────────────────────────────────
+    DashboardStats:
+      type: object
+      required: [totalPackages, totalDestinations, totalOrders, totalJournalPosts, recentOrders, ordersByStatus]
+      properties:
+        totalPackages:
+          type: integer
+        publishedPackages:
+          type: integer
+        totalDestinations:
+          type: integer
+        publishedDestinations:
+          type: integer
+        totalOrders:
+          type: integer
+        enquiries:
+          type: integer
+        confirmed:
+          type: integer
+        totalJournalPosts:
+          type: integer
+        publishedJournalPosts:
+          type: integer
+        newContactEnquiries:
+          type: integer
+        totalRevenue:
+          type: integer
+        recentOrders:
+          type: array
+          items:
+            $ref: "#/components/schemas/Order"
+        ordersByStatus:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusCount"
+
+    StatusCount:
+      type: object
+      required: [status, count]
+      properties:
+        status:
+          type: string
+        count:
+          type: integer

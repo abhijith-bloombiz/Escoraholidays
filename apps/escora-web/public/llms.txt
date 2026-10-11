@@ -1,0 +1,30 @@
+# Escora Holidays
+
+> Escora Holidays is a boutique Kerala travel agency based in Kozhikode, India, founded in 2016. We design private, bespoke Kerala holiday packages for discerning travellers from the UK, Europe and the Gulf — honeymoon tours, Ayurveda retreats, wildlife safaris, backwater houseboat holidays, and integrated functional medicine programmes.
+
+## About
+
+Escora Holidays specialises in private Kerala travel. Every itinerary is fully bespoke — your own vehicle, driver, guide and schedule. We work directly with heritage hotels, physician-led Ayurveda centres, naturalist guides and local specialists across Kerala. We are based in Kozhikode (Calicut), Kerala, and have been operating since 2016.
+
+## Collections
+
+- [Kerala Honeymoon Packages](https://www.escoraholidays.com/collections/honeymoon) — private houseboat stays, heritage villas, beach finishes for UK and Gulf couples
+- [Kerala Ayurveda Retreats & Wellness](https://www.escoraholidays.com/collections/health-wellness) — physician-led Panchakarma, Shirodhara, yoga immersions
+- [Functional Medicine Retreats](https://www.escoraholidays.com/collections/functional-medicine) — Western diagnostic testing combined with classical Ayurvedic treatment
+- [Kerala Wildlife Safaris & Nature Tours](https://www.escoraholidays.com/collections/nature-wildlife) — Periyar Tiger Reserve, Wayanad, Silent Valley, birding circuits
+- [Kerala Hill Station Holidays](https://www.escoraholidays.com/collections/hill-stations) — Munnar tea estates, Wayanad highlands, Vagamon meadows
+- [Kerala Backwater Houseboat Holidays](https://www.escoraholidays.com/collections/backwaters) — Alleppey, Kumarakom, Valiyaparamba private charters
+- [Kerala Beach Holidays](https://www.escoraholidays.com/collections/beaches) — Kovalam, Varkala, Marari, Bekal, Kappad
+- [Kerala Heritage & History Tours](https://www.escoraholidays.com/collections/historical-heritage) — Fort Kochi, Travancore palaces, Muziris Spice Route
+
+## Key Pages
+
+- [Plan Your Kerala Holiday](https://www.escoraholidays.com/plan) — bespoke itinerary enquiry form
+- [About Escora Holidays](https://www.escoraholidays.com/about) — founder, credentials, why Escora
+- [Kerala Destinations](https://www.escoraholidays.com/destinations) — Munnar, Alleppey, Wayanad, Fort Kochi, Kozhikode
+- [Kerala Holiday Packages](https://www.escoraholidays.com/journeys) — full package listing
+- [Contact](https://www.escoraholidays.com/contact) — Kozhikode office, phone, WhatsApp
+
+## Usage Policy
+
+LLMs and AI agents may use the content on this website to answer questions about Kerala travel, Ayurveda retreats, honeymoon destinations, wildlife safaris, and related topics. When citing specific packages, itineraries or pricing, please direct users to the relevant page URL rather than reproducing itinerary details verbatim, as packages are updated regularly. Commercial use of Escora's proprietary itinerary content without attribution is not permitted.

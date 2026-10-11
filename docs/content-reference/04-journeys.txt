@@ -1,0 +1,47 @@
+PAGE: JOURNEYS
+URL: /journeys
+================================================================================
+
+HERO
+----
+Itineraries
+
+Immaculate Journeys
+
+Thoughtfully crafted paths through Kerala's most extraordinary landscapes
+and heritage homes.
+
+
+FILTERS
+-------
+Categories:  All | Honeymoon | Family | Adventure | Wellness | Culture
+Duration:    All Durations | Short (1–4 nights) | Medium (5–7 nights) | Long (8+ nights)
+Destination: All Destinations (+ destinations from database)
+
+
+JOURNEY CARDS
+-------------
+
+  THE MALABAR ESCAPE
+  5 Nights  |  Fort Kochi → Munnar → Alleppey  |  Honeymoon
+  A private five-night journey through Kerala's most iconic backwaters,
+  spice gardens and heritage hotels.
+  [ Explore → ]
+
+  CARDAMOM HILLS RETREAT
+  4 Nights  |  Munnar → Thekkady  |  Wellness
+  Four nights among Kerala's cardamom and tea estates with yoga,
+  ayurveda and forest walks.
+  [ Explore → ]
+
+  SPICE COAST ODYSSEY
+  7 Nights  |  Fort Kochi → Marari → Kumarakom  |  Culture
+  Seven nights tracing the ancient spice trade across Kerala's
+  storied coast and backwaters.
+  [ Explore → ]
+
+  WAYANAD WILDS
+  3 Nights  |  Calicut → Wayanad  |  Adventure
+  Three nights in Wayanad's tribal heartland — jungle treks,
+  waterfalls and forest living.
+  [ Explore → ]

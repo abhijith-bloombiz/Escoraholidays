@@ -1,0 +1,40 @@
+PAGE: JOURNAL
+URL: /journal
+================================================================================
+
+HERO
+----
+Travelogue
+
+The Escora Journal
+
+Stories, reflections, and dispatches from God's Own Country.
+
+
+FILTERS
+-------
+Categories: All | Travelogue | Culture | Heritage | Cuisine | Wellness | News
+
+
+ARTICLES
+--------
+
+  1. THE ART OF SLOW TRAVEL IN KERALA'S BACKWATERS
+     Category: Travelogue  |  5 Min Read  |  By Priya Menon
+     Discovering the unhurried rhythm of life along the meandering canals of
+     Alleppey, where time stands still and nature reclaims the soul.
+
+  2. ECHOES OF THE PAST: FORT KOCHI'S COLONIAL LEGACY
+     Category: Heritage  |  7 Min Read  |  By David Silva
+     A walk through the cobblestone streets of Fort Kochi, uncovering tales of
+     spice merchants, Portuguese explorers, and Dutch architecture.
+
+  3. MUNNAR'S GREEN CARPET: THE STORY OF TEA
+     Category: Culture  |  6 Min Read  |  By Ananya Krishnan
+     Journey into the misty hills of Munnar to understand the centuries-old
+     tradition of tea cultivation and the people who nurture it.
+
+  4. AYURVEDA: THE ANCIENT SCIENCE OF HEALING
+     Category: Wellness  |  8 Min Read  |  By Dr. Arun Kumar
+     Exploring the roots of Ayurveda in Kerala and how traditional wellness
+     practices are being preserved in modern retreats.

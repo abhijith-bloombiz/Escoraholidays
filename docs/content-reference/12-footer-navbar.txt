@@ -1,0 +1,50 @@
+SHARED COMPONENTS — NAVBAR & FOOTER
+(Appear on every page)
+================================================================================
+
+
+NAVBAR
+------
+Logo: Escora°
+
+Navigation links:
+  Home | Journal | About | Contact
+
+Right side:
+  +91 8157 003 344
+  [ Plan a Journey ]  (CTA button)
+
+
+FOOTER
+------
+Brand:
+  Escora — Explore · Experience · Escape
+  A destination management studio composing private journeys through Kerala
+  for the world's most discerning travellers. Est. Kochi, 2016.
+
+Travel Types:
+  Honeymoon
+  Health & Wellness
+  Nature & Wildlife
+  Hill Stations
+  Backwaters
+  Beaches
+  Functional Medicine
+  Historical & Heritage
+
+Escora Retreat:
+  Ayurveda & Panchakarma
+  Yoga & Meditation
+  Kalaripayattu
+  Naturopathy & Healthcare
+
+Contact:
+  +91 8157 003 344
+  hello@escoraholidays.com
+  Fort Kochi, Kerala
+  The Journal
+  About Escora
+
+Bottom bar:
+  © 2026 Escora · Private Journeys · Kerala, India
+  Privacy Policy

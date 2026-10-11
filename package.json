@@ -1,0 +1,23 @@
+{
+  "name": "workspace",
+  "version": "0.0.0",
+  "license": "MIT",
+  "packageManager": "pnpm@12.4.2",
+  "scripts": {
+    "dev": "pnpm --filter escora-web --filter escora-admin --filter api-server --parallel run dev",
+    "preinstall": "node -e \"['package-lock.json','yarn.lock'].forEach(f=>{try{require('fs').unlinkSync(f)}catch(e){}});if(!process.env.npm_config_user_agent?.startsWith('pnpm/')){console.error('Use pnpm instead');process.exit(1)}\"",
+    "build": "pnpm run typecheck && pnpm -r --if-present run build",
+    "build:prod": "pnpm --filter escora-web run build && pnpm --filter escora-admin run build && pnpm --filter api-server run build",
+    "start": "node --env-file-if-exists=.env --enable-source-maps ./apps/api-server/dist/index.mjs",
+    "typecheck:libs": "tsc --build",
+    "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./apps/**\" --filter \"./scripts\" --if-present run typecheck",
+    "db:init": "pnpm --filter @workspace/db run push",
+    "db:seed": "pnpm --filter @workspace/db run seed:all",
+    "test:api": "pnpm --filter @workspace/db exec tsx ../../scripts/test-api.ts"
+  },
+  "private": true,
+  "devDependencies": {
+    "prettier": "^3.8.3",
+    "typescript": "~5.9.3"
+  }
+}

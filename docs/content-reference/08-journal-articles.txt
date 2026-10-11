@@ -1,0 +1,100 @@
+PAGE: JOURNAL ARTICLE DETAIL
+URL: /journal/[id]
+================================================================================
+
+NOTE: Dynamic page. Full body text of all four sample articles below.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARTICLE 1 — THE ART OF SLOW TRAVEL IN KERALA'S BACKWATERS
+By Priya Menon  |  Travelogue  |  5 Min Read
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Excerpt:
+Discovering the unhurried rhythm of life along the meandering canals of
+Alleppey, where time stands still and nature reclaims the soul.
+
+Body:
+The engine cuts out somewhere past the third bend, and Rajan — who has piloted
+kettuvallam on the Vembanad for thirty-one years — says nothing.
+He doesn't need to. The silence does all the explaining.
+
+"To travel by water in Kerala is to understand that the destination was never
+the point. The point was always the canal itself."
+
+"Thirty years," Rajan says, apropos of nothing. "Same lake. Different every day."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARTICLE 2 — ECHOES OF THE PAST: FORT KOCHI'S COLONIAL LEGACY
+By David Silva  |  Heritage  |  7 Min Read
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Excerpt:
+A walk through the cobblestone streets of Fort Kochi, uncovering tales of spice
+merchants, Portuguese explorers, and Dutch architecture.
+
+Body:
+Walk down Princess Street at seven in the morning and the city is still deciding
+what it wants to be...
+
+"Five empires have left their signatures on this peninsula. None of them quite
+managed to erase the one before."
+
+Fort Kochi continues to be written over. That is perhaps the most honest thing
+you can say about it.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARTICLE 3 — MUNNAR'S GREEN CARPET: THE STORY OF TEA
+By Ananya Krishnan  |  Culture  |  6 Min Read  |  Field Correspondent
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Excerpt:
+Journey into the misty hills of Munnar to understand the centuries-old tradition
+of tea cultivation and the people who nurture it.
+
+Body:
+"You take the third leaf and the flavour disappears... Two leaves and the bud is
+the correct answer. It has always been the correct answer."
+
+"The best Munnar teas taste like place. Not a generic place, but this specific
+hillside, at this altitude, in this mist."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARTICLE 4 — AYURVEDA: THE ANCIENT SCIENCE OF HEALING
+By Dr. Arun Kumar  |  Wellness  |  8 Min Read  |  Wellness Correspondent
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Excerpt:
+Exploring the roots of Ayurveda in Kerala and how traditional wellness practices
+are being preserved in modern retreats.
+
+Body:
+"Ayurveda does not treat disease. It treats the person who has the disease.
+These are different problems requiring different solutions."
+
+"There is nothing wrong with relaxation. Relaxation is good. But it is not medicine."
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ARTICLE PAGE STRUCTURE (shared)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Breadcrumb:   Journal / [Category]
+  Caption:      [Category] · Kerala, India
+
+  Sidebar:
+    Share  (WhatsApp / Facebook / X / LinkedIn / Copy link)
+    Category: [category name]
+
+  Author card:
+    About the author
+    [Author name]
+    [Author role] — part of the Escora editorial team, writing from the ground
+    across Kerala's most storied landscapes and communities.
+
+  Related posts:
+    More from the Journal
+    [ View all → ]
+    Three related articles shown with category / title / read time

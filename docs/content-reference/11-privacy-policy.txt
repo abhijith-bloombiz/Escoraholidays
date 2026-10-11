@@ -1,0 +1,182 @@
+PAGE: PRIVACY POLICY
+URL: /privacy-policy
+================================================================================
+
+HERO
+----
+Legal
+
+Privacy & Policy
+
+Last updated: 15 June 2026. This policy explains how Escora collects, uses,
+and protects the personal information you share with us when you plan a journey
+through Kerala.
+
+
+SECTION 1 — WHO WE ARE
+-----------------------
+Escora ("we", "us", "our") is a privately held destination management studio
+registered in Kochi, Kerala, India. We design and operate private journeys,
+wellness retreats, and curated travel experiences for individual and group
+travellers visiting Kerala.
+
+Our registered address is Fort Kochi, Kerala 682001, India.
+You can reach our data team at hello@escoraholidays.com.
+
+
+SECTION 2 — INFORMATION WE COLLECT
+-------------------------------------
+We collect information in the following ways:
+
+  Enquiry & booking forms
+  Name, email address, phone number, travel dates, number of guests, budget
+  range, and any special requests you choose to share.
+
+  WhatsApp & email correspondence
+  Messages you send us through WhatsApp Business or email.
+
+  Website usage data
+  Pages visited, time on site, referral source, browser type, and approximate
+  location (country / city level) collected via privacy-respecting analytics.
+
+  Cookies & local storage
+  Session identifiers and preference data stored in your browser (see Section 7).
+
+  Payment data
+  We do not store card numbers. Payments are processed by PCI-DSS compliant
+  third-party gateways; we only retain transaction references and amounts.
+
+We do not knowingly collect information from persons under 18 years of age.
+If you believe a minor has submitted data to us, please contact us immediately.
+
+
+SECTION 3 — HOW WE USE YOUR INFORMATION
+-----------------------------------------
+We use the data you provide to:
+
+  - Respond to your travel enquiries and design personalised itineraries.
+  - Confirm reservations and communicate booking details.
+  - Process payments and issue invoices.
+  - Send pre-departure information, welcome letters, and post-trip follow-ups.
+  - Improve our website and services through aggregate analytics.
+  - Comply with legal obligations, including tax and record-keeping requirements
+    under Indian law.
+
+We will only send marketing communications (newsletters, seasonal offers) if you
+have opted in explicitly. You may unsubscribe at any time by clicking the link
+in any marketing email or by writing to us.
+
+
+SECTION 4 — SHARING YOUR INFORMATION
+---------------------------------------
+Escora does not sell, rent, or trade personal data. We share information only
+to the extent necessary to deliver your journey:
+
+  Accommodation partners
+  Hotels, home-stays, and houseboats receive your name, arrival date, and any
+  dietary or accessibility requirements.
+
+  Activity providers
+  Guides, Ayurveda centres, and experience operators receive names and contact
+  details for the relevant activity.
+
+  Transport vendors
+  Drivers and vehicle operators receive pick-up details and passenger names.
+
+  Payment processors
+  Razorpay or equivalent, solely to complete your transaction.
+
+  Regulatory authorities
+  When required by Indian law, court order, or government request.
+
+All third-party partners who receive personal data are contractually required to
+keep it confidential and use it only for the purpose for which it was shared.
+
+
+SECTION 5 — INTERNATIONAL TRANSFERS
+--------------------------------------
+If you are visiting from outside India, your data is processed on servers located
+in India. By submitting an enquiry, you consent to this transfer. We apply
+appropriate safeguards consistent with the Digital Personal Data Protection Act,
+2023 (DPDP Act) and applicable international standards.
+
+
+SECTION 6 — DATA RETENTION
+----------------------------
+We retain personal data for as long as necessary to fulfil the purpose for which
+it was collected and to meet our legal obligations:
+
+  Active guests          For the duration of your relationship with us.
+  Booking records        Seven years from the date of travel, as required by
+                         Indian tax law.
+  Non-converted enquiries Up to two years, after which data is anonymised or deleted.
+  Analytics data         Aggregated and anonymised; not subject to retention limits.
+
+
+SECTION 7 — COOKIES
+---------------------
+Our website uses the following types of cookies:
+
+  Essential cookies
+  Required for the site to function (session management, security tokens).
+  Cannot be disabled.
+
+  Analytics cookies
+  Help us understand how visitors use the site. We use privacy-first analytics
+  that do not track individuals across other websites.
+
+  Preference cookies
+  Remember settings such as your selected filter on the Journeys page.
+
+You can control non-essential cookies through your browser settings. Disabling
+analytics cookies will not affect your ability to use the site.
+
+
+SECTION 8 — YOUR RIGHTS
+-------------------------
+Under the DPDP Act, 2023 and applicable data protection principles, you have
+the right to:
+
+  Access        Request a copy of the personal data we hold about you.
+  Correction    Ask us to correct inaccurate or incomplete data.
+  Erasure       Request deletion of your personal data, subject to legal
+                retention obligations.
+  Withdrawal    Withdraw consent for marketing communications at any time.
+  Grievance     Raise a complaint with our designated Grievance Officer
+                (see Section 10).
+
+To exercise any of these rights, write to hello@escoraholidays.com.
+We will respond within 30 days.
+
+
+SECTION 9 — SECURITY
+----------------------
+We implement industry-standard technical and organisational measures to protect
+your personal data from unauthorised access, disclosure, or loss. These include
+encrypted data transmission (TLS), access controls, and regular security reviews.
+
+No method of transmission over the internet is completely secure. If you believe
+your data has been compromised, please notify us immediately at hello@escoraholidays.com.
+
+
+SECTION 10 — GRIEVANCE OFFICER
+--------------------------------
+In accordance with the Information Technology Act, 2000 and applicable rules:
+
+  Name     Midhilaj
+  Role     CEO, Escora
+  Email    hello@escoraholidays.com
+  Phone    +91 8157 003 344
+  Address  Fort Kochi, Kerala 682001, India
+  Hours    Monday – Saturday, 09:00 – 18:00 IST
+
+
+SECTION 11 — CHANGES TO THIS POLICY
+--------------------------------------
+We may update this Privacy Policy from time to time to reflect changes in our
+practices or applicable law. We will post the updated policy on this page with a
+revised "last updated" date. For material changes, we will notify you by email
+if we hold your contact details.
+
+Your continued use of the website or our services after any changes constitutes
+your acceptance of the revised policy.

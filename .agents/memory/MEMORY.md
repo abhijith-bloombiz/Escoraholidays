@@ -1,0 +1,2 @@
+- [Escora web CSS architecture](escora-css-arch.md) — home.css imported in Layout.tsx (not just home.tsx) so footer/global styles apply on all pages.
+- [Escora scroll reveal pattern](escora-scroll-reveal.md) — useScrollReveal observes .reveal + .mask-reveal + .image-reveal; adds .in class; defined in home.css not index.css.

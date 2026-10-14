@@ -1,0 +1,167 @@
+/* ==========================================================================
+   ESCORA HOLIDAYS — CINEMATIC LOADING & SPLASH SCREEN
+   Light luxury aesthetic with Triptych-style organic liquid reveal effect.
+   ========================================================================== */
+
+:root {
+  --splash-bg: #faf8f5;
+  --splash-gold: #c5a059;
+  --splash-ink: #1a3f2c;
+  --splash-sage: #597043;
+}
+
+/* Base Wrapper covering the whole viewport
+   Transparent background allows the organic canvas aperture to reveal
+   the website underneath when blooming outward. */
+.cinematic-splash-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  cursor: pointer;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.cinematic-splash-wrapper.exiting {
+  pointer-events: none;
+}
+
+/* Organic Liquid Mask Canvas (Punches through to underlying DOM) */
+.cinematic-splash-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Floating Golden Stardust Particles */
+.cinematic-splash-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  transition: opacity 0.35s ease-out;
+}
+
+.cinematic-splash-wrapper.exiting .cinematic-splash-particles {
+  opacity: 0;
+}
+
+.cinematic-splash-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    #fff8ea 15%,
+    rgba(197, 160, 89, 0.75) 55%,
+    transparent 100%
+  );
+  filter: blur(0.5px);
+  animation: splash-float linear infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes splash-float {
+  0% {
+    transform: translateY(20px) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: var(--p-opacity, 0.7);
+  }
+  80% {
+    opacity: var(--p-opacity, 0.7);
+  }
+  100% {
+    transform: translateY(-80px) scale(1.1);
+    opacity: 0;
+  }
+}
+
+/* Content Container — Centered, stationary typography & branding */
+.cinematic-splash-content {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 24px;
+  max-width: 800px;
+  width: 100%;
+  pointer-events: none;
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Exiting state: Logo and tagline gracefully dissolve as the liquid portal expands */
+.cinematic-splash-wrapper.exiting .cinematic-splash-content {
+  opacity: 0;
+  transform: scale(1.05);
+}
+
+/* Logo Image Frame */
+.cinematic-splash-logo-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: min(500px, 84vw);
+  margin: 0;
+  animation: splash-logo-fade-in 0.85s ease-out 0.05s both;
+}
+
+.cinematic-splash-logo-img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 25px rgba(26, 63, 44, 0.12));
+}
+
+.cinematic-splash-tagline {
+  font-family: var(--f-serif, 'Cormorant Garamond', Georgia, serif);
+  font-size: clamp(10.5px, 1.15vw, 13px);
+  letter-spacing: 0.42em;
+  padding-left: 0.42em;
+  color: var(--splash-sage, #597043);
+  text-transform: uppercase;
+  margin-top: 14px;
+  font-weight: 500;
+  opacity: 0.92;
+  text-align: center;
+}
+
+/* Pure fade-in animation: zero translation/movement */
+@keyframes splash-logo-fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Reduced motion preference support */
+@media (prefers-reduced-motion: reduce) {
+  .cinematic-splash-logo-frame,
+  .cinematic-splash-content,
+  .cinematic-splash-particle {
+    animation: none !important;
+    transition: opacity 0.3s ease !important;
+  }
+  .cinematic-splash-wrapper.exiting {
+    opacity: 0;
+    pointer-events: none;
+  }
+}

@@ -464,8 +464,7 @@ html.lenis, html.lenis body {
 .jd-author-card,
 .jd-rcard,
 .scale-card,
-[data-scale-card],
-.v3-nav {
+[data-scale-card] {
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
 }

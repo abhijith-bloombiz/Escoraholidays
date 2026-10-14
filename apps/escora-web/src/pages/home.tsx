@@ -20,15 +20,11 @@ const FALLBACK_PACKAGES = [
   { id: 4, name: "Spice Coast Odyssey", durationNights: 7, route: "Kochi · Marari · Kumarakom", category: "Culture", priceFrom: 220000, heroImageUrl: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80", description: "Seven nights tracing the ancient spice trade across Kerala's storied coast and backwaters.", featured: false },
 ];
 
-import escoraLogo from "@assets/escora/escora-logo-green.png";
 import heroBg from "@assets/escora/hero-bg.jpeg";
-import typeAlleppey from "@assets/escora/collections/alleppey-backwaters.jpeg";
 import typeWildlife from "@assets/escora/collections/nature-wildlife-hero.jpg";
 import typeHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
-import typeCoastal from "@assets/escora/collections/varkala-cliffs.jpeg";
 import typeHoneymoon from "@assets/escora/collections/honeymoon-hero.jpg";
 import typeAyurveda from "@assets/escora/collections/panchakarma.jpg";
-import typeHighland from "@assets/escora/collections/munnar-tea-estate.jpeg";
 import typeMedicine from "@assets/escora/collections/medical-tourism.jpeg";
 import { KERALA_DESTINATIONS, DESTINATION_BADGES } from "@/lib/keralaDestinations";
 
@@ -416,18 +412,7 @@ interface EnquiryForm {
   dates: string; pax: string; budget: string;
 }
 
-const LOADER_STORAGE_KEY = "escora-loader-last-seen";
-
-function hasSeenLoaderToday() {
-  try {
-    return localStorage.getItem(LOADER_STORAGE_KEY) === new Date().toDateString();
-  } catch {
-    return false;
-  }
-}
-
 export default function Home() {
-  const [loaded, setLoaded] = useState(hasSeenLoaderToday);
   const [whyVideoOpen, setWhyVideoOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeCat, setActiveCat] = useState("all");
@@ -442,10 +427,11 @@ export default function Home() {
 
   // Hero ESCORA destination clippath slideshow state
   const [heroDestIdx, setHeroDestIdx] = useState(0);
-  const [heroMouseOffset, setHeroMouseOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Preload all destination images for zero-delay transitions
+    // Preload hero background & destination images for zero-delay transitions
+    const heroImg = new window.Image();
+    heroImg.src = heroBg;
     HERO_DESTINATIONS.forEach((d) => {
       const img = new window.Image();
       img.src = d.src;
@@ -457,20 +443,6 @@ export default function Home() {
 
     return () => clearInterval(timer);
   }, []);
-
-  const handleHeroMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const relX = (e.clientX - rect.left) / rect.width - 0.5;
-    const relY = (e.clientY - rect.top) / rect.height - 0.5;
-    setHeroMouseOffset({
-      x: Math.round(relX * 24),
-      y: Math.round(relY * 16),
-    });
-  };
-
-  const handleHeroMouseLeave = () => {
-    setHeroMouseOffset({ x: 0, y: 0 });
-  };
 
   const [form, setForm] = useState<EnquiryForm>({
     name: "", phone: "", email: "", type: "", dates: "", pax: "2 adults (couple)", budget: "",
@@ -567,20 +539,6 @@ export default function Home() {
   const { data: destinationsData } = useListDestinations({ published: true });
   const exploreDestinations = destinationsData && destinationsData.length > 0 ? destinationsData : FALLBACK_DESTINATIONS;
 
-  /* Loader — only plays once per day */
-  useEffect(() => {
-    if (loaded) return;
-    const t = setTimeout(() => {
-      setLoaded(true);
-      try {
-        localStorage.setItem(LOADER_STORAGE_KEY, new Date().toDateString());
-      } catch {
-        /* private browsing or storage disabled — loader will just replay next visit */
-      }
-    }, 1700);
-    return () => clearTimeout(t);
-  }, [loaded]);
-
   /* Bidirectional scroll reveal for .rv, .mr2 and cards (triggers on scroll forward & backward) */
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -603,7 +561,7 @@ export default function Home() {
     const heroEls = document.querySelectorAll(".hero-editorial .rv, .hero-editorial .mr2, .hero2 .rv, .hero2 .mr2");
     const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in", "card-in-view")), 200);
     return () => { io.disconnect(); clearTimeout(t); };
-  }, [loaded]);
+  }, []);
 
   /* Build pkg cards — fall back to built-in samples when API has no data */
   const pkgCards = (packagesData?.length ? packagesData : FALLBACK_PACKAGES).slice(0, 6).map((pkg) => ({
@@ -695,23 +653,12 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* ── Loader ── */}
-      <div className={`loader${loaded ? " done" : ""}`} aria-hidden="true">
-        <div className="stack">
-          <img className="logo-img" src={escoraLogo} alt="Escora" />
-        </div>
-        <div className="bar" />
-        <div className="count">Kerala · for the global traveller</div>
-      </div>
-
       {/* ═══════════════════════════════ HERO EDITORIAL ═══════════════════════════════ */}
       <section
         className="hero-editorial"
         id="hero"
         aria-label="Escora — Kerala, your way"
         ref={heroSectionRef}
-        onMouseMove={handleHeroMouseMove}
-        onMouseLeave={handleHeroMouseLeave}
       >
         <div
           className="hero-art-bg"
@@ -724,11 +671,7 @@ export default function Home() {
         <div className="hero-center-content">
           <p className="hero-kicker">JOURNEYS THROUGH</p>
 
-          <div
-            className="hero-brand-wrap"
-            onMouseMove={handleHeroMouseMove}
-            onMouseLeave={handleHeroMouseLeave}
-          >
+          <div className="hero-brand-wrap">
             <h1 className="hero-main-title-sr">ESCORA</h1>
 
             <svg
@@ -793,9 +736,6 @@ export default function Home() {
                         <g
                           key={dest.id}
                           className={`escora-dest-slide ${isActive ? "is-active" : ""}`}
-                          style={{
-                            transform: `translate(${heroMouseOffset.x}px, ${heroMouseOffset.y}px)`,
-                          }}
                         >
                           <image
                             href={dest.src}

@@ -14,19 +14,30 @@ import kovalamPhoto from "@assets/escora/collections/kovalam-beach.jpeg";
 import kumarakomPhoto from "@assets/escora/collections/kumarakom-bird-sanctuary.jpeg";
 import kannurPhoto from "@assets/escora/collections/payyambalam-driving-beach.jpg";
 
-export interface CoverflowDestinationItem {
+export interface CoverflowItem {
   id: number | string;
-  name: string;
-  slug: string;
+  name?: React.ReactNode;
+  title?: string;
+  label?: string;
+  slug?: string;
+  img?: string;
   imageUrl?: string | null;
+  desc?: string;
   shortDesc?: string | null;
   type?: string | null;
   region?: string | null;
+  count?: string;
+  price?: string;
+  priceLabel?: string;
+  link?: string;
   [key: string]: any;
 }
 
+export type CoverflowDestinationItem = CoverflowItem;
+
 interface ExploreCoverflowProps {
-  destinations: CoverflowDestinationItem[];
+  destinations?: CoverflowDestinationItem[];
+  items?: CoverflowItem[];
 }
 
 const CLEAN_PHOTOS: Record<string, string> = {
@@ -57,11 +68,27 @@ const CUSTOM_TAGLINES: Record<string, string> = {
   kannur: "THEYYAM RITUALS & UNTOUCHED COAST",
 };
 
-export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations: rawDestinations }) => {
-  // Order so that the 5 reference destinations (Munnar, Alleppey, Wayanad/Kerala, Varkala, Kochi) appear first
-  const destinations = useMemo(() => {
+const CATEGORY_TITLES: Record<string, string> = {
+  honeymoon: "Honeymoon",
+  "health-wellness": "Health & Wellness",
+  "nature-wildlife": "Nature & Wildlife",
+  "hill-stations": "Hill Stations",
+  backwaters: "Backwaters",
+  beaches: "Kerala Beaches",
+  "functional-medicine": "Functional Medicine",
+  "historical-heritage": "Historical & Heritage",
+};
+
+export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
+  destinations: rawDestinations,
+  items: rawItems,
+}) => {
+  // If items provided (Travel by Type), preserve their exact order.
+  // Otherwise order so the 5 reference destinations appear first.
+  const itemsList = useMemo(() => {
+    if (rawItems && rawItems.length > 0) return rawItems;
     if (!rawDestinations || rawDestinations.length === 0) return [];
-    const ordered: CoverflowDestinationItem[] = [];
+    const ordered: CoverflowItem[] = [];
     const remaining = [...rawDestinations];
 
     for (const slug of PREFERRED_ORDER) {
@@ -72,17 +99,17 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
       }
     }
     return [...ordered, ...remaining];
-  }, [rawDestinations]);
+  }, [rawItems, rawDestinations]);
 
-  // Initial active index = 2 (Wayanad/Kerala in center; Munnar at -2, Alleppey at -1, Varkala at +1, Kochi at +2)
-  const [activeIndex, setActiveIndex] = useState(() => (destinations.length >= 3 ? 2 : 0));
+  // Initial active index = 1 or 2 (or 0 if few items)
+  const [activeIndex, setActiveIndex] = useState(() => (itemsList.length >= 3 ? 1 : 0));
   const [, navigate] = useLocation();
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  const total = destinations.length;
+  const total = itemsList.length;
 
   const handleNext = useCallback(() => {
     if (total <= 1) return;
@@ -99,7 +126,7 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
   }, []);
 
   /* Click on any other card smoothly moves it to the center. Clicking center card navigates. */
-  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>, idx: number, slug: string) => {
+  const handleCardClick = (e: React.MouseEvent<HTMLDivElement>, idx: number, targetUrl: string) => {
     e.preventDefault();
     e.stopPropagation();
     const offset = getOffset(idx);
@@ -113,18 +140,18 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
       card.style.setProperty("--mouse-y", "50%");
       handleSelect(idx);
     } else {
-      navigate(`/destinations/${slug}`);
+      navigate(targetUrl);
     }
   };
 
-  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, idx: number, slug: string) => {
+  const handleCardKeyDown = (e: React.KeyboardEvent<HTMLDivElement>, idx: number, targetUrl: string) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       const offset = getOffset(idx);
       if (offset !== 0) {
         handleSelect(idx);
       } else {
-        navigate(`/destinations/${slug}`);
+        navigate(targetUrl);
       }
     }
   };
@@ -226,12 +253,17 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
 
   /* Scroll detection: do not auto-scroll cards while the user is actively scrolling */
   useEffect(() => {
+    let isScrollingActive = false;
     const onScroll = () => {
-      setIsScrolling(true);
+      if (!isScrollingActive) {
+        isScrollingActive = true;
+        setIsScrolling(true);
+      }
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
       scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingActive = false;
         setIsScrolling(false);
       }, 1200);
     };
@@ -318,21 +350,22 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
     return diff;
   };
 
-  /* Preload all destination photos so every slide transition is instant and zero-delay */
+  /* Preload all photos so every slide transition is instant and zero-delay */
   useEffect(() => {
-    destinations.forEach((dest) => {
+    itemsList.forEach((item) => {
       const src =
-        CLEAN_PHOTOS[dest.slug] ||
-        dest.imageUrl ||
+        item.img ||
+        (item.slug ? CLEAN_PHOTOS[item.slug] : undefined) ||
+        item.imageUrl ||
         "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80";
       if (src && typeof Image !== "undefined") {
         const img = new Image();
         img.src = src;
       }
     });
-  }, [destinations]);
+  }, [itemsList]);
 
-  if (!destinations || destinations.length === 0) return null;
+  if (!itemsList || itemsList.length === 0) return null;
 
   const entranceClass = !hasEntered
     ? "coverflow-entrance-pending"
@@ -346,7 +379,7 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
       className={`explore-coverflow-wrap ${entranceClass}`}
       tabIndex={0}
       role="region"
-      aria-label="Explore Kerala 3D Coverflow"
+      aria-label="Kerala 3D Coverflow"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onFocus={() => setIsPaused(true)}
@@ -358,7 +391,7 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
       <div className="coverflow-stage-container">
         <div className="coverflow-stage">
           {/* 3D Coverflow Cards */}
-        {destinations.map((dest, i) => {
+        {itemsList.map((item, i) => {
           const offset = getOffset(i);
           const isCenter = offset === 0;
 
@@ -367,35 +400,43 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
           if (offset < -3) offsetAttr = "hidden-left";
           if (offset > 3) offsetAttr = "hidden-right";
 
-          // Use clean photo without baked-in title text
           const imageSrc =
-            CLEAN_PHOTOS[dest.slug] ||
-            dest.imageUrl ||
+            item.img ||
+            (item.slug ? CLEAN_PHOTOS[item.slug] : undefined) ||
+            item.imageUrl ||
             "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80";
 
+          const rawTitle =
+            item.title ||
+            CATEGORY_TITLES[String(item.id)] ||
+            (typeof item.name === "string" ? item.name : item.label) ||
+            (item.slug === "fort-kochi" ? "KOCHI" : String(item.slug || item.id || ""));
+
+          const displayName = rawTitle.toUpperCase();
+          const centerTitle = item.slug === "wayanad" ? "KERALA" : displayName;
+
           const tagline =
-            CUSTOM_TAGLINES[dest.slug] ||
-            (dest.type ? `${dest.type.toUpperCase()} ESCAPE` : "LAND OF A THOUSAND STORIES");
+            item.desc ||
+            item.shortDesc ||
+            (item.slug ? CUSTOM_TAGLINES[item.slug] : undefined) ||
+            (item.type ? `${item.type.toUpperCase()} ESCAPE` : "LAND OF A THOUSAND STORIES");
 
           const locationLabel = "KERALA, INDIA";
 
-          // Exact clean label on cards (e.g. KOCHI for Fort Kochi)
-          const displayName =
-            dest.slug === "fort-kochi" ? "KOCHI" : dest.name.toUpperCase();
-
-          const centerTitle =
-            dest.slug === "wayanad" ? "KERALA" : displayName;
+          const targetUrl =
+            item.link ||
+            (item.slug ? `/destinations/${item.slug}` : `/collections/${item.id}`);
 
           return (
             <div
-              key={dest.id}
+              key={item.id}
               role="button"
               tabIndex={0}
               className="coverflow-card"
               data-offset={offsetAttr}
-              aria-label={`Explore ${dest.name}, Kerala`}
-              onClick={(e) => handleCardClick(e, i, dest.slug)}
-              onKeyDown={(e) => handleCardKeyDown(e, i, dest.slug)}
+              aria-label={`Explore ${rawTitle}, Kerala`}
+              onClick={(e) => handleCardClick(e, i, targetUrl)}
+              onKeyDown={(e) => handleCardKeyDown(e, i, targetUrl)}
               onMouseMove={handleCardMouseMove}
               onMouseLeave={handleCardMouseLeave}
             >
@@ -403,7 +444,7 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
                 <div className="coverflow-card-media">
                   <img
                     src={imageSrc}
-                    alt={`${dest.name} — Kerala`}
+                    alt={`${rawTitle} — Kerala`}
                     className="coverflow-card-img"
                     loading="eager"
                     decoding="async"
@@ -421,14 +462,16 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
 
                 <div className="coverflow-center-bottom">
                   <h3 className="coverflow-center-title">{centerTitle}</h3>
-                  <p className="coverflow-center-tagline">{tagline}</p>
+                  <p className="coverflow-center-tagline" style={{ textTransform: "none", letterSpacing: "0.02em", fontWeight: 400, fontSize: 12, lineHeight: 1.5, maxWidth: 280 }}>
+                    {tagline}
+                  </p>
                   <div className="coverflow-explore-cta">
                     <span className="cta-text">EXPLORE →</span>
                     <span className="cta-gold-line" />
                   </div>
                 </div>
 
-                {/* Side cards: Destination name at bottom-left with gold underline — smooth CSS cross-fade */}
+                {/* Side cards: Title at bottom-left with gold underline — smooth CSS cross-fade */}
                 <div className="coverflow-side-caption">
                   <span className="side-dest-name">{displayName}</span>
                   <span className="side-gold-line" />
@@ -444,7 +487,7 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
           type="button"
           className="coverflow-nav-btn prev"
           onClick={handlePrev}
-          aria-label="Previous destination"
+          aria-label="Previous card"
         >
           <ChevronLeft size={20} />
         </button>
@@ -453,7 +496,7 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
           type="button"
           className="coverflow-nav-btn next"
           onClick={handleNext}
-          aria-label="Next destination"
+          aria-label="Next card"
         >
           <ChevronRight size={20} />
         </button>
@@ -461,15 +504,22 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({ destinations
 
       {/* Pagination indicators below center */}
       <div className="coverflow-pagination" aria-label="Carousel pagination">
-        {destinations.map((d, idx) => (
-          <button
-            key={d.id}
-            type="button"
-            className={`coverflow-dot ${idx === activeIndex ? "active" : ""}`}
-            onClick={() => handleSelect(idx)}
-            aria-label={`Jump to ${d.name}`}
-          />
-        ))}
+        {itemsList.map((item, idx) => {
+          const rawTitle =
+            item.title ||
+            CATEGORY_TITLES[String(item.id)] ||
+            (typeof item.name === "string" ? item.name : item.label) ||
+            String(item.id);
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={`coverflow-dot ${idx === activeIndex ? "active" : ""}`}
+              onClick={() => handleSelect(idx)}
+              aria-label={`Jump to ${rawTitle}`}
+            />
+          );
+        })}
       </div>
     </div>
   );

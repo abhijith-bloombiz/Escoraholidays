@@ -134,18 +134,18 @@ export default function PlanPage() {
 
   return (
     <Layout>
-      <div style={{ minHeight: "100vh", background: "var(--bg)", paddingTop: 100 }}>
+      <div style={{ minHeight: "100vh", background: "var(--bg)", paddingTop: "var(--page-top-pad, clamp(100px, 11vw, 136px))" }}>
 
         {/* Progress bar */}
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 3, zIndex: 300, background: "var(--hair-soft, rgba(232,220,196,0.1))" }}>
           <div style={{ height: "100%", background: "var(--gold)", width: `${(step / TOTAL_STEPS) * 100}%`, transition: "width 0.5s cubic-bezier(0.16,1,0.3,1)" }} />
         </div>
 
-        <div style={{ maxWidth: 680, margin: "0 auto", padding: "48px 24px 120px" }}>
+        <div style={{ maxWidth: "var(--container-narrow, 680px)", margin: "0 auto", padding: "clamp(24px, 3vw, 40px) var(--gutter) clamp(56px, 7vw, 96px)" }}>
 
           {/* Step label */}
-          <p style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.2em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 16 }}>
-            Step {step} of {TOTAL_STEPS}
+          <p className="section-label" style={{ marginBottom: 16 }}>
+            <span className="dot" />Step {step} of {TOTAL_STEPS}
           </p>
 
           {/* Step 1 — Travel Style */}
@@ -393,7 +393,7 @@ export default function PlanPage() {
 
               {/* Summary card */}
               <div style={{ border: "1px solid var(--hair, rgba(232,220,196,0.15))", borderRadius: 4, padding: "20px 24px", marginBottom: 32, background: "var(--tint, rgba(232,220,196,0.03))" }}>
-                <p style={{ fontFamily: "var(--f-mono)", fontSize: 10, letterSpacing: "0.2em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 14 }}>Your itinerary summary</p>
+                <p className="section-label" style={{ marginBottom: 14 }}><span className="dot" />Your itinerary summary</p>
                 <SummaryRow label="Travel style" value={form.travelStyle || "—"} />
                 <SummaryRow label="Destinations" value={form.destinations.length ? form.destinations.join(", ") : "—"} />
                 <SummaryRow label="Dates" value={form.arrivalDate && form.departureDate ? `${form.arrivalDate} → ${form.departureDate}` : form.arrivalDate || "—"} />

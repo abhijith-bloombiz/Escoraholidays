@@ -25,12 +25,12 @@ export default function About() {
       <div className="about-page" style={{ overflowX: "hidden" }}>
 
       {/* Hero */}
-      <section className="relative pt-40 pb-20 bg-bg overflow-hidden">
+      <section className="relative page-hero-top bg-bg overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: "radial-gradient(circle at 40% 50%, #cbab6e 0%, transparent 60%)" }}
         />
-        <div className="container mx-auto px-6 md:px-16 max-w-5xl">
+        <div className="container mx-auto max-w-5xl">
           <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase mb-6">Our Story</p>
           <h1 className="font-serif text-5xl md:text-7xl text-ink font-light leading-[1.1] mb-8" style={{ overflowWrap: "anywhere", wordBreak: "break-word", maxWidth: "100%" }}>
             Designed for<br /><em className="italic text-gold">those who travel deeply</em>
@@ -42,15 +42,15 @@ export default function About() {
         </div>
       </section>
 
-      <div className="container mx-auto px-6 md:px-16 max-w-5xl">
-        <hr style={{ borderColor: "var(--line)", margin: "0 0 80px" }} />
+      <div className="container mx-auto max-w-5xl">
+        <hr className="page-divider" />
       </div>
 
       {/* Philosophy */}
-      <section className="container mx-auto px-6 md:px-16 max-w-5xl pb-24">
+      <section className="container mx-auto max-w-5xl" style={{ paddingBottom: "var(--section-y)" }}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           <div className="reveal-up">
-            <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase mb-6">Philosophy</p>
+            <p className="section-label mb-6"><span className="dot" />Philosophy</p>
             <h2 className="font-serif text-4xl text-ink font-light leading-tight mb-6" style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}>
               Slow travel. Curated access. Honest hospitality.
             </h2>
@@ -77,9 +77,9 @@ export default function About() {
       </section>
 
       {/* Values */}
-      <section className="py-24 bg-bg-2 border-y border-line">
-        <div className="container mx-auto px-6 md:px-16 max-w-5xl">
-          <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase mb-10 text-center">What guides us</p>
+      <section className="page-section bg-bg-2 border-y border-line">
+        <div className="container mx-auto max-w-5xl">
+          <p className="section-label mb-10 text-center"><span className="dot" />What guides us</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {[
               {
@@ -106,13 +106,13 @@ export default function About() {
       </section>
 
       {/* Team */}
-      <section style={{ background: "var(--bg-2)", borderTop: "1px solid var(--line)", padding: "clamp(72px,9vw,130px) 0" }}>
-        <div className="container mx-auto px-6 md:px-16" style={{ maxWidth: "var(--container)" }}>
+      <section style={{ background: "var(--bg-2)", borderTop: "1px solid var(--line)", padding: "var(--section-y) 0" }}>
+        <div className="container mx-auto" style={{ maxWidth: "var(--container)" }}>
 
           {/* Eyebrow */}
-          <div className="reveal-up" style={{ marginBottom: "clamp(48px,6vw,80px)" }}>
-            <div style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: ".3em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 16 }}>
-              The people behind the journeys
+          <div className="reveal-up" style={{ marginBottom: "var(--header-gap-y, 44px)" }}>
+            <div className="section-label mb-4">
+              <span className="dot" />The people behind the journeys
             </div>
             <h2 style={{ fontFamily: "var(--f-display)", fontSize: "clamp(48px,6vw,72px)", fontWeight: 300, color: "var(--ink)", maxWidth: "18ch", lineHeight: 1.1 }}>
               Rooted in Kerala.<br /><em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Built for the world.</em>
@@ -135,8 +135,8 @@ export default function About() {
             {/* Content */}
             <div style={{ padding: "clamp(36px,5vw,64px)", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 32 }}>
               <div>
-                <div style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: ".3em", color: "var(--gold)", textTransform: "uppercase", marginBottom: 20 }}>
-                  Founder & CEO
+                <div className="section-label mb-5">
+                  <span className="dot" />Founder & CEO
                 </div>
                 <h3 style={{ fontFamily: "var(--f-display)", fontSize: "clamp(32px,3.5vw,52px)", fontWeight: 300, color: "var(--ink)", margin: "0 0 24px", lineHeight: 1.1 }}>
                   Midhilaj
@@ -183,8 +183,8 @@ export default function About() {
       </section>
 
       {/* Numbers */}
-      <section className="py-20 bg-bg-2 border-y border-line">
-        <div className="container mx-auto px-6 md:px-16 max-w-5xl">
+      <section className="page-section bg-bg-2 border-y border-line">
+        <div className="container mx-auto max-w-5xl">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { number: "10", label: "Years in Kerala" },
@@ -202,7 +202,7 @@ export default function About() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 bg-bg text-center">
+      <section className="page-section bg-bg text-center">
         <div className="container mx-auto px-6 max-w-2xl reveal-up">
           <h2 className="font-serif text-4xl text-ink font-light mb-6">Ready to begin?</h2>
           <p className="font-sans text-ink-mute mb-10 leading-relaxed">

@@ -75,7 +75,7 @@ export default function DestinationsV3() {
         {/* Page hero */}
         <section className="v3dest-hero">
           <div className="v3dest-wrap">
-            <span className="v3dest-eyebrow reveal-up">Explore Kerala</span>
+            <span className="v3dest-eyebrow reveal-up"><span className="dot" />Explore Kerala</span>
             <h1 className="reveal-up">Curated <em>Destinations</em></h1>
             <p className="reveal-up">
               From misty tea gardens to emerald backwaters and clifftop shores, discover the varied landscapes that make Kerala God's Own Country.
@@ -155,7 +155,7 @@ export default function DestinationsV3() {
         {/* Plan CTA */}
         <section className="v3dest-cta">
           <div className="v3dest-wrap">
-            <span className="v3dest-eyebrow">Ready to begin?</span>
+            <span className="v3dest-eyebrow"><span className="dot" />Ready to begin?</span>
             <h2>Every place, woven into <em>your</em> journey</h2>
             <p>Pick one destination or several — we'll design a private itinerary around your dates, your pace and your companions.</p>
             <Link href="/plan" className="v3dest-btn">Plan Your Journey</Link>

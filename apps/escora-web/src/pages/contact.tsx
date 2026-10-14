@@ -30,13 +30,13 @@ export default function Contact() {
   return (
     <Layout>
       {/* Hero */}
-      <section className="relative pt-40 pb-16 bg-bg overflow-hidden">
+      <section className="relative page-hero-top bg-bg overflow-hidden">
         <div
           className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: "radial-gradient(circle at 60% 40%, #cbab6e 0%, transparent 60%)" }}
         />
-        <div className="container mx-auto px-6 md:px-16 max-w-4xl text-center reveal-up">
-          <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase mb-6">Contact</p>
+        <div className="container mx-auto max-w-4xl text-center reveal-up">
+          <p className="section-label mb-6"><span className="dot" />Contact</p>
           <h1 className="font-serif text-5xl md:text-6xl text-ink font-light leading-[1.1] mb-6">
             Start a <em className="italic text-gold">conversation</em>
           </h1>
@@ -47,18 +47,18 @@ export default function Contact() {
         </div>
       </section>
 
-      <div className="container mx-auto px-6 md:px-16 max-w-4xl">
-        <hr style={{ borderColor: "var(--line)", margin: "0 0 60px" }} />
+      <div className="container mx-auto max-w-4xl">
+        <hr className="page-divider" />
       </div>
 
       {/* Content grid */}
-      <section className="container mx-auto px-6 md:px-16 max-w-4xl pb-32">
+      <section className="container mx-auto max-w-4xl" style={{ paddingBottom: "var(--section-y)" }}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 
           {/* Contact details */}
           <div className="space-y-10 reveal-up">
             <div>
-              <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase mb-4">Get in touch</p>
+              <p className="section-label mb-4"><span className="dot" />Get in touch</p>
               <div className="space-y-4 font-sans text-sm">
                 {[
                   { label: "Phone", value: "+91 8157 003 344", href: "tel:+918157003344" },
@@ -74,7 +74,7 @@ export default function Contact() {
             </div>
 
             <div>
-              <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase mb-4">Find us</p>
+              <p className="section-label mb-4"><span className="dot" />Find us</p>
               <p className="font-sans text-ink-mute text-sm leading-relaxed">
                 Escora Journey Studio<br />
                 1st Floor, Landmark Maple Business Tower<br />
@@ -101,7 +101,7 @@ export default function Contact() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-5">
-                <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase mb-6">Send a message</p>
+                <p className="section-label mb-6"><span className="dot" />Send a message</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="font-mono text-[10px] uppercase tracking-widest text-ink-mute">Name *</label>

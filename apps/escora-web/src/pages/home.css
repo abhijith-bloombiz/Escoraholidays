@@ -55,50 +55,6 @@
 .s-head { display: flex; flex-direction: column; gap: 18px; }
 .s-head .display-md { max-width: 18ch; }
 
-/* ---------- Loader ---------- */
-.loader {
-  position: fixed; inset: 0;
-  background: #162c1f;
-  z-index: 9000;
-  display: grid; place-items: center;
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s;
-}
-.loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
-.loader .stack { display: flex; flex-direction: column; align-items: center; gap: 0; }
-.loader .logo-img {
-  width: min(380px, 60vw);
-  height: auto;
-  animation: logo-in 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
-}
-@keyframes logo-in {
-  from { opacity: 0; transform: translateY(10px) scale(0.985); }
-  to { opacity: 1; transform: none; }
-}
-.loader .bar {
-  margin-top: 32px;
-  width: 220px; height: 1px;
-  background: rgba(203,171,110,0.2);
-  position: relative; overflow: hidden;
-}
-.loader .bar::after {
-  content: ''; position: absolute; inset: 0;
-  background: var(--gold);
-  transform-origin: left;
-  animation: loadbar 1.4s cubic-bezier(0.76, 0, 0.24, 1) forwards;
-}
-@keyframes loadbar {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-.loader .count {
-  margin-top: 16px;
-  font-family: var(--f-mono);
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  color: var(--ink-mute);
-  text-transform: uppercase;
-}
-
 /* ---------- Hero ---------- */
 .hero {
   position: relative;

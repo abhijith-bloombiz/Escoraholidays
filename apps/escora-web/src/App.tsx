@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import ScrollToTop from "@/components/ScrollToTop";
 import SmoothScroll from "@/components/SmoothScroll";
+import CinematicSplashScreen from "@/components/CinematicSplashScreen";
 
 import Home from "@/pages/home";
 import HomeClassic from "@/pages/home-classic";
@@ -94,6 +95,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <CinematicSplashScreen />
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <SmoothScroll>
             <ScrollToTop />

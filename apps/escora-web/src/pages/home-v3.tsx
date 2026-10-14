@@ -7,7 +7,6 @@ import { useAutoScrollStrip } from "@/hooks/useAutoScrollStrip";
 import { KERALA_DESTINATIONS, DESTINATION_BADGES } from "@/lib/keralaDestinations";
 import "./home-v3.css";
 
-import escoraMark from "@assets/escora/escora-logo-mark.png";
 import heroBg from "@assets/escora/hero-bg.jpeg";
 import heroMunnar from "@assets/escora/collections/munnar-tea-estate.jpeg";
 import heroHills from "@assets/escora/collections/hill-stations-hero.jpg";
@@ -188,16 +187,6 @@ interface EnquiryForm {
   dates: string; pax: string; budget: string; notes: string;
 }
 
-const LOADER_STORAGE_KEY = "escora-loader-last-seen";
-
-function hasSeenLoaderToday() {
-  try {
-    return localStorage.getItem(LOADER_STORAGE_KEY) === new Date().toDateString();
-  } catch {
-    return false;
-  }
-}
-
 function prefersReducedMotion() {
   return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
@@ -258,7 +247,6 @@ const wavePath = (() => {
 })();
 
 export default function HomeV3() {
-  const [loaded, setLoaded] = useState(hasSeenLoaderToday);
   const [slide, setSlide] = useState(0);
   const [tourOpen, setTourOpen] = useState(false);
   const [way, setWay] = useState(0);
@@ -286,20 +274,6 @@ export default function HomeV3() {
   const exploreDestinations = destinationsData && destinationsData.length > 0 ? destinationsData : KERALA_DESTINATIONS;
   useAutoScrollStrip(exploreScrollRef, [exploreDestinations]);
 
-  /* Loader — only plays once per day (shared with the live home page) */
-  useEffect(() => {
-    if (loaded) return;
-    const t = setTimeout(() => {
-      setLoaded(true);
-      try {
-        localStorage.setItem(LOADER_STORAGE_KEY, new Date().toDateString());
-      } catch {
-        /* private browsing or storage disabled — loader will just replay next visit */
-      }
-    }, 1500);
-    return () => clearTimeout(t);
-  }, [loaded]);
-
   /* Bidirectional scroll reveal for .rv and .mr2 */
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -320,7 +294,7 @@ export default function HomeV3() {
     const heroEls = document.querySelectorAll(".v3-hero .rv, .v3-hero .mr2");
     const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in", "card-in-view")), 150);
     return () => { io.disconnect(); clearTimeout(t); };
-  }, [loaded]);
+  }, []);
 
   /* Hero slideshow */
   useEffect(() => {
@@ -432,13 +406,6 @@ export default function HomeV3() {
   return (
     <Layout>
       <div className="v3home">
-        {/* ── Loader ── */}
-        <div className={`v3-loader${loaded ? " done" : ""}`} aria-hidden="true">
-          <img src={escoraMark} alt="" />
-          <div className="bar" />
-          <div className="cap">Kerala · for the global traveller</div>
-        </div>
-
         {/* ═══════════════════════════════ HERO ═══════════════════════════════ */}
         <section className="v3-hero" aria-label="Kerala, your way">
           <div className="v3-hero-slides" aria-hidden="true">

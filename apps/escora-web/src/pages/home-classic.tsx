@@ -3,7 +3,6 @@ import { useListPackages } from "@workspace/api-client-react";
 import Layout from "@/components/layout/Layout";
 import "./home.css";
 
-import escoraLogo from "@assets/escora/escora-logo-green.png";
 import heroBg from "@assets/escora/hero-bg.jpeg";
 
 const DEST_CARDS = [
@@ -112,16 +111,10 @@ const MARQUEE_ITEMS = [
 ];
 
 export default function HomeClassic() {
-  const [loaded, setLoaded] = useState(false);
   const [newsletterSent, setNewsletterSent] = useState(false);
   const [contactSent, setContactSent] = useState(false);
 
   const { data: packagesData } = useListPackages({ published: true });
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoaded(true), 1700);
-    return () => clearTimeout(t);
-  }, []);
 
   useEffect(() => {
     const opts: IntersectionObserverInit = {
@@ -137,7 +130,7 @@ export default function HomeClassic() {
     const els = document.querySelectorAll(".reveal, .mask-reveal, .image-reveal");
     els.forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, [loaded]);
+  }, []);
 
   const pkgCards = packagesData?.length
     ? packagesData.slice(0, 3).map((pkg) => ({
@@ -155,14 +148,6 @@ export default function HomeClassic() {
 
   return (
     <Layout>
-      <div className={`loader${loaded ? " done" : ""}`} aria-hidden="true">
-        <div className="stack">
-          <img className="logo-img" src={escoraLogo} alt="Escora — Explore · Experience · Escape" />
-          <div className="bar" />
-          <div className="count">Kerala · for the global traveller</div>
-        </div>
-      </div>
-
       <div>
         <section className="hero">
           <div className="bg" style={{ backgroundImage: `url(${heroBg})` }} />

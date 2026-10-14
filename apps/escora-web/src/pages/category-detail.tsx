@@ -331,7 +331,7 @@ export default function CategoryDetail() {
       </section>
 
       {/* Introduction */}
-      <section className="py-20 bg-bg">
+      <section className="page-section bg-bg">
         <div className="container mx-auto px-6 md:px-12">
           <div className="max-w-3xl mx-auto text-center">
             <p className="font-sans text-ink-soft text-lg leading-relaxed">{data.intro}</p>
@@ -348,10 +348,10 @@ export default function CategoryDetail() {
       </section>
 
       {/* What's Included */}
-      <section className="py-20 bg-bg-2 border-y border-line">
+      <section className="page-section bg-bg-2 border-y border-line">
         <div className="container mx-auto px-6 md:px-12">
           <div className="max-w-4xl mx-auto">
-            <p className="font-mono text-gold text-[11px] tracking-[0.3em] uppercase mb-3">Every Journey Includes</p>
+            <p className="section-label mb-3"><span className="dot" />Every Journey Includes</p>
             <h2 className="font-serif text-4xl md:text-5xl text-ink font-light mb-12">
               What's <em className="italic">Included</em>
             </h2>
@@ -368,9 +368,9 @@ export default function CategoryDetail() {
       </section>
 
       {/* Highlights */}
-      <section className="py-20 bg-bg">
+      <section className="page-section bg-bg">
         <div className="container mx-auto px-6 md:px-12">
-          <p className="font-mono text-gold text-[11px] tracking-[0.3em] uppercase mb-3">Experiences</p>
+          <p className="section-label mb-3"><span className="dot" />Experiences</p>
           <h2 className="font-serif text-4xl md:text-5xl text-ink font-light mb-12">
             Journey <em className="italic">Highlights</em>
           </h2>
@@ -393,9 +393,9 @@ export default function CategoryDetail() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-bg-2 border-t border-line">
+      <section className="page-section bg-bg-2 border-t border-line">
         <div className="container mx-auto px-6 md:px-12 text-center">
-          <p className="font-mono text-gold text-[11px] tracking-[0.3em] uppercase mb-4">Ready to begin?</p>
+          <p className="section-label mb-4"><span className="dot" />Ready to begin?</p>
           <h2 className="font-serif text-4xl md:text-5xl text-ink font-light mb-6 max-w-2xl mx-auto">
             Let us compose your<br /><em className="italic">{data.label}</em> journey
           </h2>

@@ -1,0 +1,661 @@
+/* ═══════════════════════════════════════════════════════════
+   360° DESTINATION EXPERIENCE SECTION — Editorial Carousel
+   Light, airy, luxury Escora aesthetic with side arrows
+   ═══════════════════════════════════════════════════════════ */
+
+.dest-360-section {
+  position: relative;
+  background-color: #FAF8F5;
+  overflow: hidden;
+  padding: clamp(40px, 5vh, 64px) 0;
+  font-family: var(--f-body, "Plus Jakarta Sans", sans-serif);
+  color: #123022;
+  scroll-margin-top: 80px;
+}
+
+/* Outer Container */
+.dest-360-container {
+  position: relative;
+  max-width: var(--container, 1440px);
+  margin: 0 auto;
+  padding: 0 var(--gutter, clamp(20px, 4vw, 64px));
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── Main Stage Card (Immersive Full-Width Hero Carousel) ── */
+.dest-360-stage-card {
+  position: relative;
+  width: 100%;
+  min-height: 580px;
+  height: clamp(560px, 66vh, 640px);
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(18, 48, 34, 0.12), 0 4px 16px rgba(0, 0, 0, 0.04);
+  background-color: #123022;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  outline: none;
+  user-select: none;
+}
+
+.dest-360-stage-card:focus-visible {
+  box-shadow: 0 0 0 3px rgba(181, 141, 74, 0.6), 0 24px 64px rgba(18, 48, 34, 0.16);
+}
+
+/* ── Panoramic Background Slides (Silky Smooth Cross-fade) ── */
+.dest-360-bg-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center center;
+  opacity: 0;
+  transform: scale(1.03);
+  transition: opacity 0.75s cubic-bezier(0.25, 1, 0.35, 1), transform 1.2s cubic-bezier(0.25, 1, 0.35, 1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.dest-360-bg-slide.is-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Soft Left-To-Right Mist Gradient for Editorial Readability */
+.dest-360-bg-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.82) 0%,
+    rgba(255, 255, 255, 0.70) 22%,
+    rgba(255, 255, 255, 0.36) 38%,
+    rgba(255, 255, 255, 0.10) 52%,
+    rgba(255, 255, 255, 0) 62%
+  );
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Subtle Vignette for Bottom Contrast & Depth */
+.dest-360-bg-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.03) 0%,
+    rgba(0, 0, 0, 0.05) 42%,
+    rgba(0, 0, 0, 0.48) 100%
+  );
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* ── Side Navigation Arrows (Left & Right Edges, Vertically Centered) ── */
+.dest-360-edge-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 15;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(228, 222, 210, 0.9);
+  color: #123022;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dest-360-edge-arrow:hover {
+  background: #ffffff;
+  color: #b58d4a;
+  border-color: #b58d4a;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 12px 28px rgba(181, 141, 74, 0.25);
+}
+
+.dest-360-edge-arrow:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.dest-360-edge-arrow--prev {
+  left: 24px;
+}
+
+.dest-360-edge-arrow--next {
+  right: 24px;
+}
+
+/* ── Top Left Editorial Content ── */
+.dest-360-top-row {
+  position: relative;
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 48px 48px 0 52px;
+  gap: 32px;
+}
+
+.dest-360-editorial {
+  max-width: 480px;
+}
+
+.dest-360-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--f-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b58d4a;
+  margin-bottom: 16px;
+}
+
+.dest-360-eyebrow-line {
+  width: 22px;
+  height: 1.5px;
+  background: #b58d4a;
+}
+
+.dest-360-heading {
+  font-family: var(--f-display, "Playfair Display", Georgia, serif);
+  font-size: clamp(34px, 3.8vw, 52px);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  color: #123022;
+  margin: 0 0 18px 0;
+}
+
+.dest-360-heading em {
+  font-style: italic;
+  color: #b58d4a;
+  font-weight: 400;
+}
+
+.dest-360-desc {
+  font-family: var(--f-body, sans-serif);
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: #3e5045;
+  margin: 0 0 26px 0;
+  max-width: 42ch;
+}
+
+/* "Explore Kerala" Pill Button with Dark Arrow Circle */
+.dest-360-explore-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 6px 6px 22px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(228, 222, 210, 0.85);
+  box-shadow: 0 6px 20px rgba(18, 48, 34, 0.08);
+  text-decoration: none;
+  color: #123022;
+  font-family: var(--f-body, sans-serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
+}
+
+.dest-360-explore-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(18, 48, 34, 0.14);
+  background: #ffffff;
+}
+
+.dest-360-btn-arrow-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #123022;
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  transition: transform 0.25s ease, background-color 0.25s ease;
+}
+
+.dest-360-explore-btn:hover .dest-360-btn-arrow-circle {
+  transform: translateX(2px);
+  background: #1b4531;
+}
+
+/* ── Center 360° Drag Graphic ── */
+.dest-360-center-indicator {
+  position: absolute;
+  top: 48%;
+  left: 54%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.25s ease;
+}
+
+.dest-360-center-indicator:hover {
+  transform: translate(-50%, -52%) scale(1.04);
+}
+
+.dest-360-rotate-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: #ffffff;
+  font-family: var(--f-display, "Playfair Display", Georgia, serif);
+  font-size: 32px;
+  font-weight: 400;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
+}
+
+.dest-360-rotate-text .dest-360-arrow-left,
+.dest-360-rotate-text .dest-360-arrow-right {
+  font-size: 20px;
+  opacity: 0.9;
+}
+
+.dest-360-arc-graphic {
+  position: relative;
+  width: 240px;
+  height: 52px;
+  margin: -6px 0 2px 0;
+  display: grid;
+  place-items: center;
+}
+
+.dest-360-arc-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+.dest-360-hand-icon {
+  position: relative;
+  z-index: 2;
+  color: #ffffff;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.45));
+  animation: dest360Pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes dest360Pulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+.dest-360-drag-label {
+  font-family: var(--f-mono, monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.95);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Bottom Section: Feature Pills + Meta Bar ── */
+.dest-360-bottom-wrapper {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 0 48px 28px 48px;
+  box-sizing: border-box;
+}
+
+/* 4 Feature Pills */
+.dest-360-features-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dest-360-feature-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 18px 8px 10px;
+  border-radius: 999px;
+  background: rgba(251, 248, 242, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(228, 222, 210, 0.75);
+  box-shadow: 0 4px 16px rgba(18, 48, 34, 0.08);
+}
+
+.dest-360-feat-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(181, 141, 74, 0.12);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.dest-360-feat-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.dest-360-feat-text strong {
+  font-family: var(--f-mono, monospace);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #123022;
+  text-transform: uppercase;
+}
+
+.dest-360-feat-text span {
+  font-family: var(--f-mono, monospace);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #6a7c71;
+  text-transform: uppercase;
+}
+
+/* Meta Bar: Slide Counter (Left), Dash Dots (Center), Location Label (Right) */
+.dest-360-meta-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+}
+
+/* Slide Counter (Left) */
+.dest-360-counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--f-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.dest-360-counter-line {
+  display: inline-block;
+  width: 22px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.dest-360-counter-total {
+  opacity: 0.75;
+}
+
+/* Dash Pagination Indicators (Center) */
+.dest-360-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dest-360-dash-dot {
+  width: 20px;
+  height: 3.5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.dest-360-dash-dot:hover {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.dest-360-dash-dot.is-active {
+  width: 38px;
+  background: #ffffff;
+}
+
+/* Location Label (Right) */
+.dest-360-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--f-display, "Playfair Display", Georgia, serif);
+  font-style: italic;
+  font-size: 14.5px;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
+  letter-spacing: 0.02em;
+}
+
+.dest-360-location svg {
+  color: #d4a94f;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* ── Interactive 360° Panorama Viewer Modal ── */
+.dest-360-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(5, 15, 10, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  animation: dest360FadeIn 0.3s ease;
+}
+
+@keyframes dest360FadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dest-360-modal-header {
+  position: absolute;
+  top: 24px;
+  left: 32px;
+  right: 32px;
+  z-index: 10;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dest-360-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-family: var(--f-mono, monospace);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.dest-360-modal-close {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #123022;
+  border: none;
+  font-family: var(--f-mono, monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dest-360-modal-close:hover {
+  background: #c59a58;
+  color: #ffffff;
+}
+
+.dest-360-canvas-wrap {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.dest-360-canvas-wrap:active {
+  cursor: grabbing;
+}
+
+.dest-360-modal-footer {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 8px 20px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--f-mono, monospace);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* ── Responsive Adaptations ── */
+@media (max-width: 1080px) {
+  .dest-360-stage-card {
+    height: auto;
+    min-height: 560px;
+  }
+  .dest-360-top-row {
+    padding: 36px 36px 0 36px;
+  }
+  .dest-360-bottom-wrapper {
+    padding: 24px 36px 24px 36px;
+  }
+  .dest-360-edge-arrow--prev {
+    left: 14px;
+  }
+  .dest-360-edge-arrow--next {
+    right: 14px;
+  }
+}
+
+@media (max-width: 860px) {
+  .dest-360-center-indicator {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  .dest-360-bg-gradient {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.84) 0%,
+      rgba(255, 255, 255, 0.68) 32%,
+      rgba(255, 255, 255, 0.18) 52%,
+      rgba(255, 255, 255, 0) 68%
+    );
+  }
+  .dest-360-features-row {
+    gap: 10px;
+  }
+  .dest-360-feature-item {
+    padding: 6px 14px 6px 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .dest-360-section {
+    padding: 32px 0;
+  }
+  .dest-360-container {
+    padding: 0 16px;
+  }
+  .dest-360-stage-card {
+    border-radius: 20px;
+    min-height: 540px;
+  }
+  .dest-360-top-row {
+    padding: 24px 20px 0 20px;
+  }
+  .dest-360-heading {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .dest-360-desc {
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+  .dest-360-edge-arrow {
+    width: 38px;
+    height: 38px;
+  }
+  .dest-360-edge-arrow--prev {
+    left: 8px;
+  }
+  .dest-360-edge-arrow--next {
+    right: 8px;
+  }
+  .dest-360-center-indicator {
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8);
+  }
+  .dest-360-features-row {
+    display: none; /* Hide pills on ultra-compact mobile to avoid clutter */
+  }
+  .dest-360-bottom-wrapper {
+    padding: 0 20px 18px 20px;
+  }
+  .dest-360-meta-bar {
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+  }
+  .dest-360-location {
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dest-360-bg-slide,
+  .dest-360-edge-arrow,
+  .dest-360-hand-icon,
+  .dest-360-dash-dot {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -35,9 +35,9 @@ function ProtectedRouter() {
         background: "#0f1a12",
       }}>
         <div style={{
-          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontFamily: "'Playfair Display', Georgia, serif",
           fontSize: "24px",
-          fontWeight: 300,
+          fontWeight: 400,
           color: "#cbab6e",
           letterSpacing: "0.1em",
         }}>

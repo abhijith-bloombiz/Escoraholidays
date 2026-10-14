@@ -9,7 +9,7 @@
   letter-spacing: 0.2em; text-transform: uppercase;
   color: var(--ink-mute);
   max-width: var(--container); margin: 0 auto;
-  padding: 140px var(--gutter) 0;
+  padding: var(--page-top-pad, clamp(100px, 11vw, 136px)) var(--gutter) 0;
 }
 .jd-crumb a { color: var(--ink-mute); text-decoration: none; transition: color 0.3s; }
 .jd-crumb a:hover { color: var(--gold); }
@@ -21,7 +21,7 @@
 /* ── Article header ── */
 .jd-header {
   max-width: var(--container); margin: 0 auto;
-  padding: 48px var(--gutter) 64px;
+  padding: clamp(28px, 3.5vw, 44px) var(--gutter) clamp(38px, 4.5vw, 56px);
   border-bottom: 1px solid var(--line);
 }
 .jd-header-inner { max-width: 860px; }
@@ -83,7 +83,7 @@
 /* ── Hero image ── */
 .jd-hero-img-wrap {
   max-width: var(--container); margin: 0 auto;
-  padding: 64px var(--gutter) 0;
+  padding: clamp(36px, 4.5vw, 54px) var(--gutter) 0;
   position: relative;
 }
 .jd-hero-img {
@@ -103,7 +103,7 @@
 /* ── Article layout: sidebar + prose ── */
 .jd-article-wrap {
   max-width: var(--container); margin: 0 auto;
-  padding: 80px var(--gutter) 0;
+  padding: clamp(48px, 6vw, 68px) var(--gutter) 0;
   display: grid;
   grid-template-columns: 140px 1fr;
   gap: 0 72px;
@@ -190,7 +190,7 @@
 
 /* ── Author card ── */
 .jd-author-card-wrap {
-  max-width: var(--container); margin: 80px auto 0;
+  max-width: var(--container); margin: var(--section-y-sm, clamp(38px, 4.5vw, 56px)) auto 0;
   padding: 0 var(--gutter);
 }
 .jd-author-card {
@@ -237,9 +237,25 @@
   margin-bottom: 52px;
 }
 .jd-related-eyebrow {
-  display: flex; align-items: center; gap: 10px;
-  font-family: var(--f-mono); font-size: 11px;
-  letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #B58D5D;
+}
+.jd-related-eyebrow .jd-dot,
+.jd-related-eyebrow .dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  background-color: #B58D5D;
+  display: inline-block;
+  flex-shrink: 0;
+  margin: 0;
 }
 .jd-related-all {
   font-family: var(--f-mono); font-size: 10.5px;

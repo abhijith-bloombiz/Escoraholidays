@@ -12,11 +12,11 @@ export default function PrivacyPolicy() {
   return (
     <Layout>
       {/* ── Hero ── */}
-      <section className="relative pt-40 pb-20 bg-bg overflow-hidden">
+      <section className="relative page-hero-top bg-bg overflow-hidden">
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: "radial-gradient(circle at 60% 40%, #cbab6e 0%, transparent 60%)" }} />
-        <div className="container mx-auto px-6 md:px-16 max-w-4xl">
-          <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase mb-6">Legal</p>
+        <div className="container mx-auto max-w-4xl">
+          <p className="section-label mb-6"><span className="dot" />Legal</p>
           <h1 className="font-serif text-5xl md:text-7xl text-ink font-light leading-[1.1] mb-6">
             Privacy &amp; <em className="italic text-gold">Policy</em>
           </h1>
@@ -28,12 +28,12 @@ export default function PrivacyPolicy() {
       </section>
 
       {/* ── Divider ── */}
-      <div className="container mx-auto px-6 md:px-16 max-w-4xl">
-        <hr style={{ borderColor: "var(--line)", margin: "0 0 60px" }} />
+      <div className="container mx-auto max-w-4xl">
+        <hr className="page-divider" />
       </div>
 
       {/* ── Body ── */}
-      <article className="container mx-auto px-6 md:px-16 max-w-4xl pb-32 font-sans text-ink-mute leading-[1.8] space-y-14">
+      <article className="container mx-auto max-w-4xl font-sans text-ink-mute leading-[1.8] space-y-14" style={{ paddingBottom: "var(--section-y)" }}>
 
         {/* 1 */}
         <Section title="1. Who We Are">

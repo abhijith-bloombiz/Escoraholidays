@@ -1,0 +1,657 @@
+/* ============================================================
+   THE ESCORA WAY — Compact Viewport Section
+   Luxury Editorial Kerala Travel Design
+   ============================================================ */
+
+.escora-way-section {
+  position: relative;
+  background-color: #FAF8F5;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  border-top: 1px solid rgba(228, 222, 210, 0.6);
+  scroll-margin-top: 80px;
+}
+
+@media (min-width: 901px) {
+  .escora-way-section {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(44px, 6vh, 84px) 0;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 900px) {
+  .escora-way-section {
+    padding: clamp(48px, 6.5vh, 72px) 0;
+  }
+}
+
+/* Subtle Organic Ambient Warm Glows matching reference */
+.escora-way-glow-left {
+  position: absolute;
+  top: 4%;
+  left: -8%;
+  width: clamp(280px, 36vw, 500px);
+  height: clamp(280px, 36vw, 500px);
+  background: radial-gradient(circle, rgba(198, 168, 118, 0.13) 0%, rgba(250, 248, 245, 0) 68%);
+  pointer-events: none;
+  filter: blur(50px);
+  z-index: 1;
+}
+
+.escora-way-glow-right {
+  position: absolute;
+  bottom: 2%;
+  right: -6%;
+  width: clamp(260px, 32vw, 460px);
+  height: clamp(260px, 32vw, 460px);
+  background: radial-gradient(circle, rgba(198, 168, 118, 0.09) 0%, rgba(250, 248, 245, 0) 70%);
+  pointer-events: none;
+  filter: blur(45px);
+  z-index: 1;
+}
+
+/* Subtle organic leaf wash watermark in background */
+.escora-way-watermark-left {
+  position: absolute;
+  top: 8%;
+  left: 1.2%;
+  width: 200px;
+  height: 260px;
+  opacity: 0.04;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.escora-way-watermark-right {
+  position: absolute;
+  bottom: 8%;
+  right: 1%;
+  width: 190px;
+  height: 250px;
+  opacity: 0.035;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Section Index Indicator (02) matching reference ── */
+.escora-way-index-indicator {
+  position: absolute;
+  top: clamp(20px, 3.2vh, 36px);
+  right: clamp(24px, 3.8vw, 54px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  z-index: 5;
+  pointer-events: none;
+  user-select: none;
+}
+
+.escora-way-index-num {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: #B58D5D;
+  line-height: 1;
+}
+
+.escora-way-index-dots {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.escora-way-index-dots .dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  display: block;
+}
+
+.escora-way-index-dots .dot-active {
+  background-color: #B58D5D;
+}
+
+.escora-way-index-dots .dot-faint {
+  background-color: rgba(181, 141, 93, 0.35);
+}
+
+/* Container — extends broadly towards viewport boundaries with elegant breathing room */
+.escora-way-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: min(1640px, 94vw);
+  margin: 0 auto;
+  padding: 0 clamp(28px, 3.8vw, 68px);
+  box-sizing: border-box;
+}
+
+/* Two-column layout */
+.escora-way-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: clamp(44px, 4.8vw, 88px);
+  align-items: center;
+}
+
+/* ── Left Column ── */
+.escora-way-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  max-width: 680px;
+}
+
+/* Eyebrow */
+.escora-way-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #B58D5D;
+  margin-bottom: clamp(14px, 2vh, 22px);
+}
+
+.escora-way-eyebrow .dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  background-color: #B58D5D;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+/* Main Heading — Elegant Playfair Display typography matching reference */
+.escora-way-heading {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(42px, 4.2vw, 66px);
+  font-weight: 400;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  color: #143323;
+  margin: 0 0 clamp(20px, 2.5vh, 28px) 0;
+}
+
+.escora-way-heading-line {
+  display: block;
+}
+
+.escora-way-heading .italic-green {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #143323;
+}
+
+.escora-way-heading .italic-gold {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #B58D5D;
+}
+
+/* Body Text */
+.escora-way-body {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.8vh, 18px);
+  max-width: 58ch;
+  margin-bottom: clamp(28px, 3.4vh, 40px);
+}
+
+.escora-way-body p {
+  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: clamp(15.5px, 1.08vw, 17px);
+  line-height: 1.72;
+  color: #435448;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* CTA Button */
+.escora-way-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #BE9B6B 0%, #B08A56 100%);
+  color: #FFFFFF !important;
+  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 15px 34px;
+  border-radius: 9999px;
+  text-decoration: none;
+  box-shadow: 0 10px 28px -4px rgba(176, 138, 86, 0.46), 0 4px 10px rgba(0, 0, 0, 0.04);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease;
+  user-select: none;
+  cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.escora-way-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px -4px rgba(176, 138, 86, 0.54), 0 5px 14px rgba(0, 0, 0, 0.06);
+  filter: brightness(1.04);
+}
+
+.escora-way-cta:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 16px -3px rgba(176, 138, 86, 0.4);
+}
+
+.escora-way-cta-arrow {
+  display: inline-block;
+  font-size: 14px;
+  line-height: 1;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.escora-way-cta:hover .escora-way-cta-arrow {
+  transform: translateX(4px);
+}
+
+/* ── Right Column ── */
+.escora-way-right {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+}
+
+.escora-way-image-frame {
+  position: relative;
+  width: 100%;
+  max-width: min(620px, 100%);
+  margin-left: auto;
+}
+
+/* The Arch Image — majestic proportions that scale gracefully */
+.escora-way-arch-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.15;
+  max-height: min(620px, 74vh);
+  border-radius: clamp(200px, 18vw, 290px) clamp(200px, 18vw, 290px) 34px 34px;
+  overflow: hidden;
+  box-shadow: 0 30px 75px -16px rgba(18, 42, 28, 0.22), 0 8px 22px rgba(0, 0, 0, 0.05);
+  background-color: #e8e2d4;
+  transform: translateZ(0);
+}
+
+.escora-way-arch-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+  transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.escora-way-arch-wrap:hover .escora-way-arch-img {
+  transform: scale(1.03);
+}
+
+/* ── Floating Story Card ── */
+.escora-way-story-card {
+  position: absolute;
+  right: clamp(-14px, -1vw, 0px);
+  bottom: clamp(18px, 2.6vh, 26px);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.4vw, 18px);
+  background: #FFFFFF;
+  border: 1px solid rgba(226, 220, 208, 0.88);
+  border-radius: 20px;
+  padding: clamp(13px, 1.5vh, 16px) clamp(16px, 1.5vw, 22px);
+  box-shadow: 0 20px 50px -8px rgba(18, 42, 28, 0.18), 0 4px 16px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  max-width: min(420px, 92%);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.escora-way-story-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 24px 50px -10px rgba(18, 42, 28, 0.2), 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.escora-way-story-text-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.escora-way-story-tagline {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(14px, 1.05vw, 15.5px);
+  font-weight: 400;
+  line-height: 1.3;
+  color: #143323;
+  margin: 0 0 6px 0;
+  white-space: pre-line;
+}
+
+.escora-way-story-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6.5px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #B58D5D;
+  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.escora-way-story-btn:hover {
+  color: #9E7545;
+  opacity: 0.9;
+}
+
+.escora-way-play-icon-wrap {
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: #EFE8DC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.escora-way-story-btn:hover .escora-way-play-icon-wrap {
+  background: #E5DBCA;
+  transform: scale(1.08);
+}
+
+.escora-way-play-icon-wrap svg {
+  margin-left: 1.5px;
+}
+
+/* Story Thumbnails */
+.escora-way-story-thumbs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.escora-way-thumb-btn {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  border-radius: 11px;
+  overflow: hidden;
+  border: 1px solid rgba(220, 212, 198, 0.7);
+  padding: 0;
+  background: #143323;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.escora-way-thumb-btn:hover {
+  transform: scale(1.06);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
+}
+
+.escora-way-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.escora-way-thumb-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(14, 30, 20, 0.3);
+  transition: background 0.25s ease;
+}
+
+.escora-way-thumb-btn:hover .escora-way-thumb-play-overlay {
+  background: rgba(14, 30, 20, 0.12);
+}
+
+.escora-way-thumb-play-overlay svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  margin-left: 1px;
+}
+
+/* ── Motion & Reveal Transitions ── */
+.escora-way-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1), transform 0.95s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.escora-way-reveal.in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.escora-way-reveal.d1 { transition-delay: 0.08s; }
+.escora-way-reveal.d2 { transition-delay: 0.16s; }
+.escora-way-reveal.d3 { transition-delay: 0.24s; }
+.escora-way-reveal.d4 { transition-delay: 0.32s; }
+
+/* ── Video Modal ── */
+.escora-way-video-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(10, 22, 14, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  animation: escoraWayFadeIn 0.3s ease;
+}
+
+@keyframes escoraWayFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.escora-way-video-frame {
+  position: relative;
+  width: min(1040px, 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+  background: #000;
+}
+
+.escora-way-video-frame video {
+  width: 100%;
+  max-height: 80vh;
+  display: block;
+  border-radius: 20px;
+  background: #000;
+}
+
+.escora-way-video-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+  font-size: 24px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 10;
+}
+
+.escora-way-video-close:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: scale(1.06);
+}
+
+/* ── Responsive Adaptations ── */
+@media (max-width: 1180px) {
+  .escora-way-wrap {
+    max-width: 100%;
+    padding: 0 clamp(24px, 3.5vw, 48px);
+  }
+  .escora-way-grid {
+    gap: clamp(36px, 4vw, 56px);
+  }
+  .escora-way-image-frame {
+    max-width: min(540px, 100%);
+  }
+  .escora-way-story-card {
+    right: 0;
+    bottom: 18px;
+    padding: 12px 16px;
+    gap: 14px;
+  }
+}
+
+@media (max-width: 900px) {
+  .escora-way-grid {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+  .escora-way-left {
+    max-width: 620px;
+    margin: 0 auto;
+    text-align: left;
+    align-items: flex-start;
+  }
+  .escora-way-right {
+    max-width: 480px;
+    margin: 0 auto;
+    justify-content: center;
+  }
+  .escora-way-image-frame {
+    margin-left: 0;
+  }
+  .escora-way-story-card {
+    right: 0;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .escora-way-section {
+    padding: 44px 0 52px 0;
+  }
+  .escora-way-wrap {
+    padding: 0 20px;
+  }
+  .escora-way-eyebrow {
+    margin-bottom: 12px;
+    font-size: 10.5px;
+    letter-spacing: 0.18em;
+  }
+  .escora-way-heading {
+    font-size: clamp(30px, 8vw, 40px);
+    line-height: 1.12;
+    margin-bottom: 16px;
+  }
+  .escora-way-body {
+    margin-bottom: 22px;
+    gap: 10px;
+  }
+  .escora-way-body p {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .escora-way-cta {
+    width: 100%;
+    justify-content: center;
+    padding: 13px 22px;
+    font-size: 11px;
+  }
+  .escora-way-right {
+    max-width: 100%;
+  }
+  .escora-way-image-frame {
+    max-width: 100%;
+  }
+  .escora-way-arch-wrap {
+    border-radius: 170px 170px 22px 22px;
+    aspect-ratio: 3.5 / 4;
+  }
+  /* On mobile: reposition story card cleanly below or overlapping slightly, no overflow */
+  .escora-way-story-card {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    margin-top: -30px;
+    width: calc(100% - 16px);
+    margin-left: auto;
+    margin-right: auto;
+    padding: 12px 14px;
+    border-radius: 16px;
+    gap: 12px;
+  }
+  .escora-way-story-tagline {
+    font-size: 13px;
+    margin-bottom: 5px;
+  }
+  .escora-way-story-btn {
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+  }
+  .escora-way-thumb-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+  }
+}
+
+/* ── Accessibility & Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .escora-way-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .escora-way-cta,
+  .escora-way-arch-img,
+  .escora-way-story-card,
+  .escora-way-thumb-btn {
+    transition: none !important;
+    transform: none !important;
+  }
+}

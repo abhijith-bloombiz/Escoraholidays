@@ -10,12 +10,15 @@
     radial-gradient(ellipse at 50% 12%, #FFFEFC 0%, #FAF6EE 75%),
     radial-gradient(circle at 100% 0%, rgba(20, 51, 35, 0.04) 0%, transparent 50%),
     radial-gradient(circle at 0% 100%, rgba(20, 51, 35, 0.035) 0%, transparent 50%);
+  height: 100vh;
+  height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
+  max-height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: clamp(34px, 4.2vh, 46px) 0 clamp(12px, 1.5vh, 18px);
+  justify-content: flex-start;
+  padding: clamp(56px, 6.8vh, 68px) 0 clamp(10px, 1.4vh, 16px);
   overflow: hidden;
   color: #102B1D;
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -66,6 +69,10 @@
   margin: 0 auto;
   padding: 0 var(--gutter, clamp(20px, 4vw, 56px));
   box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 /* ─── Header: Matching Travel by Type editorial specifications ─── */
@@ -73,11 +80,12 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: clamp(8px, 1.1vh, 14px);
-  padding-bottom: clamp(8px, 1vh, 12px);
+  margin-bottom: clamp(6px, 0.8vh, 10px);
+  padding-bottom: clamp(6px, 0.8vh, 10px);
   border-bottom: 1px solid rgba(228, 222, 210, 0.7);
   gap: 24px;
   width: 100%;
+  flex-shrink: 0;
 }
 
 .how-header-left {
@@ -96,7 +104,7 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #B58D5D;
-  margin-bottom: clamp(5px, 0.7vh, 8px);
+  margin-bottom: clamp(4px, 0.6vh, 6px);
 }
 
 .how-eyebrow .dot {
@@ -139,17 +147,20 @@
 .how-journey-stage {
   position: relative;
   width: 100%;
-  margin-top: clamp(8px, 1.1vh, 13px);
-  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  margin-top: clamp(4px, 0.7vh, 8px);
+  margin-bottom: clamp(6px, 0.9vh, 12px);
+  min-height: 0;
 }
 
 /* Subtle connecting wave spline across cards */
 .how-spline-bg {
   position: absolute;
-  top: clamp(155px, 18vh, 185px);
-  left: 3%;
-  width: 94%;
-  height: 70px;
+  top: clamp(140px, 16vh, 170px);
+  left: 2%;
+  width: 96%;
+  height: 60px;
   pointer-events: none;
   z-index: 1;
   transform: translateY(-50%);
@@ -162,10 +173,9 @@
   z-index: 3;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: clamp(6px, 0.75vw, 10px);
+  gap: clamp(6px, 0.65vw, 10px);
   align-items: stretch;
   width: 100%;
-  min-height: clamp(248px, 28vh, 280px);
   margin-bottom: 0;
 }
 
@@ -182,7 +192,7 @@
   align-items: center;
   margin: 0 auto;
   width: 100%;
-  max-width: clamp(166px, 13vw, 196px);
+  max-width: 100%;
   height: 100%;
   padding: 0;
   box-sizing: border-box;
@@ -206,6 +216,7 @@
   box-sizing: border-box;
   transition: all 0.35s ease;
   margin: 0 auto;
+  flex-shrink: 0;
 }
 
 /* Inactive cards: Ivory frame around image */
@@ -246,7 +257,8 @@
   position: relative;
   z-index: 3;
   margin-top: -14px;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
+  flex-shrink: 0;
 }
 
 .how-step-badge {
@@ -270,11 +282,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 3px;
+  justify-content: flex-start;
+  gap: 2px;
   padding: 0 4px;
   width: 100%;
-  flex-grow: 1;
+  margin-top: 0;
 }
 
 .how-card-title {
@@ -296,7 +308,7 @@
   line-height: 1.35;
   color: #5D7064;
   margin: 0;
-  max-width: 20ch;
+  max-width: 22ch;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -313,7 +325,7 @@
   border-right: 1.2px solid rgba(197, 160, 105, 0.55);
   border-bottom: none;
   border-radius: 999px 999px 0 0;
-  padding: clamp(5px, 0.45vw, 6.5px) clamp(5px, 0.45vw, 6.5px) 14px clamp(5px, 0.45vw, 6.5px);
+  padding: clamp(5px, 0.45vw, 6.5px) clamp(5px, 0.45vw, 6.5px) 8px clamp(5px, 0.45vw, 6.5px);
   margin-bottom: -2px; /* Seamless overlap with panel top border, ZERO gap */
   box-shadow: 0 -8px 28px rgba(10, 33, 22, 0.2);
   z-index: 5;
@@ -371,12 +383,13 @@
   border-radius: 20px;
   border: 1.2px solid rgba(197, 160, 105, 0.45);
   margin-top: 0;
-  padding: clamp(13px, 1.6vh, 17px) clamp(20px, 2.4vw, 32px);
+  padding: clamp(11px, 1.4vh, 15px) clamp(20px, 2.4vw, 32px);
   color: #FFFFFF;
   box-shadow: 0 16px 40px rgba(10, 33, 22, 0.24);
   overflow: hidden;
   box-sizing: border-box;
   z-index: 2;
+  flex-shrink: 0;
   transition: border-radius 0.25s ease;
 }
 
@@ -571,14 +584,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: clamp(8px, 1.1vh, 13px);
-  padding-top: 8px;
+  margin-top: 0;
+  padding-top: clamp(6px, 0.8vh, 10px);
   border-top: 1px solid rgba(197, 160, 105, 0.15);
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #6C8274;
+  flex-shrink: 0;
 }
 
 .how-footer-left {
@@ -627,12 +641,27 @@
 /* ─── Responsive adaptations ─── */
 @media (max-width: 1080px) {
   .how-it-works-section {
+    height: auto;
     min-height: auto;
+    max-height: none;
     padding: clamp(48px, 6vh, 64px) 0;
+  }
+  .how-container {
+    height: auto;
+    display: block;
+  }
+  .how-journey-stage {
+    display: block;
+    margin-top: 18px;
+    margin-bottom: 24px;
   }
   .how-cards-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 14px;
+    min-height: auto;
+  }
+  .how-footer-bar {
+    margin-top: 18px;
   }
   .how-card {
     margin: 0 auto;

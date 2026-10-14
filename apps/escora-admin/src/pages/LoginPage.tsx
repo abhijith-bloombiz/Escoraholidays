@@ -37,7 +37,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <div style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontFamily: "'Playfair Display', Georgia, serif",
             fontSize: "32px",
             fontWeight: 300,
             color: "#f0ebe0",
@@ -83,7 +83,7 @@ export default function LoginPage() {
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(203,171,110,0.2)",
                 color: "#f0ebe0",
-                fontFamily: "'Manrope', sans-serif",
+                fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                 fontSize: "14px",
                 outline: "none",
                 boxSizing: "border-box",
@@ -118,7 +118,7 @@ export default function LoginPage() {
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(203,171,110,0.2)",
                 color: "#f0ebe0",
-                fontFamily: "'Manrope', sans-serif",
+                fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                 fontSize: "14px",
                 outline: "none",
                 boxSizing: "border-box",
@@ -136,7 +136,7 @@ export default function LoginPage() {
               background: "rgba(220,38,38,0.1)",
               border: "1px solid rgba(220,38,38,0.3)",
               color: "#fca5a5",
-              fontFamily: "'Manrope', sans-serif",
+              fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
               fontSize: "13px",
             }}>
               {error}
@@ -169,7 +169,7 @@ export default function LoginPage() {
           paddingTop: "24px",
           borderTop: "1px solid rgba(203,171,110,0.1)",
           textAlign: "center",
-          fontFamily: "'Manrope', sans-serif",
+          fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
           fontSize: "12px",
           color: "rgba(240,235,224,0.3)",
         }}>

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Manrope:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Cinzel:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap");
 @import "./fonts/melodrama.css";
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -57,10 +57,10 @@
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
 
-  --font-sans: 'Manrope', sans-serif;
-  --font-serif: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
-  --font-heading: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
-  --font-display: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-display: 'Playfair Display', Georgia, serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   --text-xs: 0.75rem;
@@ -125,13 +125,41 @@
   --hair: #CCD7D2;
   --hair-soft: #DCE5E0;
   --tint: rgba(26, 63, 44, 0.07);
-  --tint-strong: rgba(26, 63, 44, 0.3);
-
-  --f-display: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
-  --f-serif: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
-  --f-heading: 'Melodrama', 'Cormorant Garamond', Georgia, serif;
-  --f-body: 'Manrope', system-ui, sans-serif;
+  --f-display: 'Playfair Display', Georgia, serif;
+  --f-serif: 'Playfair Display', Georgia, serif;
+  --f-heading: 'Playfair Display', Georgia, serif;
+  --f-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --f-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --f-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* ── Spacing & Responsive Layout System ── */
+  --container: 1440px;
+  --container-editorial: 1040px;
+  --container-prose: 860px;
+  --container-narrow: 680px;
+
+  --gutter: clamp(20px, 4vw, 64px);
+  --section-y: clamp(54px, 6.5vw, 88px);
+  --section-y-sm: clamp(38px, 4.5vw, 56px);
+  --header-gap-y: clamp(28px, 3.5vw, 44px);
+  --page-top-pad: clamp(100px, 11vw, 136px);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --gutter: 20px;
+    --section-y: clamp(44px, 6vw, 64px);
+    --section-y-sm: clamp(30px, 4vw, 42px);
+    --header-gap-y: clamp(20px, 3vw, 32px);
+    --page-top-pad: 96px;
+  }
+}
+
+@media (max-width: 380px) {
+  :root {
+    --gutter: 16px;
+    --page-top-pad: 90px;
+  }
 }
 
 .dark {
@@ -164,10 +192,66 @@
   }
 }
 
-/* Ensure all headings and display classes use Melodrama */
+/* Ensure all headings and display classes use Playfair Display */
 h1, h2, h3, h4, h5, h6,
 .display-xl, .display-lg, .display-md, .display-sm {
   font-family: var(--f-heading);
+}
+
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif !important;
+}
+
+.font-sans {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+}
+
+/* ============================================================
+   RESPONSIVE SPACING & CONTAINER SYSTEM (Public Portal)
+   Standardizes container width, horizontal margins, section padding,
+   and page hero clearance across desktop, tablet, and mobile.
+   ============================================================ */
+.site-container,
+.wrap,
+.v3-wrap,
+.v3dest-wrap {
+  width: 100%;
+  max-width: var(--container);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+  box-sizing: border-box;
+}
+
+/* Ensure public page .container elements use the standardized responsive gutter */
+.container {
+  padding-left: var(--gutter) !important;
+  padding-right: var(--gutter) !important;
+  box-sizing: border-box;
+}
+
+/* Standardized top breathing room for subpages under floating navbar */
+.page-hero-top {
+  padding-top: var(--page-top-pad) !important;
+  padding-bottom: var(--section-y-sm) !important;
+}
+
+/* Standardized responsive section vertical rhythm */
+.page-section {
+  padding-top: var(--section-y) !important;
+  padding-bottom: var(--section-y) !important;
+}
+
+.page-section-sm {
+  padding-top: var(--section-y-sm) !important;
+  padding-bottom: var(--section-y-sm) !important;
+}
+
+/* Standardized editorial dividers */
+.page-divider {
+  border-color: var(--line) !important;
+  margin: 0 0 var(--header-gap-y) !important;
 }
 
 /* ============================================================
@@ -453,4 +537,62 @@ body:has(a:hover, button:hover, [role="button"]:hover) .custom-cursor-ring {
   background-color: var(--gold);
   border-color: transparent;
   mix-blend-mode: difference;
+}
+
+/* ==========================================================================
+   UNIFIED SECTION LABEL / EYEBROW SYSTEM
+   Styling reference: "THE ESCORA WAY" section label
+   ========================================================================== */
+.section-label,
+.eyebrow,
+.kerala-3d-eyebrow,
+.v3dest-eyebrow,
+.v3-eyebrow,
+.jd-related-eyebrow {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: #B58D5D !important;
+  line-height: 1.2 !important;
+}
+
+.section-label .dot,
+.eyebrow .dot,
+.kerala-3d-eyebrow .dot,
+.v3dest-eyebrow .dot,
+.v3-eyebrow .dot,
+.jd-related-eyebrow .jd-dot,
+.jd-related-eyebrow .dot {
+  width: 5.5px !important;
+  height: 5.5px !important;
+  border-radius: 50% !important;
+  background-color: #B58D5D !important;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.section-label.text-center,
+.text-center > .section-label,
+.text-center > .eyebrow {
+  justify-content: center !important;
+}
+
+@media (max-width: 768px) {
+  .section-label,
+  .eyebrow,
+  .kerala-3d-eyebrow,
+  .v3dest-eyebrow,
+  .v3-eyebrow,
+  .jd-related-eyebrow {
+    font-size: 10.5px !important;
+    letter-spacing: 0.18em !important;
+  }
 }

@@ -243,6 +243,30 @@ export interface Itinerary {
   status: string;
   /** @nullable */
   createdBy?: string | null;
+  /** @nullable */
+  referenceNumber?: string | null;
+  /** @nullable */
+  curatorName?: string | null;
+  /** @nullable */
+  curatorPhone?: string | null;
+  /** @nullable */
+  emergencyContacts?: string | null;
+  /** @nullable */
+  adults?: number | null;
+  /** @nullable */
+  children?: number | null;
+  /** @nullable */
+  infants?: number | null;
+  /** @nullable */
+  tripIncludes?: string | null;
+  /** @nullable */
+  transportation?: string | null;
+  /** @nullable */
+  hotelTerms?: string | null;
+  /** @nullable */
+  paymentTerms?: string | null;
+  /** @nullable */
+  importantInfo?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -265,6 +289,18 @@ export interface ItineraryInput {
   currency?: string;
   status?: string;
   createdBy?: string;
+  referenceNumber?: string;
+  curatorName?: string;
+  curatorPhone?: string;
+  emergencyContacts?: string;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  tripIncludes?: string;
+  transportation?: string;
+  hotelTerms?: string;
+  paymentTerms?: string;
+  importantInfo?: string;
 }
 
 export interface ItineraryUpdate {
@@ -285,6 +321,18 @@ export interface ItineraryUpdate {
   currency?: string;
   status?: string;
   createdBy?: string;
+  referenceNumber?: string;
+  curatorName?: string;
+  curatorPhone?: string;
+  emergencyContacts?: string;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  tripIncludes?: string;
+  transportation?: string;
+  hotelTerms?: string;
+  paymentTerms?: string;
+  importantInfo?: string;
 }
 
 export interface Order {

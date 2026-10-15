@@ -378,7 +378,19 @@ export const CreateItineraryBody = zod.object({
   "pricing": zod.string().optional(),
   "currency": zod.string().optional(),
   "status": zod.string().optional(),
-  "createdBy": zod.string().optional()
+  "createdBy": zod.string().optional(),
+  "referenceNumber": zod.string().optional(),
+  "curatorName": zod.string().optional(),
+  "curatorPhone": zod.string().optional(),
+  "emergencyContacts": zod.string().optional(),
+  "adults": zod.number().optional(),
+  "children": zod.number().optional(),
+  "infants": zod.number().optional(),
+  "tripIncludes": zod.string().optional(),
+  "transportation": zod.string().optional(),
+  "hotelTerms": zod.string().optional(),
+  "paymentTerms": zod.string().optional(),
+  "importantInfo": zod.string().optional()
 })
 
 
@@ -409,6 +421,18 @@ export const GetItineraryByShareTokenResponse = zod.object({
   "currency": zod.string(),
   "status": zod.string(),
   "createdBy": zod.string().nullish(),
+  "referenceNumber": zod.string().nullish(),
+  "curatorName": zod.string().nullish(),
+  "curatorPhone": zod.string().nullish(),
+  "emergencyContacts": zod.string().nullish(),
+  "adults": zod.number().nullish(),
+  "children": zod.number().nullish(),
+  "infants": zod.number().nullish(),
+  "tripIncludes": zod.string().nullish(),
+  "transportation": zod.string().nullish(),
+  "hotelTerms": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "importantInfo": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -441,6 +465,18 @@ export const GetItineraryResponse = zod.object({
   "currency": zod.string(),
   "status": zod.string(),
   "createdBy": zod.string().nullish(),
+  "referenceNumber": zod.string().nullish(),
+  "curatorName": zod.string().nullish(),
+  "curatorPhone": zod.string().nullish(),
+  "emergencyContacts": zod.string().nullish(),
+  "adults": zod.number().nullish(),
+  "children": zod.number().nullish(),
+  "infants": zod.number().nullish(),
+  "tripIncludes": zod.string().nullish(),
+  "transportation": zod.string().nullish(),
+  "hotelTerms": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "importantInfo": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -470,7 +506,19 @@ export const UpdateItineraryBody = zod.object({
   "pricing": zod.string().optional(),
   "currency": zod.string().optional(),
   "status": zod.string().optional(),
-  "createdBy": zod.string().optional()
+  "createdBy": zod.string().optional(),
+  "referenceNumber": zod.string().optional(),
+  "curatorName": zod.string().optional(),
+  "curatorPhone": zod.string().optional(),
+  "emergencyContacts": zod.string().optional(),
+  "adults": zod.number().optional(),
+  "children": zod.number().optional(),
+  "infants": zod.number().optional(),
+  "tripIncludes": zod.string().optional(),
+  "transportation": zod.string().optional(),
+  "hotelTerms": zod.string().optional(),
+  "paymentTerms": zod.string().optional(),
+  "importantInfo": zod.string().optional()
 })
 
 export const UpdateItineraryResponse = zod.object({
@@ -493,6 +541,18 @@ export const UpdateItineraryResponse = zod.object({
   "currency": zod.string(),
   "status": zod.string(),
   "createdBy": zod.string().nullish(),
+  "referenceNumber": zod.string().nullish(),
+  "curatorName": zod.string().nullish(),
+  "curatorPhone": zod.string().nullish(),
+  "emergencyContacts": zod.string().nullish(),
+  "adults": zod.number().nullish(),
+  "children": zod.number().nullish(),
+  "infants": zod.number().nullish(),
+  "tripIncludes": zod.string().nullish(),
+  "transportation": zod.string().nullish(),
+  "hotelTerms": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "importantInfo": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })

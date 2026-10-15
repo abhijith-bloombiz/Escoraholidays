@@ -116,7 +116,15 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
           </div>
         )}
 
-        <div className={`itinerary-body mx-auto px-6 md:px-12 py-16 max-w-4xl space-y-16 ${itinerary.coverImageUrl ? "" : "pt-40 md:pt-48"}`}>
+        <div
+          className="itinerary-body mx-auto max-w-4xl space-y-16"
+          style={{
+            paddingLeft: "var(--gutter)",
+            paddingRight: "var(--gutter)",
+            paddingTop: itinerary.coverImageUrl ? "clamp(32px, 4vw, 48px)" : "var(--page-top-pad, clamp(100px, 11vw, 136px))",
+            paddingBottom: "var(--section-y, clamp(54px, 6.5vw, 88px))",
+          }}
+        >
           <section>
             <div className="flex flex-wrap items-start justify-between gap-6 mb-4">
               <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase">Prepared for {itinerary.customerName}</p>

@@ -1,0 +1,397 @@
+/* ============================================================
+   KERALA 3D DESTINATION EXPLORER — Editorial Interactive Section
+   Accurately matched to the original luxury reference design
+   ============================================================ */
+
+.kerala-3d-explorer-section {
+  position: relative;
+  width: 100%;
+  background-color: #FAF8F5;
+  padding: clamp(24px, 3vh, 36px) 0 clamp(42px, 5vh, 62px) 0;
+  scroll-margin-top: 100px;
+  overflow: hidden;
+  box-sizing: border-box;
+  border-top: 1px solid rgba(228, 222, 210, 0.6);
+  border-bottom: 1px solid rgba(228, 222, 210, 0.6);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #143323;
+}
+
+/* ── Dedicated Luxury Background Layer (Independent from foreground content) ── */
+.kerala-3d-bg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  z-index: 1;
+}
+
+/* Subtly visible Kerala landscape: low opacity, gentle mist, very low contrast, lifted shadows */
+.kerala-3d-bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url('/assets/explore-kerala-3d-bg.jpg');
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  opacity: 0.20;
+  filter: saturate(0.52) brightness(1.08) contrast(0.82);
+  transform: scale(1.02);
+}
+
+/* Soft ivory-white overlay: gentle misty gradient wash creating bright airy breathing room */
+.kerala-3d-bg-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse 90% 80% at 50% 45%, rgba(250, 248, 245, 0.68) 0%, rgba(250, 248, 245, 0.88) 65%, #FAF8F5 100%),
+    linear-gradient(180deg, rgba(250, 248, 245, 0.95) 0%, rgba(250, 248, 245, 0.35) 40%, rgba(250, 248, 245, 0.45) 60%, rgba(250, 248, 245, 0.95) 100%);
+  pointer-events: none;
+}
+
+/* Main Container */
+.kerala-3d-wrap {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: var(--container, 1440px);
+  margin: 0 auto;
+  padding: 0 var(--gutter, clamp(20px, 4vw, 64px));
+  box-sizing: border-box;
+}
+
+/* ── 2-Column Balanced Composition: Left Map, Right DepthCarousel ── */
+.kerala-3d-stage {
+  display: grid;
+  grid-template-columns: minmax(310px, 365px) minmax(640px, 1fr);
+  gap: clamp(20px, 2.5vw, 44px);
+  align-items: center;
+  position: relative;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FULL-WIDTH EDITORIAL HEADER (Matching Travel by Type structure)
+   ══════════════════════════════════════════════════════════════ */
+.kerala-3d-editorial-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: clamp(14px, 2vh, 22px);
+  padding-bottom: clamp(12px, 1.6vh, 18px);
+  border-bottom: 1px solid rgba(228, 222, 210, 0.7);
+  width: 100%;
+  gap: 24px;
+}
+
+.kerala-3d-head-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.kerala-3d-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #B58D5D;
+  margin-bottom: 14px;
+}
+
+.kerala-3d-eyebrow .dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  background-color: #B58D5D;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.kerala-3d-title {
+  font-family: var(--f-display, 'Playfair Display', Georgia, serif);
+  font-size: clamp(28px, 3.4vw, 44px);
+  font-weight: 400;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  color: #143323;
+  margin: 0;
+  max-width: 22ch;
+}
+
+.kerala-3d-title .italic-gold {
+  font-family: var(--f-display, 'Playfair Display', Georgia, serif);
+  font-style: italic;
+  font-weight: 400;
+  color: #B58D5D;
+}
+
+.kerala-3d-desc {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: clamp(13px, 0.95vw, 14.5px);
+  line-height: 1.65;
+  color: #4B5A51;
+  max-width: 38ch;
+  text-align: right;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COLUMN 1: 3D KERALAL RELIEF MAP
+   ══════════════════════════════════════════════════════════════ */
+.kerala-3d-left-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+/* 3D Kerala Relief Canvas Wrap (Responsive sizing & refined balance) */
+.kerala-3d-map-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 365px;
+  height: clamp(510px, 56vh, 560px);
+  margin-top: -22px;
+}
+
+/* Floating District Markers on 3D Map (Reference: 03 Midnight Navy & Antique Gold) */
+.map-floating-pin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FFFFFF;
+  padding: 3.5px 9px 3.5px 6.5px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 182, 111, 0.45);
+  box-shadow: 0 4px 12px rgba(23, 40, 61, 0.10);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+  user-select: none;
+  z-index: 5;
+}
+
+.map-floating-pin-pill .pin-dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  background: #D6B66F;
+  transition: all 0.2s ease;
+}
+
+.map-floating-pin-pill .pin-text {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #1B2D45;
+  line-height: 1;
+}
+
+.map-floating-pin-pill:hover {
+  transform: translate(-50%, -50%) scale(1.07);
+  background: #FFFFFF;
+  border-color: #D6B66F;
+  box-shadow: 0 6px 16px rgba(23, 40, 61, 0.16);
+}
+
+.map-floating-pin-pill.is-active,
+.map-floating-pin-pill.is-dest-target {
+  background: linear-gradient(135deg, #F9F2E2 0%, #E6C478 100%);
+  border-color: #D6B66F;
+  transform: translate(-50%, -50%) scale(1.08);
+  box-shadow: 0 6px 18px rgba(214, 182, 111, 0.35);
+}
+
+.map-floating-pin-pill.is-active .pin-dot,
+.map-floating-pin-pill.is-dest-target .pin-dot {
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px #D6B66F, 0 0 0 4.5px rgba(230, 196, 120, 0.6);
+}
+
+.map-floating-pin-pill.is-active .pin-text,
+.map-floating-pin-pill.is-dest-target .pin-text {
+  color: #1B2D45;
+  font-weight: 800;
+}
+
+/* Floating District Info Tooltip */
+.kerala-3d-district-floating-tooltip {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.district-tooltip-card {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(214, 182, 111, 0.45);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 10px 24px rgba(23, 40, 61, 0.12);
+  max-width: 240px;
+  pointer-events: none;
+}
+
+.district-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.district-tooltip-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #D6B66F;
+}
+
+.district-tooltip-category {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1B2D45;
+  background: rgba(23, 40, 61, 0.08);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.district-tooltip-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1B2D45;
+  margin: 0 0 5px 0;
+  line-height: 1.15;
+}
+
+.district-tooltip-desc {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #374B63;
+  margin: 0 0 6px 0;
+}
+
+.district-tooltip-dest {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: #1B2D45;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(214, 182, 111, 0.45);
+}
+
+.district-tooltip-dest .dest-dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  background-color: #E6C478;
+  box-shadow: 0 0 6px rgba(230, 196, 120, 0.8);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COLUMN 2: REACT BITS 3D DEPTH CAROUSEL
+   ══════════════════════════════════════════════════════════════ */
+.kerala-3d-carousel-col {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN (TABLET & MOBILE)
+   ══════════════════════════════════════════════════════════════ */
+@media (max-width: 1140px) {
+  .kerala-3d-stage {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  .kerala-3d-left-col {
+    align-items: center;
+    text-align: center;
+  }
+  .kerala-3d-map-wrap {
+    max-width: 440px;
+    margin: 0 auto;
+    height: clamp(340px, 45vh, 420px);
+    margin-top: 0;
+  }
+  .kerala-3d-carousel-col {
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .kerala-3d-editorial-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    text-align: left;
+  }
+  .kerala-3d-head-left {
+    align-items: flex-start;
+    text-align: left;
+  }
+  .kerala-3d-desc {
+    text-align: left;
+    margin: 0;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .kerala-3d-wrap {
+    padding: 0 16px;
+  }
+  .kerala-3d-explorer-section {
+    padding: 24px 0 clamp(40px, 5vh, 52px) 0;
+  }
+  .kerala-3d-bg-image {
+    background-position: 40% top;
+  }
+  .kerala-3d-stage {
+    gap: 22px;
+  }
+  .kerala-3d-map-wrap {
+    height: 330px;
+  }
+}
+
+@media (max-width: 540px) {
+  .kerala-3d-explorer-section {
+    padding: 20px 0 42px 0;
+  }
+  .kerala-3d-map-wrap {
+    height: 290px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-floating-pin-pill {
+    transition: none !important;
+    animation: none !important;
+  }
+}

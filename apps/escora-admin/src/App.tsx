@@ -40,7 +40,7 @@ function ProtectedRouter() {
         <div style={{
           fontFamily: "'Playfair Display', Georgia, serif",
           fontSize: "24px",
-          fontWeight: 300,
+          fontWeight: 400,
           color: "#cbab6e",
           letterSpacing: "0.1em",
         }}>

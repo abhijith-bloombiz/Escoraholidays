@@ -1,0 +1,20 @@
+/* ============================================================
+   TriptychHeroReveal.css
+   Interactive Liquid Background Reveal Effect
+   ============================================================ */
+
+.triptych-hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1; /* Sits directly above .hero-art-bg (z-index: 0) and below .hero-center-content (z-index: 5) */
+  pointer-events: none; /* Allows all clicks and interactions to pass through natively */
+  display: block;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .triptych-hero-canvas {
+    transition: opacity 0.3s ease;
+  }
+}

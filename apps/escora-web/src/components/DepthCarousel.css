@@ -1,0 +1,450 @@
+/* ============================================================
+   DEPTH CAROUSEL — React Bits with Escora Luxury Styling
+   Perspective-based 3D card stack receding into depth
+   ============================================================ */
+
+.depth-carousel {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  min-height: 456px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: var(--dc-perspective, 1500px);
+  perspective-origin: 24% 50%;
+  touch-action: pan-y;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+  background: transparent;
+  overflow: visible;
+}
+
+.depth-carousel:active {
+  cursor: grabbing;
+}
+
+.depth-carousel:focus-visible {
+  outline: 2px solid rgba(181, 141, 93, 0.5);
+  outline-offset: 4px;
+  border-radius: 16px;
+}
+
+.depth-carousel__stage {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.depth-carousel__card {
+  position: absolute;
+  top: 50%;
+  left: 22%;
+  transform-origin: center center;
+  overflow: hidden;
+  background: #0d1a13;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.44), 0 10px 22px -5px rgba(0, 0, 0, 0.22);
+  will-change: transform, opacity;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  transition: box-shadow 0.4s ease, border-color 0.4s ease;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.depth-carousel__card:hover {
+  border-color: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 32px 65px -10px rgba(0, 0, 0, 0.58), 0 14px 28px -5px rgba(0, 0, 0, 0.3), 0 0 24px rgba(255, 255, 255, 0.12);
+}
+
+.depth-carousel__card.is-active {
+  border-color: rgba(255, 255, 255, 0.42);
+  box-shadow: 0 30px 65px -12px rgba(0, 0, 0, 0.5), 0 14px 26px -6px rgba(0, 0, 0, 0.28);
+}
+
+.depth-carousel__card.is-active:hover {
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 36px 75px -12px rgba(0, 0, 0, 0.64), 0 18px 32px -6px rgba(0, 0, 0, 0.36), 0 0 30px rgba(255, 255, 255, 0.16);
+}
+
+/* Full-bleed Destination Image */
+.depth-carousel__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  image-rendering: auto;
+  transform: translateZ(0);
+}
+
+/* Editorial Scrim matching the first explore section card */
+.depth-carousel__scrim {
+  display: block !important;
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.45) 0%,
+    rgba(0, 0, 0, 0) 22%,
+    rgba(0, 0, 0, 0) 48%,
+    rgba(0, 0, 0, 0.48) 75%,
+    rgba(0, 0, 0, 0.82) 100%
+  );
+  pointer-events: none;
+}
+
+/* --- Center (Active) Card Top: Location Label + Divider Line --- */
+.depth-carousel__center-top {
+  position: absolute;
+  top: 26px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.45s ease;
+}
+
+.depth-carousel__card.is-receding .depth-carousel__center-top {
+  opacity: 0;
+}
+
+.depth-carousel__loc-label {
+  font-family: var(--f-mono, monospace), monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+  display: inline-block;
+}
+
+.depth-carousel__loc-line {
+  display: block;
+  width: 42px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.65);
+  margin: 8px auto 0 auto;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+/* --- Center (Active) Card Bottom: Spaced Serif Title, Tagline & Explore CTA with Gold Line --- */
+.depth-carousel__center-bottom {
+  position: absolute;
+  bottom: 30px;
+  left: 18px;
+  right: 18px;
+  text-align: center;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.45s ease;
+}
+
+.depth-carousel__card.is-receding .depth-carousel__center-bottom {
+  opacity: 0;
+}
+
+.depth-carousel__center-title {
+  font-family: 'Melodrama', 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-size: clamp(28px, 3.0vw, 38px);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.75), 0 2px 6px rgba(0, 0, 0, 0.5);
+  line-height: 1.12;
+  margin: 0;
+  transition: text-shadow 0.4s ease;
+}
+
+.depth-carousel__card:hover .depth-carousel__center-title {
+  text-shadow: 0 12px 32px rgba(0, 0, 0, 0.85), 0 3px 8px rgba(0, 0, 0, 0.6);
+}
+
+.depth-carousel__center-tagline {
+  font-family: var(--f-body, 'Plus Jakarta Sans'), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.92);
+  margin-top: 8px;
+  margin-bottom: 0;
+  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.65);
+  text-align: center;
+  max-width: 90%;
+}
+
+.depth-carousel__explore-cta {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 18px;
+  pointer-events: auto;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.depth-carousel__cta-text {
+  font-family: var(--f-body, 'Plus Jakarta Sans'), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+.depth-carousel__cta-gold-line {
+  display: block;
+  width: 52px;
+  height: 1.5px;
+  background: #D4A94F;
+  margin-top: 6px;
+  box-shadow: 0 3px 10px rgba(212, 169, 79, 0.5);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
+}
+
+.depth-carousel__explore-cta:hover .depth-carousel__cta-gold-line,
+.depth-carousel__card:hover .depth-carousel__cta-gold-line {
+  width: 68px;
+  box-shadow: 0 4px 14px rgba(212, 169, 79, 0.75);
+}
+
+/* --- Side (Receding) Cards: Destination Name + Gold Underline --- */
+.depth-carousel__side-caption {
+  position: absolute;
+  bottom: 24px;
+  left: 22px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+
+.depth-carousel__card.is-receding .depth-carousel__side-caption {
+  opacity: 1;
+}
+
+.depth-carousel__card.is-active .depth-carousel__side-caption {
+  opacity: 0;
+}
+
+.depth-carousel__side-dest-name {
+  font-family: var(--f-body, 'Plus Jakarta Sans'), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 6px 18px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.5);
+  display: inline-block;
+}
+
+.depth-carousel__side-gold-line {
+  display: block;
+  width: 24px;
+  height: 1.5px;
+  background: #D4A94F;
+  margin-top: 6px;
+  box-shadow: 0 3px 10px rgba(212, 169, 79, 0.5);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.depth-carousel__card:hover .depth-carousel__side-gold-line {
+  width: 38px;
+}
+
+/* Navigation Arrows: Refined Escora Cream/Gold Buttons */
+.depth-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3000;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(228, 222, 210, 0.95);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 6px 18px rgba(18, 42, 28, 0.09);
+  color: #143323;
+  cursor: pointer;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    color 0.25s ease,
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s ease;
+}
+
+.depth-carousel__arrow:hover {
+  background: #FFFFFF;
+  color: #B58D5D;
+  border-color: #B58D5D;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 10px 24px rgba(181, 141, 93, 0.25);
+}
+
+.depth-carousel__arrow:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.depth-carousel__arrow--prev {
+  left: 2px;
+}
+
+.depth-carousel__arrow--next {
+  right: 6px;
+}
+
+/* Bottom Progress Dots Indicator */
+.depth-carousel__dots {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(228, 222, 210, 0.85);
+  box-shadow: 0 4px 12px rgba(18, 42, 28, 0.06);
+}
+
+.depth-carousel__dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: rgba(20, 51, 35, 0.24);
+  cursor: pointer;
+  transition:
+    width 0.25s ease,
+    background 0.25s ease,
+    transform 0.25s ease;
+}
+
+.depth-carousel__dot.is-active {
+  width: 26px;
+  background: #B58D5D;
+  box-shadow: 0 0 8px rgba(181, 141, 93, 0.5);
+}
+
+/* ── Responsive Adaptations ── */
+@media (max-width: 1140px) {
+  .depth-carousel {
+    perspective-origin: 28% 50%;
+  }
+  .depth-carousel__card {
+    left: 28%;
+  }
+}
+
+@media (max-width: 768px) {
+  .depth-carousel {
+    height: 456px;
+    min-height: 418px;
+    perspective-origin: 45% 50%;
+  }
+  .depth-carousel__card {
+    left: 45%;
+    border-radius: 16px;
+  }
+  .depth-carousel__arrow {
+    width: 38px;
+    height: 38px;
+  }
+  .depth-carousel__arrow--prev {
+    left: 4px;
+  }
+  .depth-carousel__arrow--next {
+    right: 4px;
+  }
+  .depth-carousel__card-title {
+    font-size: 26px;
+  }
+  .depth-carousel__card-desc {
+    font-size: 11px;
+    -webkit-line-clamp: 2;
+  }
+}
+
+@media (max-width: 540px) {
+  .depth-carousel {
+    height: 418px;
+    min-height: 380px;
+    perspective-origin: 50% 50%;
+  }
+  .depth-carousel__card {
+    left: 50%;
+    border-radius: 14px;
+  }
+  .depth-carousel__arrow {
+    width: 34px;
+    height: 34px;
+  }
+  .depth-carousel__card-title {
+    font-size: 22px;
+  }
+  .depth-carousel__card-category {
+    font-size: 8.5px;
+  }
+  .depth-carousel__content {
+    padding: 14px;
+  }
+  .depth-carousel__dots {
+    bottom: 4px;
+    padding: 4px 10px;
+    gap: 6px;
+  }
+  .depth-carousel__dot {
+    width: 6px;
+    height: 6px;
+  }
+  .depth-carousel__dot.is-active {
+    width: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .depth-carousel__card {
+    will-change: auto;
+  }
+  .depth-carousel__arrow,
+  .depth-carousel__dot,
+  .depth-carousel__explore-btn {
+    transition: none;
+  }
+}

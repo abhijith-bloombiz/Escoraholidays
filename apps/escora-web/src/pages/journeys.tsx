@@ -65,7 +65,7 @@ export default function Journeys() {
         </div>
         
         <div className="relative z-10 container mx-auto px-6 text-center reveal-up">
-          <p className="font-mono text-gold text-sm tracking-[0.3em] uppercase mb-6 block">Itineraries</p>
+          <p className="section-label mb-6 block"><span className="dot" />Itineraries</p>
           <h1 className="font-serif text-5xl md:text-7xl text-ink leading-[1.1] font-light max-w-4xl mx-auto mb-8">
             Immaculate <em className="text-gold italic">Journeys</em>
           </h1>
@@ -126,7 +126,7 @@ export default function Journeys() {
       </section>
 
       {/* Packages Grid */}
-      <section className="py-24 bg-bg">
+      <section className="page-section bg-bg">
         <div className="container mx-auto px-6 md:px-12">
           {isLoading ? (
             <div className="flex justify-center items-center py-32">

@@ -6,6 +6,11 @@ import { useSeo } from "@/hooks/useSeo";
 import { ExploreCoverflow } from "@/components/ExploreCoverflow";
 import { TravelTypeCoverflow, TravelTypeItem } from "@/components/TravelTypeCoverflow";
 import { MapPin, Compass, Calendar, Users, Search, ChevronDown } from "lucide-react";
+import TheEscoraWay from "@/components/TheEscoraWay";
+import Kerala3DDestinationExplorer from "@/components/Kerala3DDestinationExplorer";
+import Destination360Experience from "@/components/Destination360Experience";
+import FromYourIdeaToKerala from "@/components/FromYourIdeaToKerala";
+import { useSectionSnapAssist } from "@/hooks/useSectionSnapAssist";
 import "./home-v2.css";
 
 const FALLBACK_PACKAGES = [
@@ -15,15 +20,11 @@ const FALLBACK_PACKAGES = [
   { id: 4, name: "Spice Coast Odyssey", durationNights: 7, route: "Kochi · Marari · Kumarakom", category: "Culture", priceFrom: 220000, heroImageUrl: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80", description: "Seven nights tracing the ancient spice trade across Kerala's storied coast and backwaters.", featured: false },
 ];
 
-import escoraLogo from "@assets/escora/escora-logo-green.png";
 import heroBg from "@assets/escora/hero-bg.jpeg";
-import typeAlleppey from "@assets/escora/collections/alleppey-backwaters.jpeg";
 import typeWildlife from "@assets/escora/collections/nature-wildlife-hero.jpg";
 import typeHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
-import typeCoastal from "@assets/escora/collections/varkala-cliffs.jpeg";
 import typeHoneymoon from "@assets/escora/collections/honeymoon-hero.jpg";
 import typeAyurveda from "@assets/escora/collections/panchakarma.jpg";
-import typeHighland from "@assets/escora/collections/munnar-tea-estate.jpeg";
 import typeMedicine from "@assets/escora/collections/medical-tourism.jpeg";
 import { KERALA_DESTINATIONS, DESTINATION_BADGES } from "@/lib/keralaDestinations";
 
@@ -259,46 +260,85 @@ const PKG2_CARDS = [
   },
 ];
 
-const RETREAT_CARDS = [
+const ESCORA_RETREAT_CARDS = [
   {
+    step: "01",
+    name: "Ayurveda & Panchakarma",
     icon: (
-      <svg viewBox="0 0 24 24"><path d="M12 2c1 4-2 6-2 10a4 4 0 0 0 8 0c0-4-3-6-2-10"/><path d="M8 18.5c0 1.5 1.8 2.5 4 2.5s4-1 4-2.5"/></svg>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2c1 4-2 6-2 10a4 4 0 0 0 8 0c0-4-3-6-2-10" />
+        <path d="M8 18.5c0 1.5 1.8 2.5 4 2.5s4-1 4-2.5" />
+      </svg>
     ),
-    title: <>Ayurveda &amp; <em>Panchakarma</em></>,
+    title: (
+      <>
+        Ayurveda &amp; <br />
+        <em>Panchakarma</em>
+      </>
+    ),
     desc: "Physician-led detox in the classical Keraliya tradition — pulse diagnosis, medicated oils prepared in-house, shirodhara and rasayana.",
-    offers: ["Panchakarma", "Abhyanga", "Shirodhara", "Rasayana"],
-    from: "₹14,500 / night",
-    delay: "",
+    tags: ["PANCHAKARMA", "ABHYANGA", "SHIRODHARA", "RASAYANA"],
+    img: "/assets/retreat/retreat-ayurveda.jpg",
+    alt: "Ayurveda & Panchakarma wellness sanctuary with traditional brass uruli and oils in Kerala",
   },
   {
+    step: "02",
+    name: "Yoga & Meditation",
     icon: (
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M5 20l2-8h10l2 8"/><path d="M12 10v5"/></svg>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="5" r="2" />
+        <path d="M5 20l2-8h10l2 8" />
+        <path d="M12 10v5" />
+      </svg>
     ),
-    title: <>Yoga &amp; <em>Meditation</em></>,
+    title: (
+      <>
+        Yoga &amp; <br />
+        <em>Meditation</em>
+      </>
+    ),
     desc: "Lakeside sunrise practice from gentle Hatha to disciplined Ashtanga, with pranayama and yoga nidra to settle the mind.",
-    offers: ["Hatha", "Ashtanga", "Pranayama", "Yoga Nidra"],
-    from: "₹8,200 / night",
-    delay: "d1",
+    tags: ["HATHA", "ASHTANGA", "PRANAYAMA", "YOGA NIDRA"],
+    img: "/assets/retreat/retreat-yoga.jpg",
+    alt: "Yoga and meditation practice at sunrise by Vembanad Lake in Kerala",
   },
   {
+    step: "03",
+    name: "Kalaripayattu — the art",
     icon: (
-      <svg viewBox="0 0 24 24"><path d="M13 4l3 8-8-3 5 5-8 3 3-8 5 5z"/></svg>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M13 4l3 8-8-3 5 5-8 3 3-8 5 5z" />
+      </svg>
     ),
-    title: <>Kalaripayattu — <em>the art</em></>,
+    title: (
+      <>
+        Kalaripayattu — <br />
+        <em>the art</em>
+      </>
+    ),
     desc: "The world's oldest martial art, taught at a traditional kalari by a Gurukkal — forms, footwork and healing marma therapy.",
-    offers: ["Meipayattu", "Kolthari", "Marma", "Uzhichil"],
-    from: "₹6,500 / session",
-    delay: "d2",
+    tags: ["MEIPAYATTU", "KOLTHARI", "MARMA", "UZHICHIL"],
+    img: "/assets/retreat/retreat-kalari.jpg",
+    alt: "Traditional Kalaripayattu martial art combat training with swords and shields in a Kerala kalari",
   },
   {
+    step: "04",
+    name: "Naturopathy & Healthcare",
     icon: (
-      <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+      </svg>
     ),
-    title: <>Naturopathy &amp; <em>Healthcare</em></>,
+    title: (
+      <>
+        Naturopathy &amp; <br />
+        <em>Healthcare</em>
+      </>
+    ),
     desc: "Doctor-supervised detox, therapeutic diet, physiotherapy and lifestyle medicine — with full medical reports and home aftercare.",
-    offers: ["Naturopathy", "Detox", "Physio", "Diet"],
-    from: "₹11,000 / night",
-    delay: "d3",
+    tags: ["NATUROPATHY", "DETOX", "PHYSIO", "DIET"],
+    img: "/assets/retreat/retreat-naturopathy.jpg",
+    alt: "Naturopathy herbal remedies and natural medicine overlooking Kerala backwaters",
   },
 ];
 
@@ -307,19 +347,34 @@ const TESTIMONIALS = [
     cat: "Honeymoon · Mar 2025",
     quote: '"They moved a sunset for us. Or it felt that way. A boat appeared on a backwater I\'d been told didn\'t exist — and a chef I\'d long admired was on it."',
     av: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80",
-    name: "Eleanor V.", meta: "London · Honeymoon", delay: "",
+    name: "Eleanor V.",
+    meta: "London · Honeymoon",
+    photo: "/assets/testimonials/sunset-houseboat.jpg",
+    photoAlt: "Eleanor watching sunset houseboat on Kerala backwaters",
+    rating: 5,
+    delay: "",
   },
   {
     cat: "Family · Dec 2024",
     quote: '"Our family of seven, ages 6 to 78. The itinerary anticipated every single one of us."',
     av: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80",
-    name: "Marcus T.", meta: "San Francisco · Family", delay: "d1",
+    name: "Marcus T.",
+    meta: "San Francisco · Family",
+    photo: "/assets/testimonials/kerala-estate.jpg",
+    photoAlt: "Kerala heritage estate by water with family atmosphere",
+    rating: 5,
+    delay: "d1",
   },
   {
     cat: "Wellness · Oct 2024",
     quote: '"Escora did not arrange a holiday — they arranged a <em>recovery</em>."',
     av: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
-    name: "Dr. Aiko N.", meta: "Tokyo · Wellness", delay: "d2",
+    name: "Dr. Aiko N.",
+    meta: "Tokyo · Wellness",
+    photo: "/assets/testimonials/munnar-hills.jpg",
+    photoAlt: "Misty tea hills of Munnar Kerala at sunrise",
+    rating: 5,
+    delay: "d2",
   },
 ];
 
@@ -357,18 +412,8 @@ interface EnquiryForm {
   dates: string; pax: string; budget: string;
 }
 
-const LOADER_STORAGE_KEY = "escora-loader-last-seen";
-
-function hasSeenLoaderToday() {
-  try {
-    return localStorage.getItem(LOADER_STORAGE_KEY) === new Date().toDateString();
-  } catch {
-    return false;
-  }
-}
-
 export default function Home() {
-  const [loaded, setLoaded] = useState(hasSeenLoaderToday);
+  const [whyVideoOpen, setWhyVideoOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeCat, setActiveCat] = useState("all");
   const [enquirySent, setEnquirySent] = useState(false);
@@ -382,10 +427,11 @@ export default function Home() {
 
   // Hero ESCORA destination clippath slideshow state
   const [heroDestIdx, setHeroDestIdx] = useState(0);
-  const [heroMouseOffset, setHeroMouseOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
-    // Preload all destination images for zero-delay transitions
+    // Preload hero background & destination images for zero-delay transitions
+    const heroImg = new window.Image();
+    heroImg.src = heroBg;
     HERO_DESTINATIONS.forEach((d) => {
       const img = new window.Image();
       img.src = d.src;
@@ -398,20 +444,6 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleHeroMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const relX = (e.clientX - rect.left) / rect.width - 0.5;
-    const relY = (e.clientY - rect.top) / rect.height - 0.5;
-    setHeroMouseOffset({
-      x: Math.round(relX * 24),
-      y: Math.round(relY * 16),
-    });
-  };
-
-  const handleHeroMouseLeave = () => {
-    setHeroMouseOffset({ x: 0, y: 0 });
-  };
-
   const [form, setForm] = useState<EnquiryForm>({
     name: "", phone: "", email: "", type: "", dates: "", pax: "2 adults (couple)", budget: "",
   });
@@ -422,6 +454,31 @@ export default function Home() {
   const exploreSectionRef = useRef<HTMLElement>(null);
   const heroSectionRef = useRef<HTMLElement>(null);
   const [heroRevealKey, setHeroRevealKey] = useState(0);
+
+  // Fluid scroll-assisted section-to-viewport docking across the homepage
+  useSectionSnapAssist([
+    "hero",
+    "the-escora-way",
+    "categories",
+    "explore-kerala",
+    "dest-360",
+    "why-escora",
+    "how-it-works",
+    "retreat",
+    "testimonials",
+    "contact",
+  ]);
+  const [activeRetreatCard, setActiveRetreatCard] = useState<number>(1);
+  const [activeTestimonialIdx, setActiveTestimonialIdx] = useState<number>(0);
+  const [isTestimonialHovered, setIsTestimonialHovered] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isTestimonialHovered) return;
+    const timer = setInterval(() => {
+      setActiveTestimonialIdx((prev) => (prev + 1) % TESTIMONIALS.length);
+    }, 5500);
+    return () => clearInterval(timer);
+  }, [isTestimonialHovered]);
 
   useEffect(() => {
     const el = heroSectionRef.current;
@@ -482,20 +539,6 @@ export default function Home() {
   const { data: destinationsData } = useListDestinations({ published: true });
   const exploreDestinations = destinationsData && destinationsData.length > 0 ? destinationsData : FALLBACK_DESTINATIONS;
 
-  /* Loader — only plays once per day */
-  useEffect(() => {
-    if (loaded) return;
-    const t = setTimeout(() => {
-      setLoaded(true);
-      try {
-        localStorage.setItem(LOADER_STORAGE_KEY, new Date().toDateString());
-      } catch {
-        /* private browsing or storage disabled — loader will just replay next visit */
-      }
-    }, 1700);
-    return () => clearTimeout(t);
-  }, [loaded]);
-
   /* Bidirectional scroll reveal for .rv, .mr2 and cards (triggers on scroll forward & backward) */
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -513,12 +556,12 @@ export default function Home() {
       },
       { threshold: [0, 0.12], rootMargin: "0px 0px -40px 0px" }
     );
-    document.querySelectorAll(".rv, .mr2, .why-card, .rcard, .t2card, .process-step, .stat-cell").forEach((el) => io.observe(el));
+    document.querySelectorAll(".rv, .mr2, .stat-cell").forEach((el) => io.observe(el));
     /* Also reveal elements already in view in hero */
     const heroEls = document.querySelectorAll(".hero-editorial .rv, .hero-editorial .mr2, .hero2 .rv, .hero2 .mr2");
     const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in", "card-in-view")), 200);
     return () => { io.disconnect(); clearTimeout(t); };
-  }, [loaded]);
+  }, []);
 
   /* Build pkg cards — fall back to built-in samples when API has no data */
   const pkgCards = (packagesData?.length ? packagesData : FALLBACK_PACKAGES).slice(0, 6).map((pkg) => ({
@@ -610,22 +653,12 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* ── Loader ── */}
-      <div className={`loader${loaded ? " done" : ""}`} aria-hidden="true">
-        <div className="stack">
-          <img className="logo-img" src={escoraLogo} alt="Escora" />
-        </div>
-        <div className="bar" />
-        <div className="count">Kerala · for the global traveller</div>
-      </div>
-
       {/* ═══════════════════════════════ HERO EDITORIAL ═══════════════════════════════ */}
       <section
         className="hero-editorial"
+        id="hero"
         aria-label="Escora — Kerala, your way"
         ref={heroSectionRef}
-        onMouseMove={handleHeroMouseMove}
-        onMouseLeave={handleHeroMouseLeave}
       >
         <div
           className="hero-art-bg"
@@ -638,11 +671,7 @@ export default function Home() {
         <div className="hero-center-content">
           <p className="hero-kicker">JOURNEYS THROUGH</p>
 
-          <div
-            className="hero-brand-wrap"
-            onMouseMove={handleHeroMouseMove}
-            onMouseLeave={handleHeroMouseLeave}
-          >
+          <div className="hero-brand-wrap">
             <h1 className="hero-main-title-sr">ESCORA</h1>
 
             <svg
@@ -653,24 +682,24 @@ export default function Home() {
               aria-hidden="true"
             >
               <defs>
-                {/* 6 Individual letter clip paths with exact Melodrama metrics */}
+                {/* 6 Individual letter clip paths with Playfair Display Regular (400) metrics */}
                 <clipPath id="escora-clip-0">
-                  <text className="escora-clip-char" x="151.53" y="126">E</text>
+                  <text className="escora-clip-char" x="156.74" y="130">E</text>
                 </clipPath>
                 <clipPath id="escora-clip-1">
-                  <text className="escora-clip-char" x="263.38" y="126">S</text>
+                  <text className="escora-clip-char" x="267.07" y="130">S</text>
                 </clipPath>
                 <clipPath id="escora-clip-2">
-                  <text className="escora-clip-char" x="357.94" y="126">C</text>
+                  <text className="escora-clip-char" x="364.67" y="130">C</text>
                 </clipPath>
                 <clipPath id="escora-clip-3">
-                  <text className="escora-clip-char" x="478.39" y="126">O</text>
+                  <text className="escora-clip-char" x="486.93" y="130">O</text>
                 </clipPath>
                 <clipPath id="escora-clip-4">
-                  <text className="escora-clip-char" x="607.53" y="126">R</text>
+                  <text className="escora-clip-char" x="619.20" y="130">R</text>
                 </clipPath>
                 <clipPath id="escora-clip-5">
-                  <text className="escora-clip-char" x="727.98" y="126">A</text>
+                  <text className="escora-clip-char" x="736.16" y="130">A</text>
                 </clipPath>
 
                 <linearGradient id="escora-editorial-tint" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -707,9 +736,6 @@ export default function Home() {
                         <g
                           key={dest.id}
                           className={`escora-dest-slide ${isActive ? "is-active" : ""}`}
-                          style={{
-                            transform: `translate(${heroMouseOffset.x}px, ${heroMouseOffset.y}px)`,
-                          }}
                         >
                           <image
                             href={dest.src}
@@ -968,25 +994,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Marquee ── */}
-      <div className="marquee" aria-hidden="true">
-        <div className="marquee-track">
-          <div>
-            {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
-              <span key={i} className="marquee-item">{item}<span className="sep" /></span>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* ═══════════════════════ THE ESCORA WAY ═══════════════════════ */}
+      <TheEscoraWay />
 
-
-      {/* ═══════════════════════ CATEGORY CARDS / TRAVEL BY TYPE ═══════════════════════ */}
-      <section className="cat-section" id="categories" ref={categoriesRef}>
+      {/* ═══════════════════════ TRAVEL BY TYPE ═══════════════════════ */}
+      <section
+        className="cat-section"
+        id="categories"
+        ref={categoriesRef}
+      >
         <div className="wrap">
           <div className="cat-section-head">
             <div>
-              <div className="eyebrow rv"><span className="dot" />Nº 01 — Travel by Type</div>
-              <h2 className="display-md rv d2" style={{ marginTop: 16, maxWidth: "20ch" }}>
+              <div className="eyebrow rv"><span className="dot" />Travel by Type</div>
+              <h2 className="display-md rv d2" style={{ maxWidth: "20ch" }}>
                 Eight ways to discover <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kerala</em>.
               </h2>
             </div>
@@ -995,313 +1016,851 @@ export default function Home() {
             </p>
           </div>
 
-          <TravelTypeCoverflow items={TRAVEL_TYPE_ITEMS} />
+          <ExploreCoverflow items={TRAVEL_TYPE_ITEMS} />
         </div>
       </section>
 
-      {/* ═══════════════════════ EXPLORE KERALA ═══════════════════════ */}
-      <section className="cat-section" id="explore-kerala" ref={exploreSectionRef}>
-        <div className="wrap">
-          <div className="cat-section-head">
-            <div>
-              <div className="eyebrow rv"><span className="dot" />Explore Kerala</div>
-              <h2 className="display-md rv d2 explore-heading" style={{ marginTop: 16 }}>
-                From Varkala's cliffs to <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kannur's shores</em>.
-              </h2>
+      {/* ═══════════════════════ 3D DESTINATION EXPLORER ═══════════════════════ */}
+      <Kerala3DDestinationExplorer ref={exploreSectionRef} id="explore-kerala" />
+
+      {/* ═══════════════════════ 360° DESTINATION EXPERIENCE ═══════════════════════ */}
+      <Destination360Experience />
+
+
+      {/* ═══════════════════════ WHY ESCORA — LANDSCAPE PANORAMA ═══════════════════════ */}
+      <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
+        {/* Background landscape */}
+        <div className="why-esc-bg" style={{ backgroundImage: `url(${heroBg})` }} aria-hidden="true" />
+        {/* Cream overlay for readability */}
+        <div className="why-esc-overlay" aria-hidden="true" />
+
+        <div className="why-esc-inner">
+          {/* ── Left panel: editorial copy ── */}
+          <div className="why-esc-left">
+            <div className="why-esc-eyebrow rv">
+              <span className="dot" />WHY ESCORA
             </div>
-          </div>
-
-          <ExploreCoverflow destinations={exploreDestinations} />
-        </div>
-      </section>
-
-      {/* ═══════════════════════ WHY ESCORA ════════════════════════════ */}
-      <section className="why-escora-section">
-        <div className="wrap">
-          <div className="why-escora-head">
-            <div className="eyebrow rv"><span className="dot" />Nº 02 — Why Escora</div>
-            <h2 className="display-md rv d1" style={{ marginTop: 16, maxWidth: "28ch" }}>
-              Why the world's discerning travellers <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>choose Escora</em>
+            <h2 className="why-esc-heading rv d1">
+              Why the world's discerning travellers{" "}
+              <em className="why-esc-heading-em">choose Escora</em>
             </h2>
-            <p className="rv d2" style={{ color: "var(--ink-mute)", fontSize: 15, lineHeight: 1.75, maxWidth: "48ch", marginTop: 16 }}>
+            <p className="why-esc-desc rv d2">
               We don't sell packages. We compose journeys — built entirely around you, from the first conversation to the final farewell.
             </p>
+            <button
+              type="button"
+              className="why-esc-play-btn rv d3"
+              onClick={() => setWhyVideoOpen(true)}
+              aria-label="Watch our Kerala story video"
+            >
+              <span className="why-esc-play-circle" aria-hidden="true">
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+                  <path d="M9 6L1 11V1L9 6Z" fill="currentColor" />
+                </svg>
+              </span>
+              WATCH OUR STORY
+            </button>
           </div>
-          <div className="why-escora-grid">
+
+          {/* ── Right panel: 3×2 benefits grid ── */}
+          <div className="why-esc-right">
             {[
               {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                ),
                 title: "Completely Private Journeys",
                 desc: "No shared buses. No fixed departures. Every element of your trip is exclusive to you and your group.",
               },
               {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/><path d="M12 6v6l4 2"/></svg>,
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 6v6l4 2"/>
+                  </svg>
+                ),
                 title: "Kerala Specialists",
                 desc: "One destination. A decade of local expertise. We know every road, every estate, every chef worth knowing.",
               },
               {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                  </svg>
+                ),
                 title: "Handpicked Stays",
                 desc: "Every hotel, homestay and houseboat is personally inspected by our team before it earns a place in your itinerary.",
               },
               {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                  </svg>
+                ),
                 title: "Local Curators",
                 desc: "Your guides, planners and hosts are people who actually live in Kerala — born here, rooted here, and fluent in English.",
               },
               {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.26h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>,
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.26h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                  </svg>
+                ),
                 title: "24 × 7 Concierge",
                 desc: "Support before, during and after travel. A real person answers — not a chatbot.",
               },
               {
-                icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>,
+                icon: (
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 11 12 14 22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                  </svg>
+                ),
                 title: "Fully Tailored",
                 desc: "Nothing is pre-packaged. Your dates, your pace, your companions, your interests — built from a blank canvas.",
               },
             ].map((item, i) => (
-              <div key={i} className={`why-card rv${i > 0 ? ` d${Math.min(i, 3)}` : ""}`}>
-                <div className="why-icon">{item.icon}</div>
-                <div className="why-check">✓</div>
-                <h4 className="why-title">{item.title}</h4>
-                <p className="why-desc">{item.desc}</p>
+              <div key={i} className={`why-esc-card rv${i > 0 ? ` d${Math.min(i, 3)}` : ""}`}>
+                <span className="why-esc-card-icon" aria-hidden="true">{item.icon}</span>
+                <h4 className="why-esc-card-title">{item.title}</h4>
+                <p className="why-esc-card-desc">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ════════════════════ PLANNING PROCESS ════════════════════════════ */}
-      <section className="process-section">
-        <div className="wrap">
-          <div className="process-head">
-            <div className="eyebrow rv"><span className="dot" />Nº 03 — How It Works</div>
-            <h2 className="display-md rv d1" style={{ marginTop: 16, maxWidth: "24ch" }}>
-              How your <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>journey begins</em>
-            </h2>
-            <p className="rv d2" style={{ color: "var(--ink-mute)", fontSize: 15, lineHeight: 1.75, maxWidth: "48ch", marginTop: 16 }}>
-              Luxury clients deserve to know exactly what happens after they reach out. Here's how we build your journey — from first message to final farewell.
-            </p>
-          </div>
-          <div className="process-steps">
-            {[
-              { n: "01", title: "Tell us your dream", desc: "Share your travel style, dates, who you're travelling with and what you're hoping to feel. No form is too vague — we work with ideas as much as specifics." },
-              { n: "02", title: "Speak with a Kerala curator", desc: "Within 24 hours, a dedicated Escora curator calls or messages you. We ask questions most agents never think to ask." },
-              { n: "03", title: "Receive your bespoke itinerary", desc: "Your curator crafts a day-by-day journey — hand-selected stays, private experiences, local access — presented for your review." },
-              { n: "04", title: "Refine together", desc: "Nothing is locked until you love it. We adjust, swap and rethink until every detail feels exactly right." },
-              { n: "05", title: "Travel with concierge support", desc: "From airport arrival to final departure, your Escora concierge is on call. Every day. Every hour. Any situation." },
-              { n: "06", title: "Post-trip support", desc: "Once you're home, we're still here. Memories shared, feedback welcomed, and your next Kerala chapter ready to begin whenever you are." },
-            ].map((step, i) => (
-              <div key={i} className={`process-step rv${i > 0 ? ` d${Math.min(i, 3)}` : ""}`}>
-                <div className="step-num">{step.n}</div>
-                <div className="step-body">
-                  <h4 className="step-title">{step.title}</h4>
-                  <p className="step-desc">{step.desc}</p>
-                </div>
-                {i < 5 && <div className="step-arrow">↓</div>}
-              </div>
-            ))}
-          </div>
-          <div className="process-cta rv">
-            <a className="btn primary" href="#contact">Start the conversation <span className="arrow" /></a>
+      {/* Why Escora video modal */}
+      {whyVideoOpen && (
+        <div
+          className="why-esc-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Escora Kerala Story Video"
+          onClick={() => setWhyVideoOpen(false)}
+        >
+          <div className="why-esc-modal-frame" onClick={(e) => e.stopPropagation()}>
+            <video src="/BGVideo.mp4" poster="/hero-poster.jpg" controls autoPlay playsInline />
+            <button
+              type="button"
+              className="why-esc-modal-close"
+              onClick={() => setWhyVideoOpen(false)}
+              aria-label="Close video"
+            >
+              ×
+            </button>
           </div>
         </div>
-      </section>
+      )}
 
-      {/* ═══════════════════════════ STATS BAND ════════════════════════════ */}
-      <div className="stats-band">
-        <div className="inner">
-          {[
-            { n: "10", l: "Years on the ground" },
-            { n: "2,400+", l: "Journeys composed" },
-            { n: "14", l: "Regions of Kerala" },
-            { n: "98%", l: "Return guests" },
-          ].map((s, i) => (
-            <div key={i} className={`stat-cell rv${i > 0 ? ` d${i}` : ""}`}>
-              <div className="n">{s.n}</div>
-              <div className="l">{s.l}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ════════════════════ FROM YOUR IDEA TO KERALA ════════════════════ */}
+      <FromYourIdeaToKerala />
 
       {/* ═══════════════════════ ESCORA RETREAT ════════════════════════════ */}
-      <section className="retreat2" id="retreat">
-        <div className="wrap">
-          <div className="head">
-            <div>
-              <div className="eyebrow rv"><span className="dot" />Nº 04 — Escora Retreat</div>
-              <h2 className="display-md rv d2" style={{ marginTop: 16, maxWidth: "18ch" }}>
-                Healing, the <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kerala</em> way.
+      <section className="escora-retreat-section" id="retreat" aria-label="Escora Retreat">
+        {/* Decorative botanical leaf line arts in margins */}
+        <svg
+          className="retreat-botanical retreat-botanical-left"
+          viewBox="0 0 160 320"
+          fill="none"
+          stroke="#c59a58"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M10 310 C30 220 50 140 120 20" />
+          <path d="M35 250 C15 235 5 210 20 190 C35 210 38 230 35 250" />
+          <path d="M48 210 C68 195 80 170 70 150 C55 170 50 190 48 210" />
+          <path d="M62 165 C40 145 35 120 50 100 C65 120 65 145 62 165" />
+          <path d="M80 120 C100 100 115 80 105 60 C90 80 82 100 80 120" />
+          <path d="M98 75 C80 55 80 30 95 15 C108 32 102 55 98 75" />
+          <path d="M120 20 C135 10 145 15 140 30 C130 35 125 28 120 20" />
+        </svg>
+
+        <svg
+          className="retreat-botanical retreat-botanical-right"
+          viewBox="0 0 160 320"
+          fill="none"
+          stroke="#c59a58"
+          strokeWidth="1.2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M150 10 C130 100 110 180 40 300" />
+          <path d="M125 70 C145 85 155 110 140 130 C125 110 122 90 125 70" />
+          <path d="M112 110 C92 125 80 150 90 170 C105 150 110 130 112 110" />
+          <path d="M98 155 C120 175 125 200 110 220 C95 200 95 175 98 155" />
+          <path d="M80 200 C60 220 45 240 55 260 C70 240 78 220 80 200" />
+          <path d="M62 245 C80 265 80 290 65 305 C52 288 58 265 62 245" />
+        </svg>
+
+        <div className="retreat-leaf-shadow-tr" aria-hidden="true" />
+        <div className="retreat-leaf-shadow-bl" aria-hidden="true" />
+
+        <div className="retreat-container">
+          <div className="retreat-header">
+            <div className="retreat-header-left">
+              <div className="retreat-eyebrow rv">
+                <span className="retreat-eyebrow-dot" />
+                ESCORA RETREAT
+              </div>
+              <h2 className="retreat-title rv d1">
+                Healing, the <br />
+                <em>Kerala</em> way.
               </h2>
             </div>
-            <div className="rv d3">
-              <p style={{ color: "var(--ink-mute)", fontSize: 14.5, lineHeight: 1.7, maxWidth: "50ch", marginBottom: 28 }}>
+            <div className="retreat-header-right rv d2">
+              <p className="retreat-lede">
                 Set on the quiet shore of Vembanad Lake — our NABH-accredited wellness home, where physicians, yogis and kalari masters work as one. Every programme is composed for you alone.
               </p>
-              <a className="btn primary" href="#contact">Enquire about the Retreat <span className="arrow" /></a>
+              <a
+                className="retreat-enquire-btn"
+                href="#contact"
+                onClick={() => {
+                  setForm((f) => ({ ...f, type: "Wellness", budget: f.budget || "₹10,000+ / night" }));
+                }}
+              >
+                <span>Enquire about the retreat</span>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14" />
+                  <path d="M12 5l7 7-7 7" />
+                </svg>
+              </a>
             </div>
           </div>
 
-          <div className="retreat2-row">
-            {RETREAT_CARDS.map((r, i) => (
-              <div key={i} className={`rcard rv${r.delay ? ` ${r.delay}` : ""}`}>
-                <div className="icon">{r.icon}</div>
-                <h4>{r.title}</h4>
-                <p>{r.desc}</p>
-                <div className="offers">
-                  {r.offers.map((o, j) => <span key={j}>{o}</span>)}
-                </div>
-                <div className="from" style={{ borderTop: "1px solid var(--line)", paddingTop: 16, marginTop: 4, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span style={{ fontFamily: "var(--f-mono)", fontSize: 9, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--ink-mute)" }}>Enquire to book</span>
-                  <span style={{ color: "var(--gold)", fontSize: 13 }}>→</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+          <div className="retreat-cards-grid">
+            {ESCORA_RETREAT_CARDS.map((card, i) => {
+              const isActive = activeRetreatCard === i;
+              return (
+                <div
+                  key={i}
+                  className={`retreat-arch-card rv${i > 0 ? ` d${i}` : ""}${isActive ? " is-active" : ""}`}
+                  onClick={() => setActiveRetreatCard(i)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setActiveRetreatCard(i);
+                    }
+                  }}
+                  aria-label={`${card.name} - Step ${card.step}`}
+                >
+                  {/* Golden Apex Dot on active card */}
+                  {isActive && <div className="retreat-apex-dot" aria-hidden="true" />}
 
-      {/* ════════════════════════ TESTIMONIALS ════════════════════════════ */}
-      <section className="testi2">
-        <div className="wrap">
-          <div className="head">
-            <div className="eyebrow rv"><span className="dot" />Nº 05 — From Our Travellers</div>
-            <h2 className="display-sm rv d2" style={{ marginTop: 16, maxWidth: "22ch" }}>
-              Quiet praise, from <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>quiet</em> people.
-            </h2>
-          </div>
-          <div className="testi2-grid">
-            {TESTIMONIALS.map((t, i) => (
-              <div key={i} className={`t2card rv${t.delay ? ` ${t.delay}` : ""}`}>
-                <div className="cat-dot">{t.cat}</div>
-                <div className="stars">★ ★ ★ ★ ★</div>
-                <blockquote dangerouslySetInnerHTML={{ __html: t.quote }} />
-                <div className="who">
-                  <div className="av" style={{ backgroundImage: `url('${t.av}')` }} />
-                  <div>
-                    <div className="nm">{t.name}</div>
-                    <div className="mt">{t.meta}</div>
+                  <div className="retreat-card-content">
+                    <div className="retreat-card-num">{card.step}</div>
+                    <div className="retreat-card-num-line" />
+                    <div className="retreat-card-icon-badge" aria-hidden="true">
+                      {card.icon}
+                    </div>
+                    <h3 className="retreat-card-title">{card.title}</h3>
+                    <p className="retreat-card-desc">{card.desc}</p>
+
+                    <div className="retreat-card-tags">
+                      {card.tags.map((tag, tIdx) => (
+                        <span key={tIdx} className="retreat-card-tag">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="retreat-card-btn-wrap">
+                      <a
+                        href="#contact"
+                        className="retreat-card-action-btn"
+                        aria-label={`Enquire about ${card.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveRetreatCard(i);
+                          setForm((f) => ({ ...f, type: "Wellness" }));
+                        }}
+                      >
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14" />
+                          <path d="M12 5l7 7-7 7" />
+                        </svg>
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="retreat-card-photo-wrap">
+                    <img
+                      src={card.img}
+                      alt={card.alt}
+                      className="retreat-card-photo"
+                      loading="lazy"
+                    />
+                    <div className="retreat-card-photo-overlay" aria-hidden="true" />
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-        </div>
-      </section>
 
-      {/* ════════════════════ CTA + INLINE ENQUIRY FORM ═══════════════════ */}
-      <section className="cta2" id="contact">
-        <div className="bg-img" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=2400&q=80')" }} />
-        <div className="wrap">
-          <div className="left">
-            <div className="eyebrow rv" style={{ marginBottom: 22 }}><span className="dot" />Nº 06 — Begin</div>
-            <h2 className="rv d1">Start with a<br/>blank <em>canvas</em>.</h2>
-            <p className="lede rv d2">
-              Tell us the kind of journey you have in mind. A Kerala curator will write back within 24 hours with three options — yours to refine, reject or rearrange.
-            </p>
-            <div className="contact-info rv d3">
-              {[
-                { lbl: "WhatsApp", val: "+91 8157 003 344", href: "https://wa.me/918157003344" },
-                { lbl: "Email", val: "hello@escoraholidays.com", href: "mailto:hello@escoraholidays.com" },
-                { lbl: "Office", val: "1st Floor, Landmark Maple Business Tower, Kozhikode, Kerala 673014", href: "#" },
-              ].map((row, i) => (
-                <div key={i} className="c-info-row">
-                  <div className="bar" />
-                  <div>
-                    <div className="lbl">{row.lbl}</div>
-                    <a href={row.href}>{row.val}</a>
-                  </div>
-                </div>
+          <div className="retreat-navigation" aria-label="Card navigation">
+            <button
+              type="button"
+              className="retreat-nav-arrow"
+              onClick={() => setActiveRetreatCard((prev) => (prev - 1 + ESCORA_RETREAT_CARDS.length) % ESCORA_RETREAT_CARDS.length)}
+              aria-label="Previous card"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+
+            <div className="retreat-indicators" role="tablist" aria-label="Retreat card indicators">
+              {ESCORA_RETREAT_CARDS.map((c, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeRetreatCard === i}
+                  aria-label={`Select card ${c.step} ${c.name}`}
+                  className={`retreat-indicator-bar${activeRetreatCard === i ? " is-active" : ""}`}
+                  onClick={() => setActiveRetreatCard(i)}
+                />
               ))}
             </div>
+
+            <button
+              type="button"
+              className="retreat-nav-arrow"
+              onClick={() => setActiveRetreatCard((prev) => (prev + 1) % ESCORA_RETREAT_CARDS.length)}
+              aria-label="Next card"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════════════════════ TRAVELLER TESTIMONIALS CAROUSEL ════════════════════════ */}
+      <section
+        className="testi-carousel-section"
+        id="testimonials"
+        aria-label="Traveller Stories"
+        onMouseEnter={() => setIsTestimonialHovered(true)}
+        onMouseLeave={() => setIsTestimonialHovered(false)}
+        onTouchStart={() => setIsTestimonialHovered(true)}
+        onTouchEnd={() => setIsTestimonialHovered(false)}
+      >
+        {/* Subtle Kerala landscape backdrop scenery */}
+        <div className="testi-scenery-backdrop" aria-hidden="true">
+          <div className="testi-scenery-left" />
+          <div className="testi-scenery-right" />
+          <svg className="testi-birds" viewBox="0 0 160 80" fill="none" stroke="rgba(26,63,44,0.35)" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M10 25 Q18 18 26 25 Q34 18 42 25" />
+            <path d="M55 15 Q61 9 67 15 Q73 9 79 15" />
+            <path d="M90 32 Q96 26 102 32 Q108 26 114 32" />
+          </svg>
+        </div>
+
+        {/* Botanical leaf accents in corners */}
+        <div className="testi-corner-leaf testi-leaf-tl" aria-hidden="true" />
+        <div className="testi-corner-leaf testi-leaf-bl" aria-hidden="true" />
+        <div className="testi-corner-leaf testi-leaf-br" aria-hidden="true" />
+
+        <div className="testi-carousel-header">
+          <div className="testi-eyebrow rv">
+            <span className="testi-eyebrow-line" />
+            <span>TRAVELLERS SAY IT BETTER</span>
+            <span className="testi-eyebrow-line" />
+          </div>
+          <h2 className="testi-title rv d1">
+            Real Stories. <em>Lasting Memories.</em>
+          </h2>
+          <p className="testi-subtitle rv d2">
+            Travellers from around the world share their unforgettable experiences with Escora.
+          </p>
+        </div>
+
+        <div className="testi-carousel-wrapper">
+          <div className="testi-carousel-stage">
+            {TESTIMONIALS.map((t, i) => {
+              const N = TESTIMONIALS.length;
+              let diff = i - activeTestimonialIdx;
+              if (diff > N / 2) diff -= N;
+              if (diff < -N / 2) diff += N;
+
+              const isCenter = diff === 0;
+              const isLeft = diff === -1;
+              const isRight = diff === 1;
+
+              return (
+                <div
+                  key={i}
+                  className={`testi-carousel-item${isCenter ? " is-center" : ""}${isLeft ? " is-left" : ""}${isRight ? " is-right" : ""}`}
+                  style={{
+                    transform: isCenter
+                      ? "translateX(0) scale(1)"
+                      : isLeft
+                      ? "translateX(calc(-100% - 24px)) scale(0.96)"
+                      : isRight
+                      ? "translateX(calc(100% + 24px)) scale(0.96)"
+                      : "translateX(0) scale(0.85)",
+                    opacity: isCenter ? 1 : Math.abs(diff) === 1 ? 0.68 : 0,
+                    pointerEvents: isCenter ? "auto" : Math.abs(diff) === 1 ? "auto" : "none",
+                    zIndex: isCenter ? 5 : 2,
+                  }}
+                  onClick={() => {
+                    if (!isCenter) setActiveTestimonialIdx(i);
+                  }}
+                  role={isCenter ? "group" : "button"}
+                  tabIndex={isCenter ? undefined : 0}
+                  aria-label={isCenter ? undefined : `View testimonial by ${t.name}`}
+                  onKeyDown={(e) => {
+                    if (!isCenter && (e.key === "Enter" || e.key === " ")) {
+                      e.preventDefault();
+                      setActiveTestimonialIdx(i);
+                    }
+                  }}
+                >
+                  <div className="testi-card">
+                    {/* Left side: Travel Photo */}
+                    <div className="testi-card-photo-wrap">
+                      <img
+                        src={t.photo}
+                        alt={t.photoAlt}
+                        className="testi-card-photo"
+                        loading="lazy"
+                      />
+                    </div>
+
+                    {/* Right side: Testimonial content */}
+                    <div className="testi-card-body">
+                      <div className="testi-quote-mark" aria-hidden="true">
+                        <svg viewBox="0 0 32 24" width="32" height="24" fill="#c59a58">
+                          <path d="M0 14.2c0-8.2 5.5-13.4 12.8-14.2l1.6 2.6C9.2 3.6 7 6.4 6.8 9.8c1.2-.4 2.6-.4 3.8.2 2.6 1.4 3.8 4.2 3.4 7-0.4 3-2.8 5.6-5.8 5.8-4.6.4-8.2-3.4-8.2-8.6zm17.6 0c0-8.2 5.5-13.4 12.8-14.2l1.6 2.6c-5.2 1-7.4 3.8-7.6 7.2 1.2-.4 2.6-.4 3.8.2 2.6 1.4 3.8 4.2 3.4 7-0.4 3-2.8 5.6-5.8 5.8-4.6.4-8.2-3.4-8.2-8.6z" />
+                        </svg>
+                      </div>
+
+                      <blockquote
+                        className="testi-quote-text"
+                        dangerouslySetInnerHTML={{ __html: t.quote }}
+                      />
+
+                      <div className="testi-card-footer">
+                        <div className="testi-author-info">
+                          <img src={t.av} alt={t.name} className="testi-author-avatar" />
+                          <div>
+                            <div className="testi-author-name">{t.name}</div>
+                            <div className="testi-author-meta">{t.meta}</div>
+                          </div>
+                        </div>
+
+                        <div className="testi-rating" aria-label="5 out of 5 stars">
+                          {"★".repeat(t.rating)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Left and Right navigation arrows overlapping the central card edges */}
+            <button
+              type="button"
+              className="testi-nav-arrow prev"
+              onClick={() => setActiveTestimonialIdx((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)}
+              aria-label="Previous testimonial"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+
+            <button
+              type="button"
+              className="testi-nav-arrow next"
+              onClick={() => setActiveTestimonialIdx((prev) => (prev + 1) % TESTIMONIALS.length)}
+              aria-label="Next testimonial"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
+            </button>
           </div>
 
-          <div className="rv d2">
-            {enquirySent ? (
-              <div className="iform" style={{ textAlign: "center", padding: "36px 0", display: "flex", flexDirection: "column", gap: 18, alignItems: "center" }}>
-                <div style={{ width: 60, height: 60, border: "1px solid var(--gold)", borderRadius: "50%", display: "grid", placeItems: "center" }}>
-                  <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--gold)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 13l4 4L19 7"/>
-                  </svg>
-                </div>
-                <p style={{ fontFamily: "var(--f-display)", fontSize: 30, color: "var(--ink)", fontWeight: 400 }}>
-                  Enquiry <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>received</em>.
-                </p>
-                <p style={{ color: "var(--ink-mute)", fontSize: 14, maxWidth: "38ch", lineHeight: 1.65 }}>
-                  A Kerala curator will write to you within 24 hours. For a faster reply, message us on WhatsApp now.
-                </p>
-                <a className="btn primary" href={`https://wa.me/918157003344?text=${buildWAMsg()}`} target="_blank" rel="noopener noreferrer">
-                  Continue on WhatsApp <span className="arrow" />
-                </a>
+          {/* Bottom pagination indicator pills */}
+          <div className="testi-indicators" role="tablist" aria-label="Testimonial indicators">
+            {TESTIMONIALS.map((t, idx) => (
+              <button
+                key={idx}
+                type="button"
+                role="tab"
+                aria-selected={activeTestimonialIdx === idx}
+                aria-label={`View testimonial from ${t.name}`}
+                className={`testi-indicator-pill${activeTestimonialIdx === idx ? " is-active" : ""}`}
+                onClick={() => setActiveTestimonialIdx(idx)}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="enquiry-section-v2" id="contact" aria-label="Begin Your Journey">
+        <div className="enquiry-bg-image" style={{ backgroundImage: "url('/assets/enquiry-sunset.jpg')" }} aria-hidden="true" />
+        <div className="enquiry-bg-gradient" aria-hidden="true" />
+
+        <div className="enquiry-container">
+          <div className="enquiry-grid">
+            {/* Left Column: Heading, description & contact info */}
+            <div className="enquiry-left">
+              <div className="enquiry-eyebrow rv">
+                <span className="enquiry-eyebrow-dot" />
+                BEGIN YOUR JOURNEY
               </div>
-            ) : (
-              <form className="iform" onSubmit={handleEnquirySubmit}>
-                <div className="eyebrow form-ey"><span className="dot" />Send an Enquiry</div>
-                <div className="irow">
-                  <div className="ifield">
-                    <label htmlFor="form-name">Your name</label>
-                    <input id="form-name" type="text" placeholder="Priya / James…" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+              <h2 className="enquiry-title rv d1">
+                Start with a<br />
+                blank <em>canvas.</em>
+              </h2>
+              <p className="enquiry-desc rv d2">
+                Tell us the kind of journey you have in mind. A Kerala curator will write back within 24 hours with three options — yours to refine, reject or rearrange.
+              </p>
+
+              <div className="enquiry-contact-list rv d3">
+                <div className="enquiry-contact-item">
+                  <div className="enquiry-contact-badge">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                    </svg>
                   </div>
-                  <div className="ifield">
-                    <label htmlFor="form-phone">Phone / WhatsApp</label>
-                    <input id="form-phone" type="tel" placeholder="+91 …" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} required />
-                  </div>
-                </div>
-                <div className="irow">
-                  <div className="ifield">
-                    <label htmlFor="form-email">Email</label>
-                    <input id="form-email" type="email" placeholder="you@email.com" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-                  </div>
-                  <div className="ifield">
-                    <label htmlFor="form-type">Travel type</label>
-                    <select id="form-type" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
-                      <option value="">— Select journey type —</option>
-                      <option>Honeymoon</option>
-                      <option>Health &amp; Wellness</option>
-                      <option>Nature &amp; Wildlife</option>
-                      <option>Hill Stations</option>
-                      <option>Backwaters</option>
-                      <option>Beaches</option>
-                      <option>Functional Medicine</option>
-                      <option>Historical &amp; Heritage</option>
-                      <option>Not sure yet — help me plan</option>
-                    </select>
+                  <div>
+                    <div className="enquiry-contact-lbl">WHATSAPP</div>
+                    <a className="enquiry-contact-val" href="https://wa.me/918157003344" target="_blank" rel="noopener noreferrer">
+                      +91 8157 003 344
+                    </a>
                   </div>
                 </div>
-                <div className="irow">
-                  <div className="ifield">
-                    <label htmlFor="form-dates">Approximate dates</label>
-                    <input id="form-dates" type="text" placeholder="e.g. Nov 2026, 7 nights" value={form.dates} onChange={(e) => setForm({ ...form, dates: e.target.value })} />
+
+                <div className="enquiry-contact-item">
+                  <div className="enquiry-contact-badge">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect width="20" height="16" x="2" y="4" rx="2" />
+                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="enquiry-contact-lbl">EMAIL</div>
+                    <a className="enquiry-contact-val" href="mailto:hello@escoraholidays.com">
+                      hello@escoraholidays.com
+                    </a>
                   </div>
                 </div>
-                <div className="irow">
-                  <div className="ifield">
-                    <label htmlFor="form-pax">Number of travellers</label>
-                    <select id="form-pax" value={form.pax} onChange={(e) => setForm({ ...form, pax: e.target.value })}>
-                      <option>2 adults (couple)</option>
-                      <option>1 adult (solo)</option>
-                      <option>Family with children</option>
-                      <option>Small group (4–8)</option>
-                    </select>
+
+                <div className="enquiry-contact-item">
+                  <div className="enquiry-contact-badge">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                      <circle cx="12" cy="10" r="3" />
+                    </svg>
                   </div>
-                  <div className="ifield">
-                    <label htmlFor="form-budget">Budget (₹ INR, approx.)</label>
-                    <input id="form-budget" type="text" placeholder="e.g. ₹5–10 lakhs" value={form.budget} onChange={(e) => setForm({ ...form, budget: e.target.value })} />
+                  <div>
+                    <div className="enquiry-contact-lbl">OFFICE</div>
+                    <div className="enquiry-contact-val">
+                      1st Floor, Landmark Maple Business Tower, Kozhikode, Kerala 673014
+                    </div>
                   </div>
                 </div>
-                <div className="form-note-sm">Kerala · India — NABH Accredited Retreat</div>
-                {enquiryError && <p style={{ color: "#c0392b", fontSize: 13, marginTop: 8 }}>{enquiryError}</p>}
-                <div className="form-actions">
-                  <button className="btn primary" type="submit" disabled={createEnquiry.isPending}>
-                    {createEnquiry.isPending ? "Sending…" : "Send Enquiry"} <span className="arrow" />
-                  </button>
-                  <a className="btn" href={`https://wa.me/918157003344?text=Hello%20Escora%20%E2%80%94%20I'd%20like%20to%20plan%20a%20Kerala%20journey.`} target="_blank" rel="noopener noreferrer">
-                    WhatsApp us <span className="arrow" />
-                  </a>
-                </div>
-              </form>
-            )}
+              </div>
+            </div>
+
+            {/* Right Column: Warm Ivory Enquiry Panel */}
+            <div className="enquiry-right rv d2">
+              <div className="enquiry-card-panel">
+                <svg
+                  className="enquiry-panel-botanical"
+                  viewBox="0 0 160 160"
+                  fill="none"
+                  stroke="#c59a58"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M160 10 C130 30 100 70 80 140" />
+                  <path d="M140 25 C145 12 158 8 160 10 C155 24 146 28 140 25 Z" />
+                  <path d="M125 45 C115 35 118 20 128 20 C132 30 128 42 125 45 Z" />
+                  <path d="M110 70 C125 65 135 50 130 42 C118 48 112 60 110 70 Z" />
+                  <path d="M98 92 C85 82 86 68 96 66 C102 75 100 87 98 92 Z" />
+                  <path d="M88 115 C102 110 110 96 104 88 C94 94 90 106 88 115 Z" />
+                  <path d="M80 138 C70 126 72 112 82 110 C87 118 84 132 80 138 Z" />
+                </svg>
+
+                {enquirySent ? (
+                  <div className="enquiry-success-view">
+                    <div className="enquiry-success-icon">
+                      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#c59a58" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h3 className="enquiry-success-title">
+                      Enquiry <em>received.</em>
+                    </h3>
+                    <p className="enquiry-success-desc">
+                      A Kerala curator will write to you within 24 hours with three curated options. For a faster reply, message us on WhatsApp now.
+                    </p>
+                    <a
+                      className="enquiry-submit-btn enquiry-success-wa"
+                      href={`https://wa.me/918157003344?text=${buildWAMsg()}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span>Continue on WhatsApp</span>
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14" />
+                        <path d="M12 5l7 7-7 7" />
+                      </svg>
+                    </a>
+                  </div>
+                ) : (
+                  <form onSubmit={handleEnquirySubmit} className="enquiry-form">
+                    <div className="enquiry-panel-header">
+                      <div className="enquiry-panel-eyebrow">
+                        <span className="enquiry-eyebrow-dot" />
+                        SEND AN ENQUIRY
+                      </div>
+                      <p className="enquiry-panel-subtitle">
+                        Share a few details and we'll plan your personalized Kerala journey.
+                      </p>
+                    </div>
+
+                    <div className="enquiry-fields-grid">
+                      <div className="enquiry-field">
+                        <label htmlFor="form-name">YOUR NAME</label>
+                        <div className="enquiry-input-box">
+                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                          <input
+                            id="form-name"
+                            type="text"
+                            placeholder="Priya / James…"
+                            value={form.name}
+                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="enquiry-field">
+                        <label htmlFor="form-phone">PHONE / WHATSAPP</label>
+                        <div className="enquiry-input-box">
+                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                          </svg>
+                          <input
+                            id="form-phone"
+                            type="tel"
+                            placeholder="+91 …"
+                            value={form.phone}
+                            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="enquiry-field">
+                        <label htmlFor="form-email">EMAIL</label>
+                        <div className="enquiry-input-box">
+                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <rect width="20" height="16" x="2" y="4" rx="2" />
+                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                          </svg>
+                          <input
+                            id="form-email"
+                            type="email"
+                            placeholder="you@email.com"
+                            value={form.email}
+                            onChange={(e) => setForm({ ...form, email: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="enquiry-field">
+                        <label htmlFor="form-type">TRAVEL TYPE</label>
+                        <div className="enquiry-input-box">
+                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M6 20h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-1V4a2 2 0 0 0-2-2h-6a2 2 0 0 0-2 2v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" />
+                            <path d="M9 2v4h6V2" />
+                            <line x1="12" y1="11" x2="12" y2="15" />
+                          </svg>
+                          <select
+                            id="form-type"
+                            value={form.type}
+                            onChange={(e) => setForm({ ...form, type: e.target.value })}
+                          >
+                            <option value="">— Select journey type —</option>
+                            <option>Honeymoon</option>
+                            <option>Health &amp; Wellness</option>
+                            <option>Nature &amp; Wildlife</option>
+                            <option>Hill Stations</option>
+                            <option>Backwaters</option>
+                            <option>Beaches</option>
+                            <option>Functional Medicine</option>
+                            <option>Historical &amp; Heritage</option>
+                            <option>Not sure yet — help me plan</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="enquiry-field">
+                        <label htmlFor="form-dates">APPROXIMATE DATES</label>
+                        <div className="enquiry-input-box">
+                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                          </svg>
+                          <input
+                            id="form-dates"
+                            type="text"
+                            placeholder="e.g. Nov 2026, 7 nights"
+                            value={form.dates}
+                            onChange={(e) => setForm({ ...form, dates: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="enquiry-field">
+                        <label htmlFor="form-pax">NUMBER OF TRAVELLERS</label>
+                        <div className="enquiry-input-box">
+                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                          </svg>
+                          <select
+                            id="form-pax"
+                            value={form.pax}
+                            onChange={(e) => setForm({ ...form, pax: e.target.value })}
+                          >
+                            <option>2 adults (couple)</option>
+                            <option>1 adult (solo)</option>
+                            <option>Family with children</option>
+                            <option>Small group (4–8)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="enquiry-field enquiry-field-full">
+                        <label htmlFor="form-budget">BUDGET ( ₹ INR, APPROX. )</label>
+                        <div className="enquiry-input-box">
+                          <span className="enquiry-currency-icon">₹</span>
+                          <input
+                            id="form-budget"
+                            type="text"
+                            placeholder="e.g. ₹5–10 lakhs"
+                            value={form.budget}
+                            onChange={(e) => setForm({ ...form, budget: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="enquiry-note-divider">
+                      <span className="enquiry-divider-line" />
+                      <span>KERALA · INDIA — NABH ACCREDITED RETREAT</span>
+                      <span className="enquiry-divider-line" />
+                    </div>
+
+                    {enquiryError && <p className="enquiry-error-msg">{enquiryError}</p>}
+
+                    <div className="enquiry-buttons-row">
+                      <button className="enquiry-submit-btn" type="submit" disabled={createEnquiry.isPending}>
+                        <span>{createEnquiry.isPending ? "SENDING…" : "SEND ENQUIRY"}</span>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14" />
+                          <path d="M12 5l7 7-7 7" />
+                        </svg>
+                      </button>
+
+                      <a
+                        className="enquiry-wa-btn"
+                        href={`https://wa.me/918157003344?text=${encodeURIComponent(
+                          form.name || form.phone
+                            ? `Hello Escora — I'd like to plan a Kerala journey.\nName: ${form.name || "Traveller"}\nPhone: ${form.phone || ""}`
+                            : "Hello Escora — I'd like to plan a Kerala journey."
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                        </svg>
+                        <span>WHATSAPP US</span>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14" />
+                          <path d="M12 5l7 7-7 7" />
+                        </svg>
+                      </a>
+                    </div>
+
+                    <div className="enquiry-features-row">
+                      <div className="enquiry-feature-item">
+                        <svg className="enquiry-feature-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#b08745" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10" />
+                          <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        <div className="enquiry-feature-text">
+                          <strong>REPLY WITHIN</strong>
+                          <span>24 HOURS</span>
+                        </div>
+                      </div>
+
+                      <div className="enquiry-feature-divider" />
+
+                      <div className="enquiry-feature-item">
+                        <svg className="enquiry-feature-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#b08745" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="16" y1="13" x2="8" y2="13" />
+                          <line x1="16" y1="17" x2="8" y2="17" />
+                          <polyline points="10 9 9 9 8 9" />
+                        </svg>
+                        <div className="enquiry-feature-text">
+                          <strong>THREE CURATED</strong>
+                          <span>OPTIONS</span>
+                        </div>
+                      </div>
+
+                      <div className="enquiry-feature-divider" />
+
+                      <div className="enquiry-feature-item">
+                        <svg className="enquiry-feature-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#b08745" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M11 20A7 7 0 0 1 4 13c0-4.42 3.58-8 8-8 1.5 0 2.9.41 4.1 1.13L20 2v4.87c.72 1.2 1.13 2.6 1.13 4.13 0 4.42-3.58 8-8 8h-2.13z" />
+                          <path d="M4 13l8 8" />
+                        </svg>
+                        <div className="enquiry-feature-text">
+                          <strong>YOURS TO REFINE,</strong>
+                          <span>REJECT OR REARRANGE</span>
+                        </div>
+                      </div>
+                    </div>
+                  </form>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </section>

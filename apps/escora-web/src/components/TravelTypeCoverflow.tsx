@@ -167,10 +167,15 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items 
 
   /* Scroll detection */
   useEffect(() => {
+    let isScrollingActive = false;
     const onScroll = () => {
-      setIsScrolling(true);
+      if (!isScrollingActive) {
+        isScrollingActive = true;
+        setIsScrolling(true);
+      }
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
       scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingActive = false;
         setIsScrolling(false);
       }, 1200);
     };

@@ -49,9 +49,9 @@ export default function Journal() {
   return (
     <Layout>
       {/* Page Hero */}
-      <section className="relative pt-32 pb-16 bg-bg border-b border-line">
+      <section className="relative page-hero-top bg-bg border-b border-line">
         <div className="container mx-auto px-6 md:px-12 text-center reveal-up">
-          <p className="font-mono text-gold text-sm tracking-[0.3em] uppercase mb-6 block">Travelogue</p>
+          <p className="section-label mb-6 block"><span className="dot" />Travelogue</p>
           <h1 className="font-serif text-5xl md:text-7xl text-ink leading-[1.1] font-light max-w-4xl mx-auto mb-8">
             The Escora <em className="text-gold italic">Journal</em>
           </h1>
@@ -101,7 +101,7 @@ export default function Journal() {
 
       {/* Featured Post */}
       {featuredPost && (
-        <section className="py-24 bg-bg border-b border-line">
+        <section className="page-section bg-bg border-b border-line">
           <div className="container mx-auto px-6 md:px-12">
             <Link href={`/journal/${featuredPost.id}`} className="group block reveal-up portal-card">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
@@ -154,7 +154,7 @@ export default function Journal() {
       )}
 
       {/* Grid Posts */}
-      <section className="py-24 bg-bg">
+      <section className="page-section bg-bg">
         <div className="container mx-auto px-6 md:px-12">
           {isLoading ? (
             <div className="flex justify-center items-center py-32">

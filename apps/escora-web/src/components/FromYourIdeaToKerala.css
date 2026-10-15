@@ -18,7 +18,7 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding: clamp(56px, 6.8vh, 68px) 0 clamp(10px, 1.4vh, 16px);
+  padding: clamp(50px, 6vh, 62px) 0 clamp(8px, 1.2vh, 14px);
   overflow: hidden;
   color: #102B1D;
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -65,9 +65,9 @@
 .how-container {
   position: relative;
   z-index: 1;
-  max-width: var(--container, 1380px);
+  max-width: var(--container, 1440px);
   margin: 0 auto;
-  padding: 0 var(--gutter, clamp(20px, 4vw, 56px));
+  padding: 0 var(--gutter, clamp(16px, 2.5vw, 40px));
   box-sizing: border-box;
   height: 100%;
   display: flex;
@@ -80,8 +80,8 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: clamp(6px, 0.8vh, 10px);
-  padding-bottom: clamp(6px, 0.8vh, 10px);
+  margin-bottom: 0;
+  padding-bottom: clamp(2px, 0.3vh, 4px);
   border-bottom: 1px solid rgba(228, 222, 210, 0.7);
   gap: 24px;
   width: 100%;
@@ -145,19 +145,35 @@
 
 /* ─── Continuous Sculptural Journey Stage ─── */
 .how-journey-stage {
+  --panel-gap: clamp(20px, 2.6vh, 32px);
+  --cards-gap: clamp(6px, 0.65vw, 10px);
+  --total-cols: 6;
+  --stride: calc((100% + var(--cards-gap)) / var(--total-cols));
+  --card-w: calc((100% - (var(--total-cols) - 1) * var(--cards-gap)) / var(--total-cols));
+  --card-l: calc(var(--active-step, 1) * var(--stride));
+  --card-r: calc(var(--card-l) + var(--card-w));
+  --panel-border-left-w: max(0px, calc(var(--card-l) - var(--panel-gap)));
+  --panel-border-right-w: max(0px, calc(100% - var(--card-r) - var(--panel-gap)));
   position: relative;
   width: 100%;
   display: flex;
   flex-direction: column;
-  margin-top: clamp(4px, 0.7vh, 8px);
-  margin-bottom: clamp(6px, 0.9vh, 12px);
+  margin-top: clamp(-14px, -1.4vh, -8px);
+  margin-bottom: clamp(6px, 1vh, 14px);
   min-height: 0;
 }
+
+.how-journey-stage.active-is-0 { --active-step: 0; }
+.how-journey-stage.active-is-1 { --active-step: 1; }
+.how-journey-stage.active-is-2 { --active-step: 2; }
+.how-journey-stage.active-is-3 { --active-step: 3; }
+.how-journey-stage.active-is-4 { --active-step: 4; }
+.how-journey-stage.active-is-5 { --active-step: 5; }
 
 /* Subtle connecting wave spline across cards */
 .how-spline-bg {
   position: absolute;
-  top: clamp(140px, 16vh, 170px);
+  top: clamp(145px, 17vh, 175px);
   left: 2%;
   width: 96%;
   height: 60px;
@@ -173,9 +189,10 @@
   z-index: 3;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: clamp(6px, 0.65vw, 10px);
+  gap: var(--cards-gap, clamp(6px, 0.65vw, 10px));
   align-items: stretch;
   width: 100%;
+  min-height: clamp(284px, 32vh, 316px);
   margin-bottom: 0;
 }
 
@@ -233,7 +250,7 @@
 /* Inner photo arch */
 .how-arch-img-wrap {
   width: 100%;
-  aspect-ratio: 0.84;
+  aspect-ratio: 0.81;
   border-radius: 999px 999px 0 0;
   overflow: hidden;
   position: relative;
@@ -283,7 +300,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 2px;
+  gap: 3px;
   padding: 0 4px;
   width: 100%;
   margin-top: 0;
@@ -325,10 +342,36 @@
   border-right: 1.2px solid rgba(197, 160, 105, 0.55);
   border-bottom: none;
   border-radius: 999px 999px 0 0;
-  padding: clamp(5px, 0.45vw, 6.5px) clamp(5px, 0.45vw, 6.5px) 8px clamp(5px, 0.45vw, 6.5px);
-  margin-bottom: -2px; /* Seamless overlap with panel top border, ZERO gap */
+  padding: clamp(5px, 0.45vw, 6.5px) clamp(5px, 0.45vw, 6.5px) 12px clamp(5px, 0.45vw, 6.5px);
+  margin-bottom: 0;
   box-shadow: 0 -8px 28px rgba(10, 33, 22, 0.2);
   z-index: 5;
+}
+
+/* Architectural connecting base bridging the active arch seamlessly into the panel */
+.how-card.is-active::after {
+  content: "";
+  position: absolute;
+  top: calc(100% - 1px);
+  left: -1.2px;
+  right: -1.2px;
+  height: calc(var(--panel-gap, clamp(20px, 2.6vh, 32px)) + 2px);
+  background: #0E291C;
+  border: none;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* For Step 01: flush outer left vertical connection */
+.how-journey-stage.active-is-0 .how-card.is-active::after {
+  left: -0.5px;
+  border-left: 1.2px solid rgba(197, 160, 105, 0.55);
+}
+
+/* For Step 06: flush outer right vertical connection */
+.how-journey-stage.active-is-5 .how-card.is-active::after {
+  right: -0.5px;
+  border-right: 1.2px solid rgba(197, 160, 105, 0.55);
 }
 
 .how-card.is-active .how-arch-frame {
@@ -361,29 +404,34 @@
 /* Sculptural fillets connecting the active card to the bottom panel */
 .how-fillet {
   position: absolute;
-  bottom: 0px;
-  width: 20px;
-  height: 20px;
+  top: calc(100% - 1px);
+  width: var(--panel-gap, clamp(20px, 2.6vh, 32px));
+  height: calc(var(--panel-gap, clamp(20px, 2.6vh, 32px)) + 1.6px);
   z-index: 6;
   pointer-events: none;
+  overflow: visible;
 }
 
 .how-fillet-left {
-  left: -19.5px;
+  right: calc(100% + 0.6px);
 }
 
 .how-fillet-right {
-  right: -19.5px;
+  left: calc(100% + 0.6px);
 }
 
 /* ─── Bottom Information Panel ─── */
 .how-info-panel {
   position: relative;
-  background: linear-gradient(135deg, #0E291C 0%, #0A2116 100%);
+  background: linear-gradient(180deg, #0E291C 0%, #0A2116 100%);
   border-radius: 20px;
-  border: 1.2px solid rgba(197, 160, 105, 0.45);
-  margin-top: 0;
-  padding: clamp(11px, 1.4vh, 15px) clamp(20px, 2.4vw, 32px);
+  border-left: 1.2px solid rgba(197, 160, 105, 0.55);
+  border-right: 1.2px solid rgba(197, 160, 105, 0.55);
+  border-bottom: 1.2px solid rgba(197, 160, 105, 0.55);
+  border-top: none;
+  margin-top: var(--panel-gap, clamp(20px, 2.6vh, 32px));
+  width: 100%;
+  padding: clamp(23px, 3.2vh, 32px) clamp(24px, 2.4vw, 36px);
   color: #FFFFFF;
   box-shadow: 0 16px 40px rgba(10, 33, 22, 0.24);
   overflow: hidden;
@@ -391,6 +439,28 @@
   z-index: 2;
   flex-shrink: 0;
   transition: border-radius 0.25s ease;
+}
+
+/* Two separate top gold border segments flanking the active arch */
+.how-info-panel::before,
+.how-info-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  height: 1.2px;
+  background: rgba(197, 160, 105, 0.55);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.how-info-panel::before {
+  left: 0;
+  width: var(--panel-border-left-w, 0px);
+}
+
+.how-info-panel::after {
+  right: 0;
+  width: var(--panel-border-right-w, 0px);
 }
 
 /* When Step 01 is active, flush vertical connection on outer left edge */
@@ -423,8 +493,8 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.35fr) auto;
-  gap: clamp(16px, 2.2vw, 32px);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.35fr) auto;
+  gap: clamp(16px, 2.2vw, 36px);
   align-items: center;
 }
 
@@ -469,16 +539,17 @@
   line-height: 1.55;
   color: #C0D3C7;
   margin: 0;
-  max-width: 44ch;
+  max-width: 48ch;
 }
 
 /* Middle: 3 compact supporting features */
 .how-panel-features {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: clamp(10px, 1.2vw, 18px);
+  gap: clamp(12px, 1.4vw, 22px);
   border-left: 1px solid rgba(197, 160, 105, 0.24);
-  padding-left: clamp(12px, 1.6vw, 24px);
+  padding-left: clamp(14px, 1.8vw, 26px);
+  align-items: center;
 }
 
 .how-feature-item {
@@ -671,11 +742,20 @@
   .how-card.is-active {
     border-radius: 999px 999px 18px 18px;
     border-bottom: 1.2px solid rgba(197, 160, 105, 0.55);
+    padding: clamp(5px, 0.45vw, 6.5px) clamp(5px, 0.45vw, 6.5px) clamp(10px, 1.2vh, 14px) clamp(5px, 0.45vw, 6.5px);
     margin-bottom: 0;
+  }
+  .how-card.is-active::after {
+    display: none;
   }
   .how-info-panel {
     margin-top: 18px;
     border-radius: 24px !important;
+    border-top: 1.2px solid rgba(197, 160, 105, 0.55);
+  }
+  .how-info-panel::before,
+  .how-info-panel::after {
+    display: none;
   }
   .how-panel-body {
     grid-template-columns: 1fr;

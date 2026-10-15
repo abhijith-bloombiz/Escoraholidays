@@ -29,7 +29,7 @@ const STEPS: JourneyStep[] = [
     stepNum: "02",
     stepIndex: 2,
     title: "Speak with a curator",
-    cardDesc: "",
+    cardDesc: "Within 24 hours, our specialist connects.",
     panelTitle: "Speak with a Kerala curator",
     panelDesc:
       "Within 24 hours, a dedicated Escora curator calls or messages you to understand your travel rhythm, companions, and bespoke preferences in detail.",
@@ -146,8 +146,10 @@ export default function FromYourIdeaToKerala() {
           </p>
         </header>
 
-        {/* ─── Continuous Sculptural Journey & Panel ─── */}
-        <div className={`how-journey-stage active-is-${activeStep}`}>
+        <div
+          className={`how-journey-stage active-is-${activeStep}`}
+          style={{ "--active-step": activeStep } as React.CSSProperties}
+        >
           {/* Subtle wavy spline threading through cards behind badges */}
           <svg className="how-spline-bg" viewBox="0 0 1200 80" fill="none" preserveAspectRatio="none" aria-hidden="true">
             <path
@@ -199,15 +201,15 @@ export default function FromYourIdeaToKerala() {
                   {isActive && (
                     <>
                       {idx > 0 && (
-                        <svg className="how-fillet how-fillet-left" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                          <path d="M 0,20 C 11,20 20,11 20,0 L 20,20 Z" fill="#0E291C" />
-                          <path d="M 0,20 C 11,20 20,11 20,0" stroke="rgba(197, 160, 105, 0.55)" strokeWidth="1.2" />
+                        <svg className="how-fillet how-fillet-left" viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" aria-hidden="true">
+                          <path d="M 100,0 C 100,55.23 55.23,100 0,100 L 0,104 L 100,104 Z" fill="#0E291C" />
+                          <path d="M 100,0 C 100,55.23 55.23,100 0,100" stroke="rgba(197, 160, 105, 0.55)" strokeWidth="1.2" strokeLinecap="butt" vectorEffect="non-scaling-stroke" />
                         </svg>
                       )}
                       {idx < STEPS.length - 1 && (
-                        <svg className="how-fillet how-fillet-right" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                          <path d="M 20,20 C 9,20 0,11 0,0 L 0,20 Z" fill="#0E291C" />
-                          <path d="M 20,20 C 9,20 0,11 0,0" stroke="rgba(197, 160, 105, 0.55)" strokeWidth="1.2" />
+                        <svg className="how-fillet how-fillet-right" viewBox="0 0 100 100" fill="none" preserveAspectRatio="none" aria-hidden="true">
+                          <path d="M 0,0 C 0,55.23 44.77,100 100,100 L 100,104 L 0,104 Z" fill="#0E291C" />
+                          <path d="M 0,0 C 0,55.23 44.77,100 100,100" stroke="rgba(197, 160, 105, 0.55)" strokeWidth="1.2" strokeLinecap="butt" vectorEffect="non-scaling-stroke" />
                         </svg>
                       )}
                     </>

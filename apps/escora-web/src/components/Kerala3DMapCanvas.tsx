@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import gsap from "gsap";
 import districtsGeoData from "@/data/kerala-districts.json";
 
 // District metadata & destination associations
@@ -111,6 +112,7 @@ const DISTRICT_TOPOGRAPHY: Record<string, { depth: number; color: number }> = {
 };
 
 // Reference-matched key map pins with accurate geographic coordinates
+// Arranged North to South (top of Kerala down to bottom)
 const MAP_PINS = [
   { id: "Kasaragod", label: "Kasaragod", district: "Kasaragod", lon: 75.00, lat: 12.50 },
   { id: "Kannur", label: "Kannur", district: "Kannur", lon: 75.37, lat: 11.87 },
@@ -123,6 +125,24 @@ const MAP_PINS = [
   { id: "Alleppey", label: "Alleppey", district: "Alappuzha", lon: 76.33, lat: 9.49, associatedDestId: "alleppey" },
   { id: "Varkala", label: "Varkala", district: "Thiruvananthapuram", lon: 76.71, lat: 8.73, associatedDestId: "varkala" },
   { id: "Trivandrum", label: "Trivandrum", district: "Thiruvananthapuram", lon: 76.93, lat: 8.50 },
+];
+
+// 14 Kerala districts sorted strictly North to South (top of Kerala map down to bottom)
+const NORTH_TO_SOUTH_DISTRICTS = [
+  "Kasaragod",
+  "Kannur",
+  "Wayanad",
+  "Kozhikode",
+  "Malappuram",
+  "Palakkad",
+  "Thrissur",
+  "Ernakulam",
+  "Idukki",
+  "Kottayam",
+  "Alappuzha",
+  "Pathanamthitta",
+  "Kollam",
+  "Thiruvananthapuram",
 ];
 
 interface PinScreenPosition {
@@ -149,6 +169,12 @@ export default function Kerala3DMapCanvas({
   const mountRef = useRef<HTMLDivElement>(null);
   const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
   const [pinPositions, setPinPositions] = useState<PinScreenPosition[]>([]);
+  const [isRevealed, setIsRevealed] = useState(false);
+
+  const isRevealedRef = useRef(false);
+  const isRevealingRef = useRef(false);
+  const revealTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const ensureRevealedRef = useRef<() => void>(() => {});
 
   const districtMeshesRef = useRef<Map<string, THREE.Mesh>>(new Map());
   const selectedDistrictRef = useRef<string | null>(selectedDistrict);
@@ -221,16 +247,6 @@ export default function Kerala3DMapCanvas({
     const centerLat = 10.25;
     const scale = 1.58;
 
-    // Bedrock base group (follows exact Kerala silhouette under the districts)
-    const bedrockGroup = new THREE.Group();
-    scene.add(bedrockGroup);
-
-    const districtGroup = new THREE.Group();
-    scene.add(districtGroup);
-
-    const edgeLineGroup = new THREE.Group();
-    scene.add(edgeLineGroup);
-
     const bedrockMaterial = new THREE.MeshStandardMaterial({
       color: 0x0e1b2b, // Deep Midnight Navy bedrock base
       roughness: 0.82,
@@ -255,8 +271,13 @@ export default function Kerala3DMapCanvas({
       linewidth: 2.2,
     });
 
+    const districtGroups = new Map<string, THREE.Group>();
     const districtMeshes = new Map<string, THREE.Mesh>();
     const districtEdges = new Map<string, THREE.LineSegments>();
+    const districtRevealStates = new Map<
+      string,
+      { scale: number; offsetY: number; offsetZ: number }
+    >();
 
     // ── Build 14 Geographically Accurate 3D Districts & Silhouette Bedrock ──
     districtsGeoData.features.forEach((feature) => {
@@ -264,11 +285,24 @@ export default function Kerala3DMapCanvas({
       const coords = feature.geometry.coordinates[0]; // Exterior polygon ring
       const topo = DISTRICT_TOPOGRAPHY[name] || { depth: 0.32, color: 0x2e6441 };
 
-      const shape = new THREE.Shape();
+      // Calculate 2D centroid for this district
+      let sumX = 0;
+      let sumY = 0;
+      coords.forEach(([lon, lat]) => {
+        sumX += (lon - centerLon) * scale;
+        sumY += (lat - centerLat) * scale;
+      });
+      const centroidX = sumX / coords.length;
+      const centroidY = sumY / coords.length;
 
+      // Group for this district centered at its geographic centroid
+      const districtGrp = new THREE.Group();
+      districtGrp.userData = { centroidX, centroidY, name };
+
+      const shape = new THREE.Shape();
       coords.forEach(([lon, lat], i) => {
-        const x = (lon - centerLon) * scale;
-        const y = (lat - centerLat) * scale;
+        const x = (lon - centerLon) * scale - centroidX;
+        const y = (lat - centerLat) * scale - centroidY;
         if (i === 0) shape.moveTo(x, y);
         else shape.lineTo(x, y);
       });
@@ -285,7 +319,7 @@ export default function Kerala3DMapCanvas({
       const bedrockMesh = new THREE.Mesh(baseGeo, bedrockMaterial);
       bedrockMesh.position.z = -0.20;
       bedrockMesh.receiveShadow = true;
-      bedrockGroup.add(bedrockMesh);
+      districtGrp.add(bedrockMesh);
 
       // 2. Top terrain district mesh with natural elevation variation
       const districtSettings = {
@@ -311,15 +345,29 @@ export default function Kerala3DMapCanvas({
       mesh.receiveShadow = true;
       mesh.userData = { districtName: name, baseZ: 0, defaultColor: topo.color };
 
-      districtGroup.add(mesh);
+      districtGrp.add(mesh);
       districtMeshes.set(name, mesh);
 
       // 3. Subtle gold border lines outlining accurate boundaries
       const edgesGeo = new THREE.EdgesGeometry(districtGeo, 24);
       const edgeLines = new THREE.LineSegments(edgesGeo, goldLineMaterial);
       edgeLines.name = `${name}-edges`;
-      edgeLineGroup.add(edgeLines);
+      districtGrp.add(edgeLines);
       districtEdges.set(name, edgeLines);
+
+      // Initial unrevealed state: hidden, offset higher (North/top) and deeper
+      const revState = {
+        scale: 0,
+        offsetY: 0.38,
+        offsetZ: -0.32,
+      };
+      districtRevealStates.set(name, revState);
+
+      districtGrp.position.set(centroidX, centroidY + revState.offsetY, revState.offsetZ);
+      districtGrp.scale.set(0, 0, 0);
+
+      scene.add(districtGrp);
+      districtGroups.set(name, districtGrp);
     });
 
     districtMeshesRef.current = districtMeshes;
@@ -339,6 +387,7 @@ export default function Kerala3DMapCanvas({
       const intersects = raycaster.intersectObjects(districtMeshArray);
 
       if (intersects.length > 0) {
+        ensureRevealedRef.current();
         const hitName = (intersects[0].object as THREE.Mesh).userData.districtName;
         if (currentHovered !== hitName) {
           currentHovered = hitName;
@@ -365,6 +414,7 @@ export default function Kerala3DMapCanvas({
     };
 
     const onClick = (e: MouseEvent) => {
+      ensureRevealedRef.current();
       const rect = renderer.domElement.getBoundingClientRect();
       const clickMouse = new THREE.Vector2(
         ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -482,7 +532,7 @@ export default function Kerala3DMapCanvas({
 
       renderer.render(scene, camera);
 
-      if (maxDelta > 0.001 && !prefersReduced) {
+      if ((maxDelta > 0.001 || isRevealingRef.current) && !prefersReduced) {
         animId = requestAnimationFrame(animate);
       } else {
         // Snap all meshes to exact targetZ to ensure clean resting state
@@ -500,18 +550,147 @@ export default function Kerala3DMapCanvas({
       }
     };
 
-    // ── IntersectionObserver: Pause rendering completely when off-screen ──
+    // ── Sequential Reveal Animations (Pop-up from top North to South in order) ──
+    const ensureRevealed = () => {
+      revealTimelineRef.current?.progress(1);
+      isRevealedRef.current = true;
+      isRevealingRef.current = false;
+      setIsRevealed(true);
+
+      districtGroups.forEach((grp, name) => {
+        const st = districtRevealStates.get(name);
+        if (st) {
+          st.scale = 1;
+          st.offsetY = 0;
+          st.offsetZ = 0;
+        }
+        grp.scale.set(1, 1, 1);
+        const { centroidX, centroidY } = grp.userData;
+        grp.position.set(centroidX, centroidY, 0);
+      });
+      wakeLoop();
+    };
+    ensureRevealedRef.current = ensureRevealed;
+
+    const triggerReveal = () => {
+      if (isRevealedRef.current || isRevealingRef.current) return;
+      isRevealedRef.current = true;
+      isRevealingRef.current = true;
+      setIsRevealed(true);
+
+      const prefersReduced =
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (prefersReduced) {
+        ensureRevealed();
+        return;
+      }
+
+      revealTimelineRef.current?.kill();
+      const tl = gsap.timeline({
+        onUpdate: () => {
+          wakeLoop();
+        },
+        onComplete: () => {
+          isRevealingRef.current = false;
+          districtGroups.forEach((grp, name) => {
+            const st = districtRevealStates.get(name);
+            if (st) {
+              st.scale = 1;
+              st.offsetY = 0;
+              st.offsetZ = 0;
+            }
+            grp.scale.set(1, 1, 1);
+            const { centroidX, centroidY } = grp.userData;
+            grp.position.set(centroidX, centroidY, 0);
+          });
+          wakeLoop();
+        },
+      });
+      revealTimelineRef.current = tl;
+
+      NORTH_TO_SOUTH_DISTRICTS.forEach((name, idx) => {
+        const st = districtRevealStates.get(name);
+        const grp = districtGroups.get(name);
+        if (!st || !grp) return;
+
+        st.scale = 0;
+        st.offsetY = 0.38; // Coming from the top (North)
+        st.offsetZ = -0.32; // Popping up towards camera
+        grp.scale.set(0, 0, 0);
+        grp.position.set(grp.userData.centroidX, grp.userData.centroidY + 0.38, -0.32);
+
+        // Sequence from top (Kasaragod) down to bottom (Trivandrum) one by one in order
+        const delay = idx * 0.062;
+
+        tl.to(
+          st,
+          {
+            scale: 1,
+            offsetY: 0,
+            offsetZ: 0,
+            duration: 0.65,
+            ease: "back.out(1.5)",
+            onUpdate: () => {
+              const s = Math.max(0, st.scale);
+              grp.scale.set(s, s, s);
+              grp.position.y = grp.userData.centroidY + st.offsetY;
+              grp.position.z = st.offsetZ;
+            },
+          },
+          delay
+        );
+      });
+    };
+
+    const resetReveal = () => {
+      if (isRevealingRef.current) return;
+      if (selectedDistrictRef.current !== null) return;
+
+      revealTimelineRef.current?.kill();
+      isRevealedRef.current = false;
+      isRevealingRef.current = false;
+      setIsRevealed(false);
+
+      districtGroups.forEach((grp, name) => {
+        const st = districtRevealStates.get(name);
+        if (st) {
+          st.scale = 0;
+          st.offsetY = 0.38;
+          st.offsetZ = -0.32;
+        }
+        grp.scale.set(0, 0, 0);
+        const { centroidX, centroidY } = grp.userData;
+        grp.position.set(centroidX, centroidY + 0.38, -0.32);
+      });
+      renderer.render(scene, camera);
+    };
+
+    // ── IntersectionObserver: Detect exact viewport reach ──
     const observer = new IntersectionObserver(
       ([entry]) => {
+        if (!entry) return;
         isVisible = entry.isIntersecting;
-        if (isVisible) {
+
+        const inExactViewport =
+          entry.isIntersecting &&
+          (entry.intersectionRatio >= 0.18 ||
+            (entry.boundingClientRect.top < window.innerHeight * 0.80 &&
+              entry.boundingClientRect.bottom > window.innerHeight * 0.18));
+
+        if (inExactViewport) {
+          triggerReveal();
           wakeLoop();
-        } else if (animId) {
-          cancelAnimationFrame(animId);
-          animId = 0;
+        } else if (!entry.isIntersecting || entry.intersectionRatio <= 0.01) {
+          resetReveal();
+          if (animId) {
+            cancelAnimationFrame(animId);
+            animId = 0;
+          }
         }
       },
-      { threshold: 0.05, rootMargin: "150px" }
+      { threshold: [0, 0.05, 0.12, 0.18, 0.30] }
     );
     observer.observe(container);
 
@@ -530,6 +709,7 @@ export default function Kerala3DMapCanvas({
     window.addEventListener("resize", handleResize);
 
     return () => {
+      revealTimelineRef.current?.kill();
       observer.disconnect();
       if (animId) cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
@@ -549,7 +729,7 @@ export default function Kerala3DMapCanvas({
 
   return (
     <div
-      className="kerala-3d-map-three-container"
+      className={`kerala-3d-map-three-container ${isRevealed ? "is-revealed" : ""}`}
       style={{
         position: "relative",
         width: "100%",
@@ -579,7 +759,7 @@ export default function Kerala3DMapCanvas({
           pointerEvents: "none",
         }}
       >
-        {pinPositions.map((pin) => {
+        {pinPositions.map((pin, idx) => {
           const isDestActive = activeDestId ? pin.associatedDestId === activeDestId : false;
           const isSelectedDistrict = selectedDistrict === pin.district;
           const isHovered = hoveredDistrict === pin.district;
@@ -589,18 +769,23 @@ export default function Kerala3DMapCanvas({
             <div
               key={pin.id}
               className={`map-floating-pin-pill ${isHighlighted ? "is-active" : ""} ${isDestActive ? "is-dest-target" : ""}`}
-              style={{
-                position: "absolute",
-                left: `${pin.x}px`,
-                top: `${pin.y}px`,
-                transform: "translate(-50%, -50%)",
-                pointerEvents: "auto",
-                cursor: "pointer",
-              }}
+              style={
+                {
+                  position: "absolute",
+                  left: `${pin.x}px`,
+                  top: `${pin.y}px`,
+                  "--pin-idx": idx,
+                  cursor: "pointer",
+                } as React.CSSProperties
+              }
               onClick={() => {
+                ensureRevealedRef.current();
                 onSelectDistrict(pin.district, pin.associatedDestId);
               }}
-              onMouseEnter={() => setHoveredDistrict(pin.district)}
+              onMouseEnter={() => {
+                ensureRevealedRef.current();
+                setHoveredDistrict(pin.district);
+              }}
               onMouseLeave={() => setHoveredDistrict(null)}
             >
               <span className={`pin-dot ${isDestActive ? "pin-target-dot" : ""}`} />

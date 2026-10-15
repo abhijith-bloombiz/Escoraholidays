@@ -113,6 +113,38 @@ export default function DepthCarousel({
 
   const [active, setActive] = useState(0);
 
+  // ── Fluid Entrance Reveal State ──
+  // Cards start staged off-screen to the right with opacity 0, and sweep in one-by-one when reaching viewport
+  const hasRevealedRef = useRef(false);
+  const isRevealingRef = useRef(false);
+  const revealTimelineRef = useRef<gsap.core.Timeline | null>(null);
+  const [isRevealed, setIsRevealed] = useState(false);
+
+  const getInitialOffset = useCallback(() => {
+    if (typeof window !== "undefined") {
+      return Math.max(520, Math.min(window.innerWidth * 0.65, 760));
+    }
+    return 620;
+  }, []);
+
+  const cardRevealRef = useRef<
+    {
+      xOffset: number;
+      opacity: number;
+      scale: number;
+      rotY: number;
+      rotZ: number;
+    }[]
+  >(
+    Array.from({ length: 16 }, () => ({
+      xOffset: typeof window !== "undefined" ? Math.max(520, Math.min(window.innerWidth * 0.65, 760)) : 620,
+      opacity: 0,
+      scale: 0.94,
+      rotY: 8,
+      rotZ: 1.8,
+    }))
+  );
+
   onChangeRef.current = onChange;
   spreadRef.current = spread;
   cfgRef.current = {
@@ -178,15 +210,198 @@ export default function DepthCarousel({
           : 0;
       const zi = Math.round(2000 - back * 40);
 
-      el.style.transform = `translate(-50%, -50%) scale(${sc}) translateX(${tx.toFixed(
+      // Apply viewport entrance reveal offsets
+      const rev = cardRevealRef.current[i] || {
+        xOffset: 0,
+        opacity: 1,
+        scale: 1,
+        rotY: 0,
+        rotZ: 0,
+      };
+
+      const finalX = tx + rev.xOffset;
+      const finalScale = sc * rev.scale;
+      const finalOpacity = opacity * rev.opacity;
+      const finalRy = ry + rev.rotY;
+      const finalRz = rev.rotZ;
+
+      el.style.transform = `translate(-50%, -50%) scale(${finalScale.toFixed(4)}) translateX(${finalX.toFixed(
         2
-      )}px) translateZ(${tz.toFixed(2)}px) rotateY(${ry.toFixed(3)}deg)`;
-      el.style.opacity = opacity.toFixed(3);
+      )}px) translateZ(${tz.toFixed(2)}px) rotateY(${finalRy.toFixed(3)}deg) rotateZ(${finalRz.toFixed(2)}deg)`;
+      el.style.opacity = finalOpacity.toFixed(3);
       el.style.filter = blurPx > 0 ? `blur(${blurPx.toFixed(2)}px)` : "none";
       el.style.zIndex = String(zi);
-      el.style.pointerEvents = shown && opacity > 0.05 ? "auto" : "none";
+      el.style.pointerEvents = shown && finalOpacity > 0.05 ? "auto" : "none";
     }
   }, []);
+
+  // Complete any active entrance reveal immediately on manual interaction
+  const ensureRevealed = useCallback(() => {
+    if (isRevealingRef.current || !hasRevealedRef.current) {
+      revealTimelineRef.current?.progress(1);
+      hasRevealedRef.current = true;
+      isRevealingRef.current = false;
+      setIsRevealed(true);
+      for (let i = 0; i < count; i++) {
+        if (cardRevealRef.current[i]) {
+          cardRevealRef.current[i].xOffset = 0;
+          cardRevealRef.current[i].opacity = 1;
+          cardRevealRef.current[i].scale = 1;
+          cardRevealRef.current[i].rotY = 0;
+          cardRevealRef.current[i].rotZ = 0;
+        }
+      }
+      layout(posRef.current);
+    }
+  }, [count, layout]);
+
+  // Trigger fluid entrance animation: cards arrive from the right side one by one in order
+  const triggerReveal = useCallback(() => {
+    if (hasRevealedRef.current || isRevealingRef.current) return;
+    hasRevealedRef.current = true;
+    isRevealingRef.current = true;
+    setIsRevealed(true);
+
+    if (reducedRef.current) {
+      for (let i = 0; i < count; i++) {
+        if (cardRevealRef.current[i]) {
+          cardRevealRef.current[i].xOffset = 0;
+          cardRevealRef.current[i].opacity = 1;
+          cardRevealRef.current[i].scale = 1;
+          cardRevealRef.current[i].rotY = 0;
+          cardRevealRef.current[i].rotZ = 0;
+        }
+      }
+      isRevealingRef.current = false;
+      layout(posRef.current);
+      return;
+    }
+
+    revealTimelineRef.current?.kill();
+    const tl = gsap.timeline({
+      onUpdate: () => {
+        layout(posRef.current);
+      },
+      onComplete: () => {
+        isRevealingRef.current = false;
+        for (let i = 0; i < count; i++) {
+          if (cardRevealRef.current[i]) {
+            cardRevealRef.current[i].xOffset = 0;
+            cardRevealRef.current[i].opacity = 1;
+            cardRevealRef.current[i].scale = 1;
+            cardRevealRef.current[i].rotY = 0;
+            cardRevealRef.current[i].rotZ = 0;
+          }
+        }
+        layout(posRef.current);
+      },
+    });
+    revealTimelineRef.current = tl;
+
+    const baseOffset = getInitialOffset();
+    for (let i = 0; i < count; i++) {
+      if (!cardRevealRef.current[i]) {
+        cardRevealRef.current[i] = {
+          xOffset: baseOffset,
+          opacity: 0,
+          scale: 0.94,
+          rotY: 8,
+          rotZ: 1.8,
+        };
+      } else {
+        cardRevealRef.current[i].xOffset = baseOffset;
+        cardRevealRef.current[i].opacity = 0;
+        cardRevealRef.current[i].scale = 0.94;
+        cardRevealRef.current[i].rotY = 8;
+        cardRevealRef.current[i].rotZ = 1.8;
+      }
+
+      // Smooth sequential stagger: 0, 1, 2, 3, 4, 5 in exact order
+      const delay = i * 0.095;
+
+      // Glide in from the right into exact 3D resting stack
+      tl.to(
+        cardRevealRef.current[i],
+        {
+          xOffset: 0,
+          scale: 1,
+          rotY: 0,
+          rotZ: 0,
+          duration: 0.95,
+          ease: "power3.out",
+        },
+        delay
+      );
+
+      // Smooth fluid fade-in across the initial flight
+      tl.to(
+        cardRevealRef.current[i],
+        {
+          opacity: 1,
+          duration: 0.42,
+          ease: "power2.out",
+        },
+        delay
+      );
+    }
+  }, [count, getInitialOffset, layout]);
+
+  // Reset when scrolled completely away so it can re-reveal on scrolling back
+  const resetReveal = useCallback(() => {
+    if (isRevealingRef.current) return;
+    if (posRef.current !== 0 || active !== 0) return;
+
+    hasRevealedRef.current = false;
+    setIsRevealed(false);
+    const baseOffset = getInitialOffset();
+    for (let i = 0; i < count; i++) {
+      if (cardRevealRef.current[i]) {
+        cardRevealRef.current[i].xOffset = baseOffset;
+        cardRevealRef.current[i].opacity = 0;
+        cardRevealRef.current[i].scale = 0.94;
+        cardRevealRef.current[i].rotY = 8;
+        cardRevealRef.current[i].rotZ = 1.8;
+      }
+    }
+    layout(posRef.current);
+  }, [active, count, getInitialOffset, layout]);
+
+  // ── IntersectionObserver: Detect exact viewport reach ──
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      triggerReveal();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) return;
+
+        // Triggers when user reaches this cards exact viewport
+        const inExactViewport =
+          entry.isIntersecting &&
+          (entry.intersectionRatio >= 0.22 ||
+            (entry.boundingClientRect.top < window.innerHeight * 0.75 &&
+              entry.boundingClientRect.bottom > window.innerHeight * 0.2));
+
+        if (inExactViewport) {
+          triggerReveal();
+        } else if (!entry.isIntersecting || entry.intersectionRatio <= 0.01) {
+          resetReveal();
+        }
+      },
+      {
+        threshold: [0, 0.05, 0.15, 0.22, 0.35],
+      }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      revealTimelineRef.current?.kill();
+    };
+  }, [triggerReveal, resetReveal]);
 
   const notify = useCallback(
     (idx: number) => {
@@ -306,6 +521,7 @@ export default function DepthCarousel({
   }, [layout, setFocus]);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    ensureRevealed();
     const cfg = cfgRef.current;
     if (cfg.count < 2) return;
     tweenRef.current?.kill();
@@ -318,7 +534,7 @@ export default function DepthCarousel({
       moved: false,
       id: e.pointerId,
     };
-  }, []);
+  }, [ensureRevealed]);
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
@@ -356,6 +572,7 @@ export default function DepthCarousel({
 
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      ensureRevealed();
       if (e.key === "ArrowLeft") {
         e.preventDefault();
         navigateBy(-1);
@@ -364,18 +581,19 @@ export default function DepthCarousel({
         navigateBy(1);
       }
     },
-    [navigateBy]
+    [ensureRevealed, navigateBy]
   );
 
   const onCardClick = useCallback(
     (index: number) => {
+      ensureRevealed();
       if (dragRef.current?.moved) return;
       // If clicking a background card, bring it to the foreground
       if (index !== focusRef.current) {
         setFocus(index, true);
       }
     },
-    [setFocus]
+    [ensureRevealed, setFocus]
   );
 
   useEffect(() => {
@@ -451,7 +669,7 @@ export default function DepthCarousel({
   return (
     <div
       ref={rootRef}
-      className={`depth-carousel ${className}`.trim()}
+      className={`depth-carousel ${isRevealed ? "is-revealed" : ""} ${className}`.trim()}
       style={{ "--dc-perspective": `${perspective}px` } as React.CSSProperties}
       role="group"
       aria-roledescription="carousel"

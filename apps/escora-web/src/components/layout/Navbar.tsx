@@ -88,15 +88,15 @@ export default function Navbar() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 gap: 16,
-                padding: scrolled ? "8px 14px 8px 24px" : "12px clamp(20px, 4vw, 56px)",
-                width: scrolled ? "min(1240px, calc(100vw - 32px))" : "min(1400px, 100vw)",
+                padding: scrolled ? "11px 24px 11px 30px" : "14px 28px 14px 34px",
+                width: scrolled ? "min(1340px, calc(100vw - 44px))" : "min(1380px, calc(100vw - 44px))",
                 background: scrolled ? "rgba(253, 250, 243, 0.95)" : "transparent",
                 backdropFilter: scrolled ? "blur(20px)" : "none",
                 WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
                 border: scrolled ? "1px solid rgba(220, 214, 200, 0.7)" : "none",
-                borderRadius: scrolled ? 999 : 0,
+                borderRadius: 999,
                 boxShadow: scrolled ? "0 10px 30px rgba(0,0,0,0.06)" : "none",
-                transition: "top 0.4s cubic-bezier(0.16,1,0.3,1), background 0.4s, border 0.4s, box-shadow 0.4s",
+                transition: "top 0.4s cubic-bezier(0.16,1,0.3,1), background 0.4s, border 0.4s, box-shadow 0.4s, padding 0.4s, width 0.4s",
               }
             : {
                 position: "fixed",
@@ -106,16 +106,16 @@ export default function Navbar() {
                 zIndex: 200,
                 display: "flex",
                 alignItems: "center",
-                gap: 8,
-                padding: "8px 8px 8px 22px",
-                width: "min(1080px, calc(100vw - 32px))",
+                gap: 12,
+                padding: scrolled ? "11px 24px 11px 30px" : "14px 28px 14px 34px",
+                width: scrolled ? "min(1340px, calc(100vw - 44px))" : "min(1380px, calc(100vw - 44px))",
                 background: scrolled ? "rgba(13, 10, 7, 0.92)" : "rgba(21, 16, 11, 0.62)",
                 backdropFilter: "blur(26px) saturate(150%)",
                 WebkitBackdropFilter: "blur(26px) saturate(150%)",
                 border: `1px solid ${scrolled ? "rgba(232, 220, 196, 0.14)" : "rgba(232, 220, 196, 0.1)"}`,
                 borderRadius: 999,
                 boxShadow: "0 1px 0 rgba(232,220,196,0.06) inset, 0 14px 40px rgba(0,0,0,0.45)",
-                transition: "top 0.45s cubic-bezier(0.16,1,0.3,1), background 0.45s, border-color 0.45s",
+                transition: "top 0.45s cubic-bezier(0.16,1,0.3,1), background 0.45s, border-color 0.45s, padding 0.4s, width 0.4s",
               }
         }
       >
@@ -157,7 +157,7 @@ export default function Navbar() {
                 onClick={handleAnchorClick(link.href)}
                 style={{
                   position: "relative",
-                  color: isHome ? (isHomeActive ? "#18221c" : "#323c34") : (isActive ? "var(--gold)" : "var(--ink-soft)"),
+                  color: isHomeActive ? "#c59b27" : "#1A3F2C",
                   borderBottom: isHomeActive ? "2px solid #c59b27" : "2px solid transparent",
                   padding: isHome ? "6px 4px 4px 4px" : "9px 16px",
                   borderRadius: isHome ? 0 : 999,
@@ -202,7 +202,7 @@ export default function Navbar() {
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 5,
-                color: isHome ? "#323c34" : (location.startsWith("/collections") ? "var(--gold)" : "var(--ink-soft)"),
+                color: location.startsWith("/collections") ? "#c59b27" : "#1A3F2C",
                 padding: isHome ? "6px 4px 4px 4px" : "9px 16px",
                 borderRadius: isHome ? 0 : 999,
                 background: (!isHome && collectionsOpen) ? "rgba(232, 220, 196, 0.07)" : "transparent",
@@ -293,8 +293,8 @@ export default function Navbar() {
                 onClick={handleAnchorClick(link.href)}
                 style={{
                   position: "relative",
-                  color: isHome ? "#323c34" : (isActive ? "var(--gold)" : "var(--ink-soft)"),
-                  borderBottom: isHome && isActive ? "2px solid #c59b27" : "2px solid transparent",
+                  color: isActive ? "#c59b27" : "#1A3F2C",
+                  borderBottom: isActive ? "2px solid #c59b27" : "2px solid transparent",
                   padding: isHome ? "6px 4px 4px 4px" : "9px 16px",
                   borderRadius: isHome ? 0 : 999,
                   background: "transparent",

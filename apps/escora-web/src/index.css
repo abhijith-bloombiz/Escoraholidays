@@ -192,6 +192,23 @@
   }
 }
 
+/* ─── Globally Hide Scrollbar Across Website ─── */
+html,
+body,
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
 /* Ensure all headings and display classes use Playfair Display */
 h1, h2, h3, h4, h5, h6,
 .display-xl, .display-lg, .display-md, .display-sm {

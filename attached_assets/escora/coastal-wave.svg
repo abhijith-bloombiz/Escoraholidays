@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 48" fill="none" width="100%" height="48">
+  <defs>
+    <linearGradient id="coastalGold" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#c29d59" stop-opacity="0.1" />
+      <stop offset="25%" stop-color="#b8934f" stop-opacity="0.7" />
+      <stop offset="50%" stop-color="#d4af37" stop-opacity="0.9" />
+      <stop offset="75%" stop-color="#b8934f" stop-opacity="0.7" />
+      <stop offset="100%" stop-color="#c29d59" stop-opacity="0.1" />
+    </linearGradient>
+    <linearGradient id="coastalGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#1b4332" stop-opacity="0" />
+      <stop offset="20%" stop-color="#2d5a40" stop-opacity="0.35" />
+      <stop offset="50%" stop-color="#143423" stop-opacity="0.5" />
+      <stop offset="80%" stop-color="#2d5a40" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#1b4332" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <!-- Primary elegant fluid swell -->
+  <path d="M 0 24 C 100 12, 160 36, 260 24 C 360 12, 440 36, 540 24 C 640 12, 720 36, 800 24" 
+        stroke="url(#coastalGold)" stroke-width="1.5" stroke-linecap="round" fill="none" />
+  <!-- Secondary deeper backwaters under-wave -->
+  <path d="M 40 28 C 140 16, 200 40, 300 28 C 400 16, 480 40, 580 28 C 680 16, 740 38, 760 28" 
+        stroke="url(#coastalGreen)" stroke-width="1.2" stroke-linecap="round" fill="none" />
+  <!-- Tertiary delicate water crest ripple -->
+  <path d="M 120 20 C 200 10, 240 26, 320 20 C 400 14, 460 26, 540 20 C 620 14, 680 24, 720 20" 
+        stroke="url(#coastalGold)" stroke-width="0.75" stroke-dasharray="2 4" stroke-linecap="round" fill="none" opacity="0.7" />
+</svg>

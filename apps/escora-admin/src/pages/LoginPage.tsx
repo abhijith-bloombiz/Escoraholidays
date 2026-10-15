@@ -37,7 +37,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <div style={{
-            fontFamily: "'Cormorant Garamond', Georgia, serif",
+            fontFamily: "'Playfair Display', Georgia, serif",
             fontSize: "32px",
             fontWeight: 300,
             color: "#f0ebe0",

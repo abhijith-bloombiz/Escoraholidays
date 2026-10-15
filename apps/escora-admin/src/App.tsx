@@ -8,12 +8,15 @@ import DestinationsPage from "@/pages/DestinationsPage";
 import PackagesPage from "@/pages/PackagesPage";
 import ItinerariesPage from "@/pages/ItinerariesPage";
 import ItineraryBuilderPage from "@/pages/ItineraryBuilderPage";
+import InvoicesPage from "@/pages/InvoicesPage";
+import InvoiceBuilderPage from "@/pages/InvoiceBuilderPage";
 import OrdersPage from "@/pages/OrdersPage";
 import JournalPage from "@/pages/JournalPage";
 import MediaPage from "@/pages/MediaPage";
 import EnquiriesPage from "@/pages/EnquiriesPage";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/LoginPage";
+import ItineraryPdfPreviewPage from "@/pages/ItineraryPdfPreviewPage";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 const queryClient = new QueryClient({
@@ -35,7 +38,7 @@ function ProtectedRouter() {
         background: "#0f1a12",
       }}>
         <div style={{
-          fontFamily: "'Cormorant Garamond', Georgia, serif",
+          fontFamily: "'Playfair Display', Georgia, serif",
           fontSize: "24px",
           fontWeight: 300,
           color: "#cbab6e",
@@ -60,6 +63,9 @@ function ProtectedRouter() {
         <Route path="/itineraries/new" component={ItineraryBuilderPage} />
         <Route path="/itineraries/:id/edit" component={ItineraryBuilderPage} />
         <Route path="/itineraries" component={ItinerariesPage} />
+        <Route path="/invoices/new" component={InvoiceBuilderPage} />
+        <Route path="/invoices/:id/edit" component={InvoiceBuilderPage} />
+        <Route path="/invoices" component={InvoicesPage} />
         <Route path="/orders" component={OrdersPage} />
         <Route path="/journal" component={JournalPage} />
         <Route path="/media" component={MediaPage} />
@@ -70,14 +76,25 @@ function ProtectedRouter() {
   );
 }
 
+function AppRoutes() {
+  return (
+    <Switch>
+      <Route path="/preview-itinerary" component={ItineraryPdfPreviewPage} />
+      <Route>
+        <AuthProvider>
+          <ProtectedRouter />
+        </AuthProvider>
+      </Route>
+    </Switch>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <AuthProvider>
-            <ProtectedRouter />
-          </AuthProvider>
+          <AppRoutes />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

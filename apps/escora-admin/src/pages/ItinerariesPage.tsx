@@ -21,7 +21,14 @@ import { Plus, Pencil, Trash2, Eye, Link as LinkIcon, Download, Copy } from "luc
 import ItineraryDocument from "@/components/itinerary/ItineraryDocument";
 import ItineraryPrintDocument from "@/components/itinerary/ItineraryPrintDocument";
 import { printElementById } from "@/lib/printElement";
-import { parsePricing, parseDays, parseStays, parseStringList } from "@/lib/itinerary";
+import {
+  parsePricing,
+  parseDays,
+  parseStays,
+  parseStringList,
+  parseTripIncludes,
+  parseTransportation,
+} from "@/lib/itinerary";
 
 const SHARE_BASE_URL = "https://www.escoraholidays.com";
 const PRINT_TARGET_ID = "itinerary-print-target";
@@ -47,6 +54,19 @@ function toDocumentData(itinerary: Itinerary) {
     exclusions: itinerary.exclusions,
     pricing: itinerary.pricing,
     currency: itinerary.currency,
+    shareToken: itinerary.shareToken,
+    referenceNumber: itinerary.referenceNumber,
+    curatorName: itinerary.curatorName,
+    curatorPhone: itinerary.curatorPhone,
+    emergencyContacts: itinerary.emergencyContacts,
+    adults: itinerary.adults,
+    children: itinerary.children,
+    infants: itinerary.infants,
+    tripIncludes: itinerary.tripIncludes,
+    transportation: itinerary.transportation,
+    hotelTerms: itinerary.hotelTerms,
+    paymentTerms: itinerary.paymentTerms,
+    importantInfo: itinerary.importantInfo,
   };
 }
 
@@ -66,6 +86,18 @@ function toPrintData(itinerary: Itinerary) {
     pricing: parsePricing(itinerary.pricing),
     currency: itinerary.currency,
     shareToken: itinerary.shareToken,
+    referenceNumber: itinerary.referenceNumber,
+    curatorName: itinerary.curatorName,
+    curatorPhone: itinerary.curatorPhone,
+    emergencyContacts: itinerary.emergencyContacts,
+    adults: itinerary.adults,
+    children: itinerary.children,
+    infants: itinerary.infants,
+    tripIncludes: parseTripIncludes(itinerary.tripIncludes),
+    transportation: parseTransportation(itinerary.transportation),
+    hotelTerms: parseStringList(itinerary.hotelTerms),
+    paymentTerms: parseStringList(itinerary.paymentTerms),
+    importantInfo: parseStringList(itinerary.importantInfo),
   };
 }
 

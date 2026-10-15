@@ -6,44 +6,32 @@ const template = itineraryTemplates[0];
 
 const sampleItineraryData: ItineraryPrintData = {
   title: template.title,
-  customerName: "Lord & Lady Harrington",
+  customerName: template.customerName || "MARIA ROY",
   destination: template.destination,
-  startDate: "2026-11-10",
-  endDate: "2026-11-15",
-  coverImageUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=2000&q=80",
-  summary: "A private, bespoke journey through the royal heritage of Fort Kochi, misty tea terraces of the Western Ghats, and the tranquil labyrinth of the Alleppey backwaters.",
+  startDate: template.startDate || "2026-10-29",
+  endDate: template.endDate || "2026-10-31",
+  coverImageUrl: template.coverImageUrl,
+  summary: template.summary,
   days: template.days,
   stays: template.stays,
-  inclusions: [
-    "5 Nights in luxury heritage hotel, mountain resort & private kettuvallam houseboat",
-    "Daily artisan breakfast & all gourmet meals aboard the private houseboat",
-    "Private air-conditioned chauffeur-driven luxury SUV throughout all transfers",
-    "All toll fees, fuel, parking charges, interstate permits & driver allowances",
-    "Dedicated Escora Concierge & 24/7 personal travel specialist support",
-    "Exclusive private backwater cruise through Vembanad Lake & Alleppey canals",
-    "Guided spice plantation walk in Thekkady with master naturalist",
-    "Kathakali cultural dance performance reserved VIP seating in Fort Kochi",
-  ],
-  exclusions: [
-    "International and domestic flight airfares",
-    "Personal expenses, telephone, laundry, and alcoholic beverages",
-    "Optional adventure sports (Jeep safari, zipline, kayaking)",
-    "Gratuities and tips for guides and drivers",
-    "Comprehensive travel and medical insurance",
-  ],
-  pricing: {
-    items: [
-      { label: "Luxury Heritage & Resort Accommodations (5 Nights)", amount: 165000 },
-      { label: "Private Luxury Transport & Chauffeur Services", amount: 48000 },
-      { label: "Curated Guided Experiences, Forest Permits & Private Boat Cruises", amount: 32000 },
-    ],
-    discount: 15000,
-    taxes: 12250,
-    total: 242250,
-    notes: "Pricing valid for travel dates specified. Includes all statutory Goods & Services Tax (GST).",
-  },
+  inclusions: template.inclusions,
+  exclusions: template.exclusions,
+  pricing: template.pricing,
   currency: "INR",
-  shareToken: "kerala-luxury-preview-2026",
+  shareToken: "Q1020",
+  referenceNumber: template.referenceNumber || "L100021/Q1020",
+  curatorName: template.curatorName || "Midhilaj Chelakkal",
+  curatorPhone: template.curatorPhone || "+91 9745585813",
+  emergencyContacts: template.emergencyContacts || "+91 9400280420 | +91 8157003344",
+  createdDate: template.createdDate || "01-10-2026",
+  adults: template.adults ?? 1,
+  children: template.children ?? 0,
+  infants: template.infants ?? 0,
+  tripIncludes: template.tripIncludes,
+  transportation: template.transportation,
+  hotelTerms: template.hotelTerms,
+  paymentTerms: template.paymentTerms,
+  importantInfo: template.importantInfo,
 };
 
 export default function ItineraryPdfPreviewPage() {
@@ -53,34 +41,30 @@ export default function ItineraryPdfPreviewPage() {
     const timer = setTimeout(() => {
       setReady(true);
       (window as unknown as { __ITINERARY_READY?: boolean }).__ITINERARY_READY = true;
-    }, 1500);
+    }, 1000);
     return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="pdf-preview-root">
+    <div className="pdf-preview-root min-h-screen bg-[#ececec]">
       <style>{`
         @page {
           size: A4;
-          margin: 0;
+          margin: 10mm;
         }
         @media screen {
-          body {
-            margin: 0;
-            padding: 0;
-            background: #d8d0c2;
-            font-family: 'Playfair Display', Georgia, serif;
-          }
-          .a4-page {
-            margin: 20px auto !important;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+          .pdf-preview-canvas {
+            margin: 24px auto !important;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+            border-radius: 8px;
+            overflow: hidden;
           }
         }
         @media print {
           html, body, .pdf-preview-root, #sample-itinerary-print-wrapper {
             margin: 0 !important;
             padding: 0 !important;
-            background: #fff3d9 !important;
+            background: #ffffff !important;
             print-color-adjust: exact !important;
             -webkit-print-color-adjust: exact !important;
             height: auto !important;
@@ -89,31 +73,28 @@ export default function ItineraryPdfPreviewPage() {
           .no-print {
             display: none !important;
           }
-          .a4-page {
-            margin: 0 !important;
+          .pdf-preview-canvas {
             box-shadow: none !important;
-            page-break-after: always !important;
-            break-after: page !important;
-            break-inside: avoid !important;
-          }
-          .a4-page:last-child {
-            page-break-after: auto !important;
-            break-after: auto !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            max-width: 100% !important;
           }
         }
       `}</style>
 
-      <div className="no-print p-4 bg-[#143423] text-[#fff3d9] flex justify-between items-center text-xs font-mono">
-        <span>Escora Holidays · Luxury PDF Dossier Preview</span>
+      <div className="no-print p-4 bg-[#2b3b31] text-white flex justify-between items-center text-xs font-mono shadow-md">
+        <span className="font-semibold tracking-wider uppercase">
+          Escora Holidays · Master Itinerary Reference PDF Preview
+        </span>
         <button
           onClick={() => window.print()}
-          className="px-3 py-1 bg-[#b8934f] text-[#143423] font-bold rounded hover:bg-[#c29d59]"
+          className="px-4 py-1.5 bg-[#caa052] text-[#14261b] font-bold rounded hover:bg-[#d8b062] transition-colors shadow-sm"
         >
           Print / Save as PDF
         </button>
       </div>
 
-      <div id="sample-itinerary-print-wrapper">
+      <div id="sample-itinerary-print-wrapper" className="pdf-preview-canvas py-6 px-4 md:px-0 flex justify-center">
         <ItineraryPrintDocument data={sampleItineraryData} id="itinerary-print-target" />
       </div>
     </div>

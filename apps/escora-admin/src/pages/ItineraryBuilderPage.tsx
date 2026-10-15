@@ -17,13 +17,21 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Plus, Trash2, ChevronLeft, FileText } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ChevronLeft, FileText, CheckSquare } from "lucide-react";
 import {
   parseDays,
   parseStays,
   parsePricing,
   parseStringList,
+  parseTripIncludes,
+  parseTransportation,
   computePricingTotal,
+  DEFAULT_HOTEL_TERMS,
+  DEFAULT_PAYMENT_TERMS,
+  DEFAULT_IMPORTANT_INFO,
+  DEFAULT_EXCLUSIONS,
+  DEFAULT_TRIP_INCLUDES,
+  DEFAULT_AGENCY_CONTACT,
   type ItineraryDay,
   type ItineraryStay,
   type ItineraryPricing,
@@ -43,11 +51,28 @@ interface BuilderForm {
   summary: string;
   currency: string;
   status: string;
+  referenceNumber: string;
+  curatorName: string;
+  curatorPhone: string;
+  emergencyContacts: string;
+  adults: number;
+  children: number;
+  infants: number;
+  hotelIncluded: boolean;
+  transportIncluded: boolean;
+  sightseeingIncluded: boolean;
+  transferIncluded: boolean;
+  transportOrigin: string;
+  transportDestination: string;
+  transportVehicle: string;
   days: ItineraryDay[];
   stays: ItineraryStay[];
   pricing: ItineraryPricing;
   inclusionsText: string;
   exclusionsText: string;
+  hotelTermsText: string;
+  paymentTermsText: string;
+  importantInfoText: string;
 }
 
 const emptyForm: BuilderForm = {
@@ -62,23 +87,62 @@ const emptyForm: BuilderForm = {
   summary: "",
   currency: "INR",
   status: "draft",
+  referenceNumber: "",
+  curatorName: DEFAULT_AGENCY_CONTACT.curatorName,
+  curatorPhone: DEFAULT_AGENCY_CONTACT.curatorPhone,
+  emergencyContacts: DEFAULT_AGENCY_CONTACT.emergencyContacts,
+  adults: 1,
+  children: 0,
+  infants: 0,
+  hotelIncluded: true,
+  transportIncluded: true,
+  sightseeingIncluded: true,
+  transferIncluded: true,
+  transportOrigin: "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
+  transportDestination: "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
+  transportVehicle: "Private Dedicated Chauffeur Driven AC Sedan / SUV",
   days: [],
   stays: [],
   pricing: { items: [], total: 0 },
   inclusionsText: "",
-  exclusionsText: "",
+  exclusionsText: DEFAULT_EXCLUSIONS.join("\n"),
+  hotelTermsText: DEFAULT_HOTEL_TERMS.join("\n"),
+  paymentTermsText: DEFAULT_PAYMENT_TERMS.join("\n"),
+  importantInfoText: DEFAULT_IMPORTANT_INFO.join("\n"),
 };
 
 function templateToFormValues(template: ItineraryTemplate): BuilderForm {
   return {
     ...emptyForm,
     title: template.title,
+    customerName: template.customerName || "",
     destination: template.destination,
+    startDate: template.startDate || "",
+    endDate: template.endDate || "",
+    coverImageUrl: template.coverImageUrl || "",
+    summary: template.summary || "",
+    referenceNumber: template.referenceNumber || "",
+    curatorName: template.curatorName || DEFAULT_AGENCY_CONTACT.curatorName,
+    curatorPhone: template.curatorPhone || DEFAULT_AGENCY_CONTACT.curatorPhone,
+    emergencyContacts: template.emergencyContacts || DEFAULT_AGENCY_CONTACT.emergencyContacts,
+    adults: template.adults ?? 1,
+    children: template.children ?? 0,
+    infants: template.infants ?? 0,
+    hotelIncluded: template.tripIncludes?.hotel ?? true,
+    transportIncluded: template.tripIncludes?.transport ?? true,
+    sightseeingIncluded: template.tripIncludes?.sightseeing ?? true,
+    transferIncluded: template.tripIncludes?.transfer ?? true,
+    transportOrigin: template.transportation?.origin || "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
+    transportDestination: template.transportation?.destination || "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
+    transportVehicle: template.transportation?.vehicleType || "Private AC Vehicle",
     days: template.days,
     stays: template.stays,
     pricing: template.pricing,
     inclusionsText: template.inclusions.join("\n"),
-    exclusionsText: template.exclusions.join("\n"),
+    exclusionsText: (template.exclusions.length > 0 ? template.exclusions : DEFAULT_EXCLUSIONS).join("\n"),
+    hotelTermsText: (template.hotelTerms || DEFAULT_HOTEL_TERMS).join("\n"),
+    paymentTermsText: (template.paymentTerms || DEFAULT_PAYMENT_TERMS).join("\n"),
+    importantInfoText: (template.importantInfo || DEFAULT_IMPORTANT_INFO).join("\n"),
   };
 }
 
@@ -110,6 +174,12 @@ export default function ItineraryBuilderPage() {
 
   useEffect(() => {
     if (existing) {
+      const tripInc = parseTripIncludes(existing.tripIncludes);
+      const transport = parseTransportation(existing.transportation);
+      const hTerms = parseStringList(existing.hotelTerms);
+      const pTerms = parseStringList(existing.paymentTerms);
+      const iInfo = parseStringList(existing.importantInfo);
+
       reset({
         customerName: existing.customerName,
         customerEmail: existing.customerEmail ?? "",
@@ -122,11 +192,28 @@ export default function ItineraryBuilderPage() {
         summary: existing.summary ?? "",
         currency: existing.currency,
         status: existing.status,
+        referenceNumber: existing.referenceNumber ?? "",
+        curatorName: existing.curatorName ?? DEFAULT_AGENCY_CONTACT.curatorName,
+        curatorPhone: existing.curatorPhone ?? DEFAULT_AGENCY_CONTACT.curatorPhone,
+        emergencyContacts: existing.emergencyContacts ?? DEFAULT_AGENCY_CONTACT.emergencyContacts,
+        adults: existing.adults ?? 1,
+        children: existing.children ?? 0,
+        infants: existing.infants ?? 0,
+        hotelIncluded: tripInc.hotel,
+        transportIncluded: tripInc.transport,
+        sightseeingIncluded: tripInc.sightseeing,
+        transferIncluded: tripInc.transfer,
+        transportOrigin: transport?.origin ?? "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
+        transportDestination: transport?.destination ?? "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
+        transportVehicle: transport?.vehicleType ?? "Private AC Vehicle",
         days: parseDays(existing.days),
         stays: parseStays(existing.stays),
         pricing: parsePricing(existing.pricing),
         inclusionsText: parseStringList(existing.inclusions).join("\n"),
         exclusionsText: parseStringList(existing.exclusions).join("\n"),
+        hotelTermsText: (hTerms.length > 0 ? hTerms : DEFAULT_HOTEL_TERMS).join("\n"),
+        paymentTermsText: (pTerms.length > 0 ? pTerms : DEFAULT_PAYMENT_TERMS).join("\n"),
+        importantInfoText: (iInfo.length > 0 ? iInfo : DEFAULT_IMPORTANT_INFO).join("\n"),
       });
     }
   }, [existing, reset]);
@@ -149,11 +236,32 @@ export default function ItineraryBuilderPage() {
       summary: form.summary || undefined,
       currency: form.currency,
       status: form.status,
+      referenceNumber: form.referenceNumber || undefined,
+      curatorName: form.curatorName || undefined,
+      curatorPhone: form.curatorPhone || undefined,
+      emergencyContacts: form.emergencyContacts || undefined,
+      adults: Number(form.adults) || 1,
+      children: Number(form.children) || 0,
+      infants: Number(form.infants) || 0,
+      tripIncludes: JSON.stringify({
+        hotel: form.hotelIncluded,
+        transport: form.transportIncluded,
+        sightseeing: form.sightseeingIncluded,
+        transfer: form.transferIncluded,
+      }),
+      transportation: JSON.stringify({
+        origin: form.transportOrigin,
+        destination: form.transportDestination,
+        vehicleType: form.transportVehicle,
+      }),
       days: JSON.stringify(form.days.map((d, i) => ({ ...d, day: d.day || i + 1 }))),
       stays: JSON.stringify(form.stays),
       pricing: JSON.stringify({ ...form.pricing, total }),
       inclusions: JSON.stringify(form.inclusionsText.split("\n").map(s => s.trim()).filter(Boolean)),
       exclusions: JSON.stringify(form.exclusionsText.split("\n").map(s => s.trim()).filter(Boolean)),
+      hotelTerms: JSON.stringify(form.hotelTermsText.split("\n").map(s => s.trim()).filter(Boolean)),
+      paymentTerms: JSON.stringify(form.paymentTermsText.split("\n").map(s => s.trim()).filter(Boolean)),
+      importantInfo: JSON.stringify(form.importantInfoText.split("\n").map(s => s.trim()).filter(Boolean)),
     };
 
     if (isEdit && itineraryId) {
@@ -190,46 +298,53 @@ export default function ItineraryBuilderPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-serif">New Itinerary</h1>
-            <p className="text-muted-foreground mt-1">Start from a template, or build one from scratch.</p>
+            <p className="text-muted-foreground mt-1">Start from the master reference template, or build one from scratch.</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card
-            className="cursor-pointer hover:border-primary transition-colors"
+            className="cursor-pointer hover:border-primary transition-colors border-dashed"
             onClick={() => setTemplateChoice("blank")}
-            data-testid="template-card-blank"
           >
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <FileText className="h-4 w-4" /> Start Blank
+                <Plus className="h-4 w-4" /> Blank Itinerary
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">Build a new itinerary from an empty form.</p>
-              <Button type="button" size="sm" variant="outline" className="w-full">
-                Use this
-              </Button>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Start with an empty day-by-day plan.</p>
             </CardContent>
           </Card>
-          {itineraryTemplates.map((template) => (
+
+          {itineraryTemplates.map(t => (
             <Card
-              key={template.id}
-              className="cursor-pointer hover:border-primary transition-colors"
+              key={t.id}
+              className={`cursor-pointer hover:border-primary transition-colors ${
+                t.id === "explora-trivandrum" ? "border-amber-500/80 bg-amber-50/20" : ""
+              }`}
               onClick={() => {
-                reset(templateToFormValues(template));
-                setTemplateChoice(template.id);
+                setTemplateChoice(t.id);
+                reset(templateToFormValues(t));
               }}
-              data-testid={`template-card-${template.id}`}
             >
               <CardHeader>
-                <CardTitle className="text-base">{template.label}</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="h-4 w-4 text-primary" /> {t.label}
+                  </CardTitle>
+                  {t.id === "explora-trivandrum" && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-600 text-white px-2 py-0.5 rounded">
+                      Reference PDF
+                    </span>
+                  )}
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">{template.description}</p>
-                <Button type="button" size="sm" variant="outline" className="w-full">
-                  Use this template
-                </Button>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">{t.description}</p>
+                <p className="text-xs text-muted-foreground mt-2 font-mono">
+                  {t.days.length} days · {t.stays.length} stays
+                </p>
               </CardContent>
             </Card>
           ))}
@@ -246,7 +361,7 @@ export default function ItineraryBuilderPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-serif">{isEdit ? "Edit Itinerary" : "New Itinerary"}</h1>
-          <p className="text-muted-foreground mt-1">Build a day-by-day travel plan with pricing.</p>
+          <p className="text-muted-foreground mt-1">Build a day-by-day travel plan matching the master reference dossier.</p>
         </div>
       </div>
 
@@ -271,31 +386,33 @@ export default function ItineraryBuilderPage() {
             <CardTitle className="text-lg">Trip Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <Label>Customer Name *</Label>
-                <Input {...register("customerName", { required: true })} data-testid="input-customer-name" />
+                <Input {...register("customerName", { required: true })} placeholder="MARIA ROY" data-testid="input-customer-name" />
               </div>
               <div className="space-y-1.5">
                 <Label>Customer Email</Label>
-                <Input type="email" {...register("customerEmail")} />
+                <Input type="email" {...register("customerEmail")} placeholder="customer@example.com" />
               </div>
               <div className="space-y-1.5">
                 <Label>Customer Phone</Label>
-                <Input {...register("customerPhone")} />
+                <Input {...register("customerPhone")} placeholder="+91 9999999999" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Itinerary Title *</Label>
-                <Input {...register("title", { required: true })} placeholder="7 Nights Kerala — The Iyer Family" data-testid="input-title" />
+                <Input {...register("title", { required: true })} placeholder="Explora Trivandrum" data-testid="input-title" />
               </div>
               <div className="space-y-1.5">
                 <Label>Destination</Label>
-                <Input {...register("destination")} placeholder="Kerala, India" />
+                <Input {...register("destination")} placeholder="Trivandrum, Keralam, India | Kovalam, Keralam, India" />
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="space-y-1.5">
                 <Label>Start Date</Label>
                 <Input type="date" {...register("startDate")} />
@@ -339,6 +456,43 @@ export default function ItineraryBuilderPage() {
                 />
               </div>
             </div>
+
+            {/* Reference Number & Passengers */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2 border-t">
+              <div className="space-y-1.5">
+                <Label>Reference Number</Label>
+                <Input {...register("referenceNumber")} placeholder="L100021/Q1020" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Adults</Label>
+                <Input type="number" min={1} {...register("adults", { valueAsNumber: true })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Children</Label>
+                <Input type="number" min={0} {...register("children", { valueAsNumber: true })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Infants</Label>
+                <Input type="number" min={0} {...register("infants", { valueAsNumber: true })} />
+              </div>
+            </div>
+
+            {/* Curator & Emergency Contacts */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t">
+              <div className="space-y-1.5">
+                <Label>Itinerary Curator</Label>
+                <Input {...register("curatorName")} placeholder="Midhilaj Chelakkal" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Curator Phone</Label>
+                <Input {...register("curatorPhone")} placeholder="+91 9745585813" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Emergency Contacts</Label>
+                <Input {...register("emergencyContacts")} placeholder="+91 9400280420 | +91 8157003344" />
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <Label>Cover Photo</Label>
               <Controller
@@ -351,7 +505,57 @@ export default function ItineraryBuilderPage() {
             </div>
             <div className="space-y-1.5">
               <Label>Summary</Label>
-              <Textarea {...register("summary")} rows={3} placeholder="A short intro to the journey shown at the top of the itinerary." />
+              <Textarea {...register("summary")} rows={2} placeholder="A short intro to the journey." />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Your Trip Includes Toggles */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Your Trip Includes (Feature Toggles)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <label className="flex items-center gap-2 cursor-pointer border p-3 rounded-lg hover:bg-neutral-50">
+                <input type="checkbox" {...register("hotelIncluded")} className="w-4 h-4 rounded text-primary" />
+                <span className="text-sm font-medium">Hotel</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer border p-3 rounded-lg hover:bg-neutral-50">
+                <input type="checkbox" {...register("transportIncluded")} className="w-4 h-4 rounded text-primary" />
+                <span className="text-sm font-medium">Transport</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer border p-3 rounded-lg hover:bg-neutral-50">
+                <input type="checkbox" {...register("sightseeingIncluded")} className="w-4 h-4 rounded text-primary" />
+                <span className="text-sm font-medium">Sight-Seeing</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer border p-3 rounded-lg hover:bg-neutral-50">
+                <input type="checkbox" {...register("transferIncluded")} className="w-4 h-4 rounded text-primary" />
+                <span className="text-sm font-medium">Transfer</span>
+              </label>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Transportation Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Transportation</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <Label>Origin / Pickup</Label>
+                <Input {...register("transportOrigin")} placeholder="ESCORA HOLIDAYS | Trivandrum, Keralam, India" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Destination / Drop-off</Label>
+                <Input {...register("transportDestination")} placeholder="Trivandrum International Airport (TRV), Chacka..." />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Vehicle Type &amp; Services</Label>
+              <Input {...register("transportVehicle")} placeholder="Private Dedicated Chauffeur Driven AC Sedan / SUV" />
             </div>
           </CardContent>
         </Card>
@@ -386,18 +590,18 @@ export default function ItineraryBuilderPage() {
           </CardContent>
         </Card>
 
-        {/* Stays */}
+        {/* Stays / Budget & Pricing */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Stays</CardTitle>
+            <CardTitle className="text-lg">Budget &amp; Pricing (Accommodations)</CardTitle>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => staysArray.append({ name: "" })}
+              onClick={() => staysArray.append({ name: "", mealPlan: "BreakFast", starRating: "5 Star", rooms: 1, nights: 1 })}
               data-testid="button-add-stay"
             >
-              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Stay
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Hotel / Stay
             </Button>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -405,24 +609,41 @@ export default function ItineraryBuilderPage() {
               <p className="text-sm text-muted-foreground">No stays added yet.</p>
             )}
             {staysArray.fields.map((field, i) => (
-              <div key={field.id} className="border rounded-md p-4 space-y-3">
+              <div key={field.id} className="border rounded-md p-4 space-y-3 bg-neutral-50/50">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-muted-foreground">Stay {i + 1}</p>
+                  <p className="text-sm font-semibold text-neutral-800">Hotel Entry {i + 1}</p>
                   <Button type="button" variant="ghost" size="icon" onClick={() => staysArray.remove(i)}>
                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
                   </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <Input {...register(`stays.${i}.name` as const)} placeholder="Hotel / Resort Name" />
-                  <Input {...register(`stays.${i}.location` as const)} placeholder="Location" />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Hotel Name</Label>
+                    <Input {...register(`stays.${i}.name` as const)} placeholder="Uday Samudra Leisure Beach Hotel" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Location</Label>
+                    <Input {...register(`stays.${i}.location` as const)} placeholder="Trivandrum, Keralam, India" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Star Rating</Label>
+                    <Input {...register(`stays.${i}.starRating` as const)} placeholder="5 Star" />
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 gap-3">
-                  <Input type="date" {...register(`stays.${i}.checkIn` as const)} />
-                  <Input type="date" {...register(`stays.${i}.checkOut` as const)} />
-                  <Input type="number" {...register(`stays.${i}.nights` as const, { valueAsNumber: true })} placeholder="Nights" />
-                  <Input {...register(`stays.${i}.roomType` as const)} placeholder="Room Type" />
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label className="text-xs">Nights</Label>
+                    <Input type="number" min={1} {...register(`stays.${i}.nights` as const, { valueAsNumber: true })} placeholder="1" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Rooms</Label>
+                    <Input type="number" min={1} {...register(`stays.${i}.rooms` as const, { valueAsNumber: true })} placeholder="1" />
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-xs">Meal Plan</Label>
+                    <Input {...register(`stays.${i}.mealPlan` as const)} placeholder="BreakFast" />
+                  </div>
                 </div>
-                <Input {...register(`stays.${i}.notes` as const)} placeholder="Notes" />
               </div>
             ))}
           </CardContent>
@@ -433,39 +654,60 @@ export default function ItineraryBuilderPage() {
           <CardHeader>
             <CardTitle className="text-lg">Inclusions &amp; Exclusions</CardTitle>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>Inclusions (one per line)</Label>
-              <Textarea {...register("inclusionsText")} rows={5} placeholder={"Airport transfers\nDaily breakfast\n..."} />
+              <Textarea {...register("inclusionsText")} rows={4} placeholder={"Airport transfers\nDaily breakfast\n..."} />
             </div>
             <div className="space-y-1.5">
               <Label>Exclusions (one per line)</Label>
-              <Textarea {...register("exclusionsText")} rows={5} placeholder={"Flights\nPersonal expenses\n..."} />
+              <Textarea {...register("exclusionsText")} rows={4} placeholder={"Any item of personal nature like tips...\n..."} />
             </div>
           </CardContent>
         </Card>
 
-        {/* Pricing */}
+        {/* Terms & Conditions */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Terms &amp; Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>Hotel Terms &amp; Conditions (one per line)</Label>
+              <Textarea {...register("hotelTermsText")} rows={4} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Payment Terms &amp; Conditions (one per line)</Label>
+              <Textarea {...register("paymentTermsText")} rows={3} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Important Information (one per line)</Label>
+              <Textarea {...register("importantInfoText")} rows={4} />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pricing Items */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Pricing</CardTitle>
+            <CardTitle className="text-lg">Package Pricing Breakdown</CardTitle>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => priceItemsArray.append({ label: "", amount: 0 })}
-              data-testid="button-add-price-item"
             >
-              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Line Item
+              <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Price Component
             </Button>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {priceItemsArray.fields.length === 0 && (
-              <p className="text-sm text-muted-foreground">No pricing line items yet.</p>
-            )}
+          <CardContent className="space-y-3">
             {priceItemsArray.fields.map((field, i) => (
-              <div key={field.id} className="flex items-center gap-3">
-                <Input {...register(`pricing.items.${i}.label` as const)} placeholder="e.g. Accommodation (5N)" className="flex-1" />
+              <div key={field.id} className="flex gap-3 items-center">
+                <Input
+                  {...register(`pricing.items.${i}.label` as const)}
+                  placeholder="Component description"
+                  className="flex-1"
+                />
                 <Input
                   type="number"
                   {...register(`pricing.items.${i}.amount` as const, { valueAsNumber: true })}
@@ -477,22 +719,8 @@ export default function ItineraryBuilderPage() {
                 </Button>
               </div>
             ))}
-            <div className="grid grid-cols-2 gap-4 pt-2">
-              <div className="space-y-1.5">
-                <Label>Discount</Label>
-                <Input type="number" {...register("pricing.discount", { valueAsNumber: true })} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Taxes &amp; Fees</Label>
-                <Input type="number" {...register("pricing.taxes", { valueAsNumber: true })} />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Pricing Notes</Label>
-              <Input {...register("pricing.notes")} placeholder="e.g. Price valid for travel before March 2027" />
-            </div>
             <div className="flex justify-end pt-2 border-t">
-              <p className="text-lg font-semibold">Total: {watch("currency") === "INR" ? "₹" : watch("currency") + " "}{total.toLocaleString("en-IN")}</p>
+              <p className="text-lg font-semibold">Total Package Price: {watch("currency") === "INR" ? "₹" : watch("currency") + " "}{total.toLocaleString("en-IN")}</p>
             </div>
           </CardContent>
         </Card>
@@ -524,14 +752,14 @@ function DayCard({
   const activitiesArray = useFieldArray({ control, name: `days.${dayIndex}.activities` });
 
   return (
-    <div className="border rounded-md p-4 space-y-3">
+    <div className="border rounded-md p-4 space-y-3 bg-neutral-50/40">
       <div className="flex items-center justify-between">
-        <p className="text-sm font-medium text-muted-foreground">Day {dayIndex + 1}</p>
+        <p className="text-sm font-semibold text-neutral-800">Day {dayIndex + 1}</p>
         <Button type="button" variant="ghost" size="icon" onClick={onRemove}>
           <Trash2 className="h-3.5 w-3.5 text-destructive" />
         </Button>
       </div>
-      <div className="flex gap-3">
+      <div className="flex flex-col md:flex-row gap-3">
         <Controller
           control={control}
           name={`days.${dayIndex}.imageUrl` as const}
@@ -539,16 +767,22 @@ function DayCard({
             <ImageUploadField value={field.value} onChange={field.onChange} label="Day photo" />
           )}
         />
-        <div className="flex-1 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <Input {...register(`days.${dayIndex}.title` as const)} placeholder="Day title, e.g. Arrival in Kochi" />
+        <div className="flex-1 space-y-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+            <Input {...register(`days.${dayIndex}.title` as const)} placeholder="Header e.g. Day 1 | Thursday | 29 Oct 2026" />
+            <Input {...register(`days.${dayIndex}.subtitle` as const)} placeholder="Subtitle e.g. Arrival in Trivandrum" />
             <Input type="date" {...register(`days.${dayIndex}.date` as const)} />
           </div>
-          <Textarea {...register(`days.${dayIndex}.description` as const)} rows={2} placeholder="Day summary" />
+          <Textarea {...register(`days.${dayIndex}.description` as const)} rows={3} placeholder="Day detailed sightseeing description paragraphs" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+            <Input {...register(`days.${dayIndex}.stay` as const)} placeholder="Stay e.g. Uday Samudra Leisure Beach Hotel" />
+            <Input {...register(`days.${dayIndex}.meals` as const)} placeholder="Meals note e.g. Dinner at leisure." />
+          </div>
+          <Input {...register(`days.${dayIndex}.optionalActivities` as const)} placeholder="Optional (on request) activities" />
         </div>
       </div>
 
-      <div className="pl-4 border-l-2 space-y-2">
+      <div className="pl-4 border-l-2 space-y-2 mt-2">
         {activitiesArray.fields.map((field, actIndex) => (
           <div key={field.id} className="flex items-center gap-2">
             <Input {...register(`days.${dayIndex}.activities.${actIndex}.time` as const)} placeholder="Time" className="w-24" />
@@ -565,7 +799,7 @@ function DayCard({
           size="sm"
           onClick={() => activitiesArray.append({ title: "" })}
         >
-          <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Activity
+          <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Time-stamped Activity
         </Button>
       </div>
     </div>

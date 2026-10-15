@@ -296,11 +296,22 @@
   color: #143323;
   cursor: pointer;
   transition:
+    opacity 0.6s ease 0.65s,
     background 0.25s ease,
     border-color 0.25s ease,
     color 0.25s ease,
     transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.25s ease;
+}
+
+.depth-carousel:not(.is-revealed) .depth-carousel__arrow {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.depth-carousel.is-revealed .depth-carousel__arrow {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .depth-carousel__arrow:hover {
@@ -340,6 +351,21 @@
   -webkit-backdrop-filter: blur(8px);
   border: 1px solid rgba(228, 222, 210, 0.85);
   box-shadow: 0 4px 12px rgba(18, 42, 28, 0.06);
+  transition:
+    opacity 0.6s ease 0.65s,
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.65s;
+}
+
+.depth-carousel:not(.is-revealed) .depth-carousel__dots {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(14px);
+}
+
+.depth-carousel.is-revealed .depth-carousel__dots {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
 }
 
 .depth-carousel__dot {

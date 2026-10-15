@@ -1,54 +1,40 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { Link } from "wouter";
 import "./Destination360Experience.css";
 
-// ── Destination Image Assets ──
-import munnarImg from "@assets/escora/destinations/munnar.jpg";
-import wayanadImg from "@assets/escora/destinations/wayanad.jpg";
-import kovalamImg from "@assets/escora/destinations/kovalam.jpg";
-import varkalaImg from "@assets/escora/destinations/varkala.jpg";
-
-interface Destination360Item {
+export interface Destination360Item {
   id: string;
   name: string;
   location: string;
   category: string;
   slug: string;
   image: string;
+  thumb: string;
   panorama: string;
   description: string;
 }
 
-const DESTINATIONS: Destination360Item[] = [
+export const DESTINATIONS_360: Destination360Item[] = [
   {
     id: "alleppey",
     name: "Alleppey",
     location: "Alappuzha, Kerala",
     category: "Backwaters",
     slug: "alleppey",
-    image: "/assets/enquiry-sunset.jpg",
-    panorama: "/assets/enquiry-sunset.jpg",
-    description: "Cruise along emerald backwaters and palm-fringed lagoons on a luxury kettuvallam.",
+    image: "/assets/360/alleppey.jpg",
+    thumb: "/assets/360/thumbs/alleppey.jpg",
+    panorama: "/assets/360/alleppey.jpg",
+    description: "Cruise along emerald backwaters and palm-fringed lagoons on an authentic luxury kettuvallam.",
   },
   {
     id: "munnar",
     name: "Munnar",
     location: "Munnar, Kerala",
-    category: "Hill Station",
+    category: "Hill Stations",
     slug: "munnar",
-    image: munnarImg,
-    panorama: munnarImg,
-    description: "Misty tea gardens, rolling Western Ghats peaks, and cool mountain breezes.",
-  },
-  {
-    id: "varkala",
-    name: "Varkala",
-    location: "Varkala, Kerala",
-    category: "Coastal Cliffs",
-    slug: "varkala",
-    image: varkalaImg,
-    panorama: varkalaImg,
-    description: "Dramatic red laterite cliffs towering above the Arabian Sea with panoramic sunset coastal vistas.",
+    image: "/assets/360/munnar.jpg",
+    thumb: "/assets/360/thumbs/munnar.jpg",
+    panorama: "/assets/360/munnar.jpg",
+    description: "Misty tea gardens, rolling Western Ghats peaks, and cool mountain breezes at sunrise.",
   },
   {
     id: "wayanad",
@@ -56,9 +42,21 @@ const DESTINATIONS: Destination360Item[] = [
     location: "Wayanad, Kerala",
     category: "Nature & Wildlife",
     slug: "wayanad",
-    image: wayanadImg,
-    panorama: wayanadImg,
-    description: "Jungle sanctuaries, mist-shrouded peaks, ancient rock caves, and spice plantations.",
+    image: "/assets/360/wayanad.jpg",
+    thumb: "/assets/360/thumbs/wayanad.jpg",
+    panorama: "/assets/360/wayanad.jpg",
+    description: "Jungle sanctuaries, wild elephant herds, mist-shrouded peaks, and ancient rock caves.",
+  },
+  {
+    id: "varkala",
+    name: "Varkala",
+    location: "Varkala, Kerala",
+    category: "Cliffs & Beaches",
+    slug: "varkala",
+    image: "/assets/360/varkala.jpg",
+    thumb: "/assets/360/thumbs/varkala.jpg",
+    panorama: "/assets/360/varkala.jpg",
+    description: "Dramatic red laterite cliffs towering above the turquoise Arabian Sea with sunset vistas.",
   },
   {
     id: "kovalam",
@@ -66,27 +64,43 @@ const DESTINATIONS: Destination360Item[] = [
     location: "Kovalam, Kerala",
     category: "Beaches",
     slug: "kovalam",
-    image: kovalamImg,
-    panorama: kovalamImg,
-    description: "Golden crescent shores, red-and-white lighthouse, and Arabian Sea surf.",
+    image: "/assets/360/kovalam.jpg",
+    thumb: "/assets/360/thumbs/kovalam.jpg",
+    panorama: "/assets/360/kovalam.jpg",
+    description: "Golden crescent shores, iconic red-and-white striped lighthouse, and warm sea surf.",
+  },
+  {
+    id: "thekkady",
+    name: "Thekkady",
+    location: "Thekkady, Kerala",
+    category: "Wildlife & Forests",
+    slug: "thekkady",
+    image: "/assets/360/thekkady.jpg",
+    thumb: "/assets/360/thumbs/thekkady.jpg",
+    panorama: "/assets/360/thekkady.jpg",
+    description: "Periyar lake sanctuary, elephant herds grazing by the water, and cardamom-scented forests.",
   },
 ];
 
-/* ── Interactive 360° Panorama Viewer Component (Dynamic Three.js) ── */
+/* ── Interactive 360° Spherical Panorama Modal (Three.js) ── */
 function PanoramaModal({
   dest,
   onClose,
+  initialFov = 75,
 }: {
   dest: Destination360Item;
   onClose: () => void;
+  initialFov?: number;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const cameraRef = useRef<any>(null);
+  const rendererRef = useRef<any>(null);
+  const [zoomLevel, setZoomLevel] = useState(initialFov);
 
   useEffect(() => {
     let isDisposed = false;
     let cleanupFn: (() => void) | undefined;
 
-    // Dynamically import Three.js only when modal opens
     import("three").then((THREE) => {
       if (isDisposed || !containerRef.current) return;
 
@@ -94,21 +108,19 @@ function PanoramaModal({
       const width = container.clientWidth;
       const height = container.clientHeight;
 
-      // 1. Scene & Camera
       const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(75, width / height, 1, 1100);
+      const camera = new THREE.PerspectiveCamera(zoomLevel, width / height, 1, 1100);
+      cameraRef.current = camera;
 
-      // 2. Renderer
       const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+      rendererRef.current = renderer;
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(width, height);
       container.appendChild(renderer.domElement);
 
-      // 3. 360° Inverted Sphere Geometry
       const geometry = new THREE.SphereGeometry(500, 60, 40);
       geometry.scale(-1, 1, 1);
 
-      // 4. Texture Loader
       const textureLoader = new THREE.TextureLoader();
       textureLoader.load(dest.panorama, (texture) => {
         texture.colorSpace = THREE.SRGBColorSpace;
@@ -117,7 +129,6 @@ function PanoramaModal({
         scene.add(mesh);
       });
 
-      // 5. Interaction State (Drag / Touch Pan)
       let isUserInteracting = false;
       let onPointerDownMouseX = 0;
       let onPointerDownMouseY = 0;
@@ -146,6 +157,13 @@ function PanoramaModal({
         isUserInteracting = false;
       }
 
+      function onWheel(event: WheelEvent) {
+        event.preventDefault();
+        camera.fov = Math.max(35, Math.min(100, camera.fov + event.deltaY * 0.05));
+        camera.updateProjectionMatrix();
+        setZoomLevel(Math.round(camera.fov));
+      }
+
       function onResize() {
         if (!containerRef.current) return;
         const w = containerRef.current.clientWidth;
@@ -158,12 +176,17 @@ function PanoramaModal({
       container.addEventListener("pointerdown", onPointerDown);
       window.addEventListener("pointermove", onPointerMove);
       window.addEventListener("pointerup", onPointerUp);
+      container.addEventListener("wheel", onWheel, { passive: false });
       window.addEventListener("resize", onResize);
 
-      // 6. Animation Loop
       let reqId: number;
       function animate() {
         reqId = requestAnimationFrame(animate);
+
+        // Subtle ambient drift when not dragging
+        if (!isUserInteracting) {
+          lon += 0.035;
+        }
 
         lat = Math.max(-85, Math.min(85, lat));
         phi = THREE.MathUtils.degToRad(90 - lat);
@@ -183,6 +206,7 @@ function PanoramaModal({
         container.removeEventListener("pointerdown", onPointerDown);
         window.removeEventListener("pointermove", onPointerMove);
         window.removeEventListener("pointerup", onPointerUp);
+        container.removeEventListener("wheel", onWheel);
         window.removeEventListener("resize", onResize);
         if (renderer.domElement && container.contains(renderer.domElement)) {
           container.removeChild(renderer.domElement);
@@ -198,23 +222,54 @@ function PanoramaModal({
     };
   }, [dest]);
 
+  const handleZoom = (delta: number) => {
+    if (!cameraRef.current) return;
+    const newFov = Math.max(35, Math.min(100, cameraRef.current.fov + delta));
+    cameraRef.current.fov = newFov;
+    cameraRef.current.updateProjectionMatrix();
+    setZoomLevel(Math.round(newFov));
+  };
+
   return (
     <div className="dest-360-modal-overlay" role="dialog" aria-modal="true" aria-label={`360 Panorama - ${dest.name}`}>
       <div className="dest-360-modal-header">
         <div className="dest-360-modal-badge">
-          <span>{dest.name}</span>
-          <span style={{ opacity: 0.5 }}>·</span>
-          <span style={{ color: "#c59a58" }}>{dest.category}</span>
+          <span className="dest-360-modal-title">{dest.name}</span>
+          <span className="dest-360-modal-sep">·</span>
+          <span className="dest-360-modal-cat">{dest.category}</span>
         </div>
-        <button type="button" className="dest-360-modal-close" onClick={onClose} aria-label="Close 360 viewer">
-          ✕ CLOSE 360°
-        </button>
+        <div className="dest-360-modal-actions">
+          <button
+            type="button"
+            className="dest-360-modal-btn"
+            onClick={() => handleZoom(-10)}
+            aria-label="Zoom in"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            className="dest-360-modal-btn"
+            onClick={() => handleZoom(10)}
+            aria-label="Zoom out"
+          >
+            −
+          </button>
+          <button
+            type="button"
+            className="dest-360-modal-close"
+            onClick={onClose}
+            aria-label="Close 360 viewer"
+          >
+            ✕ CLOSE 360°
+          </button>
+        </div>
       </div>
 
       <div ref={containerRef} className="dest-360-canvas-wrap" />
 
       <div className="dest-360-modal-footer">
-        <span>↔ Drag or swipe to look 360° around {dest.name}</span>
+        <span className="dest-360-drag-tip">↔ Drag or swipe to look around in 360° · Scroll to zoom</span>
       </div>
     </div>
   );
@@ -223,10 +278,15 @@ function PanoramaModal({
 export default function Destination360Experience() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [is360Active, setIs360Active] = useState(false);
-  const touchStartX = useRef<number | null>(null);
+  const [stagePanX, setStagePanX] = useState(0);
+  const [isDraggingStage, setIsDraggingStage] = useState(false);
+  const [stageZoom, setStageZoom] = useState(1);
+  const stageDragStart = useRef<number | null>(null);
+  const stagePanStart = useRef<number>(0);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  const activeDest = DESTINATIONS[activeIdx];
-  const total = DESTINATIONS.length;
+  const activeDest = DESTINATIONS_360[activeIdx];
+  const total = DESTINATIONS_360.length;
 
   const handlePrev = useCallback(() => {
     setActiveIdx((prev) => (prev > 0 ? prev - 1 : total - 1));
@@ -236,241 +296,301 @@ export default function Destination360Experience() {
     setActiveIdx((prev) => (prev < total - 1 ? prev + 1 : 0));
   }, [total]);
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null) return;
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) {
-      if (diff > 0) handleNext();
-      else handlePrev();
+  // Keep active card centered in the bottom carousel track
+  useEffect(() => {
+    if (!trackRef.current) return;
+    const activeEl = trackRef.current.children[activeIdx] as HTMLElement;
+    if (activeEl) {
+      const container = trackRef.current;
+      const scrollTarget = activeEl.offsetLeft - (container.clientWidth - activeEl.clientWidth) / 2;
+      container.scrollTo({ left: scrollTarget, behavior: "smooth" });
     }
-    touchStartX.current = null;
-  };
+  }, [activeIdx]);
 
+  // Keyboard navigation
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowLeft") handlePrev();
     if (e.key === "ArrowRight") handleNext();
   };
 
+  // Stage pointer drag panning
+  const handleStagePointerDown = (e: React.PointerEvent) => {
+    setIsDraggingStage(true);
+    stageDragStart.current = e.clientX;
+    stagePanStart.current = stagePanX;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handleStagePointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingStage || stageDragStart.current === null) return;
+    const delta = e.clientX - stageDragStart.current;
+    // Bound the horizontal pan
+    const maxPan = 140;
+    const newPan = Math.max(-maxPan, Math.min(maxPan, stagePanStart.current + delta * 0.45));
+    setStagePanX(newPan);
+  };
+
+  const handleStagePointerUp = (e: React.PointerEvent) => {
+    if (isDraggingStage) {
+      setIsDraggingStage(false);
+      stageDragStart.current = null;
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+      } catch {}
+    }
+  };
+
+  const handleZoomIn = () => {
+    setStageZoom((prev) => Math.min(prev + 0.12, 1.35));
+  };
+
+  const handleZoomOut = () => {
+    setStageZoom((prev) => Math.max(prev - 0.12, 1.0));
+  };
+
+  const resetCompass = () => {
+    setStagePanX(0);
+    setStageZoom(1);
+  };
+
   return (
     <section className="dest-360-section" id="dest-360" aria-label="360° Destination Experience">
       <div className="dest-360-container">
-        {/* ── Main Stage Card (Full-Width Immersive Carousel) ── */}
+        {/* ── Main Cinematic Panoramic Frame ── */}
         <div
           className="dest-360-stage-card"
           tabIndex={0}
           onKeyDown={onKeyDown}
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
           role="region"
-          aria-label="360° Destination Experience Carousel"
+          aria-label="360° Destination Experience"
         >
-          {/* Panoramic Scenery Backdrop Slides with Cross-Fade */}
-          {DESTINATIONS.map((dest, idx) => (
-            <div
-              key={dest.id}
-              className={`dest-360-bg-slide ${activeIdx === idx ? "is-active" : ""}`}
-              style={{ backgroundImage: `url(${dest.image})` }}
-              aria-hidden={activeIdx !== idx}
-            />
-          ))}
-
-          {/* Soft Left-To-Right Mist Gradient & Bottom Contrast Vignette */}
-          <div className="dest-360-bg-gradient" aria-hidden="true" />
-          <div className="dest-360-bg-vignette" aria-hidden="true" />
-
-          {/* ── Side Navigation Arrows (Left & Right Edges, Vertically Centered) ── */}
-          <button
-            type="button"
-            className="dest-360-edge-arrow dest-360-edge-arrow--prev"
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePrev();
-            }}
-            aria-label="Previous destination"
+          {/* Panoramic Stage Window with Interactive Pan & Crossfade */}
+          <div
+            className={`dest-360-stage-viewport ${isDraggingStage ? "is-dragging" : ""}`}
+            onPointerDown={handleStagePointerDown}
+            onPointerMove={handleStagePointerMove}
+            onPointerUp={handleStagePointerUp}
+            onPointerCancel={handleStagePointerUp}
           >
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
+            {DESTINATIONS_360.map((dest, idx) => {
+              const isActive = activeIdx === idx;
+              return (
+                <div
+                  key={dest.id}
+                  className={`dest-360-bg-slide ${isActive ? "is-active" : ""}`}
+                  style={{
+                    backgroundImage: `url(${dest.image})`,
+                    transform: `scale(${stageZoom}) translateX(${stagePanX}px)`,
+                  }}
+                  aria-hidden={!isActive}
+                />
+              );
+            })}
 
-          <button
-            type="button"
-            className="dest-360-edge-arrow dest-360-edge-arrow--next"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleNext();
-            }}
-            aria-label="Next destination"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </button>
+            {/* Left Atmospheric Shadow for Text Readability */}
+            <div className="dest-360-gradient-left" aria-hidden="true" />
+            {/* Top Subtle Vignette */}
+            <div className="dest-360-gradient-top" aria-hidden="true" />
+            {/* Bottom Horizon Fade into Cards Tray */}
+            <div className="dest-360-gradient-bottom" aria-hidden="true" />
 
-          {/* ── Top Left Editorial Content ── */}
-          <div className="dest-360-top-row">
-            <div className="dest-360-editorial">
+            {/* ── Top-Left Editorial Content Overlay ── */}
+            <div className="dest-360-editorial-block">
+              {/* Eyebrow Label with 02 and Dash */}
               <div className="dest-360-eyebrow">
-                <span className="dest-360-eyebrow-line" />
-                360° DESTINATION EXPERIENCE
+                <span className="dest-360-eyebrow-icon">✦</span>
+                <span className="dest-360-eyebrow-num">02</span>
+                <span className="dest-360-eyebrow-dash" />
+                <span className="dest-360-eyebrow-text">360° DESTINATION EXPERIENCE</span>
               </div>
+
+              {/* Headline with Serif Italic 'Every Angle.' */}
               <h2 className="dest-360-heading">
                 See Kerala from<br />
-                <em>Every</em> Angle.
+                <em>Every Angle.</em>
               </h2>
+
+              {/* Subtitle Paragraph */}
               <p className="dest-360-desc">
-                Explore breathtaking destinations in immersive 360° views and get a real feel of the place before you plan your journey.
+                Explore breathtaking destinations in immersive 360° views and get a real feel for the places before you visit.
               </p>
-              <Link href={`/destinations/${activeDest.slug}`} className="dest-360-explore-btn">
-                <span>Explore Kerala</span>
-                <span className="dest-360-btn-arrow-circle">
-                  <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14" />
-                    <path d="M12 5l7 7-7 7" />
-                  </svg>
-                </span>
-              </Link>
-            </div>
-          </div>
 
-          {/* ── Center 360° Indicator Graphic (Interactive Trigger) ── */}
-          <div
-            className="dest-360-center-indicator"
-            onClick={() => setIs360Active(true)}
-            role="button"
-            tabIndex={0}
-            aria-label={`Explore ${activeDest.name} in 360 degrees`}
-          >
-            <div className="dest-360-rotate-text">
-              <span className="dest-360-arrow-left">←</span>
-              <span className="dest-360-degree-num">360°</span>
-              <span className="dest-360-arrow-right">→</span>
-            </div>
-            <div className="dest-360-arc-graphic">
-              <svg viewBox="0 0 260 70" className="dest-360-arc-svg" fill="none">
-                <path
-                  d="M 18 52 C 75 12, 185 12, 242 52"
-                  stroke="rgba(255, 255, 255, 0.9)"
-                  strokeWidth="1.6"
-                  strokeDasharray="4 4"
-                />
-                <path d="M 14 52 L 24 45 M 14 52 L 26 55" stroke="rgba(255, 255, 255, 0.9)" strokeWidth="1.6" strokeLinecap="round" />
-                <path d="M 246 52 L 236 45 M 246 52 L 234 55" stroke="rgba(255, 255, 255, 0.9)" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
-              <div className="dest-360-hand-icon">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0" />
-                  <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v7" />
-                  <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8" />
-                  <path d="M18 10a2 2 0 0 1 2 2v3a7 7 0 0 1-7 7h-2a7 7 0 0 1-5.3-2.4L4.2 17.5a1.5 1.5 0 0 1 2.1-2.1L8 17" />
-                </svg>
-              </div>
-            </div>
-            <span className="dest-360-drag-label">DRAG TO EXPLORE</span>
-          </div>
-
-          {/* ── Bottom Section: Feature Pills + Sub-bar (Counter, Dash Pagination, Location) ── */}
-          <div className="dest-360-bottom-wrapper">
-            {/* 4 Feature Pills */}
-            <div className="dest-360-features-row">
-              <div className="dest-360-feature-item">
-                <div className="dest-360-feat-badge">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#b58d4a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="18" height="14" x="3" y="5" rx="2" />
-                    <circle cx="8" cy="10" r="1.5" />
-                    <path d="m21 15-5-4-5 5" />
-                  </svg>
-                </div>
-                <div className="dest-360-feat-text">
-                  <strong>IMMERSIVE</strong>
-                  <span>360° VIEWS</span>
-                </div>
-              </div>
-
-              <div className="dest-360-feature-item">
-                <div className="dest-360-feat-badge">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#b58d4a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="#b58d4a" stroke="none" />
-                  </svg>
-                </div>
-                <div className="dest-360-feat-text">
-                  <strong>REAL</strong>
-                  <span>DESTINATIONS</span>
-                </div>
-              </div>
-
-              <div className="dest-360-feature-item">
-                <div className="dest-360-feat-badge">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#b58d4a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                </div>
-                <div className="dest-360-feat-text">
-                  <strong>FEEL THE</strong>
-                  <span>ATMOSPHERE</span>
-                </div>
-              </div>
-
-              <div className="dest-360-feature-item">
-                <div className="dest-360-feat-badge">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#b58d4a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.4 2.9A3.7 3.7 0 0 0 2 12v4c0 .6.4 1 1 1h2" />
-                    <circle cx="7" cy="17" r="2" />
-                    <path d="M9 17h6" />
-                    <circle cx="17" cy="17" r="2" />
-                  </svg>
-                </div>
-                <div className="dest-360-feat-text">
-                  <strong>PLAN WITH</strong>
-                  <span>CONFIDENCE</span>
-                </div>
-              </div>
+              {/* Golden Pill CTA Button */}
+              <button
+                type="button"
+                className="dest-360-cta-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIs360Active(true);
+                }}
+                aria-label={`Explore ${activeDest.name} in 360 degrees`}
+              >
+                <span className="dest-360-play-icon" aria-hidden="true">▶</span>
+                <span className="dest-360-cta-text">EXPLORE IN 360°</span>
+                <span className="dest-360-cta-arrow" aria-hidden="true">→</span>
+              </button>
             </div>
 
-            {/* Bottom Meta Row: Left Slide Counter, Center Dash Dots, Right Location Label */}
-            <div className="dest-360-meta-bar">
-              {/* Left Slide Counter */}
-              <div className="dest-360-counter" aria-label={`Slide ${activeIdx + 1} of ${total}`}>
-                <span className="dest-360-counter-num">{String(activeIdx + 1).padStart(2, "0")}</span>
-                <span className="dest-360-counter-line" />
-                <span className="dest-360-counter-num dest-360-counter-total">{String(total).padStart(2, "0")}</span>
-              </div>
-
-              {/* Center Dash Dots */}
-              <div className="dest-360-pagination" role="tablist" aria-label="Destination slides">
-                {DESTINATIONS.map((dest, idx) => (
-                  <button
-                    key={dest.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={activeIdx === idx}
-                    aria-label={`Go to slide ${idx + 1}: ${dest.name}`}
-                    className={`dest-360-dash-dot ${activeIdx === idx ? "is-active" : ""}`}
-                    onClick={() => setActiveIdx(idx)}
+            {/* ── Center-Right Interactive 360 Indicator Badge ── */}
+            <div
+              className="dest-360-center-badge-wrap"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIs360Active(true);
+              }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Launch interactive 360 view of ${activeDest.name}`}
+            >
+              <div className="dest-360-circle-indicator">
+                <svg viewBox="0 0 80 80" className="dest-360-circle-svg" fill="none" aria-hidden="true">
+                  {/* Top-Right Arc with Arrowhead */}
+                  <path
+                    d="M 40 10 A 30 30 0 0 1 70 40"
+                    stroke="#ffffff"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
                   />
-                ))}
-              </div>
+                  <polygon points="70,40 76,33 66,35" fill="#ffffff" />
 
-              {/* Right Location Label */}
-              <div className="dest-360-location">
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                  <circle cx="12" cy="10" r="3" />
+                  {/* Bottom-Left Arc with Arrowhead */}
+                  <path
+                    d="M 40 70 A 30 30 0 0 1 10 40"
+                    stroke="#ffffff"
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                  />
+                  <polygon points="10,40 4,47 14,45" fill="#ffffff" />
                 </svg>
-                <span className="dest-360-location-name">{activeDest.location}</span>
+                <span className="dest-360-degree-number">360°</span>
               </div>
+              <span className="dest-360-drag-label">DRAG TO EXPLORE</span>
             </div>
+
+            {/* ── Right-Edge Floating Glass Tools Stack ── */}
+            <div className="dest-360-right-tools" onClick={(e) => e.stopPropagation()}>
+              {/* 1. Compass Rose */}
+              <button
+                type="button"
+                className="dest-360-tool-btn dest-360-compass-btn"
+                onClick={resetCompass}
+                title="Reset orientation"
+                aria-label="Compass Orientation"
+              >
+                <svg viewBox="0 0 36 36" width="22" height="22" fill="none" aria-hidden="true">
+                  <circle cx="18" cy="18" r="15" stroke="rgba(255,255,255,0.4)" strokeWidth="1" strokeDasharray="2 3" />
+                  <text x="18" y="7" textAnchor="middle" fill="#ffffff" fontSize="5.8" fontWeight="bold">N</text>
+                  <text x="30" y="20" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="5.8">E</text>
+                  <text x="18" y="32" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="5.8">S</text>
+                  <text x="6" y="20" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="5.8">W</text>
+                  <polygon points="18,9 20.5,18 18,16" fill="#e0aa48" />
+                  <polygon points="18,27 20.5,18 18,16" fill="rgba(255,255,255,0.6)" />
+                  <polygon points="18,9 15.5,18 18,16" fill="#f5cf7a" />
+                  <polygon points="18,27 15.5,18 18,16" fill="rgba(255,255,255,0.3)" />
+                </svg>
+              </button>
+
+              {/* 2. Zoom In */}
+              <button
+                type="button"
+                className="dest-360-tool-btn"
+                onClick={handleZoomIn}
+                title="Zoom in"
+                aria-label="Zoom in"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </button>
+
+              {/* 3. Zoom Out */}
+              <button
+                type="button"
+                className="dest-360-tool-btn"
+                onClick={handleZoomOut}
+                title="Zoom out"
+                aria-label="Zoom out"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+                  <path d="M5 12h14" />
+                </svg>
+              </button>
+
+              {/* 4. Fullscreen */}
+              <button
+                type="button"
+                className="dest-360-tool-btn"
+                onClick={() => setIs360Active(true)}
+                title="Fullscreen 360 view"
+                aria-label="Open fullscreen 360 panorama"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 8V5a2 2 0 0 1 2-2h3M19 3h3a2 2 0 0 1 2 2v3M24 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* ── Bottom Destination Carousel / Card Tray ── */}
+          <div className="dest-360-bottom-tray">
+            {/* Left Chevron Button */}
+            <button
+              type="button"
+              className="dest-360-nav-arrow dest-360-nav-arrow--prev"
+              onClick={handlePrev}
+              aria-label="Previous destination"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
+
+            {/* Destination Cards Track */}
+            <div className="dest-360-cards-track" ref={trackRef}>
+              {DESTINATIONS_360.map((dest, idx) => {
+                const isActive = activeIdx === idx;
+                return (
+                  <div
+                    key={dest.id}
+                    className={`dest-360-card ${isActive ? "is-active" : ""}`}
+                    onClick={() => setActiveIdx(idx)}
+                    role="button"
+                    tabIndex={0}
+                    aria-selected={isActive}
+                    aria-label={`View ${dest.name} - ${dest.category}`}
+                  >
+                    <img
+                      src={dest.thumb}
+                      alt={dest.name}
+                      className="dest-360-card-img"
+                      loading="lazy"
+                    />
+                    <div className="dest-360-card-gradient" />
+                    <div className="dest-360-card-content">
+                      <h3 className="dest-360-card-title">{dest.name}</h3>
+                      <p className="dest-360-card-category">{dest.category}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Right Chevron Button */}
+            <button
+              type="button"
+              className="dest-360-nav-arrow dest-360-nav-arrow--next"
+              onClick={handleNext}
+              aria-label="Next destination"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* ── Interactive 360° Modal (Loaded on Demand) ── */}
+      {/* ── Interactive 360° Spherical Panorama Modal (Three.js) ── */}
       {is360Active && (
         <PanoramaModal dest={activeDest} onClose={() => setIs360Active(false)} />
       )}

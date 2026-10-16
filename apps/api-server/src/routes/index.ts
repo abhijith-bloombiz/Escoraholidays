@@ -13,7 +13,6 @@ import itinerariesRouter from "./itineraries";
 import invoicesRouter from "./invoices";
 import campaignsRouter from "./campaigns";
 import aiRouter from "./ai";
-import invoicesRouter from "./invoices";
 import { requireAuth } from "../middleware/auth";
 import { notFoundHandler } from "../middleware/not-found";
 

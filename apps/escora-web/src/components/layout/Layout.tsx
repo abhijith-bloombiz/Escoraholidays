@@ -18,6 +18,7 @@ export default function Layout({ children, hideFooter = false }: LayoutProps) {
   useEffect(() => {
     document.documentElement.classList.add("theme-v3");
     document.documentElement.classList.remove("has-focus-cursor");
+    document.body.style.cursor = "";
   }, []);
 
   return (

@@ -11,6 +11,7 @@ import travelCategoriesRouter from "./travel-categories";
 import enquiriesRouter from "./enquiries";
 import itinerariesRouter from "./itineraries";
 import aiRouter from "./ai";
+import invoicesRouter from "./invoices";
 import { requireAuth } from "../middleware/auth";
 import { notFoundHandler } from "../middleware/not-found";
 

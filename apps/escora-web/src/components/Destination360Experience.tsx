@@ -341,7 +341,7 @@ export default function Destination360Experience({ destinations }: Destination36
 
   // Merge published API destination data into DESTINATIONS, keeping local fallbacks and local panorama assets
   const items = useMemo<Destination360Item[]>(() => {
-    return DESTINATIONS.map((item) => {
+    return DESTINATIONS_360.map((item) => {
       const dbMatch = findMatchingDestination(destinations, item.id, item.slug, item.name);
       if (!dbMatch) return item;
 
@@ -375,7 +375,7 @@ export default function Destination360Experience({ destinations }: Destination36
     });
   }, [destinations]);
 
-  const activeDest = items[activeIdx] || items[0] || DESTINATIONS[0];
+  const activeDest = items[activeIdx] || items[0] || DESTINATIONS_360[0];
   const total = items.length;
 
   const handlePrev = useCallback(() => {
@@ -403,47 +403,13 @@ export default function Destination360Experience({ destinations }: Destination36
     if (e.key === "ArrowRight") handleNext();
   };
 
-  return (
-    <section className="dest-360-section" id="dest-360" aria-label="360° Destination Experience">
-      <div className="dest-360-container">
-        {/* ── Main Stage Card (Full-Width Immersive Carousel) ── */}
-        <div
-          className="dest-360-stage-card"
-          tabIndex={0}
-          onKeyDown={onKeyDown}
-          onTouchStart={onTouchStart}
-          onTouchEnd={onTouchEnd}
-          role="region"
-          aria-label="360° Destination Experience Carousel"
-        >
-          {/* Panoramic Scenery Backdrop Slides with Cross-Fade */}
-          {items.map((dest, idx) => (
-            <div
-              key={dest.id}
-              className={`dest-360-bg-slide ${activeIdx === idx ? "is-active" : ""}`}
-              style={{ backgroundImage: `url(${dest.image})` }}
-              aria-hidden={activeIdx !== idx}
-            />
-          ))}
-
-          {/* Soft Left-To-Right Mist Gradient & Bottom Contrast Vignette */}
-          <div className="dest-360-bg-gradient" aria-hidden="true" />
-          <div className="dest-360-bg-vignette" aria-hidden="true" />
-
-          {/* ── Side Navigation Arrows (Left & Right Edges, Vertically Centered) ── */}
-          <button
-            type="button"
-            className="dest-360-edge-arrow dest-360-edge-arrow--prev"
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePrev();
-            }}
-            aria-label="Previous destination"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
+  // Stage pointer drag panning
+  const handleStagePointerDown = (e: React.PointerEvent) => {
+    setIsDraggingStage(true);
+    stageDragStart.current = e.clientX;
+    stagePanStart.current = stagePanX;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
 
   const handleStagePointerMove = (e: React.PointerEvent) => {
     if (!isDraggingStage || stageDragStart.current === null) return;
@@ -494,7 +460,7 @@ export default function Destination360Experience({ destinations }: Destination36
         onPointerUp={handleStagePointerUp}
         onPointerCancel={handleStagePointerUp}
       >
-            {DESTINATIONS_360.map((dest, idx) => {
+        {items.map((dest, idx) => {
               const isActive = activeIdx === idx;
               return (
                 <div
@@ -653,19 +619,26 @@ export default function Destination360Experience({ destinations }: Destination36
             </div>
           </div>
 
-            {/* Bottom Meta Row: Left Slide Counter, Center Dash Dots, Right Location Label */}
-            <div className="dest-360-meta-bar">
-              {/* Left Slide Counter */}
-              <div className="dest-360-counter" aria-label={`Slide ${activeIdx + 1} of ${total}`}>
-                <span className="dest-360-counter-num">{String(activeIdx + 1).padStart(2, "0")}</span>
-                <span className="dest-360-counter-line" />
-                <span className="dest-360-counter-num dest-360-counter-total">{String(total).padStart(2, "0")}</span>
-              </div>
+          {/* ── Bottom Destination Carousel / Card Tray ── */}
+          <div className="dest-360-bottom-tray">
+            {/* Left Chevron Button */}
+            <button
+              type="button"
+              className="dest-360-nav-arrow dest-360-nav-arrow--prev"
+              onClick={handlePrev}
+              aria-label="Previous destination"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+            </button>
 
-              {/* Center Dash Dots */}
-              <div className="dest-360-pagination" role="tablist" aria-label="Destination slides">
-                {items.map((dest, idx) => (
-                  <button
+            {/* Destination Cards Track */}
+            <div className="dest-360-cards-track" ref={trackRef}>
+              {items.map((dest, idx) => {
+                const isActive = activeIdx === idx;
+                return (
+                  <div
                     key={dest.id}
                     className={`dest-360-card ${isActive ? "is-active" : ""}`}
                     onClick={() => setActiveIdx(idx)}

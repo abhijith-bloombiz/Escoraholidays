@@ -2,6 +2,7 @@ import app from "./app";
 import { config, validateProductionConfig } from "./config/env";
 import { logger } from "./lib/logger";
 import { connectDB, disconnectDB } from "@workspace/db";
+import { startCampaignScheduler, stopCampaignScheduler } from "./services/campaign-scheduler";
 
 async function bootstrap() {
   validateProductionConfig(config);
@@ -13,6 +14,8 @@ async function bootstrap() {
   try {
     await connectDB();
     logger.info("Connected to MongoDB successfully");
+    // Start reliable background campaign scheduler
+    startCampaignScheduler();
   } catch (err) {
     logger.error({ err }, "Initial database connection failed; will retry on incoming requests");
   }
@@ -23,6 +26,7 @@ async function bootstrap() {
 
   const shutdown = async (signal: string) => {
     logger.info({ signal }, "Shutting down HTTP server...");
+    stopCampaignScheduler();
     server.close(async () => {
       logger.info("HTTP server closed");
       await disconnectDB();

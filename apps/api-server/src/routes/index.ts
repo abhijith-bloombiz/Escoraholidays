@@ -12,6 +12,7 @@ import enquiriesRouter from "./enquiries";
 import itinerariesRouter from "./itineraries";
 import invoicesRouter from "./invoices";
 import campaignsRouter from "./campaigns";
+import notificationsRouter from "./notifications";
 import aiRouter from "./ai";
 import { requireAuth } from "../middleware/auth";
 import { notFoundHandler } from "../middleware/not-found";
@@ -24,6 +25,7 @@ router.use(authRouter);
 router.use(aiRouter);
 router.get("/campaigns/unsubscribe", campaignsRouter);
 router.post("/campaigns/unsubscribe", campaignsRouter);
+router.post("/campaigns/webhooks/resend", campaignsRouter);
 
 
 // Public GETs, protected writes — destinations, packages, journal
@@ -96,6 +98,9 @@ router.delete("/media/:id", requireAuth, mediaRouter);
 
 // Campaigns: Admin only (drafting, audience resolution, approval, scheduling, sending)
 router.use(requireAuth, campaignsRouter);
+
+// Notifications & Delivery Audit: Admin only
+router.use(requireAuth, notificationsRouter);
 
 // Admin dashboard stats
 router.use("/dashboard", requireAuth, dashboardRouter);

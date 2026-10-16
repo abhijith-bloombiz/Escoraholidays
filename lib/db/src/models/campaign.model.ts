@@ -3,11 +3,23 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export type CampaignStatus = "draft" | "approved" | "scheduled" | "sending" | "sent" | "cancelled" | "failed";
 export type CampaignAudienceType = "all_contacts" | "enquiries_only" | "confirmed_guests" | "custom_segment";
 
+export type CampaignDeliveryStatus =
+  | "sent"
+  | "simulated"
+  | "accepted"
+  | "delivered"
+  | "bounced"
+  | "failed"
+  | "skipped_unsubscribed"
+  | "complained";
+
 export interface ICampaignDelivery {
   recipientEmail: string;
   recipientName: string;
-  status: "sent" | "failed" | "skipped_unsubscribed";
+  status: CampaignDeliveryStatus;
+  deliveryStatus?: CampaignDeliveryStatus;
   sentAt?: Date;
+  deliveredAt?: Date | null;
   messageId?: string | null;
   error?: string | null;
 }
@@ -35,6 +47,7 @@ export interface ICampaign {
     skippedCount: number;
   };
   deliveries: ICampaignDelivery[];
+  deliveryMode?: "simulated" | "live" | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -48,9 +61,20 @@ const campaignDeliverySchema = new Schema<ICampaignDelivery>(
     status: {
       type: String,
       required: true,
-      enum: ["sent", "failed", "skipped_unsubscribed"],
+      enum: [
+        "sent",
+        "simulated",
+        "accepted",
+        "delivered",
+        "bounced",
+        "failed",
+        "skipped_unsubscribed",
+        "complained",
+      ],
     },
+    deliveryStatus: { type: String, default: null },
     sentAt: { type: Date, default: Date.now },
+    deliveredAt: { type: Date, default: null },
     messageId: { type: String, default: null },
     error: { type: String, default: null },
   },
@@ -92,6 +116,7 @@ const campaignSchema = new Schema<ICampaign>(
       skippedCount: { type: Number, default: 0 },
     },
     deliveries: { type: [campaignDeliverySchema], default: [] },
+    deliveryMode: { type: String, enum: ["simulated", "live"], default: null },
     createdAt: { type: Date, required: true, default: Date.now, index: true },
     updatedAt: { type: Date, required: true, default: Date.now },
   },
@@ -101,6 +126,9 @@ const campaignSchema = new Schema<ICampaign>(
     versionKey: false,
   }
 );
+
+campaignSchema.index({ "deliveries.messageId": 1 });
+campaignSchema.index({ status: 1, scheduledAt: 1, approvedBy: 1 });
 
 export const CampaignModel: Model<ICampaign> =
   mongoose.models.Campaign || mongoose.model<ICampaign>("Campaign", campaignSchema);

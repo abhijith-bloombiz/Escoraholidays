@@ -2,14 +2,63 @@ import { Resend } from "resend";
 import { logger } from "./logger";
 import { config } from "../config/env";
 
-const resend = config.resendApiKey ? new Resend(config.resendApiKey) : null;
+let resendInstance: any = config.resendApiKey ? new Resend(config.resendApiKey) : null;
+let isForcedUnconfigured = false;
 const FROM = config.emailFrom || "onboarding@resend.dev";
 const ADMIN_EMAIL = config.adminEmail;
 
+export function getResendClient(): Resend | null {
+  if (isForcedUnconfigured) return null;
+  if (resendInstance) return resendInstance;
+  if (config.resendApiKey) {
+    resendInstance = new Resend(config.resendApiKey);
+    return resendInstance;
+  }
+  return null;
+}
+
+export function setResendClientForTesting(client: any): void {
+  if (client === null) {
+    isForcedUnconfigured = true;
+    resendInstance = null;
+  } else {
+    isForcedUnconfigured = false;
+    resendInstance = client;
+  }
+}
+
+function sanitizeError(msg?: string): string {
+  if (!msg) return "Unknown delivery error";
+  return msg
+    .replace(/re_[a-zA-Z0-9_\-\.]+/g, "[REDACTED_API_KEY]")
+    .replace(/whsec_[a-zA-Z0-9_\-\.]+/g, "[REDACTED_SECRET]");
+}
+
+export function isTransientError(errMsg?: string, statusCode?: number): boolean {
+  if (!errMsg) return false;
+  const lower = errMsg.toLowerCase();
+  return (
+    lower.includes("timeout") ||
+    lower.includes("etimedout") ||
+    lower.includes("econnreset") ||
+    lower.includes("rate limit") ||
+    lower.includes("429") ||
+    lower.includes("too many requests") ||
+    lower.includes("internal server error") ||
+    lower.includes("500") ||
+    lower.includes("502") ||
+    lower.includes("503") ||
+    lower.includes("504") ||
+    (statusCode !== undefined && statusCode >= 500) ||
+    statusCode === 429
+  );
+}
+
 async function send(to: string, subject: string, html: string): Promise<void> {
-  if (!resend) return; // email not configured — skip silently
+  const client = getResendClient();
+  if (!client) return; // email not configured — skip silently
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await client.emails.send({
       from: FROM,
       to,
       subject,
@@ -19,7 +68,7 @@ async function send(to: string, subject: string, html: string): Promise<void> {
       // If the domain is not yet verified on Resend, automatically fallback to onboarding@resend.dev
       if (error.message?.includes("domain is not verified") && FROM !== "onboarding@resend.dev") {
         logger.warn("Custom domain not verified yet on Resend. Falling back to onboarding@resend.dev");
-        const fallback = await resend.emails.send({
+        const fallback = await client.emails.send({
           from: "onboarding@resend.dev",
           to,
           subject,
@@ -30,60 +79,102 @@ async function send(to: string, subject: string, html: string): Promise<void> {
           return;
         }
       }
-      logger.warn({ error }, "Email send failed via Resend");
+      logger.warn({ error: sanitizeError(error.message) }, "Email send failed via Resend");
     } else {
       logger.info({ id: data?.id, to }, "Email delivered via Resend");
     }
-  } catch (err) {
-    logger.warn({ err }, "Email send error (non-fatal)");
+  } catch (err: any) {
+    logger.warn({ err: sanitizeError(err?.message) }, "Email send error (non-fatal)");
   }
 }
 
 /**
  * Sends an email and returns detailed delivery status for audit and tracking.
+ * Includes official Resend SDK error handling, custom headers, idempotency keys,
+ * secret sanitization, and transient error retry logic.
  */
 export async function sendEmailWithStatus(options: {
   to: string;
   subject: string;
   html: string;
   headers?: Record<string, string>;
-}): Promise<{ success: boolean; messageId?: string; error?: string }> {
-  if (!resend) {
+  idempotencyKey?: string;
+  retries?: number;
+}): Promise<{ success: boolean; messageId?: string; error?: string; isTransient?: boolean }> {
+  const client = getResendClient();
+  if (!client) {
     return { success: false, error: "Resend email provider is not configured" };
   }
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: FROM,
-      to: options.to,
-      subject: options.subject,
-      html: options.html,
-      headers: options.headers,
-    });
-
-    if (error) {
-      if (error.message?.includes("domain is not verified") && FROM !== "onboarding@resend.dev") {
-        logger.warn("Custom domain not verified yet on Resend. Falling back to onboarding@resend.dev");
-        const fallback = await resend.emails.send({
-          from: "onboarding@resend.dev",
-          to: options.to,
-          subject: options.subject,
-          html: options.html,
-          headers: options.headers,
-        });
-
-        if (!fallback.error && fallback.data) {
-          return { success: true, messageId: fallback.data.id };
-        }
-        return { success: false, error: fallback.error?.message || "Delivery failed" };
-      }
-      return { success: false, error: error.message };
-    }
-
-    return { success: true, messageId: data?.id };
-  } catch (err: any) {
-    return { success: false, error: err?.message || "Unexpected delivery error" };
+  const customHeaders: Record<string, string> = { ...(options.headers || {}) };
+  if (options.idempotencyKey) {
+    customHeaders["Idempotency-Key"] = options.idempotencyKey;
   }
+
+  const maxAttempts = options.retries ?? 2;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const { data, error } = await client.emails.send({
+        from: FROM,
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        headers: Object.keys(customHeaders).length > 0 ? customHeaders : undefined,
+      });
+
+      if (error) {
+        if (error.message?.includes("domain is not verified") && FROM !== "onboarding@resend.dev") {
+          logger.warn("Custom domain not verified yet on Resend. Falling back to onboarding@resend.dev");
+          const fallback = await client.emails.send({
+            from: "onboarding@resend.dev",
+            to: options.to,
+            subject: options.subject,
+            html: options.html,
+            headers: Object.keys(customHeaders).length > 0 ? customHeaders : undefined,
+          });
+
+          if (!fallback.error && fallback.data) {
+            return { success: true, messageId: fallback.data.id };
+          }
+          const cleanMsg = sanitizeError(fallback.error?.message || "Delivery failed");
+          return { success: false, error: cleanMsg, isTransient: isTransientError(cleanMsg) };
+        }
+
+        const cleanMsg = sanitizeError(error.message);
+        const isTransient = isTransientError(cleanMsg);
+
+        if (isTransient && attempt < maxAttempts) {
+          logger.warn(
+            { attempt, error: cleanMsg, idempotencyKey: options.idempotencyKey },
+            "Transient provider error from Resend. Retrying safely with idempotency key"
+          );
+          await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+          continue;
+        }
+
+        return { success: false, error: cleanMsg, isTransient };
+      }
+
+      return { success: true, messageId: data?.id };
+    } catch (err: any) {
+      const cleanMsg = sanitizeError(err?.message || "Unexpected delivery error");
+      const isTransient = isTransientError(cleanMsg);
+
+      if (isTransient && attempt < maxAttempts) {
+        logger.warn(
+          { attempt, error: cleanMsg, idempotencyKey: options.idempotencyKey },
+          "Network exception during Resend dispatch. Retrying safely with idempotency key"
+        );
+        await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+        continue;
+      }
+
+      return { success: false, error: cleanMsg, isTransient };
+    }
+  }
+
+  return { success: false, error: "Maximum delivery retry attempts exceeded", isTransient: true };
 }
 
 /**

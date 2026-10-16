@@ -9,7 +9,7 @@ import {
   type Enquiry,
   type EnquiryAiAssistResponse,
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -130,6 +130,20 @@ export default function EnquiriesPage() {
   const [editedSubject, setEditedSubject] = useState("");
   const [editedBody, setEditedBody] = useState("");
   const [refinePrompt, setRefinePrompt] = useState("");
+
+  // Query notifications for viewing enquiry
+  const { data: enquiryNotifications = [] } = useQuery<any[]>({
+    queryKey: ["admin", "enquiry-notifications", viewing?.id],
+    queryFn: async () => {
+      if (!viewing?.id) return [];
+      const res = await fetch(`/api/notifications?relatedType=enquiry&relatedId=${viewing.id}`, {
+        credentials: "include",
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: Boolean(viewing?.id),
+  });
 
   function invalidate() {
     qc.invalidateQueries({ queryKey: getListEnquiriesQueryKey() });
@@ -822,6 +836,47 @@ export default function EnquiriesPage() {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Automated Follow-Up Status */}
+                <div className="p-3.5 rounded-lg border bg-muted/10 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5 text-primary" />
+                      Automated Customer Follow-Up
+                    </span>
+                    {enquiryNotifications.length > 0 && (
+                      <Badge
+                        variant="outline"
+                        className={
+                          enquiryNotifications[0].status === "sent"
+                            ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/10 text-[10px]"
+                            : enquiryNotifications[0].status === "pending"
+                            ? "border-amber-500/30 text-amber-600 bg-amber-500/10 text-[10px]"
+                            : "border-zinc-500/30 text-zinc-500 text-[10px]"
+                        }
+                      >
+                        {enquiryNotifications[0].status === "pending"
+                          ? `Scheduled (${new Date(enquiryNotifications[0].scheduledFor).toLocaleDateString()})`
+                          : enquiryNotifications[0].status === "sent"
+                          ? "Delivered"
+                          : enquiryNotifications[0].status === "cancelled"
+                          ? "Cancelled (Resolved)"
+                          : enquiryNotifications[0].status}
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    {enquiryNotifications.length === 0
+                      ? "A gentle follow-up email is scheduled automatically if the enquiry is pending and customer has not booked."
+                      : enquiryNotifications[0].status === "pending"
+                      ? `Follow-up will dispatch on ${new Date(enquiryNotifications[0].scheduledFor).toLocaleString()} if unresolved.`
+                      : enquiryNotifications[0].status === "cancelled"
+                      ? `Follow-up cancelled: ${enquiryNotifications[0].error || "Customer replied or booked."}`
+                      : enquiryNotifications[0].status === "sent"
+                      ? `Follow-up sent on ${new Date(enquiryNotifications[0].sentAt || enquiryNotifications[0].updatedAt).toLocaleString()}.`
+                      : `Status: ${enquiryNotifications[0].status}`}
+                  </p>
+                </div>
 
                 {/* Status Selector & Management */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border">

@@ -5,7 +5,7 @@ import {
   useDeleteOrder,
   getListOrdersQueryKey,
 } from "@workspace/api-client-react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -160,6 +160,20 @@ export default function OrdersPage() {
   const [editing, setEditing] = useState<Order | null>(null);
   const [viewing, setViewing] = useState<Order | null>(null);
   const [showTechDetails, setShowTechDetails] = useState(false);
+
+  // Query notifications for viewing order
+  const { data: orderNotifications = [] } = useQuery<any[]>({
+    queryKey: ["admin", "order-notifications", viewing?.id],
+    queryFn: async () => {
+      if (!viewing?.id) return [];
+      const res = await fetch(`/api/notifications?relatedType=order&relatedId=${viewing.id}`, {
+        credentials: "include",
+      });
+      if (!res.ok) return [];
+      return res.json();
+    },
+    enabled: Boolean(viewing?.id),
+  });
 
   // Edit form state
   const [form, setForm] = useState({
@@ -1053,6 +1067,55 @@ export default function OrdersPage() {
                     <div className="p-3 rounded-md bg-amber-500/5 border border-amber-500/20 text-xs text-foreground leading-relaxed whitespace-pre-wrap">
                       {viewing.notes}
                     </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Automated Customer Notifications Section */}
+              <div className="border rounded-lg p-4 bg-muted/10 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 text-primary" />
+                    Automated Customer Notifications
+                  </span>
+                  <Badge variant="outline" className="text-[10px]">
+                    {orderNotifications.length} logged
+                  </Badge>
+                </div>
+                {orderNotifications.length === 0 ? (
+                  <p className="text-xs text-muted-foreground italic">
+                    {viewing.status === "confirmed"
+                      ? "Booking confirmation notification is queued / sent."
+                      : viewing.status === "completed"
+                      ? "Post-trip feedback is scheduled / sent."
+                      : "No notifications triggered yet (booking confirmations trigger upon 'Confirmed' status; post-trip feedback triggers upon 'Completed')."}
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {orderNotifications.map((notif: any) => (
+                      <div key={notif.id} className="p-2.5 rounded border bg-card text-xs flex items-center justify-between gap-2">
+                        <div>
+                          <div className="font-medium text-foreground capitalize">
+                            {notif.type.replace(/_/g, " ")}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground font-mono">
+                            {notif.messageId ? `Message ID: ${notif.messageId}` : notif.scheduledFor ? `Scheduled: ${new Date(notif.scheduledFor).toLocaleString()}` : ""}
+                          </div>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className={
+                            notif.status === "sent"
+                              ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/10 text-[10px]"
+                              : notif.status === "pending"
+                              ? "border-amber-500/30 text-amber-600 bg-amber-500/10 text-[10px]"
+                              : "border-destructive/30 text-destructive text-[10px]"
+                          }
+                        >
+                          {notif.status}
+                        </Badge>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

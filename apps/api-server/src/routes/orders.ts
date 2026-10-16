@@ -14,6 +14,14 @@ import {
 } from "@workspace/api-zod";
 import { logger } from "../lib/logger";
 import { sendBookingConfirmation, sendAdminBookingNotification } from "../lib/email";
+import {
+  triggerBookingConfirmation,
+  schedulePostTripFeedback,
+  cancelPostTripFeedback,
+  schedulePreTripReminder,
+  triggerBookingCancellation,
+  triggerTravelDocumentDelivery,
+} from "../services/notification-service";
 
 const router: IRouter = Router();
 
@@ -160,6 +168,13 @@ router.post("/orders", async (req, res, next): Promise<void> => {
       sendAdminBookingNotification(order),
     ]).catch(() => { /* non-fatal */ });
 
+    // If order was created directly in confirmed status, trigger confirmation automation
+    if (order.status === "confirmed") {
+      triggerBookingConfirmation(order).catch((err) => {
+        logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] Booking confirmation trigger error on create");
+      });
+    }
+
     res.status(201).json(GetOrderResponse.parse(serializeDates(order)));
   } catch (err: any) {
     if (err.name === "ValidationError" || err.name === "CastError") {
@@ -223,6 +238,12 @@ router.patch("/orders/:id", async (req, res, next): Promise<void> => {
   }
 
   try {
+    const existingOrder = await OrderModel.findOne({ id: params.data.id }).lean();
+    if (!existingOrder) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+
     const order = await OrderModel.findOneAndUpdate(
       { id: params.data.id },
       { $set: { ...parsed.data, updatedAt: new Date() } },
@@ -232,12 +253,70 @@ router.patch("/orders/:id", async (req, res, next): Promise<void> => {
       res.status(404).json({ error: "Order not found" });
       return;
     }
+
+    // Transactional automations on valid state transitions
+    if (existingOrder.status !== "confirmed" && order.status === "confirmed") {
+      triggerBookingConfirmation(order).catch((err) => {
+        logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] Booking confirmation trigger error");
+      });
+      schedulePreTripReminder(order).catch((err) => {
+        logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] Pre-trip reminder schedule error");
+      });
+    }
+
+    if (existingOrder.status !== "completed" && order.status === "completed") {
+      schedulePostTripFeedback(order).catch((err) => {
+        logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] Post-trip feedback schedule error");
+      });
+    }
+
+    if (existingOrder.status !== "cancelled" && order.status === "cancelled") {
+      cancelPostTripFeedback(order.id, "Order cancelled").catch(() => {});
+      triggerBookingCancellation(order, parsed.data.notes || "Order cancelled").catch((err) => {
+        logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] Booking cancellation trigger error");
+      });
+    }
+
     res.json(UpdateOrderResponse.parse(serializeDates(order)));
   } catch (err: any) {
     if (err.name === "ValidationError" || err.name === "CastError") {
       res.status(400).json({ error: err.message });
       return;
     }
+    next(err);
+  }
+});
+
+// Deliver travel documents or vouchers for a confirmed booking
+router.post("/orders/:id/documents", async (req, res, next): Promise<void> => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: "Invalid order ID" });
+    return;
+  }
+
+  const { title, documentType, notes, downloadUrl } = req.body;
+  if (!title || typeof title !== "string") {
+    res.status(400).json({ error: "Document title is required" });
+    return;
+  }
+
+  try {
+    const order = await OrderModel.findOne({ id }).lean();
+    if (!order) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+
+    const notif = await triggerTravelDocumentDelivery(order, {
+      title,
+      documentType,
+      notes,
+      downloadUrl,
+    });
+
+    res.json({ success: true, notification: notif });
+  } catch (err) {
     next(err);
   }
 });

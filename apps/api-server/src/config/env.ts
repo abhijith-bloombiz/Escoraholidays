@@ -45,6 +45,21 @@ export interface AppConfig {
   groqModel: string;
   groqBaseUrl?: string;
   campaignSendingEnabled: boolean;
+  resendWebhookSecret?: string;
+  campaignSchedulerIntervalMs: number;
+  transactionalSendingEnabled: boolean;
+  enquiryFollowupDelayHours: number;
+  postTripFeedbackDelayHours: number;
+  feedbackReviewUrl: string;
+  enableEnquiryFollowup: boolean;
+  enablePostTripFeedback: boolean;
+  enableBookingConfirmation: boolean;
+  enableItineraryUpdateNotifications: boolean;
+  enablePaymentReceipts: boolean;
+  enablePaymentReminders: boolean;
+  enablePreTripReminders: boolean;
+  enableCancellationNotifications: boolean;
+  enableDocumentDelivery: boolean;
 }
 
 const rawPort = process.env.PORT || "8080";
@@ -167,6 +182,25 @@ export const config: AppConfig = {
   groqModel: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
   groqBaseUrl: process.env.GROQ_BASE_URL?.trim() || undefined,
   campaignSendingEnabled: process.env.CAMPAIGN_SENDING_ENABLED === "true",
+  resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET || undefined,
+  campaignSchedulerIntervalMs: Number(process.env.CAMPAIGN_SCHEDULER_INTERVAL_MS) || 20000,
+  transactionalSendingEnabled:
+    process.env.TRANSACTIONAL_SENDING_ENABLED === "true" ||
+    (process.env.NODE_ENV === "production" && Boolean(process.env.RESEND_API_KEY)),
+  enquiryFollowupDelayHours: Number(process.env.ENQUIRY_FOLLOWUP_DELAY_HOURS) || 24,
+  postTripFeedbackDelayHours: Number(process.env.POST_TRIP_FEEDBACK_DELAY_HOURS) || 24,
+  feedbackReviewUrl:
+    process.env.FEEDBACK_REVIEW_URL ||
+    `${process.env.PUBLIC_URL || "https://www.escoraholidays.com"}/contact`,
+  enableEnquiryFollowup: process.env.ENABLE_ENQUIRY_FOLLOWUP !== "false",
+  enablePostTripFeedback: process.env.ENABLE_POST_TRIP_FEEDBACK !== "false",
+  enableBookingConfirmation: process.env.ENABLE_BOOKING_CONFIRMATION !== "false",
+  enableItineraryUpdateNotifications: process.env.ENABLE_ITINERARY_UPDATE_NOTIFICATIONS !== "false",
+  enablePaymentReceipts: process.env.ENABLE_PAYMENT_RECEIPTS !== "false",
+  enablePaymentReminders: process.env.ENABLE_PAYMENT_REMINDERS !== "false",
+  enablePreTripReminders: process.env.ENABLE_PRE_TRIP_REMINDERS !== "false",
+  enableCancellationNotifications: process.env.ENABLE_CANCELLATION_NOTIFICATIONS !== "false",
+  enableDocumentDelivery: process.env.ENABLE_DOCUMENT_DELIVERY !== "false",
 };
 
 // Fail fast immediately on import if running under production environment

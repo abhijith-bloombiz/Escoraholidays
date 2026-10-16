@@ -5,7 +5,7 @@ import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
 import { ExploreCoverflow } from "@/components/ExploreCoverflow";
 import { TravelTypeCoverflow, TravelTypeItem } from "@/components/TravelTypeCoverflow";
-import { MapPin, Compass, Calendar, Users, Search, ChevronDown } from "lucide-react";
+import { MapPin, Compass, Calendar, Users, Search, ChevronDown, Flower2, SunMedium, Swords, HeartPulse } from "lucide-react";
 import TheEscoraWay from "@/components/TheEscoraWay";
 import Kerala3DDestinationExplorer from "@/components/Kerala3DDestinationExplorer";
 import Destination360Experience from "@/components/Destination360Experience";
@@ -20,7 +20,9 @@ const FALLBACK_PACKAGES = [
   { id: 4, name: "Spice Coast Odyssey", durationNights: 7, route: "Kochi · Marari · Kumarakom", category: "Culture", priceFrom: 220000, heroImageUrl: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80", description: "Seven nights tracing the ancient spice trade across Kerala's storied coast and backwaters.", featured: false },
 ];
 
-import heroBg from "@assets/escora/hero-bg.jpeg";
+import heroBg from "@assets/escora/hero-bg-kerala.png";
+import FloatingWaterHero from "@/components/FloatingWaterHero";
+import whyEscoraBg from "@assets/escora/why-escora-bg.jpeg";
 import typeWildlife from "@assets/escora/collections/nature-wildlife-hero.jpg";
 import typeHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
 import typeHoneymoon from "@assets/escora/collections/honeymoon-hero.jpg";
@@ -29,19 +31,6 @@ import typeMedicine from "@assets/escora/collections/medical-tourism.jpeg";
 import { KERALA_DESTINATIONS, DESTINATION_BADGES } from "@/lib/keralaDestinations";
 
 const FALLBACK_DESTINATIONS = KERALA_DESTINATIONS;
-
-const HERO_DESTINATIONS = [
-  { id: "munnar", name: "Munnar", src: DESTINATION_BADGES.munnar },
-  { id: "alleppey", name: "Alleppey", src: DESTINATION_BADGES.alleppey },
-  { id: "varkala", name: "Varkala", src: DESTINATION_BADGES.varkala },
-  { id: "wayanad", name: "Wayanad", src: DESTINATION_BADGES.wayanad },
-  { id: "kumarakom", name: "Kumarakom", src: DESTINATION_BADGES.kumarakom },
-  { id: "thekkady", name: "Thekkady", src: DESTINATION_BADGES.thekkady },
-  { id: "fort-kochi", name: "Fort Kochi", src: DESTINATION_BADGES["fort-kochi"] },
-  { id: "bekal", name: "Bekal", src: DESTINATION_BADGES.bekal },
-  { id: "kovalam", name: "Kovalam", src: DESTINATION_BADGES.kovalam },
-  { id: "kannur", name: "Kannur", src: DESTINATION_BADGES.kannur },
-];
 
 /* ── Travel by Type (3D Coverflow Items — Preserving Exact Original Contents) ── */
 const TRAVEL_TYPE_ITEMS: TravelTypeItem[] = [
@@ -264,16 +253,10 @@ const ESCORA_RETREAT_CARDS = [
   {
     step: "01",
     name: "Ayurveda & Panchakarma",
-    icon: (
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2c1 4-2 6-2 10a4 4 0 0 0 8 0c0-4-3-6-2-10" />
-        <path d="M8 18.5c0 1.5 1.8 2.5 4 2.5s4-1 4-2.5" />
-      </svg>
-    ),
+    icon: <Flower2 className="retreat-card-icon" strokeWidth={1.75} />,
     title: (
       <>
-        Ayurveda &amp; <br />
-        <em>Panchakarma</em>
+        Ayurveda &amp; <em>Panchakarma</em>
       </>
     ),
     desc: "Physician-led detox in the classical Keraliya tradition — pulse diagnosis, medicated oils prepared in-house, shirodhara and rasayana.",
@@ -284,17 +267,10 @@ const ESCORA_RETREAT_CARDS = [
   {
     step: "02",
     name: "Yoga & Meditation",
-    icon: (
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="5" r="2" />
-        <path d="M5 20l2-8h10l2 8" />
-        <path d="M12 10v5" />
-      </svg>
-    ),
+    icon: <SunMedium className="retreat-card-icon" strokeWidth={1.75} />,
     title: (
       <>
-        Yoga &amp; <br />
-        <em>Meditation</em>
+        Yoga &amp; <em>Meditation</em>
       </>
     ),
     desc: "Lakeside sunrise practice from gentle Hatha to disciplined Ashtanga, with pranayama and yoga nidra to settle the mind.",
@@ -305,15 +281,10 @@ const ESCORA_RETREAT_CARDS = [
   {
     step: "03",
     name: "Kalaripayattu — the art",
-    icon: (
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M13 4l3 8-8-3 5 5-8 3 3-8 5 5z" />
-      </svg>
-    ),
+    icon: <Swords className="retreat-card-icon" strokeWidth={1.75} />,
     title: (
       <>
-        Kalaripayattu — <br />
-        <em>the art</em>
+        Kalaripayattu — <em>the art</em>
       </>
     ),
     desc: "The world's oldest martial art, taught at a traditional kalari by a Gurukkal — forms, footwork and healing marma therapy.",
@@ -324,15 +295,10 @@ const ESCORA_RETREAT_CARDS = [
   {
     step: "04",
     name: "Naturopathy & Healthcare",
-    icon: (
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-      </svg>
-    ),
+    icon: <HeartPulse className="retreat-card-icon" strokeWidth={1.75} />,
     title: (
       <>
-        Naturopathy &amp; <br />
-        <em>Healthcare</em>
+        Naturopathy &amp; <em>Healthcare</em>
       </>
     ),
     desc: "Doctor-supervised detox, therapeutic diet, physiotherapy and lifestyle medicine — with full medical reports and home aftercare.",
@@ -425,23 +391,10 @@ export default function Home() {
   const [openDropdown, setOpenDropdown] = useState<"where" | "type" | "when" | "pax" | null>(null);
   const searchBarRef = useRef<HTMLDivElement>(null);
 
-  // Hero ESCORA destination clippath slideshow state
-  const [heroDestIdx, setHeroDestIdx] = useState(0);
-
   useEffect(() => {
-    // Preload hero background & destination images for zero-delay transitions
+    // Preload hero background image
     const heroImg = new window.Image();
     heroImg.src = heroBg;
-    HERO_DESTINATIONS.forEach((d) => {
-      const img = new window.Image();
-      img.src = d.src;
-    });
-
-    const timer = setInterval(() => {
-      setHeroDestIdx((current) => (current + 1) % HERO_DESTINATIONS.length);
-    }, 5600);
-
-    return () => clearInterval(timer);
   }, []);
 
   const [form, setForm] = useState<EnquiryForm>({
@@ -453,7 +406,6 @@ export default function Home() {
   const packagesRef = useRef<HTMLElement>(null);
   const exploreSectionRef = useRef<HTMLElement>(null);
   const heroSectionRef = useRef<HTMLElement>(null);
-  const [heroRevealKey, setHeroRevealKey] = useState(0);
 
   // Fluid scroll-assisted section-to-viewport docking across the homepage
   useSectionSnapAssist([
@@ -469,6 +421,26 @@ export default function Home() {
     "contact",
   ]);
   const [activeRetreatCard, setActiveRetreatCard] = useState<number>(1);
+
+  const handleRetreatCardClick = (i: number, e?: React.MouseEvent | React.KeyboardEvent) => {
+    setActiveRetreatCard(i);
+    setForm((f) => ({
+      ...f,
+      type: "Health & Wellness",
+      budget: f.budget || "₹10,000+ / night",
+    }));
+
+    const contactEl = document.getElementById("contact");
+    if (contactEl) {
+      if (e) e.preventDefault();
+      contactEl.scrollIntoView({ behavior: "smooth" });
+      window.history.pushState(null, "", "#contact");
+      setTimeout(() => {
+        const nameInput = document.getElementById("form-name") as HTMLInputElement | null;
+        nameInput?.focus({ preventScroll: true });
+      }, 700);
+    }
+  };
   const [activeTestimonialIdx, setActiveTestimonialIdx] = useState<number>(0);
   const [isTestimonialHovered, setIsTestimonialHovered] = useState<boolean>(false);
 
@@ -480,26 +452,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, [isTestimonialHovered]);
 
-  useEffect(() => {
-    const el = heroSectionRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
 
-    let hasInitiallyEntered = false;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          if (hasInitiallyEntered) {
-            setHeroRevealKey((k) => k + 1);
-          }
-          hasInitiallyEntered = true;
-        }
-      },
-      { threshold: 0.25 }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -660,116 +613,11 @@ export default function Home() {
         aria-label="Escora — Kerala, your way"
         ref={heroSectionRef}
       >
-        <div
-          className="hero-art-bg"
-          style={{ backgroundImage: `url(${heroBg})` }}
-          aria-hidden="true"
-        />
+        <FloatingWaterHero containerRef={heroSectionRef} />
 
 
-        {/* Center Editorial Typography & Branding */}
-        <div className="hero-center-content">
-          <p className="hero-kicker">JOURNEYS THROUGH</p>
-
-          <div className="hero-brand-wrap">
-            <h1 className="hero-main-title-sr">ESCORA</h1>
-
-            <svg
-              key={heroRevealKey}
-              className="hero-main-title-svg"
-              viewBox="0 0 1000 156"
-              preserveAspectRatio="xMidYMid meet"
-              aria-hidden="true"
-            >
-              <defs>
-                {/* 6 Individual letter clip paths with Playfair Display Regular (400) metrics */}
-                <clipPath id="escora-clip-0">
-                  <text className="escora-clip-char" x="156.74" y="130">E</text>
-                </clipPath>
-                <clipPath id="escora-clip-1">
-                  <text className="escora-clip-char" x="267.07" y="130">S</text>
-                </clipPath>
-                <clipPath id="escora-clip-2">
-                  <text className="escora-clip-char" x="364.67" y="130">C</text>
-                </clipPath>
-                <clipPath id="escora-clip-3">
-                  <text className="escora-clip-char" x="486.93" y="130">O</text>
-                </clipPath>
-                <clipPath id="escora-clip-4">
-                  <text className="escora-clip-char" x="619.20" y="130">R</text>
-                </clipPath>
-                <clipPath id="escora-clip-5">
-                  <text className="escora-clip-char" x="736.16" y="130">A</text>
-                </clipPath>
-
-                <linearGradient id="escora-editorial-tint" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor="#0a170d" stopOpacity="0.82" />
-                  <stop offset="38%" stopColor="#122517" stopOpacity="0.32" />
-                  <stop offset="75%" stopColor="#0e1d12" stopOpacity="0.18" />
-                  <stop offset="100%" stopColor="#071009" stopOpacity="0.55" />
-                </linearGradient>
-
-                <filter id="escora-text-depth" x="-10%" y="-10%" width="120%" height="120%">
-                  <feDropShadow dx="0" dy="2.5" stdDeviation="3.5" floodColor="#000000" floodOpacity="0.1" />
-                </filter>
-              </defs>
-
-              {/* 6 letters revealed smoothly from 0% to 100% with live responsive parallax */}
-              <g filter="url(#escora-text-depth)">
-                {[
-                  { id: "0", cls: "escora-letter-1" },
-                  { id: "1", cls: "escora-letter-2" },
-                  { id: "2", cls: "escora-letter-3" },
-                  { id: "3", cls: "escora-letter-4" },
-                  { id: "4", cls: "escora-letter-5" },
-                  { id: "5", cls: "escora-letter-6" },
-                ].map((letter) => (
-                  <g
-                    key={letter.id}
-                    className={`escora-letter-g ${letter.cls}`}
-                    clipPath={`url(#escora-clip-${letter.id})`}
-                  >
-                    <rect width="100%" height="100%" fill="#122417" />
-                    {HERO_DESTINATIONS.map((dest, i) => {
-                      const isActive = i === heroDestIdx;
-                      return (
-                        <g
-                          key={dest.id}
-                          className={`escora-dest-slide ${isActive ? "is-active" : ""}`}
-                        >
-                          <image
-                            href={dest.src}
-                            x="-14%"
-                            y="-14%"
-                            width="128%"
-                            height="128%"
-                            preserveAspectRatio="xMidYMid slice"
-                            className={`escora-zoom-img ${isActive ? "anim-active" : ""}`}
-                          />
-                        </g>
-                      );
-                    })}
-                    <rect
-                      width="100%"
-                      height="100%"
-                      fill="url(#escora-editorial-tint)"
-                      style={{ mixBlendMode: "multiply", pointerEvents: "none" }}
-                    />
-                  </g>
-                ))}
-              </g>
-            </svg>
-          </div>
-
-          <div className="hero-subtitle">
-            <span className="sub-kerala">Kerala,</span>
-            <span className="sub-yourway">your way.</span>
-          </div>
-
-          <p className="hero-tagline">
-            PRIVATE JOURNEYS, THOUGHTFULLY CRAFTED AROUND YOU.
-          </p>
-        </div>
+        {/* Visually hidden H1 for SEO semantics */}
+        <h1 className="sr-only">Escora Holidays — Kerala, Luxury Private Travel</h1>
 
         {/* Floating Bottom Search & Booking Capsule */}
         <div className="hero-search-wrapper" ref={searchBarRef}>
@@ -1034,7 +882,7 @@ export default function Home() {
       {/* ═══════════════════════ WHY ESCORA — LANDSCAPE PANORAMA ═══════════════════════ */}
       <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
         {/* Background landscape */}
-        <div className="why-esc-bg" style={{ backgroundImage: `url(${heroBg})` }} aria-hidden="true" />
+        <div className="why-esc-bg" style={{ backgroundImage: `url(${whyEscoraBg})` }} aria-hidden="true" />
         {/* Cream overlay for readability */}
         <div className="why-esc-overlay" aria-hidden="true" />
 
@@ -1219,27 +1067,13 @@ export default function Home() {
                 ESCORA RETREAT
               </div>
               <h2 className="retreat-title rv d1">
-                Healing, the <br />
-                <em>Kerala</em> way.
+                Healing, the <em>Kerala</em> way.
               </h2>
             </div>
             <div className="retreat-header-right rv d2">
               <p className="retreat-lede">
                 Set on the quiet shore of Vembanad Lake — our NABH-accredited wellness home, where physicians, yogis and kalari masters work as one. Every programme is composed for you alone.
               </p>
-              <a
-                className="retreat-enquire-btn"
-                href="#contact"
-                onClick={() => {
-                  setForm((f) => ({ ...f, type: "Wellness", budget: f.budget || "₹10,000+ / night" }));
-                }}
-              >
-                <span>Enquire about the retreat</span>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14" />
-                  <path d="M12 5l7 7-7 7" />
-                </svg>
-              </a>
             </div>
           </div>
 
@@ -1247,26 +1081,22 @@ export default function Home() {
             {ESCORA_RETREAT_CARDS.map((card, i) => {
               const isActive = activeRetreatCard === i;
               return (
-                <div
+                <a
                   key={i}
+                  href="#contact"
                   className={`retreat-arch-card rv${i > 0 ? ` d${i}` : ""}${isActive ? " is-active" : ""}`}
-                  onClick={() => setActiveRetreatCard(i)}
-                  role="button"
-                  tabIndex={0}
+                  onClick={(e) => handleRetreatCardClick(i, e)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setActiveRetreatCard(i);
+                      handleRetreatCardClick(i, e);
                     }
                   }}
-                  aria-label={`${card.name} - Step ${card.step}`}
+                  aria-label={`Enquire about ${card.name} - Step ${card.step}`}
                 >
                   {/* Golden Apex Dot on active card */}
                   {isActive && <div className="retreat-apex-dot" aria-hidden="true" />}
 
                   <div className="retreat-card-content">
-                    <div className="retreat-card-num">{card.step}</div>
-                    <div className="retreat-card-num-line" />
                     <div className="retreat-card-icon-badge" aria-hidden="true">
                       {card.icon}
                     </div>
@@ -1280,24 +1110,6 @@ export default function Home() {
                         </span>
                       ))}
                     </div>
-
-                    <div className="retreat-card-btn-wrap">
-                      <a
-                        href="#contact"
-                        className="retreat-card-action-btn"
-                        aria-label={`Enquire about ${card.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveRetreatCard(i);
-                          setForm((f) => ({ ...f, type: "Wellness" }));
-                        }}
-                      >
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M5 12h14" />
-                          <path d="M12 5l7 7-7 7" />
-                        </svg>
-                      </a>
-                    </div>
                   </div>
 
                   <div className="retreat-card-photo-wrap">
@@ -1308,48 +1120,22 @@ export default function Home() {
                       loading="lazy"
                     />
                     <div className="retreat-card-photo-overlay" aria-hidden="true" />
+                    <div className="retreat-card-photo-bottom">
+                      <div className="retreat-card-num">{card.step}</div>
+                      <div
+                        className="retreat-card-action-btn"
+                        aria-hidden="true"
+                      >
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14" />
+                          <path d="M12 5l7 7-7 7" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </a>
               );
             })}
-          </div>
-
-          <div className="retreat-navigation" aria-label="Card navigation">
-            <button
-              type="button"
-              className="retreat-nav-arrow"
-              onClick={() => setActiveRetreatCard((prev) => (prev - 1 + ESCORA_RETREAT_CARDS.length) % ESCORA_RETREAT_CARDS.length)}
-              aria-label="Previous card"
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-
-            <div className="retreat-indicators" role="tablist" aria-label="Retreat card indicators">
-              {ESCORA_RETREAT_CARDS.map((c, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeRetreatCard === i}
-                  aria-label={`Select card ${c.step} ${c.name}`}
-                  className={`retreat-indicator-bar${activeRetreatCard === i ? " is-active" : ""}`}
-                  onClick={() => setActiveRetreatCard(i)}
-                />
-              ))}
-            </div>
-
-            <button
-              type="button"
-              className="retreat-nav-arrow"
-              onClick={() => setActiveRetreatCard((prev) => (prev + 1) % ESCORA_RETREAT_CARDS.length)}
-              aria-label="Next card"
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
           </div>
         </div>
       </section>

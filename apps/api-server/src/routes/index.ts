@@ -68,6 +68,13 @@ router.get("/itineraries/:id", requireAuth, itinerariesRouter);
 router.patch("/itineraries/:id", requireAuth, itinerariesRouter);
 router.delete("/itineraries/:id", requireAuth, itinerariesRouter);
 
+// Invoices: admin only
+router.get("/invoices", requireAuth, invoicesRouter);
+router.post("/invoices", requireAuth, invoicesRouter);
+router.get("/invoices/:id", requireAuth, invoicesRouter);
+router.patch("/invoices/:id", requireAuth, invoicesRouter);
+router.delete("/invoices/:id", requireAuth, invoicesRouter);
+
 // Travel categories: public GETs, protected writes
 router.get("/travel-categories", travelCategoriesRouter);
 router.get("/travel-categories/:id", travelCategoriesRouter);

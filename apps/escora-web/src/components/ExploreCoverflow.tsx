@@ -197,12 +197,11 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
     card.style.setProperty("--mouse-y", "50%");
   };
 
-  const [isInView, setIsInView] = useState(false);
-  const [hasEntered, setHasEntered] = useState(false);
-  const [isRevealing, setIsRevealing] = useState(false);
-  const [isScrolling, setIsScrolling] = useState(false);
+  const [entranceState, setEntranceState] = useState<"pending" | "revealing" | "complete">("pending");
+  const isScrollingRef = useRef(false);
+  const isPausedRef = useRef(false);
+  const isInViewRef = useRef(false);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   /* Viewport visibility: reveal entrance when scrolling forward or reverse into exact viewport */
@@ -211,8 +210,8 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
     if (!el) return;
 
     if (typeof IntersectionObserver === "undefined") {
-      setIsInView(true);
-      setHasEntered(true);
+      isInViewRef.current = true;
+      setEntranceState("complete");
       return;
     }
 
@@ -220,24 +219,22 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
       ([entry]) => {
         // Enters viewport (either scrolling forward/down or reverse/up)
         if (entry.isIntersecting && entry.intersectionRatio >= 0.18) {
-          setIsInView(true);
-          setHasEntered((prev) => {
-            if (!prev) {
-              setIsRevealing(true);
+          isInViewRef.current = true;
+          setEntranceState((prev) => {
+            if (prev === "pending") {
               if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
               revealTimerRef.current = setTimeout(() => {
-                setIsRevealing(false);
-              }, 1000);
-              return true;
+                setEntranceState("complete");
+              }, 1100);
+              return "revealing";
             }
             return prev;
           });
         }
         // Fully leaves viewport (scrolled away up or down)
         else if (!entry.isIntersecting || entry.intersectionRatio <= 0.02) {
-          setIsInView(false);
-          setHasEntered(false);
-          setIsRevealing(false);
+          isInViewRef.current = false;
+          setEntranceState("pending");
           if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
         }
       },
@@ -251,21 +248,16 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
     };
   }, []);
 
-  /* Scroll detection: do not auto-scroll cards while the user is actively scrolling */
+  /* Scroll detection: do not auto-scroll cards while the user is actively scrolling (uses ref to avoid re-renders) */
   useEffect(() => {
-    let isScrollingActive = false;
     const onScroll = () => {
-      if (!isScrollingActive) {
-        isScrollingActive = true;
-        setIsScrolling(true);
-      }
+      isScrollingRef.current = true;
       if (scrollTimeoutRef.current) {
         clearTimeout(scrollTimeoutRef.current);
       }
       scrollTimeoutRef.current = setTimeout(() => {
-        isScrollingActive = false;
-        setIsScrolling(false);
-      }, 1200);
+        isScrollingRef.current = false;
+      }, 1000);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -285,7 +277,7 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
   /* Auto-play timer: advances every 4.8s (giving 1.15s silky glide + ~3.65s restful viewing delay)
      Runs ONLY when the cards are in the viewport and user is not scrolling or interacting */
   useEffect(() => {
-    if (total <= 1 || isPaused || isScrolling || !isInView) return;
+    if (total <= 1) return;
 
     const prefersReducedMotion =
       typeof window !== "undefined" &&
@@ -294,15 +286,18 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
     if (prefersReducedMotion) return;
 
     const timer = setInterval(() => {
-      handleNext();
+      if (!isPausedRef.current && !isScrollingRef.current && isInViewRef.current) {
+        handleNext();
+      }
     }, 4800);
 
     return () => clearInterval(timer);
-  }, [activeIndex, isPaused, isScrolling, isInView, total, handleNext]);
+  }, [total, handleNext]);
 
   /* Pause auto-play when tab is hidden */
   useEffect(() => {
     const handleVisibility = () => {
+      isPausedRef.current = document.hidden;
       setIsPaused(document.hidden);
     };
     document.addEventListener("visibilitychange", handleVisibility);
@@ -367,11 +362,7 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
 
   if (!itemsList || itemsList.length === 0) return null;
 
-  const entranceClass = !hasEntered
-    ? "coverflow-entrance-pending"
-    : isRevealing
-    ? "coverflow-entrance-revealing"
-    : "coverflow-entrance-complete";
+  const entranceClass = `coverflow-entrance-${entranceState}`;
 
   return (
     <div
@@ -380,10 +371,22 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
       tabIndex={0}
       role="region"
       aria-label="Kerala 3D Coverflow"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-      onFocus={() => setIsPaused(true)}
-      onBlur={() => setIsPaused(false)}
+      onMouseEnter={() => {
+        isPausedRef.current = true;
+        setIsPaused(true);
+      }}
+      onMouseLeave={() => {
+        isPausedRef.current = false;
+        setIsPaused(false);
+      }}
+      onFocus={() => {
+        isPausedRef.current = true;
+        setIsPaused(true);
+      }}
+      onBlur={() => {
+        isPausedRef.current = false;
+        setIsPaused(false);
+      }}
       onKeyDown={onKeyDown}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}

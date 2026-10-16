@@ -168,6 +168,7 @@
 
 /* Floating District Markers on 3D Map (Reference: 03 Midnight Navy & Antique Gold) */
 .map-floating-pin-pill {
+  position: absolute;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -177,10 +178,40 @@
   border: 1px solid rgba(214, 182, 111, 0.45);
   box-shadow: 0 4px 12px rgba(23, 40, 61, 0.10);
   cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease;
   white-space: nowrap;
   user-select: none;
   z-index: 5;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Fluid spring popup keyframe: drops slightly from top and springs up to resting scale */
+@keyframes mapPinPopUpEntrance {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 18px)) scale(0.18);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% + 2px)) scale(1.15);
+  }
+  85% {
+    transform: translate(-50%, calc(-50% - 1px)) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Reveal sequentially from top (Kasaragod) to bottom (Trivandrum) one by one */
+.kerala-3d-map-three-container.is-revealed .map-floating-pin-pill {
+  opacity: 1;
+  pointer-events: auto;
+  animation: mapPinPopUpEntrance 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(0.10s + var(--pin-idx, 0) * 0.075s);
 }
 
 .map-floating-pin-pill .pin-dot {
@@ -201,7 +232,7 @@
 }
 
 .map-floating-pin-pill:hover {
-  transform: translate(-50%, -50%) scale(1.07);
+  transform: translate(-50%, -50%) scale(1.08) !important;
   background: #FFFFFF;
   border-color: #D6B66F;
   box-shadow: 0 6px 16px rgba(23, 40, 61, 0.16);
@@ -211,7 +242,7 @@
 .map-floating-pin-pill.is-dest-target {
   background: linear-gradient(135deg, #F9F2E2 0%, #E6C478 100%);
   border-color: #D6B66F;
-  transform: translate(-50%, -50%) scale(1.08);
+  transform: translate(-50%, -50%) scale(1.08) !important;
   box-shadow: 0 6px 18px rgba(214, 182, 111, 0.35);
 }
 
@@ -393,5 +424,8 @@
   .map-floating-pin-pill {
     transition: none !important;
     animation: none !important;
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) !important;
+    pointer-events: auto !important;
   }
 }

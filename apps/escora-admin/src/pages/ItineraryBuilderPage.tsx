@@ -61,7 +61,15 @@ import {
   parseStays,
   parsePricing,
   parseStringList,
+  parseTripIncludes,
+  parseTransportation,
   computePricingTotal,
+  DEFAULT_HOTEL_TERMS,
+  DEFAULT_PAYMENT_TERMS,
+  DEFAULT_IMPORTANT_INFO,
+  DEFAULT_EXCLUSIONS,
+  DEFAULT_TRIP_INCLUDES,
+  DEFAULT_AGENCY_CONTACT,
   type ItineraryDay,
   type ItineraryStay,
   type ItineraryPricing,
@@ -86,6 +94,20 @@ interface BuilderForm {
   summary: string;
   currency: string;
   status: string;
+  referenceNumber: string;
+  curatorName: string;
+  curatorPhone: string;
+  emergencyContacts: string;
+  adults: number;
+  children: number;
+  infants: number;
+  hotelIncluded: boolean;
+  transportIncluded: boolean;
+  sightseeingIncluded: boolean;
+  transferIncluded: boolean;
+  transportOrigin: string;
+  transportDestination: string;
+  transportVehicle: string;
   days: ItineraryDay[];
   stays: ItineraryStay[];
   pricing: ItineraryPricing;
@@ -105,6 +127,20 @@ const emptyForm: BuilderForm = {
   summary: "",
   currency: "INR",
   status: "draft",
+  referenceNumber: "",
+  curatorName: DEFAULT_AGENCY_CONTACT.curatorName,
+  curatorPhone: DEFAULT_AGENCY_CONTACT.curatorPhone,
+  emergencyContacts: DEFAULT_AGENCY_CONTACT.emergencyContacts,
+  adults: 1,
+  children: 0,
+  infants: 0,
+  hotelIncluded: true,
+  transportIncluded: true,
+  sightseeingIncluded: true,
+  transferIncluded: true,
+  transportOrigin: "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
+  transportDestination: "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
+  transportVehicle: "Private Dedicated Chauffeur Driven AC Sedan / SUV",
   days: [],
   stays: [],
   pricing: { items: [], total: 0 },
@@ -116,6 +152,7 @@ function templateToFormValues(template: ItineraryTemplate): BuilderForm {
   return {
     ...emptyForm,
     title: template.title,
+    customerName: template.customerName || "",
     destination: template.destination,
     days: JSON.parse(JSON.stringify(template.days)),
     stays: JSON.parse(JSON.stringify(template.stays)),
@@ -197,6 +234,12 @@ export default function ItineraryBuilderPage() {
   // Load existing itinerary data into form
   useEffect(() => {
     if (existing) {
+      const tripInc = parseTripIncludes(existing.tripIncludes);
+      const transport = parseTransportation(existing.transportation);
+      const hTerms = parseStringList(existing.hotelTerms);
+      const pTerms = parseStringList(existing.paymentTerms);
+      const iInfo = parseStringList(existing.importantInfo);
+
       reset({
         customerName: existing.customerName,
         customerEmail: existing.customerEmail ?? "",
@@ -209,6 +252,20 @@ export default function ItineraryBuilderPage() {
         summary: existing.summary ?? "",
         currency: existing.currency,
         status: existing.status,
+        referenceNumber: existing.referenceNumber ?? "",
+        curatorName: existing.curatorName ?? DEFAULT_AGENCY_CONTACT.curatorName,
+        curatorPhone: existing.curatorPhone ?? DEFAULT_AGENCY_CONTACT.curatorPhone,
+        emergencyContacts: existing.emergencyContacts ?? DEFAULT_AGENCY_CONTACT.emergencyContacts,
+        adults: existing.adults ?? 1,
+        children: existing.children ?? 0,
+        infants: existing.infants ?? 0,
+        hotelIncluded: tripInc.hotel,
+        transportIncluded: tripInc.transport,
+        sightseeingIncluded: tripInc.sightseeing,
+        transferIncluded: tripInc.transfer,
+        transportOrigin: transport?.origin ?? "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
+        transportDestination: transport?.destination ?? "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
+        transportVehicle: transport?.vehicleType ?? "Private AC Vehicle",
         days: parseDays(existing.days),
         stays: parseStays(existing.stays),
         pricing: parsePricing(existing.pricing),
@@ -541,7 +598,6 @@ export default function ItineraryBuilderPage() {
           <Card
             className="group relative border-2 border-dashed border-border hover:border-primary/60 transition-all flex flex-col justify-between cursor-pointer bg-card/60 hover:bg-card hover:shadow-md"
             onClick={() => setTemplateChoice("blank")}
-            data-testid="template-card-blank"
           >
             <CardHeader className="pb-3">
               <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">

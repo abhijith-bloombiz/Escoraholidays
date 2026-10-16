@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import escoraLogoLight from "@assets/escora/escora-logo-light.png";
 
 export default function FooterV3() {
   return (
@@ -13,24 +14,13 @@ export default function FooterV3() {
         <div className="cinematic-footer-split">
           {/* ── Left Section: Brand & Persona ── */}
           <div className="cinematic-footer-brand">
-            <Link href="/" className="cinematic-footer-brand-title">
-              <span>Escora</span>
-              <span className="cinematic-footer-plane">
-                <svg
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="#c59a58"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m22 2-7 20-4-9-9-4Z" />
-                  <path d="M22 2 11 13" />
-                </svg>
-              </span>
+            <Link href="/" className="cinematic-footer-brand-link" aria-label="Escora Holidays Home">
+              <img
+                src={escoraLogoLight}
+                alt="Escora Holidays"
+                className="cinematic-footer-brand-img"
+                loading="lazy"
+              />
             </Link>
 
             <h3 className="cinematic-footer-tagline">
@@ -152,73 +142,34 @@ export default function FooterV3() {
                 </ul>
               </div>
 
-              {/* CONNECT */}
+              {/* CONTACT */}
               <div className="cinematic-footer-nav-col">
-                <h5>CONNECT</h5>
+                <h5>CONTACT</h5>
                 <ul>
                   <li>
-                    <a
-                      href="https://www.instagram.com/escora_holidays"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="cinematic-footer-connect-link"
-                    >
-                      <svg className="cinematic-footer-connect-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                        <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                      </svg>
-                      <span>Instagram</span>
+                    <a href="tel:+918157003344" className="cinematic-footer-nav-link">
+                      +91 8157 003 344
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="https://www.facebook.com/people/Escora-holidays"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="cinematic-footer-connect-link"
-                    >
-                      <svg className="cinematic-footer-connect-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                      </svg>
-                      <span>Facebook</span>
+                    <a href="mailto:hello@escoraholidays.com" className="cinematic-footer-nav-link">
+                      hello@escoraholidays.com
                     </a>
                   </li>
                   <li>
-                    <a
-                      href="https://www.youtube.com/@escoraholidays"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="cinematic-footer-connect-link"
-                    >
-                      <svg className="cinematic-footer-connect-icon" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z" />
-                        <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#0c2016" />
-                      </svg>
-                      <span>YouTube</span>
-                    </a>
+                    <Link href="/about" className="cinematic-footer-nav-link">
+                      Kozhikode, Kerala 673014
+                    </Link>
                   </li>
                   <li>
-                    <a href="mailto:hello@escoraholidays.com" className="cinematic-footer-connect-link">
-                      <svg className="cinematic-footer-connect-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <rect width="20" height="16" x="2" y="4" rx="2" />
-                        <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                      </svg>
-                      <span>Email</span>
-                    </a>
+                    <Link href="/journal" className="cinematic-footer-nav-link">
+                      The Journal
+                    </Link>
                   </li>
                   <li>
-                    <a
-                      href="https://wa.me/918157003344"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="cinematic-footer-connect-link"
-                    >
-                      <svg className="cinematic-footer-connect-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                      </svg>
-                      <span>WhatsApp</span>
-                    </a>
+                    <Link href="/about" className="cinematic-footer-nav-link">
+                      About Escora
+                    </Link>
                   </li>
                 </ul>
               </div>
@@ -284,10 +235,6 @@ export default function FooterV3() {
               <p className="cinematic-footer-copy">© 2026 Escora. All rights reserved.</p>
               <div className="cinematic-footer-legal-links">
                 <Link href="/privacy-policy">Privacy Policy</Link>
-                <span className="cinematic-footer-legal-pipe">|</span>
-                <Link href="/privacy-policy">Terms &amp; Conditions</Link>
-                <span className="cinematic-footer-legal-pipe">|</span>
-                <Link href="/privacy-policy">Cookie Policy</Link>
               </div>
             </div>
           </div>

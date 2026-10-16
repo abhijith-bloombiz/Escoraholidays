@@ -1701,6 +1701,8 @@ body {
   perspective: 1200px;
   transform-style: preserve-3d;
   pointer-events: none; /* CRITICAL: Prevent the 2D stage plane at Z=0 from intercepting clicks on 3D rotated cards */
+  contain: layout style;
+  isolation: isolate;
 }
 
 /* Individual 3D Coverflow Card — 8px radius, equal gaps, exact 3D positioning */
@@ -1718,12 +1720,12 @@ body {
   -webkit-user-select: none;
   outline: none;
   text-decoration: none;
-  will-change: transform, opacity, width;
+  will-change: transform, opacity;
   transition: transform 1.15s cubic-bezier(0.25, 1, 0.35, 1),
-              width 1.15s cubic-bezier(0.25, 1, 0.35, 1),
-              opacity 1.15s cubic-bezier(0.25, 1, 0.35, 1),
-              filter 1.15s cubic-bezier(0.25, 1, 0.35, 1);
+              opacity 1.15s cubic-bezier(0.25, 1, 0.35, 1);
   transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   --tilt-x: 0deg;
   --tilt-y: 0deg;
   --mouse-x: 50%;
@@ -1848,71 +1850,57 @@ body {
   opacity: 1;
 }
 
-/* Center (Active) Card: offset 0 — full width 266px */
+/* Center (Active) Card: offset 0 — exact 100% scale + subtle 1.04 pop (matches previous 266px look with zero layout reflow) */
 .coverflow-card[data-offset="0"] {
-  width: 266px;
-  transform: translate3d(-50%, -50%, 0) scale(1) rotateY(0deg);
+  transform: translate3d(-50%, -50%, 0) scale(1.04) rotateY(0deg);
   z-index: 30;
   opacity: 1;
   cursor: pointer;
 }
 
-/* Adjacent Cards: offset -1 (left) and 1 (right) — 256px width (10px narrower), exact 10px gap */
+/* Adjacent Cards: offset -1 (left) and 1 (right) — exact 10px gap */
 .coverflow-card[data-offset="-1"] {
-  width: 256px;
   transform: translate3d(calc(-50% - 252px), -50%, -18px) scale(0.84) rotateY(15deg);
   z-index: 20;
-  opacity: 0.96;
-  filter: brightness(0.95);
+  opacity: 0.94;
 }
 
 .coverflow-card[data-offset="1"] {
-  width: 256px;
   transform: translate3d(calc(-50% + 252px), -50%, -18px) scale(0.84) rotateY(-15deg);
   z-index: 20;
-  opacity: 0.96;
-  filter: brightness(0.95);
+  opacity: 0.94;
 }
 
-/* Outer Cards: offset -2 (far left) and 2 (far right) — 256px width (10px narrower), exact 10px gap */
+/* Outer Cards: offset -2 (far left) and 2 (far right) — exact 10px gap */
 .coverflow-card[data-offset="-2"] {
-  width: 256px;
   transform: translate3d(calc(-50% - 482px), -50%, -36px) scale(0.76) rotateY(21deg);
   z-index: 10;
-  opacity: 0.88;
-  filter: brightness(0.88);
+  opacity: 0.85;
 }
 
 .coverflow-card[data-offset="2"] {
-  width: 256px;
   transform: translate3d(calc(-50% + 482px), -50%, -36px) scale(0.76) rotateY(-21deg);
   z-index: 10;
-  opacity: 0.88;
-  filter: brightness(0.88);
+  opacity: 0.85;
 }
 
 /* Off-screen exiting/entering cards: offset -3 and 3 — smooth dissolve glide transition */
 .coverflow-card[data-offset="-3"] {
-  width: 256px;
   transform: translate3d(calc(-50% - 694px), -50%, -60px) scale(0.68) rotateY(26deg);
   z-index: 2;
   opacity: 0;
-  filter: brightness(0.75);
   pointer-events: none;
 }
 
 .coverflow-card[data-offset="3"] {
-  width: 256px;
   transform: translate3d(calc(-50% + 694px), -50%, -60px) scale(0.68) rotateY(-26deg);
   z-index: 2;
   opacity: 0;
-  filter: brightness(0.75);
   pointer-events: none;
 }
 
 /* Hidden cards outside the active transition range */
 .coverflow-card[data-offset="hidden-left"] {
-  width: 256px;
   transform: translate3d(calc(-50% - 808px), -50%, -80px) scale(0.60) rotateY(30deg);
   z-index: 1;
   opacity: 0;
@@ -1920,7 +1908,6 @@ body {
 }
 
 .coverflow-card[data-offset="hidden-right"] {
-  width: 256px;
   transform: translate3d(calc(-50% + 808px), -50%, -80px) scale(0.60) rotateY(-30deg);
   z-index: 1;
   opacity: 0;
@@ -2209,7 +2196,7 @@ body {
 
 /* State 1: Before scrolling into exact viewport — all cards collapsed behind center */
 .explore-coverflow-wrap.coverflow-entrance-pending .coverflow-card[data-offset="0"] {
-  transform: translate3d(-50%, -50%, 0) scale(0) rotateY(0deg) !important;
+  transform: translate3d(-50%, -50%, 0) scale(0.12) rotateY(0deg) !important;
   opacity: 0 !important;
   pointer-events: none !important;
   transition: none !important;
@@ -2217,7 +2204,7 @@ body {
 
 .explore-coverflow-wrap.coverflow-entrance-pending .coverflow-card[data-offset="-1"],
 .explore-coverflow-wrap.coverflow-entrance-pending .coverflow-card[data-offset="1"] {
-  transform: translate3d(-50%, -50%, -24px) scale(0) rotateY(0deg) !important;
+  transform: translate3d(-50%, -50%, -24px) scale(0.12) rotateY(0deg) !important;
   opacity: 0 !important;
   pointer-events: none !important;
   transition: none !important;
@@ -2225,7 +2212,7 @@ body {
 
 .explore-coverflow-wrap.coverflow-entrance-pending .coverflow-card[data-offset="-2"],
 .explore-coverflow-wrap.coverflow-entrance-pending .coverflow-card[data-offset="2"] {
-  transform: translate3d(-50%, -50%, -48px) scale(0) rotateY(0deg) !important;
+  transform: translate3d(-50%, -50%, -48px) scale(0.12) rotateY(0deg) !important;
   opacity: 0 !important;
   pointer-events: none !important;
   transition: none !important;
@@ -2235,7 +2222,7 @@ body {
 .explore-coverflow-wrap.coverflow-entrance-pending .coverflow-card[data-offset="3"],
 .explore-coverflow-wrap.coverflow-entrance-pending .coverflow-card[data-offset="hidden-left"],
 .explore-coverflow-wrap.coverflow-entrance-pending .coverflow-card[data-offset="hidden-right"] {
-  transform: translate3d(-50%, -50%, -60px) scale(0) rotateY(0deg) !important;
+  transform: translate3d(-50%, -50%, -60px) scale(0.12) rotateY(0deg) !important;
   opacity: 0 !important;
   pointer-events: none !important;
   transition: none !important;
@@ -2981,10 +2968,16 @@ body {
   position: relative;
   background: #fbf8f2;
   background: linear-gradient(180deg, #faf7f0 0%, #f6f2e8 100%);
-  padding: 104px 0 112px 0;
+  padding: clamp(14px, 1.8vh, 26px) 0;
+  min-height: min(100vh, 900px);
+  min-height: min(100dvh, 900px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   overflow: hidden;
   color: #133324;
   scroll-margin-top: 80px;
+  box-sizing: border-box;
 }
 
 /* Botanical vector illustrations */
@@ -3037,23 +3030,29 @@ body {
 .retreat-container {
   position: relative;
   z-index: 2;
-  max-width: var(--container, 1280px);
+  width: 100%;
+  max-width: min(1380px, calc(100vw - 48px));
   margin: 0 auto;
-  padding: 0 var(--gutter, 28px);
+  padding: 0 var(--gutter, clamp(16px, 3vw, 36px));
+  box-sizing: border-box;
 }
 
+/* Header */
 /* Header */
 .retreat-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  gap: 52px;
-  margin-bottom: 64px;
+  gap: clamp(24px, 3.5vw, 48px);
+  margin-bottom: clamp(38px, 5vh, 60px);
+  padding-bottom: clamp(8px, 1.1vh, 14px);
+  border-bottom: 1px solid rgba(228, 222, 210, 0.7);
+  width: 100%;
 }
 
 .retreat-header-left {
-  flex: 1.1;
-  max-width: 580px;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .retreat-eyebrow {
@@ -3066,7 +3065,7 @@ body {
   text-transform: uppercase;
   color: #c59a58;
   font-weight: 500;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .retreat-eyebrow-dot {
@@ -3079,12 +3078,13 @@ body {
 
 .retreat-title {
   font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-size: clamp(38px, 4.4vw, 56px);
-  line-height: 1.08;
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.1;
   font-weight: 400;
   color: #133324;
   letter-spacing: -0.015em;
   margin: 0;
+  white-space: nowrap;
 }
 
 .retreat-title em {
@@ -3095,77 +3095,52 @@ body {
 }
 
 .retreat-header-right {
-  flex: 0.9;
-  max-width: 500px;
+  flex: 0 1 460px;
+  max-width: 460px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 24px;
+  align-items: flex-end;
+  text-align: right;
+  gap: 0;
 }
 
 .retreat-lede {
   font-family: var(--f-body, sans-serif);
-  font-size: 14.5px;
-  line-height: 1.72;
+  font-size: clamp(12.5px, 0.95vw, 14px);
+  line-height: 1.65;
   color: #48574e;
   margin: 0;
-}
-
-.retreat-enquire-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 14px;
-  background: #133324;
-  color: #ffffff;
-  padding: 13px 26px;
-  border-radius: 999px;
-  font-family: var(--f-mono, monospace);
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-decoration: none;
-  transition: background 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 14px rgba(19, 51, 36, 0.12);
-}
-
-.retreat-enquire-btn:hover {
-  background: #1e4532;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(19, 51, 36, 0.2);
-  color: #ffffff;
-}
-
-.retreat-enquire-btn svg {
-  transition: transform 0.25s ease;
-}
-
-.retreat-enquire-btn:hover svg {
-  transform: translateX(4px);
+  text-align: right;
+  max-width: 44ch;
 }
 
 /* Cards Grid */
 .retreat-cards-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  gap: clamp(14px, 1.6vw, 24px);
   align-items: stretch;
   position: relative;
+  width: 100%;
 }
 
 /* Tall Arch Card */
 .retreat-arch-card {
   position: relative;
   background: #fdfcf9;
-  border-radius: 170px 170px 38px 38px;
+  border-radius: 160px 160px 32px 32px;
   border: 1px solid rgba(197, 154, 88, 0.24);
   box-shadow: 0 10px 28px rgba(19, 51, 36, 0.04);
   overflow: visible;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
   cursor: pointer;
-  min-height: 600px;
+  height: clamp(460px, 55vh, 530px);
+  min-height: 0;
+  text-decoration: none;
+  color: inherit;
 }
 
 .retreat-arch-card:hover {
@@ -3197,56 +3172,66 @@ body {
 /* Inner content area */
 .retreat-card-content {
   flex: 1;
-  padding: 36px 20px 20px 20px;
+  padding: clamp(20px, 2.5vh, 28px) clamp(12px, 1.2vw, 18px) 12px clamp(12px, 1.2vw, 18px);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   z-index: 2;
   position: relative;
-  border-radius: 170px 170px 0 0;
-}
-
-.retreat-card-num {
-  font-family: var(--f-display, Georgia, serif);
-  font-size: 14px;
-  color: #3b5346;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  margin-bottom: 4px;
-}
-
-.retreat-card-num-line {
-  width: 18px;
-  height: 1px;
-  background: rgba(197, 154, 88, 0.45);
-  margin-bottom: 14px;
+  border-radius: 160px 160px 0 0;
+  overflow: hidden;
 }
 
 .retreat-card-icon-badge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #e4ece7;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: #eef4f0;
+  border: 1px solid rgba(26, 63, 44, 0.1);
   display: grid;
   place-items: center;
   color: #1a3f2c;
-  margin-bottom: 14px;
-  transition: transform 0.3s ease, background 0.3s ease;
+  margin-bottom: 10px;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(19, 51, 36, 0.04);
+}
+
+.retreat-card-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .retreat-arch-card:hover .retreat-card-icon-badge {
-  transform: scale(1.08);
+  transform: translateY(-2px);
+  background: #e4eee7;
+  border-color: rgba(26, 63, 44, 0.22);
+  box-shadow: 0 6px 16px rgba(19, 51, 36, 0.08);
+}
+
+.retreat-arch-card:hover .retreat-card-icon {
+  transform: scale(1.1);
+}
+
+/* Active Highlighted Card badge */
+.retreat-arch-card.is-active .retreat-card-icon-badge {
+  background: #fdf6ec;
+  border-color: rgba(197, 154, 88, 0.45);
+  color: #9c7332;
+  box-shadow: 0 4px 14px rgba(197, 154, 88, 0.16);
 }
 
 .retreat-card-title {
   font-family: var(--f-display, Georgia, serif);
-  font-size: 21px;
-  line-height: 1.18;
+  font-size: clamp(15px, 1.15vw, 18px);
+  line-height: 1.25;
   font-weight: 500;
   color: #133324;
-  margin: 0 0 10px 0;
+  margin: 0 0 6px 0;
   letter-spacing: -0.01em;
+  white-space: normal;
+  max-width: 100%;
 }
 
 .retreat-card-title em {
@@ -3258,81 +3243,50 @@ body {
 
 .retreat-card-desc {
   font-family: var(--f-body, sans-serif);
-  font-size: 12.5px;
-  line-height: 1.6;
+  font-size: clamp(12px, 0.88vw, 13px);
+  line-height: 1.56;
   color: #536259;
-  margin: 0 0 14px 0;
-  max-width: 30ch;
+  margin: 0 0 8px 0;
+  max-width: 32ch;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Treatment Tags */
 .retreat-card-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 5px;
   justify-content: center;
-  margin-top: auto;
-  margin-bottom: 18px;
-  padding: 0 4px;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0 2px;
 }
 
 .retreat-card-tag {
   font-family: var(--f-mono, monospace);
-  font-size: 8.5px;
+  font-size: 8px;
   font-weight: 600;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #1e4531;
   background: rgba(228, 236, 231, 0.75);
   border: 1px solid rgba(30, 69, 49, 0.08);
   border-radius: 999px;
-  padding: 4px 10px;
-}
-
-/* Circular Action Button */
-.retreat-card-btn-wrap {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  margin-bottom: -22px;
-  z-index: 5;
-}
-
-.retreat-card-action-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #ffffff;
-  color: #133324;
-  border: 1px solid rgba(197, 154, 88, 0.22);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  text-decoration: none;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-}
-
-.retreat-arch-card.is-active .retreat-card-action-btn {
-  background: #c59a58;
-  color: #ffffff;
-  border-color: #c59a58;
-  box-shadow: 0 6px 18px rgba(197, 154, 88, 0.36);
-}
-
-.retreat-card-action-btn:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
+  padding: 3px 8px;
 }
 
 /* Card Photo */
 .retreat-card-photo-wrap {
   width: 100%;
-  height: 220px;
+  height: clamp(190px, 23.5vh, 230px);
   overflow: hidden;
   position: relative;
-  border-radius: 0 0 36px 36px;
+  border-radius: 0 0 30px 30px;
   background: #e9e3d7;
+  flex-shrink: 0;
 }
 
 .retreat-card-photo {
@@ -3350,12 +3304,88 @@ body {
 
 .retreat-card-photo-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 38px;
-  background: linear-gradient(to bottom, rgba(253, 252, 249, 0.45) 0%, transparent 100%);
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(253, 252, 249, 0.25) 0%,
+    transparent 35%,
+    rgba(15, 38, 27, 0.2) 65%,
+    rgba(15, 38, 27, 0.6) 100%
+  );
   pointer-events: none;
+}
+
+/* Bottom Bar inside Image Area: Numbering on left, Action Button on right */
+.retreat-card-photo-bottom {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 5;
+}
+
+.retreat-card-num {
+  font-family: var(--f-display, Georgia, serif);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #1e4531;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.retreat-arch-card.is-active .retreat-card-num {
+  background: #c59a58;
+  color: #ffffff;
+  border-color: #c59a58;
+  box-shadow: 0 6px 18px rgba(197, 154, 88, 0.45);
+}
+
+.retreat-arch-card:hover .retreat-card-num {
+  transform: scale(1.06);
+}
+
+.retreat-card-action-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #133324;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.retreat-arch-card.is-active .retreat-card-action-btn {
+  background: #c59a58;
+  color: #ffffff;
+  border-color: #c59a58;
+  box-shadow: 0 6px 18px rgba(197, 154, 88, 0.45);
+}
+
+.retreat-card-action-btn:hover {
+  transform: scale(1.1);
+  background: #ffffff;
+  color: #133324;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
 }
 
 /* Bottom Navigation Controls */
@@ -3412,47 +3442,83 @@ body {
 /* Responsive Media Queries */
 @media (max-width: 1140px) {
   .retreat-cards-grid {
-    gap: 14px;
+    gap: 12px;
   }
   .retreat-card-title {
-    font-size: 19px;
+    font-size: 15px;
   }
   .retreat-card-content {
-    padding: 30px 14px 16px 14px;
+    padding: 18px 10px 10px 10px;
   }
   .retreat-arch-card {
-    border-radius: 140px 140px 32px 32px;
-    min-height: 560px;
+    border-radius: 140px 140px 30px 30px;
+    height: clamp(430px, 52vh, 480px);
+    min-height: 0;
+  }
+  .retreat-card-photo-wrap {
+    height: clamp(180px, 22vh, 215px);
   }
 }
 
 @media (max-width: 900px) {
+  .escora-retreat-section {
+    min-height: auto;
+    padding: clamp(32px, 4vh, 48px) 0;
+  }
   .retreat-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 24px;
-    margin-bottom: 44px;
+    gap: 12px;
+    margin-bottom: 28px;
+    padding-bottom: 12px;
+  }
+  .retreat-title {
+    white-space: normal;
+  }
+  .retreat-header-right {
+    align-items: flex-start;
+    text-align: left;
+    max-width: 100%;
+  }
+  .retreat-lede {
+    text-align: left;
+    max-width: 100%;
   }
   .retreat-cards-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 16px;
+  }
+  .retreat-card-content {
+    padding: 22px 14px 12px 14px;
   }
   .retreat-arch-card {
-    min-height: 540px;
+    height: 440px;
+    min-height: 0;
+  }
+  .retreat-card-photo-wrap {
+    height: 190px;
   }
 }
 
 @media (max-width: 600px) {
   .escora-retreat-section {
-    padding: 72px 0 80px 0;
+    padding: 30px 0 38px 0;
+  }
+  .retreat-header {
+    margin-bottom: 24px;
   }
   .retreat-cards-grid {
     grid-template-columns: 1fr;
-    max-width: 380px;
+    max-width: 340px;
     margin: 0 auto;
+    gap: 16px;
+  }
+  .retreat-arch-card {
+    height: auto;
+    min-height: 410px;
   }
   .retreat-card-photo-wrap {
-    height: 240px;
+    height: 180px;
   }
 }
 
@@ -3461,10 +3527,16 @@ body {
   position: relative;
   background: #fbf8f2;
   background: linear-gradient(180deg, #faf7f0 0%, #f6f1e8 50%, #fbf8f2 100%);
-  padding: 104px 0 96px 0;
+  padding: clamp(20px, 2.5vh, 40px) 0;
+  min-height: min(100vh, 900px);
+  min-height: min(100dvh, 900px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   overflow: hidden;
   color: #133324;
   scroll-margin-top: 80px;
+  box-sizing: border-box;
 }
 
 /* Scenery Backdrop */
@@ -3559,7 +3631,7 @@ body {
   text-transform: uppercase;
   color: #c59a58;
   font-weight: 500;
-  margin-bottom: 14px;
+  margin-bottom: clamp(6px, 1vh, 10px);
 }
 
 .testi-eyebrow-line {
@@ -3571,12 +3643,12 @@ body {
 
 .testi-title {
   font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-size: clamp(36px, 4.2vw, 54px);
+  font-size: clamp(30px, 3.5vw, 46px);
   line-height: 1.1;
   font-weight: 400;
   color: #133324;
   letter-spacing: -0.015em;
-  margin: 0 0 14px 0;
+  margin: 0 0 clamp(6px, 1vh, 10px) 0;
   text-align: center;
 }
 
@@ -3589,10 +3661,10 @@ body {
 
 .testi-subtitle {
   font-family: var(--f-body, sans-serif);
-  font-size: 14.5px;
-  line-height: 1.6;
+  font-size: clamp(13px, 0.95vw, 14.5px);
+  line-height: 1.5;
   color: #55635b;
-  margin: 0 0 52px 0;
+  margin: 0 0 clamp(16px, 2.2vh, 26px) 0;
   text-align: center;
 }
 
@@ -3609,7 +3681,7 @@ body {
 .testi-carousel-stage {
   position: relative;
   width: 100%;
-  height: 420px;
+  height: clamp(330px, 42vh, 380px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -3617,8 +3689,8 @@ body {
 
 .testi-carousel-item {
   position: absolute;
-  width: min(880px, 82vw);
-  height: 400px;
+  width: min(860px, 82vw);
+  height: clamp(310px, 40vh, 360px);
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.5s ease, filter 0.5s ease;
   will-change: transform, opacity;
 }
@@ -3674,7 +3746,7 @@ body {
 .testi-card-body {
   width: 52%;
   height: 100%;
-  padding: 40px 42px 34px 42px;
+  padding: clamp(22px, 2.6vh, 32px) clamp(22px, 2.5vw, 36px) clamp(16px, 2vh, 22px) clamp(22px, 2.5vw, 36px);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -3682,13 +3754,13 @@ body {
 }
 
 .testi-quote-mark {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .testi-quote-text {
   font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-size: clamp(18px, 1.85vw, 22px);
-  line-height: 1.48;
+  font-size: clamp(16px, 1.5vw, 19px);
+  line-height: 1.45;
   font-style: italic;
   font-weight: 400;
   color: #133324;
@@ -3707,8 +3779,8 @@ body {
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid rgba(197, 154, 88, 0.22);
-  padding-top: 20px;
-  margin-top: 20px;
+  padding-top: 14px;
+  margin-top: 12px;
   gap: 16px;
 }
 
@@ -3791,7 +3863,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 34px;
+  margin-top: clamp(14px, 1.8vh, 22px);
 }
 
 .testi-indicator-pill {
@@ -3813,10 +3885,10 @@ body {
 /* Responsive queries */
 @media (max-width: 1024px) {
   .testi-carousel-stage {
-    height: 440px;
+    height: clamp(350px, 45vh, 400px);
   }
   .testi-carousel-item {
-    height: 420px;
+    height: clamp(330px, 42vh, 380px);
     width: min(760px, 86vw);
   }
   .testi-nav-arrow.prev {
@@ -3829,30 +3901,31 @@ body {
 
 @media (max-width: 768px) {
   .testi-carousel-section {
-    padding: 70px 0 60px 0;
+    min-height: auto;
+    padding: 60px 0 52px 0;
   }
   .testi-carousel-stage {
-    height: 520px;
+    height: 480px;
   }
   .testi-carousel-item {
     width: 90vw;
-    height: 500px;
+    height: 460px;
   }
   .testi-card {
     flex-direction: column;
   }
   .testi-card-photo-wrap {
     width: 100%;
-    height: 200px;
+    height: 180px;
   }
   .testi-card-body {
     width: 100%;
-    height: calc(100% - 200px);
-    padding: 24px 22px 20px 22px;
+    height: calc(100% - 180px);
+    padding: 20px 18px 16px 18px;
   }
   .testi-quote-text {
-    font-size: 16px;
-    line-height: 1.42;
+    font-size: 15px;
+    line-height: 1.4;
   }
   .testi-nav-arrow.prev {
     left: 12px;
@@ -3867,12 +3940,15 @@ body {
 .enquiry-section-v2 {
   position: relative;
   overflow: hidden;
-  padding: 108px 0 114px 0;
+  padding: clamp(20px, 2.5vh, 38px) 0;
   color: #133324;
-  min-height: 820px;
+  min-height: min(100vh, 900px);
+  min-height: min(100dvh, 900px);
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
   scroll-margin-top: 80px;
+  box-sizing: border-box;
 }
 
 .enquiry-bg-image {
@@ -3908,13 +3984,13 @@ body {
 .enquiry-grid {
   display: grid;
   grid-template-columns: 1fr 1.25fr;
-  gap: 60px;
+  gap: clamp(24px, 3.5vw, 48px);
   align-items: center;
 }
 
 /* Left Column */
 .enquiry-left {
-  max-width: 520px;
+  max-width: 500px;
 }
 
 .enquiry-eyebrow {
@@ -3927,7 +4003,7 @@ body {
   text-transform: uppercase;
   color: #c59a58;
   font-weight: 500;
-  margin-bottom: 18px;
+  margin-bottom: clamp(6px, 1vh, 12px);
 }
 
 .enquiry-eyebrow-dot {
@@ -3939,12 +4015,12 @@ body {
 
 .enquiry-title {
   font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-size: clamp(42px, 4.8vw, 66px);
-  line-height: 1.05;
+  font-size: clamp(34px, 3.8vw, 50px);
+  line-height: 1.08;
   letter-spacing: -0.015em;
   color: #133324;
   font-weight: 400;
-  margin: 0 0 20px 0;
+  margin: 0 0 clamp(8px, 1.2vh, 14px) 0;
 }
 
 .enquiry-title em {
@@ -3956,17 +4032,17 @@ body {
 
 .enquiry-desc {
   font-family: var(--f-body, sans-serif);
-  font-size: 14.5px;
-  line-height: 1.7;
+  font-size: clamp(13px, 0.95vw, 14px);
+  line-height: 1.6;
   color: #3b4c42;
-  margin: 0 0 34px 0;
+  margin: 0 0 clamp(16px, 2vh, 24px) 0;
   max-width: 44ch;
 }
 
 .enquiry-contact-list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: clamp(10px, 1.4vh, 14px);
 }
 
 .enquiry-contact-item {
@@ -3976,8 +4052,8 @@ body {
 }
 
 .enquiry-contact-badge {
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: #e4ece7;
   color: #133324;
@@ -3997,7 +4073,7 @@ body {
 
 .enquiry-contact-val {
   font-family: var(--f-body, sans-serif);
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 500;
   color: #133324;
   text-decoration: none;
@@ -4016,10 +4092,10 @@ a.enquiry-contact-val:hover {
   background: rgba(251, 248, 242, 0.94);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-radius: 36px;
+  border-radius: clamp(22px, 2.5vw, 32px);
   border: 1px solid rgba(197, 154, 88, 0.3);
-  box-shadow: 0 24px 60px rgba(19, 51, 36, 0.14), 0 4px 16px rgba(0, 0, 0, 0.04);
-  padding: 44px 40px 34px 40px;
+  box-shadow: 0 20px 52px rgba(19, 51, 36, 0.12), 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: clamp(22px, 2.6vh, 32px) clamp(22px, 2.4vw, 34px) clamp(16px, 2vh, 22px) clamp(22px, 2.4vw, 34px);
   overflow: hidden;
 }
 
@@ -4036,7 +4112,7 @@ a.enquiry-contact-val:hover {
 .enquiry-panel-header {
   position: relative;
   z-index: 2;
-  margin-bottom: 24px;
+  margin-bottom: clamp(10px, 1.3vh, 16px);
 }
 
 .enquiry-panel-eyebrow {
@@ -4044,17 +4120,17 @@ a.enquiry-contact-val:hover {
   align-items: center;
   gap: 8px;
   font-family: var(--f-mono, monospace);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #c59a58;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .enquiry-panel-subtitle {
   font-family: var(--f-body, sans-serif);
-  font-size: 13.5px;
+  font-size: 12.5px;
   color: #55635b;
   margin: 0;
 }
@@ -4068,7 +4144,7 @@ a.enquiry-contact-val:hover {
 .enquiry-fields-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px 18px;
+  gap: clamp(8px, 1vh, 12px) 14px;
 }
 
 .enquiry-field {
@@ -4082,12 +4158,12 @@ a.enquiry-contact-val:hover {
 
 .enquiry-field label {
   font-family: var(--f-mono, monospace);
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: #3b4c42;
-  margin-bottom: 7px;
+  margin-bottom: 5px;
 }
 
 .enquiry-input-box {
@@ -4119,14 +4195,14 @@ a.enquiry-contact-val:hover {
 .enquiry-input-box input,
 .enquiry-input-box select {
   width: 100%;
-  height: 46px;
-  border-radius: 12px;
+  height: clamp(38px, 4.4vh, 42px);
+  border-radius: 11px;
   background: rgba(245, 242, 235, 0.72);
   border: 1px solid rgba(197, 154, 88, 0.22);
   color: #133324;
   font-family: var(--f-body, sans-serif);
-  font-size: 13.5px;
-  padding-left: 42px;
+  font-size: 13px;
+  padding-left: 38px;
   padding-right: 14px;
   outline: none;
   transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
@@ -4152,7 +4228,7 @@ a.enquiry-contact-val:hover {
 
 .enquiry-input-box input::placeholder {
   color: #8c9a91;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .enquiry-input-box select option {
@@ -4165,10 +4241,10 @@ a.enquiry-contact-val:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin: 22px 0 18px 0;
+  gap: 14px;
+  margin: clamp(10px, 1.3vh, 15px) 0 clamp(8px, 1.1vh, 13px) 0;
   font-family: var(--f-mono, monospace);
-  font-size: 9.5px;
+  font-size: 9px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: #84948a;
@@ -4183,8 +4259,8 @@ a.enquiry-contact-val:hover {
 
 .enquiry-error-msg {
   color: #c0392b;
-  font-size: 13px;
-  margin: 0 0 14px 0;
+  font-size: 12.5px;
+  margin: 0 0 10px 0;
   text-align: center;
 }
 
@@ -4192,25 +4268,25 @@ a.enquiry-contact-val:hover {
 .enquiry-buttons-row {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
-  gap: 14px;
-  margin-bottom: 26px;
+  gap: 12px;
+  margin-bottom: clamp(10px, 1.3vh, 16px);
 }
 
 .enquiry-submit-btn {
-  height: 48px;
+  height: clamp(40px, 4.6vh, 44px);
   border-radius: 999px;
   background: #133324;
   color: #ffffff;
   border: none;
   font-family: var(--f-mono, monospace);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
   transition: background 0.25s, transform 0.25s, box-shadow 0.25s;
   box-shadow: 0 4px 14px rgba(19, 51, 36, 0.16);
@@ -4231,20 +4307,20 @@ a.enquiry-contact-val:hover {
 }
 
 .enquiry-wa-btn {
-  height: 48px;
+  height: clamp(40px, 4.6vh, 44px);
   border-radius: 999px;
   background: #ffffff;
   color: #133324;
   border: 1px solid rgba(19, 51, 36, 0.35);
   font-family: var(--f-mono, monospace);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.25s ease;
@@ -4264,8 +4340,8 @@ a.enquiry-contact-val:hover {
   align-items: center;
   justify-content: space-between;
   border-top: 1px solid rgba(197, 154, 88, 0.22);
-  padding-top: 22px;
-  gap: 12px;
+  padding-top: clamp(10px, 1.3vh, 14px);
+  gap: 10px;
 }
 
 .enquiry-feature-item {
@@ -4358,9 +4434,13 @@ a.enquiry-contact-val:hover {
 
 /* Responsive queries */
 @media (max-width: 1040px) {
+  .enquiry-section-v2 {
+    min-height: auto;
+    padding: clamp(48px, 6vh, 64px) 0;
+  }
   .enquiry-grid {
     grid-template-columns: 1fr;
-    gap: 48px;
+    gap: 32px;
   }
   .enquiry-left {
     max-width: 100%;
@@ -4377,18 +4457,18 @@ a.enquiry-contact-val:hover {
 
 @media (max-width: 640px) {
   .enquiry-section-v2 {
-    padding: 72px 0 80px 0;
+    padding: 44px 0 54px 0;
   }
   .enquiry-title {
-    font-size: 38px;
+    font-size: 34px;
   }
   .enquiry-card-panel {
-    padding: 28px 20px 24px 20px;
-    border-radius: 26px;
+    padding: 22px 18px 20px 18px;
+    border-radius: 22px;
   }
   .enquiry-fields-grid {
     grid-template-columns: 1fr;
-    gap: 14px;
+    gap: 12px;
   }
   .enquiry-buttons-row {
     grid-template-columns: 1fr;
@@ -4480,7 +4560,7 @@ a.enquiry-contact-val:hover {
     flex: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    scrollbar-width: auto;
+    scrollbar-width: none;
     scroll-snap-type: none !important;
     width: 100% !important;
   }

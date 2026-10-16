@@ -262,8 +262,8 @@ function ItineraryDayBlock({
 }: {
   dayNumber: number;
   header: { weekday: string; dateText: string };
-  title: string;
-  description: string;
+  title?: string | null;
+  description?: string | null;
   optionalActivities?: string[] | string | null;
   meals?: string | null;
   stay?: string | null;
@@ -299,11 +299,13 @@ function ItineraryDayBlock({
           className="font-serif text-[16px] font-bold text-[#39271F] mt-0.5 mb-1 leading-snug"
           style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
         >
-          {title}
+          {title ?? "—"}
         </h3>
-        <div className="text-[9px] leading-[1.46] text-[#282421] space-y-1 mb-2 whitespace-pre-line">
-          {description}
-        </div>
+        {description && (
+          <div className="text-[9px] leading-[1.46] text-[#282421] space-y-1 mb-2 whitespace-pre-line">
+            {description}
+          </div>
+        )}
 
         {/* Optional activities */}
         {optionalActivities && (
@@ -342,7 +344,7 @@ function ItineraryDayBlock({
                 <ImageWithFallback
                   src={imgSrc}
                   fallback={fallbackImages[idx] || padmanabhaswamyFallbackImg}
-                  alt={`${title} photo ${idx + 1}`}
+                  alt={`${title ?? "Photo"} ${idx + 1}`}
                   className="w-full h-full object-cover"
                 />
               </div>

@@ -15,6 +15,7 @@ const COLLECTIONS = [
 ];
 
 const LINKS_AFTER = [
+  { href: "/trip-planner", label: "Trip Planner" },
   { href: "/journeys", label: "Journeys" },
   { href: "/destinations", label: "Explore Kerala" },
   { href: "/journal", label: "Journal" },

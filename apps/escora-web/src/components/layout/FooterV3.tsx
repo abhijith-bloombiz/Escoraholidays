@@ -120,6 +120,7 @@ export default function FooterV3() {
                 <h5>EXPLORE</h5>
                 <ul>
                   <li><Link href="/" className="cinematic-footer-nav-link">Home</Link></li>
+                  <li><Link href="/trip-planner" className="cinematic-footer-nav-link">AI Trip Planner</Link></li>
                   <li><Link href="/destinations" className="cinematic-footer-nav-link">Explore Kerala</Link></li>
                   <li><Link href="/journeys" className="cinematic-footer-nav-link">Our Collections</Link></li>
                   <li><Link href="/journeys" className="cinematic-footer-nav-link">Signature Journeys</Link></li>
@@ -132,7 +133,7 @@ export default function FooterV3() {
               <div className="cinematic-footer-nav-col">
                 <h5>DISCOVER</h5>
                 <ul>
-                  <li><a href="/#escora-way" className="cinematic-footer-nav-link">The Escora Way</a></li>
+                  <li><a href="/#the-escora-way" className="cinematic-footer-nav-link">The Escora Way</a></li>
                   <li><Link href="/about" className="cinematic-footer-nav-link">The Escora Difference</Link></li>
                   <li><a href="/#how-it-works" className="cinematic-footer-nav-link">How It Works</a></li>
                   <li><Link href="/journal" className="cinematic-footer-nav-link">The Journal</Link></li>

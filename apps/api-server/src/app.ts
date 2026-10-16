@@ -44,10 +44,45 @@ app.use(
   }),
 );
 
-app.use(cors({
-  origin: true,
-  credentials: true,
-}));
+function isOriginAllowed(origin: string): boolean {
+  if (config.publicUrl && origin === config.publicUrl) return true;
+  if (config.allowedOrigins.includes(origin)) return true;
+
+  try {
+    const originUrl = new URL(origin);
+    const publicUrlObj = new URL(config.publicUrl);
+    if (originUrl.origin === publicUrlObj.origin) return true;
+  } catch {}
+
+  // Allow standard local development tooling when not in production
+  if (!config.isProduction) {
+    if (
+      /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+      /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      // Allow requests without Origin header (same-origin, curl, mobile, server-to-server)
+      if (!origin) {
+        return callback(null, true);
+      }
+      if (isOriginAllowed(origin)) {
+        return callback(null, true);
+      }
+      // Disallow unauthorized origins without crashing
+      return callback(null, false);
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

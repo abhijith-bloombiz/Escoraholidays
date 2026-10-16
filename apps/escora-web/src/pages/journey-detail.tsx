@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { useGetPackage, getGetPackageQueryKey, useCreateOrder, type Package } from "@workspace/api-client-react";
-import { useParams } from "wouter";
+import { useParams, Link } from "wouter";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
@@ -28,24 +28,27 @@ export default function JourneyDetail() {
   const { id } = useParams();
   const { toast } = useToast();
   
-  const packageId = Number(id);
-  const { data: apiPkg, isLoading, isError } = useGetPackage(packageId, {
-    query: { enabled: !!packageId, queryKey: getGetPackageQueryKey(packageId), retry: 1 }
+  const rawId = id ? decodeURIComponent(id) : "";
+  const isNumeric = /^\d+$/.test(rawId);
+  const lookupId = isNumeric ? Number(rawId) : rawId;
+
+  const { data: apiPkg, isLoading, isError } = useGetPackage(lookupId as any, {
+    query: { enabled: !!lookupId, queryKey: getGetPackageQueryKey(lookupId as any), retry: 1 }
   });
-  const pkg = apiPkg ?? (isError ? MOCK_PACKAGES.find(p => p.id === packageId) : undefined);
+  const pkg = apiPkg ?? (isError ? MOCK_PACKAGES.find(p => (isNumeric && p.id === Number(rawId)) || p.slug === rawId) : undefined);
 
   useSeo({
     title: pkg ? `${pkg.name} — ${pkg.durationNights}-Night Kerala Journey` : "Journey Detail",
     description: pkg?.shortDesc ?? "A private, bespoke Kerala journey crafted by Escora — curated for discerning travellers.",
     image: pkg?.heroImageUrl ?? undefined,
-    url: pkg ? `https://www.escoraholidays.com/journeys/${packageId}` : "https://www.escoraholidays.com/journeys",
+    url: pkg ? `https://www.escoraholidays.com/journeys/${pkg.slug || pkg.id || rawId}` : "https://www.escoraholidays.com/journeys",
     jsonLd: pkg ? {
       "@context": "https://schema.org",
       "@type": "TouristTrip",
       name: pkg.name,
       description: pkg.shortDesc,
       image: pkg.heroImageUrl,
-      url: `https://www.escoraholidays.com/journeys/${packageId}`,
+      url: `https://www.escoraholidays.com/journeys/${pkg.slug || pkg.id || rawId}`,
       provider: { "@type": "TravelAgency", name: "Escora", url: "https://www.escoraholidays.com" },
       touristType: pkg.category,
     } : undefined,
@@ -59,10 +62,11 @@ export default function JourneyDetail() {
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
+    const bookingPackageId = pkg?.id ?? (isNumeric ? Number(rawId) : undefined);
     createOrder.mutate({ 
       data: { 
         ...data, 
-        packageId: packageId, 
+        packageId: bookingPackageId, 
         packageName: pkg?.name 
       } 
     }, {
@@ -86,7 +90,6 @@ export default function JourneyDetail() {
     }
   };
 
-
   if (isLoading) {
     return (
       <Layout>
@@ -100,8 +103,13 @@ export default function JourneyDetail() {
   if (!pkg) {
     return (
       <Layout>
-        <div className="min-h-screen flex items-center justify-center bg-bg">
-          <p className="font-serif text-2xl text-ink">Journey not found.</p>
+        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 text-center px-6">
+          <p className="font-mono text-gold text-sm tracking-[0.3em] uppercase">Not Found</p>
+          <h1 className="font-serif text-4xl text-ink">Journey not found</h1>
+          <p className="text-ink-mute max-w-md">This journey may have been moved, unpublished, or is no longer available.</p>
+          <Link href="/journeys" className="font-mono text-xs text-gold uppercase tracking-widest hover:underline">
+            ← Back to All Journeys
+          </Link>
         </div>
       </Layout>
     );

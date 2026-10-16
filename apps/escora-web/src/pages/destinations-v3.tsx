@@ -112,7 +112,7 @@ export default function DestinationsV3() {
                 {destinations.map((dest) => {
                   const slug = dest.slug || slugify(dest.name);
                   const region = "region" in dest ? dest.region : undefined;
-                  const img = DESTINATION_PHOTOS[slug] || dest.imageUrl || FALLBACK_IMG;
+                  const img = dest.imageUrl || DESTINATION_PHOTOS[slug] || FALLBACK_IMG;
                   const isSaved = saved.includes(slug);
                   return (
                     <div key={dest.id} className="v3-tile portal-card">

@@ -34,7 +34,7 @@ const journalPostSchema = new Schema<IJournalPost>(
     authorRole: { type: String, default: null },
     authorImageUrl: { type: String, default: null },
     imageUrl: { type: String, default: null },
-    readTimeMinutes: { type: Number, default: null },
+    readTimeMinutes: { type: Number, default: null, min: 1 },
     tags: { type: String, default: null },
     published: { type: Boolean, required: true, default: true, index: true },
     publishedAt: { type: String, default: null },

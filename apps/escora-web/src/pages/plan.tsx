@@ -72,6 +72,26 @@ export default function PlanPage() {
     if (preselected) {
       setForm((f) => (f.destinations.includes(preselected) ? f : { ...f, destinations: [...f.destinations, preselected] }));
     }
+
+    try {
+      const storedPlan = sessionStorage.getItem("escora_ai_trip_plan");
+      if (storedPlan) {
+        const parsed = JSON.parse(storedPlan);
+        setForm((f) => {
+          const nextDestinations = parsed.destinations && parsed.destinations.length > 0
+            ? Array.from(new Set([...f.destinations, ...parsed.destinations]))
+            : f.destinations;
+          return {
+            ...f,
+            destinations: nextDestinations,
+            travelStyle: (parsed.style as TravelStyle) || f.travelStyle,
+            preferences: parsed.notes ? `${parsed.notes}\n\n${f.preferences}`.trim() : f.preferences,
+          };
+        });
+      }
+    } catch {
+      // Ignore storage errors
+    }
   }, []);
 
   function next() { setStep((s) => Math.min(s + 1, TOTAL_STEPS)); }
@@ -142,6 +162,50 @@ export default function PlanPage() {
         </div>
 
         <div style={{ maxWidth: "var(--container-narrow, 680px)", margin: "0 auto", padding: "clamp(24px, 3vw, 40px) var(--gutter) clamp(56px, 7vw, 96px)" }}>
+
+          {/* AI Trip Planner bridge card */}
+          <div style={{
+            marginBottom: 24,
+            padding: "16px 20px",
+            borderRadius: 8,
+            border: "1px solid var(--hair, rgba(232,220,196,0.25))",
+            background: "var(--tint, rgba(200,163,97,0.06))",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 12,
+          }}>
+            <div>
+              <div style={{ fontFamily: "var(--f-serif)", fontSize: 15, color: "var(--ink)", fontWeight: 500 }}>
+                Looking for an instant AI-designed itinerary?
+              </div>
+              <div style={{ fontFamily: "var(--f-body)", fontSize: 12, color: "var(--ink-soft)" }}>
+                Curate a bespoke day-by-day slow-luxury passage in seconds, grounded in our verified catalog.
+              </div>
+            </div>
+            <Link
+              href="/trip-planner"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "8px 16px",
+                borderRadius: 4,
+                background: "var(--gold)",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                textDecoration: "none",
+                fontFamily: "var(--f-mono)",
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+              }}
+            >
+              <span>AI Trip Planner</span>
+              <span>→</span>
+            </Link>
+          </div>
 
           {/* Step label */}
           <p className="section-label" style={{ marginBottom: 16 }}>

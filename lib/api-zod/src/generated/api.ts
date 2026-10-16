@@ -16,6 +16,202 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Health check alias
+ */
+export const GetHealthResponse = zod.object({
+  "status": zod.string()
+})
+
+
+/**
+ * @summary Detailed health and database connection status
+ */
+export const GetHealthStatusResponse = zod.object({
+  "status": zod.string(),
+  "database": zod.string(),
+  "uptimeSeconds": zod.number(),
+  "timestamp": zod.string()
+})
+
+
+/**
+ * @summary Get AI service configuration and model status
+ */
+export const GetAiStatusResponse = zod.object({
+  "configured": zod.boolean(),
+  "provider": zod.string(),
+  "model": zod.string(),
+  "available": zod.boolean(),
+  "message": zod.string().optional(),
+  "availableModels": zod.array(zod.string()).optional()
+})
+
+
+/**
+ * @summary Generate structured AI completion through provider
+ */
+export const GenerateAiResponseBody = zod.object({
+  "prompt": zod.string().optional(),
+  "messages": zod.array(zod.object({
+  "role": zod.enum(['system', 'user', 'assistant']),
+  "content": zod.string()
+})).optional(),
+  "systemPrompt": zod.string().optional(),
+  "maxTokens": zod.number().optional(),
+  "temperature": zod.number().optional()
+})
+
+export const GenerateAiResponseResponse = zod.object({
+  "content": zod.string(),
+  "model": zod.string(),
+  "provider": zod.string(),
+  "usage": zod.object({
+  "promptTokens": zod.number().optional(),
+  "completionTokens": zod.number().optional(),
+  "totalTokens": zod.number().optional()
+}).optional(),
+  "finishReason": zod.string().optional()
+})
+
+
+/**
+ * @summary Public AI Travel Assistant conversation with Escora grounding
+ */
+export const AskAiAssistantBody = zod.object({
+  "message": zod.string(),
+  "history": zod.array(zod.object({
+  "role": zod.enum(['system', 'user', 'assistant']),
+  "content": zod.string()
+})).optional()
+})
+
+export const AskAiAssistantResponse = zod.object({
+  "message": zod.string(),
+  "provider": zod.string(),
+  "model": zod.string(),
+  "suggestions": zod.array(zod.string()).optional(),
+  "groundedEntities": zod.array(zod.object({
+  "title": zod.string(),
+  "url": zod.string(),
+  "type": zod.string()
+})).optional()
+})
+
+
+/**
+ * @summary Generate and refine bespoke slow-luxury Kerala trip itineraries with Escora grounding
+ */
+export const generateTripPlanBodyDurationDaysDefault = 7;
+export const generateTripPlanBodyDurationDaysMin = 2;
+export const generateTripPlanBodyDurationDaysMax = 30;
+
+export const generateTripPlanBodySeasonOrDatesDefault = `Winter (October to March)`;
+export const generateTripPlanBodyStartLocationDefault = `Kochi (COK Airport)`;
+export const generateTripPlanBodyTravelersCountDefault = 2;
+export const generateTripPlanBodyTravelersCountMax = 50;
+
+export const generateTripPlanBodyTravelerTypeDefault = `Couple / Pair`;
+export const generateTripPlanBodyBudgetTierDefault = `Signature Slow-Luxury`;
+export const generateTripPlanBodyCurrencyDefault = `INR`;
+export const generateTripPlanBodyInterestsDefault = [`tea-hills`, `backwaters`, `heritage`];
+export const generateTripPlanBodyPaceDefault = `Slow & Unhurried`;
+
+export const GenerateTripPlanBody = zod.object({
+  "durationDays": zod.number().min(generateTripPlanBodyDurationDaysMin).max(generateTripPlanBodyDurationDaysMax).default(generateTripPlanBodyDurationDaysDefault),
+  "seasonOrDates": zod.string().default(generateTripPlanBodySeasonOrDatesDefault),
+  "startLocation": zod.string().default(generateTripPlanBodyStartLocationDefault),
+  "travelersCount": zod.number().min(1).max(generateTripPlanBodyTravelersCountMax).default(generateTripPlanBodyTravelersCountDefault),
+  "travelerType": zod.string().default(generateTripPlanBodyTravelerTypeDefault),
+  "budgetTier": zod.string().default(generateTripPlanBodyBudgetTierDefault),
+  "currency": zod.string().default(generateTripPlanBodyCurrencyDefault),
+  "interests": zod.array(zod.string()).default(generateTripPlanBodyInterestsDefault),
+  "pace": zod.string().default(generateTripPlanBodyPaceDefault),
+  "additionalNotes": zod.string().optional(),
+  "refinementPrompt": zod.string().optional(),
+  "currentItinerary": zod.object({
+
+}).passthrough().optional().describe('Previous itinerary object for iterative refinement')
+})
+
+export const GenerateTripPlanResponse = zod.object({
+  "itinerary": zod.object({
+  "title": zod.string(),
+  "tagline": zod.string(),
+  "overview": zod.string(),
+  "durationDays": zod.number(),
+  "durationNights": zod.number(),
+  "routeSequence": zod.array(zod.string()),
+  "idealSeason": zod.string(),
+  "pace": zod.string(),
+  "budgetGuidance": zod.string(),
+  "days": zod.array(zod.object({
+  "day": zod.number(),
+  "title": zod.string(),
+  "destination": zod.string(),
+  "destinationSlug": zod.string().optional(),
+  "theme": zod.string().optional(),
+  "morningActivity": zod.string(),
+  "afternoonActivity": zod.string(),
+  "eveningActivity": zod.string(),
+  "stayRecommendation": zod.string(),
+  "travelNote": zod.string().optional()
+})),
+  "verifiedDestinations": zod.array(zod.object({
+  "name": zod.string(),
+  "slug": zod.string(),
+  "url": zod.string(),
+  "type": zod.string(),
+  "highlightsOrRoute": zod.string().optional()
+})),
+  "verifiedJourneys": zod.array(zod.object({
+  "name": zod.string(),
+  "slug": zod.string(),
+  "url": zod.string(),
+  "type": zod.string(),
+  "highlightsOrRoute": zod.string().optional()
+})),
+  "practicalAdvice": zod.array(zod.string()),
+  "catalogueNotice": zod.string(),
+  "realisticAssessment": zod.string().optional()
+}),
+  "provider": zod.string(),
+  "model": zod.string(),
+  "refinementSuggestions": zod.array(zod.string()).optional()
+})
+
+
+/**
+ * @summary Admin login
+ */
+export const LoginBody = zod.object({
+  "username": zod.string(),
+  "password": zod.string()
+})
+
+export const LoginResponse = zod.object({
+  "ok": zod.boolean(),
+  "username": zod.string()
+})
+
+
+/**
+ * @summary Admin logout
+ */
+export const LogoutResponse = zod.object({
+  "ok": zod.boolean()
+})
+
+
+/**
+ * @summary Get current authenticated session
+ */
+export const GetAuthMeResponse = zod.object({
+  "authenticated": zod.boolean(),
+  "username": zod.string().nullish()
+})
+
+
+/**
  * @summary List all destinations
  */
 export const ListDestinationsQueryParams = zod.object({
@@ -567,6 +763,85 @@ export const DeleteItineraryParams = zod.object({
 
 
 /**
+ * @summary AI Itinerary Assistant — Generate or refine day-by-day slow-luxury proposal draft grounded in Escora catalogue
+ */
+export const assistItineraryBodyDurationDaysDefault = 7;
+export const assistItineraryBodyDurationDaysMin = 2;
+export const assistItineraryBodyDurationDaysMax = 30;
+
+export const assistItineraryBodyPaceDefault = `unhurried-slow`;
+export const assistItineraryBodyTravelerTypeDefault = `Couple / Pair`;
+export const assistItineraryBodyBudgetTierDefault = `Signature Slow-Luxury`;
+
+export const AssistItineraryBody = zod.object({
+  "customerName": zod.string().optional().describe('Customer or party name'),
+  "customerEmail": zod.string().optional().describe('Customer contact email'),
+  "customerPhone": zod.string().optional().describe('Customer contact phone'),
+  "destination": zod.string().optional().describe('Primary destination or route'),
+  "durationDays": zod.number().min(assistItineraryBodyDurationDaysMin).max(assistItineraryBodyDurationDaysMax).default(assistItineraryBodyDurationDaysDefault).describe('Total trip duration in days'),
+  "startDate": zod.string().optional().describe('Optional start date (YYYY-MM-DD) or travel season'),
+  "pace": zod.enum(['unhurried-slow', 'balanced', 'active-discovery']).default(assistItineraryBodyPaceDefault).describe('Desired travel pace'),
+  "travelerType": zod.string().default(assistItineraryBodyTravelerTypeDefault),
+  "budgetTier": zod.string().default(assistItineraryBodyBudgetTierDefault),
+  "interests": zod.array(zod.string()).optional().describe('Preferred themes'),
+  "notes": zod.string().optional().describe('Special customer wishes or requirements'),
+  "enquiryId": zod.number().optional().describe('Optional reference enquiry ID to pull verified requirements from'),
+  "refinementPrompt": zod.string().optional().describe('Staff instructions for adjusting pace, days, or experiences'),
+  "currentItinerary": zod.object({
+
+}).passthrough().optional().describe('Existing itinerary state for iterative refinement')
+})
+
+export const AssistItineraryResponse = zod.object({
+  "title": zod.string().describe('Proposed proposal title'),
+  "destination": zod.string().describe('Primary destination region'),
+  "durationDays": zod.number().optional(),
+  "durationNights": zod.number().optional(),
+  "summary": zod.string().describe('Slow-luxury narrative journey overview'),
+  "coverImageUrl": zod.string().optional().describe('Suggested cover image URL from verified destination catalogue'),
+  "days": zod.array(zod.object({
+  "day": zod.number(),
+  "date": zod.string().optional(),
+  "title": zod.string(),
+  "description": zod.string().optional(),
+  "destination": zod.string().optional(),
+  "activities": zod.array(zod.object({
+  "time": zod.string().optional().describe('Indicative activity time window (e.g. \'Morning\', \'Late Afternoon\', \'Sunset\')'),
+  "title": zod.string(),
+  "description": zod.string().optional()
+}))
+})),
+  "stays": zod.array(zod.object({
+  "name": zod.string().describe('Indicative boutique sanctuary or heritage estate'),
+  "location": zod.string().optional(),
+  "checkIn": zod.string().optional(),
+  "checkOut": zod.string().optional(),
+  "nights": zod.number().optional(),
+  "roomType": zod.string().optional(),
+  "notes": zod.string().optional()
+})),
+  "inclusions": zod.array(zod.string()),
+  "exclusions": zod.array(zod.string()),
+  "verifiedCatalogMatches": zod.object({
+  "destinations": zod.array(zod.object({
+  "name": zod.string(),
+  "slug": zod.string(),
+  "region": zod.string(),
+  "highlights": zod.string().optional()
+})),
+  "packages": zod.array(zod.object({
+  "title": zod.string(),
+  "slug": zod.string(),
+  "duration": zod.string().optional()
+}))
+}),
+  "unconfirmedItems": zod.array(zod.string()).describe('Operational items requiring human staff verification'),
+  "travelDesignerAdvice": zod.string().describe('Practical routing guidance, transfer times, and seasonal pacing tips'),
+  "disclaimer": zod.string().describe('Human-in-the-loop review reminder')
+})
+
+
+/**
  * @summary List all travel categories
  */
 export const ListTravelCategoriesQueryParams = zod.object({
@@ -744,6 +1019,14 @@ export const CreateOrderBody = zod.object({
   "geoCountry": zod.string().optional(),
   "geoRegion": zod.string().optional(),
   "geoCity": zod.string().optional()
+})
+
+
+/**
+ * @summary Export enquiries / orders as CSV
+ */
+export const ExportOrdersQueryParams = zod.object({
+  "status": zod.coerce.string().optional()
 })
 
 
@@ -929,6 +1212,54 @@ export const DeleteEnquiryParams = zod.object({
 
 
 /**
+ * @summary AI Enquiry Assistant — Summarize, extract explicit facts, draft reply, and suggest next action
+ */
+export const AssistEnquiryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const assistEnquiryBodyReplyToneDefault = `warm-luxury`;
+
+export const AssistEnquiryBody = zod.object({
+  "focusPrompt": zod.string().optional().describe('Optional travel designer direction or focus for the reply and recommendations'),
+  "replyTone": zod.enum(['warm-luxury', 'concise', 'detailed']).default(assistEnquiryBodyReplyToneDefault).describe('The desired tone for the crafted reply draft')
+})
+
+export const AssistEnquiryResponse = zod.object({
+  "enquiryId": zod.number(),
+  "summary": zod.object({
+  "overview": zod.string().describe('Concise summary of the customer\'s request and primary intent'),
+  "destinations": zod.array(zod.string()).describe('Destinations of interest explicitly mentioned in the enquiry'),
+  "travelDates": zod.string().describe('Explicit travel dates, season, or \"Unknown \/ Not specified\"'),
+  "groupSize": zod.string().describe('Explicit party size, count, or \"Unknown \/ Not specified\"'),
+  "budget": zod.string().describe('Explicit budget tier, currency, or \"Unknown \/ Not specified\"'),
+  "unansweredQuestions": zod.array(zod.string()).describe('Direct questions asked by the customer that need answering')
+}),
+  "extractedPreferences": zod.object({
+  "destinations": zod.array(zod.string()),
+  "travelDates": zod.string(),
+  "groupSize": zod.string(),
+  "budget": zod.string(),
+  "travelStyle": zod.string(),
+  "specialRequests": zod.array(zod.string()),
+  "missingDetails": zod.array(zod.string()).describe('Information gaps marked as unknown to ask the guest about')
+}),
+  "suggestedReply": zod.object({
+  "subject": zod.string(),
+  "greeting": zod.string(),
+  "body": zod.string(),
+  "signoff": zod.string()
+}),
+  "nextAction": zod.object({
+  "recommendedAction": zod.string(),
+  "rationale": zod.string(),
+  "priority": zod.enum(['low', 'medium', 'high'])
+}),
+  "disclaimer": zod.string().describe('Human-in-the-loop review reminder')
+})
+
+
+/**
  * @summary List journal posts
  */
 export const ListJournalPostsQueryParams = zod.object({
@@ -1055,17 +1386,96 @@ export const DeleteJournalPostParams = zod.object({
 
 
 /**
+ * @summary AI Content Assistant — Generate, refine, rewrite, and optimize travel journal stories grounded in Escora catalogue
+ */
+export const assistJournalPostBodyToneDefault = `slow-luxury`;
+
+export const AssistJournalPostBody = zod.object({
+  "action": zod.enum(['generate_draft', 'suggest_metadata', 'rewrite', 'expand', 'shorten', 'refine', 'generate_seo']).describe('Action requested from AI content assistant'),
+  "topic": zod.string().optional().describe('Article topic, title idea, or story angle'),
+  "destination": zod.string().optional().describe('Target Kerala destination or region'),
+  "targetAudience": zod.string().optional().describe('Target reader persona (e.g. Honeymooners, Slow-travelers, Heritage seekers)'),
+  "instructions": zod.string().optional().describe('Specific editorial instructions, focal points, or styling guidelines'),
+  "currentArticle": zod.object({
+  "title": zod.string().optional(),
+  "slug": zod.string().optional(),
+  "category": zod.string().optional(),
+  "excerpt": zod.string().optional(),
+  "content": zod.string().optional(),
+  "tags": zod.string().optional()
+}).optional().describe('Current draft state from editor'),
+  "selectedText": zod.string().optional().describe('Selected portion of article text for rewrite, expand, shorten, or refine'),
+  "tone": zod.enum(['slow-luxury', 'poetic-evocative', 'practical-concise', 'cultural-immersive']).default(assistJournalPostBodyToneDefault).describe('Desired editorial tone')
+})
+
+export const AssistJournalPostResponse = zod.object({
+  "action": zod.string(),
+  "suggestedTitles": zod.array(zod.string()).describe('Array of evocative, slow-luxury editorial titles'),
+  "suggestedSlug": zod.string().describe('URL-friendly article slug'),
+  "suggestedCategory": zod.string().describe('Recommended article category'),
+  "suggestedExcerpt": zod.string().describe('Compelling lead paragraph and preview excerpt'),
+  "suggestedIntroduction": zod.string().describe('Engaging article introduction hook'),
+  "draftContent": zod.string().describe('Generated or expanded article body in clean semantic HTML'),
+  "refinedText": zod.string().describe('Refined or rewritten text snippet for selection replacement'),
+  "seo": zod.object({
+  "metaTitle": zod.string().describe('Concise, SEO-optimized title for search result snippets'),
+  "metaDescription": zod.string().describe('Compelling search engine snippet description (140-160 characters)'),
+  "keywords": zod.array(zod.string()).describe('Suggested focus keywords and search terms')
+}),
+  "suggestedTags": zod.array(zod.string()).describe('Recommended comma-delimited article filter tags'),
+  "readTimeMinutes": zod.number().describe('Estimated reading time in minutes'),
+  "verifiedCatalogMatches": zod.object({
+  "destinations": zod.array(zod.object({
+  "name": zod.string(),
+  "slug": zod.string(),
+  "region": zod.string(),
+  "highlights": zod.string().optional()
+})),
+  "packages": zod.array(zod.object({
+  "title": zod.string(),
+  "slug": zod.string(),
+  "duration": zod.string().optional()
+}))
+}),
+  "unverifiedClaims": zod.array(zod.string()).describe('Explicitly flagged factual claims requiring staff verification'),
+  "editorialAdvice": zod.string().describe('Curator notes on sensory imagery, local authenticity, and pacing'),
+  "disclaimer": zod.string().describe('Human review and editorial safeguard notice')
+})
+
+
+/**
  * @summary List uploaded media
  */
+export const ListMediaQueryParams = zod.object({
+  "type": zod.enum(['all', 'uploads', 'external']).optional()
+})
+
 export const ListMediaResponseItem = zod.object({
   "id": zod.number(),
   "filename": zod.string(),
   "url": zod.string(),
   "mimeType": zod.string(),
   "sizeBytes": zod.number().nullish(),
-  "createdAt": zod.string()
+  "createdAt": zod.string(),
+  "storageType": zod.enum(['upload', 'external']).optional(),
+  "fileExists": zod.boolean().optional(),
+  "usageCount": zod.number().optional(),
+  "references": zod.array(zod.object({
+  "type": zod.string(),
+  "id": zod.number(),
+  "title": zod.string(),
+  "field": zod.string()
+})).optional()
 })
 export const ListMediaResponse = zod.array(ListMediaResponseItem)
+
+
+/**
+ * @summary Serve uploaded media file
+ */
+export const GetMediaFileParams = zod.object({
+  "name": zod.coerce.string()
+})
 
 
 /**

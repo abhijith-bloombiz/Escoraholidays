@@ -1,4 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { Link } from "wouter";
+import type { Destination } from "@workspace/api-client-react";
 import "./Destination360Experience.css";
 
 export interface Destination360Item {
@@ -275,7 +277,59 @@ function PanoramaModal({
   );
 }
 
-export default function Destination360Experience() {
+export interface Destination360ExperienceProps {
+  destinations?: Destination[];
+}
+
+const DESTINATION_ALIASES: Record<string, string[]> = {
+  kochi: ["kochi", "fort-kochi"],
+  "fort-kochi": ["kochi", "fort-kochi"],
+  alleppey: ["alleppey", "alappuzha"],
+  alappuzha: ["alleppey", "alappuzha"],
+};
+
+function findMatchingDestination(
+  destinations: Destination[] | undefined,
+  localId: string,
+  localSlug: string,
+  localName?: string
+): Destination | undefined {
+  if (!destinations || !Array.isArray(destinations) || destinations.length === 0) {
+    return undefined;
+  }
+
+  const normId = localId.toLowerCase().trim();
+  const normSlug = localSlug.toLowerCase().trim();
+  const aliases = new Set<string>([
+    normId,
+    normSlug,
+    ...(DESTINATION_ALIASES[normId] || []),
+    ...(DESTINATION_ALIASES[normSlug] || []),
+  ]);
+
+  // 1. Direct match on slug / alias
+  let match = destinations.find((d) => d?.slug && aliases.has(d.slug.toLowerCase().trim()));
+  if (match) return match;
+
+  // 2. Fallback match on name
+  if (localName) {
+    const normName = localName.toLowerCase().trim();
+    match = destinations.find((d) => {
+      if (!d?.name) return false;
+      const dbNormName = d.name.toLowerCase().trim();
+      return (
+        dbNormName === normName ||
+        (normId === "kochi" && (dbNormName === "fort kochi" || dbNormName === "kochi")) ||
+        (normId === "alleppey" && (dbNormName === "alappuzha" || dbNormName === "alleppey"))
+      );
+    });
+    if (match) return match;
+  }
+
+  return undefined;
+}
+
+export default function Destination360Experience({ destinations }: Destination360ExperienceProps = {}) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [is360Active, setIs360Active] = useState(false);
   const [stagePanX, setStagePanX] = useState(0);
@@ -285,8 +339,44 @@ export default function Destination360Experience() {
   const stagePanStart = useRef<number>(0);
   const trackRef = useRef<HTMLDivElement>(null);
 
-  const activeDest = DESTINATIONS_360[activeIdx];
-  const total = DESTINATIONS_360.length;
+  // Merge published API destination data into DESTINATIONS, keeping local fallbacks and local panorama assets
+  const items = useMemo<Destination360Item[]>(() => {
+    return DESTINATIONS.map((item) => {
+      const dbMatch = findMatchingDestination(destinations, item.id, item.slug, item.name);
+      if (!dbMatch) return item;
+
+      // Safe cover image verification for slide backdrop
+      const validCoverImage =
+        dbMatch.imageUrl && typeof dbMatch.imageUrl === "string" && dbMatch.imageUrl.trim().length > 0
+          ? dbMatch.imageUrl.trim()
+          : item.image;
+
+      // Safe region/location label
+      let location = item.location;
+      if (dbMatch.region && typeof dbMatch.region === "string" && dbMatch.region.trim().length > 0) {
+        const trimmedRegion = dbMatch.region.trim();
+        location = trimmedRegion.toLowerCase().includes("kerala")
+          ? trimmedRegion
+          : `${trimmedRegion}, Kerala`;
+      }
+
+      return {
+        ...item,
+        name: dbMatch.name?.trim() ? dbMatch.name.trim() : item.name,
+        category: dbMatch.type?.trim() ? dbMatch.type.trim() : item.category,
+        description: dbMatch.shortDesc?.trim() || dbMatch.description?.trim() || item.description,
+        slug: dbMatch.slug?.trim() ? dbMatch.slug.trim() : item.slug,
+        location,
+        image: validCoverImage,
+        // STRICT REQUIREMENT: Keep local panorama asset for Three.js sphere texture.
+        // Never overwrite with 2D admin imageUrl.
+        panorama: item.panorama,
+      };
+    });
+  }, [destinations]);
+
+  const activeDest = items[activeIdx] || items[0] || DESTINATIONS[0];
+  const total = items.length;
 
   const handlePrev = useCallback(() => {
     setActiveIdx((prev) => (prev > 0 ? prev - 1 : total - 1));
@@ -313,13 +403,47 @@ export default function Destination360Experience() {
     if (e.key === "ArrowRight") handleNext();
   };
 
-  // Stage pointer drag panning
-  const handleStagePointerDown = (e: React.PointerEvent) => {
-    setIsDraggingStage(true);
-    stageDragStart.current = e.clientX;
-    stagePanStart.current = stagePanX;
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  };
+  return (
+    <section className="dest-360-section" id="dest-360" aria-label="360° Destination Experience">
+      <div className="dest-360-container">
+        {/* ── Main Stage Card (Full-Width Immersive Carousel) ── */}
+        <div
+          className="dest-360-stage-card"
+          tabIndex={0}
+          onKeyDown={onKeyDown}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
+          role="region"
+          aria-label="360° Destination Experience Carousel"
+        >
+          {/* Panoramic Scenery Backdrop Slides with Cross-Fade */}
+          {items.map((dest, idx) => (
+            <div
+              key={dest.id}
+              className={`dest-360-bg-slide ${activeIdx === idx ? "is-active" : ""}`}
+              style={{ backgroundImage: `url(${dest.image})` }}
+              aria-hidden={activeIdx !== idx}
+            />
+          ))}
+
+          {/* Soft Left-To-Right Mist Gradient & Bottom Contrast Vignette */}
+          <div className="dest-360-bg-gradient" aria-hidden="true" />
+          <div className="dest-360-bg-vignette" aria-hidden="true" />
+
+          {/* ── Side Navigation Arrows (Left & Right Edges, Vertically Centered) ── */}
+          <button
+            type="button"
+            className="dest-360-edge-arrow dest-360-edge-arrow--prev"
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrev();
+            }}
+            aria-label="Previous destination"
+          >
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
 
   const handleStagePointerMove = (e: React.PointerEvent) => {
     if (!isDraggingStage || stageDragStart.current === null) return;
@@ -529,26 +653,19 @@ export default function Destination360Experience() {
             </div>
           </div>
 
-          {/* ── Bottom Destination Carousel / Card Tray ── */}
-          <div className="dest-360-bottom-tray">
-            {/* Left Chevron Button */}
-            <button
-              type="button"
-              className="dest-360-nav-arrow dest-360-nav-arrow--prev"
-              onClick={handlePrev}
-              aria-label="Previous destination"
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </button>
+            {/* Bottom Meta Row: Left Slide Counter, Center Dash Dots, Right Location Label */}
+            <div className="dest-360-meta-bar">
+              {/* Left Slide Counter */}
+              <div className="dest-360-counter" aria-label={`Slide ${activeIdx + 1} of ${total}`}>
+                <span className="dest-360-counter-num">{String(activeIdx + 1).padStart(2, "0")}</span>
+                <span className="dest-360-counter-line" />
+                <span className="dest-360-counter-num dest-360-counter-total">{String(total).padStart(2, "0")}</span>
+              </div>
 
-            {/* Destination Cards Track */}
-            <div className="dest-360-cards-track" ref={trackRef}>
-              {DESTINATIONS_360.map((dest, idx) => {
-                const isActive = activeIdx === idx;
-                return (
-                  <div
+              {/* Center Dash Dots */}
+              <div className="dest-360-pagination" role="tablist" aria-label="Destination slides">
+                {items.map((dest, idx) => (
+                  <button
                     key={dest.id}
                     className={`dest-360-card ${isActive ? "is-active" : ""}`}
                     onClick={() => setActiveIdx(idx)}

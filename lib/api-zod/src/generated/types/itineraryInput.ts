@@ -23,4 +23,16 @@ export interface ItineraryInput {
   currency?: string;
   status?: string;
   createdBy?: string;
+  referenceNumber?: string;
+  curatorName?: string;
+  curatorPhone?: string;
+  emergencyContacts?: string;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  tripIncludes?: string;
+  transportation?: string;
+  hotelTerms?: string;
+  paymentTerms?: string;
+  importantInfo?: string;
 }

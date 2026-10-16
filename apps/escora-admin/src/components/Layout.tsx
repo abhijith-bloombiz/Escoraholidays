@@ -13,6 +13,7 @@ import {
   LogOut,
   NotebookText,
   Mail,
+  ReceiptText,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ const navItems = [
   { href: "/destinations", label: "Destinations", icon: MapPin },
   { href: "/packages", label: "Journeys", icon: Package },
   { href: "/itineraries", label: "Itineraries", icon: NotebookText },
+  { href: "/invoices", label: "Invoices", icon: ReceiptText },
   { href: "/orders", label: "Bookings", icon: ShoppingBag },
   { href: "/enquiries", label: "Inbox", icon: MessageSquare },
   { href: "/campaigns", label: "Campaigns", icon: Mail },
@@ -67,9 +69,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
         <div className="p-4 border-t border-sidebar-border space-y-2">
-          {username && (
+          {/* {username && (
             <p className="text-xs text-sidebar-foreground/50 font-mono truncate">{username}</p>
-          )}
+          )} */}
           <button
             onClick={() => logout()}
             className="flex items-center gap-2 w-full px-3 py-2 rounded-md text-sm text-sidebar-foreground/60 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground transition-colors"

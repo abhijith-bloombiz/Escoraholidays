@@ -9,3 +9,4 @@ export * from "./enquiry.model";
 export * from "./itinerary.model";
 export * from "./subscriber-consent.model";
 export * from "./campaign.model";
+export * from "./invoice.model";

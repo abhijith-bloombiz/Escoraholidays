@@ -1,4 +1,19 @@
-import type { ItineraryDay, ItineraryStay, ItineraryPricing } from "@/lib/itinerary";
+import type {
+  ItineraryDay,
+  ItineraryStay,
+  ItineraryPricing,
+  ItineraryTripIncludes,
+  ItineraryTransportation,
+} from "@/lib/itinerary";
+import {
+  DEFAULT_HOTEL_TERMS,
+  DEFAULT_PAYMENT_TERMS,
+  DEFAULT_IMPORTANT_INFO,
+} from "@/lib/itinerary";
+import alleppeyCoverImg from "@assets/escora/destinations/alleppey.jpg";
+import kovalamCleanImg from "@assets/escora/destinations/kovalam-clean.jpg";
+import padmanabhaswamyImg from "@assets/escora/destinations/padmanabhaswamy-temple.jpg";
+import varkalaImg from "@assets/escora/destinations/varkala.jpg";
 
 export interface ItineraryTemplate {
   id: string;
@@ -6,21 +21,139 @@ export interface ItineraryTemplate {
   description: string;
   destination: string;
   title: string;
+  customerName?: string;
+  startDate?: string;
+  endDate?: string;
+  curatorName?: string;
+  curatorPhone?: string;
+  emergencyContacts?: string;
+  referenceNumber?: string;
+  createdDate?: string;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  tripIncludes?: ItineraryTripIncludes;
+  transportation?: ItineraryTransportation;
+  coverImageUrl?: string;
+  summary?: string;
   days: ItineraryDay[];
   stays: ItineraryStay[];
   pricing: ItineraryPricing;
   inclusions: string[];
   exclusions: string[];
+  hotelTerms?: string[];
+  paymentTerms?: string[];
+  importantInfo?: string[];
 }
 
-// Content adapted from real itineraries the team has previously sent to
-// customers, reworded to fit the current day/stay/pricing shape exactly.
-// Nothing here introduces fields the model doesn't already support (no
-// multi-tier pricing, photos, or transport tables) — details that don't fit
-// (e.g. "Optional, on request" activities, package tiers other than
-// Standard) are folded into day descriptions or pricing notes rather than
-// dropped, so nothing from the source is silently lost.
 export const itineraryTemplates: ItineraryTemplate[] = [
+  {
+    id: "explora-trivandrum",
+    label: "Explora Trivandrum (Reference Itinerary)",
+    description: "2N | 3D — Explora Trivandrum (Maria Roy, Quote Q1020)",
+    destination: "Trivandrum, Keralam, India | Kovalam, Keralam, India",
+    title: "Explora Trivandrum",
+    customerName: "MARIA ROY",
+    startDate: "2026-10-29",
+    endDate: "2026-10-31",
+    curatorName: "Midhilaj Chelakkal",
+    curatorPhone: "+91 9745585813",
+    emergencyContacts: "+91 9400280420 | +91 8157003344",
+    referenceNumber: "L100021/Q1020",
+    createdDate: "29-10-2026",
+    adults: 1,
+    children: 0,
+    infants: 0,
+    tripIncludes: {
+      hotel: true,
+      transport: true,
+      sightseeing: true,
+      transfer: true,
+    },
+    transportation: {
+      origin: "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
+      destination: "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
+      vehicleType: "Private Dedicated Chauffeur Driven AC Sedan / SUV",
+    },
+    coverImageUrl: alleppeyCoverImg,
+    days: [
+      {
+        day: 1,
+        date: "2026-10-29",
+        title: "Day 1 | Thursday | 29 Oct 2026",
+        subtitle: "Arrival in Trivandrum",
+        description:
+          "Arrive in Trivandrum, where you will be met and transferred to your hotel for check-in. Begin sightseeing with a visit to the magnificent Sree Padmanabhaswamy Temple, one of the richest and most revered temples in India. From there, head to Trivandrum Zoo, a peaceful, green stretch that makes for an easy family-friendly stop.\n\nIn the afternoon, visit the Napier Museum and the nearby Kuthiramalika Palace Museum to explore Kerala's art and royal heritage.\n\nIn the evening, stroll along Shanghumugham Beach and watch the sun set over the Arabian Sea.",
+        optionalActivities: ["Optional (on request): an evening Kathakali performance at Margi."],
+        meals: "Dinner at leisure. Trivandrum offers a good mix of local Kerala cuisine and multi-cuisine dining options around the city.",
+        stay: "Stay: Uday Samudra Leisure Beach Hotel",
+        imageUrls: [padmanabhaswamyImg, varkalaImg],
+        activities: [],
+      },
+      {
+        day: 2,
+        date: "2026-10-30",
+        title: "Day 2 | Friday | 30 Oct 2026",
+        subtitle: "Trivandrum to Kovalam",
+        description:
+          "After breakfast, check out and drive to Kovalam, stopping at Poovar Island on the way. Enjoy a relaxed boat ride where the backwaters, the sea and the golden sand meet. On arrival in Kovalam, check into your resort and spend the afternoon at leisure.\n\nIn the late afternoon, make your way to Kovalam Beach, known for its iconic lighthouse and crescent-shaped shoreline. It is a relaxed spot to unwind as the day winds down.",
+        optionalActivities: [
+          "A wellness or Ayurveda session at one of the area's reputed retreat centres",
+          "Kayaking at Thiruvallam with the Rovers Kayaking Club",
+        ],
+        meals: "Dinner at leisure. Kovalam has a wide choice of seafood and multi-cuisine restaurants along the coast.",
+        stay: "Stay: The Leela Kovalam, a Raviz Hotel",
+        imageUrls: [],
+        activities: [],
+      },
+      {
+        day: 3,
+        date: "2026-10-31",
+        title: "Day 3 | Saturday | 31 Oct 2026",
+        subtitle: "Kovalam to Departure",
+        description:
+          "After a leisurely breakfast, enjoy a final stroll along the shoreline. Check out of your resort and if time permits, enjoy some shopping at Lulu Mall before proceeding to the airport, departing with beautiful memories of Kerala.",
+        imageUrls: [kovalamCleanImg],
+        activities: [],
+      },
+    ],
+    stays: [
+      {
+        name: "Uday Samudra Leisure Beach Hotel",
+        location: "Trivandrum, Keralam, India",
+        starRating: "5 Star",
+        nights: 1,
+        rooms: 1,
+        mealPlan: "BreakFast",
+      },
+      {
+        name: "The Leela Kovalam, a Raviz Hotel",
+        location: "Kovalam, Keralam, India",
+        starRating: "5 Star",
+        nights: 1,
+        rooms: 1,
+        mealPlan: "BreakFast",
+      },
+    ],
+    inclusions: [],
+    exclusions: [
+      "Any item of personal nature like tips, laundry, telephone calls etc.",
+      "Any other sightseeing other than those mentioned in the inclusions section.",
+      "Any fee for video or camera permit.",
+    ],
+    pricing: {
+      items: [
+        { label: "Uday Samudra Leisure Beach Hotel (1 Night, BreakFast)", amount: 14500 },
+        { label: "The Leela Kovalam, a Raviz Hotel (1 Night, BreakFast)", amount: 22500 },
+        { label: "Private Dedicated Chauffeur & Sightseeing Transfers", amount: 11000 },
+      ],
+      total: 48000,
+      notes: "Comprehensive package including 5-Star accommodations, dedicated chauffeur transportation, breakfast, and all sightseeing access as outlined.",
+    },
+    hotelTerms: DEFAULT_HOTEL_TERMS,
+    paymentTerms: DEFAULT_PAYMENT_TERMS,
+    importantInfo: DEFAULT_IMPORTANT_INFO,
+  },
   {
     id: "kerala-classic",
     label: "Kerala Classic",

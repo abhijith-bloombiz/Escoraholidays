@@ -2090,6 +2090,30 @@ components:
           type: string
         createdBy:
           type: ["string", "null"]
+        referenceNumber:
+          type: ["string", "null"]
+        curatorName:
+          type: ["string", "null"]
+        curatorPhone:
+          type: ["string", "null"]
+        emergencyContacts:
+          type: ["string", "null"]
+        adults:
+          type: ["integer", "null"]
+        children:
+          type: ["integer", "null"]
+        infants:
+          type: ["integer", "null"]
+        tripIncludes:
+          type: ["string", "null"]
+        transportation:
+          type: ["string", "null"]
+        hotelTerms:
+          type: ["string", "null"]
+        paymentTerms:
+          type: ["string", "null"]
+        importantInfo:
+          type: ["string", "null"]
         createdAt:
           type: string
         updatedAt:
@@ -2133,6 +2157,30 @@ components:
           type: string
         createdBy:
           type: string
+        referenceNumber:
+          type: string
+        curatorName:
+          type: string
+        curatorPhone:
+          type: string
+        emergencyContacts:
+          type: string
+        adults:
+          type: integer
+        children:
+          type: integer
+        infants:
+          type: integer
+        tripIncludes:
+          type: string
+        transportation:
+          type: string
+        hotelTerms:
+          type: string
+        paymentTerms:
+          type: string
+        importantInfo:
+          type: string
 
     ItineraryUpdate:
       type: object
@@ -2170,6 +2218,30 @@ components:
         status:
           type: string
         createdBy:
+          type: string
+        referenceNumber:
+          type: string
+        curatorName:
+          type: string
+        curatorPhone:
+          type: string
+        emergencyContacts:
+          type: string
+        adults:
+          type: integer
+        children:
+          type: integer
+        infants:
+          type: integer
+        tripIncludes:
+          type: string
+        transportation:
+          type: string
+        hotelTerms:
+          type: string
+        paymentTerms:
+          type: string
+        importantInfo:
           type: string
 
     # ── AI Itinerary Assistant (Phase 3B) ────────────────────────

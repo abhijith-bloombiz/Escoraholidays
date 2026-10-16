@@ -3,7 +3,16 @@ import { useParams } from "wouter";
 import { useGetItineraryByShareToken, getGetItineraryByShareTokenQueryKey } from "@workspace/api-client-react";
 import { useSeo } from "@/hooks/useSeo";
 import { printElementById } from "@/lib/printElement";
-import { parseDays, parseStays, parsePricing, parseStringList, formatMoney, formatDate } from "@/lib/itinerary";
+import {
+  parseDays,
+  parseStays,
+  parsePricing,
+  parseStringList,
+  parseTripIncludes,
+  parseTransportation,
+  formatMoney,
+  formatDate,
+} from "@/lib/itinerary";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import Layout from "@/components/layout/Layout";
 import ItineraryPrintDocument from "@/components/ItineraryPrintDocument";
@@ -104,6 +113,18 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
             currency: itinerary.currency,
             shareToken: itinerary.shareToken,
             mode,
+            referenceNumber: itinerary.referenceNumber,
+            curatorName: itinerary.curatorName,
+            curatorPhone: itinerary.curatorPhone,
+            emergencyContacts: itinerary.emergencyContacts,
+            adults: itinerary.adults,
+            children: itinerary.children,
+            infants: itinerary.infants,
+            tripIncludes: parseTripIncludes(itinerary.tripIncludes),
+            transportation: parseTransportation(itinerary.transportation),
+            hotelTerms: parseStringList(itinerary.hotelTerms),
+            paymentTerms: parseStringList(itinerary.paymentTerms),
+            importantInfo: parseStringList(itinerary.importantInfo),
           }}
         />
       </div>
@@ -184,8 +205,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                       {day.imageUrl && (
                         <img src={day.imageUrl} alt={day.title} className="w-full h-56 object-cover rounded-md mb-4" />
                       )}
-                      {day.description && <p className="font-sans text-ink-soft leading-relaxed mb-4">{day.description}</p>}
-                      {day.activities?.length > 0 && (
+                      {day.activities && day.activities.length > 0 && (
                         <div className="space-y-2.5">
                           {day.activities.map((act, j) => (
                             <div key={j} className="font-sans text-sm flex gap-3.5 items-baseline">

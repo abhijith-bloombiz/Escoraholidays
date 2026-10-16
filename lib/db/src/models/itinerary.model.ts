@@ -21,6 +21,18 @@ export interface IItinerary {
   currency: string;
   status: string;
   createdBy?: string | null;
+  referenceNumber?: string | null;
+  curatorName?: string | null;
+  curatorPhone?: string | null;
+  emergencyContacts?: string | null;
+  adults?: number | null;
+  children?: number | null;
+  infants?: number | null;
+  tripIncludes?: string | null;
+  transportation?: string | null;
+  hotelTerms?: string | null;
+  paymentTerms?: string | null;
+  importantInfo?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,6 +66,18 @@ const itinerarySchema = new Schema<IItinerary>(
       index: true,
     },
     createdBy: { type: String, default: null },
+    referenceNumber: { type: String, default: null },
+    curatorName: { type: String, default: null },
+    curatorPhone: { type: String, default: null },
+    emergencyContacts: { type: String, default: null },
+    adults: { type: Number, default: null },
+    children: { type: Number, default: null },
+    infants: { type: Number, default: null },
+    tripIncludes: { type: String, default: null },
+    transportation: { type: String, default: null },
+    hotelTerms: { type: String, default: null },
+    paymentTerms: { type: String, default: null },
+    importantInfo: { type: String, default: null },
     createdAt: { type: Date, required: true, default: Date.now, index: true },
     updatedAt: { type: Date, required: true, default: Date.now },
   },
@@ -88,6 +112,18 @@ export const insertItinerarySchema = z.object({
   currency: z.string().optional().default("INR"),
   status: z.string().optional().default("draft"),
   createdBy: z.string().optional().nullable(),
+  referenceNumber: z.string().optional().nullable(),
+  curatorName: z.string().optional().nullable(),
+  curatorPhone: z.string().optional().nullable(),
+  emergencyContacts: z.string().optional().nullable(),
+  adults: z.number().optional().nullable(),
+  children: z.number().optional().nullable(),
+  infants: z.number().optional().nullable(),
+  tripIncludes: z.string().optional().nullable(),
+  transportation: z.string().optional().nullable(),
+  hotelTerms: z.string().optional().nullable(),
+  paymentTerms: z.string().optional().nullable(),
+  importantInfo: z.string().optional().nullable(),
 });
 
 export type InsertItinerary = z.infer<typeof insertItinerarySchema>;

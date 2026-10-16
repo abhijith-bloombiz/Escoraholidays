@@ -10,6 +10,7 @@ import dashboardRouter from "./dashboard";
 import travelCategoriesRouter from "./travel-categories";
 import enquiriesRouter from "./enquiries";
 import itinerariesRouter from "./itineraries";
+import invoicesRouter from "./invoices";
 import campaignsRouter from "./campaigns";
 import aiRouter from "./ai";
 import { requireAuth } from "../middleware/auth";
@@ -71,6 +72,13 @@ router.post("/itineraries/ai-assist", requireAuth, itinerariesRouter);
 router.get("/itineraries/:id", requireAuth, itinerariesRouter);
 router.patch("/itineraries/:id", requireAuth, itinerariesRouter);
 router.delete("/itineraries/:id", requireAuth, itinerariesRouter);
+
+// Invoices: admin only
+router.get("/invoices", requireAuth, invoicesRouter);
+router.post("/invoices", requireAuth, invoicesRouter);
+router.get("/invoices/:id", requireAuth, invoicesRouter);
+router.patch("/invoices/:id", requireAuth, invoicesRouter);
+router.delete("/invoices/:id", requireAuth, invoicesRouter);
 
 // Travel categories: public GETs, protected writes
 router.get("/travel-categories", travelCategoriesRouter);

@@ -5,44 +5,27 @@
 
 .dest-360-section {
   position: relative;
+  width: 100%;
+  min-height: min(100vh, 840px);
+  min-height: min(100dvh, 840px);
+  height: clamp(640px, 86vh, 900px);
   background-color: #06130b;
   overflow: hidden;
-  padding: clamp(36px, 5vh, 64px) 0;
+  padding: 0;
+  margin: 0;
   font-family: var(--f-body, "Plus Jakarta Sans", sans-serif);
   color: #ffffff;
   scroll-margin-top: 80px;
-}
-
-/* Outer Container */
-.dest-360-container {
-  position: relative;
-  max-width: var(--container, 1440px);
-  margin: 0 auto;
-  padding: 0 var(--gutter, clamp(16px, 3.5vw, 56px));
-  width: 100%;
-  box-sizing: border-box;
-}
-
-/* ── Main Panoramic Stage Card ── */
-.dest-360-stage-card {
-  position: relative;
-  width: 100%;
-  height: clamp(560px, 68vh, 680px);
-  min-height: 540px;
-  border-radius: 28px;
-  overflow: hidden;
-  background-color: #08160e;
-  border: 1px solid rgba(220, 200, 160, 0.16);
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.04);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   outline: none;
   user-select: none;
+  box-sizing: border-box;
 }
 
-.dest-360-stage-card:focus-visible {
-  box-shadow: 0 0 0 3px rgba(229, 184, 105, 0.6), 0 28px 80px rgba(0, 0, 0, 0.6);
+.dest-360-section:focus-visible {
+  outline: none;
 }
 
 /* ── Stage Viewport with Interactive Pan ── */
@@ -85,11 +68,11 @@
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    rgba(6, 18, 11, 0.94) 0%,
-    rgba(6, 18, 11, 0.82) 22%,
-    rgba(6, 18, 11, 0.45) 45%,
-    rgba(6, 18, 11, 0.1) 65%,
-    transparent 80%
+    rgba(6, 18, 11, 0.96) 0%,
+    rgba(6, 18, 11, 0.86) clamp(260px, 32vw, 480px),
+    rgba(6, 18, 11, 0.45) clamp(440px, 48vw, 720px),
+    rgba(6, 18, 11, 0.1) 68%,
+    transparent 84%
   );
 }
 
@@ -98,10 +81,10 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 160px;
+  height: clamp(140px, 20vh, 200px);
   z-index: 2;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(6, 18, 11, 0.45) 0%, transparent 100%);
+  background: linear-gradient(180deg, rgba(6, 18, 11, 0.5) 0%, transparent 100%);
 }
 
 .dest-360-gradient-bottom {
@@ -109,14 +92,14 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 280px;
+  height: clamp(240px, 35vh, 360px);
   z-index: 2;
   pointer-events: none;
   background: linear-gradient(
     180deg,
     transparent 0%,
-    rgba(6, 18, 11, 0.35) 35%,
-    rgba(6, 18, 11, 0.78) 70%,
+    rgba(6, 18, 11, 0.35) 30%,
+    rgba(6, 18, 11, 0.82) 68%,
     rgba(6, 18, 11, 0.98) 100%
   );
 }
@@ -124,10 +107,10 @@
 /* ── Top-Left Editorial Block ── */
 .dest-360-editorial-block {
   position: absolute;
-  top: clamp(32px, 5.2%, 52px);
-  left: clamp(24px, 4.2%, 56px);
+  top: clamp(36px, 6vh, 68px);
+  left: clamp(24px, 5vw, 84px);
   z-index: 5;
-  max-width: 480px;
+  max-width: min(540px, 92vw);
   text-align: left;
   pointer-events: auto;
 }
@@ -318,8 +301,8 @@
 /* ── Right-Edge Floating Glass Tools Stack ── */
 .dest-360-right-tools {
   position: absolute;
-  right: clamp(20px, 3.2%, 40px);
-  top: clamp(32px, 5%, 52px);
+  right: clamp(24px, 4.5vw, 64px);
+  top: clamp(36px, 6vh, 68px);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -366,7 +349,7 @@
 /* ── Bottom Destination Carousel / Card Tray ── */
 .dest-360-bottom-tray {
   position: absolute;
-  bottom: clamp(16px, 2.5%, 26px);
+  bottom: clamp(24px, 4vh, 44px);
   left: 0;
   right: 0;
   z-index: 8;
@@ -374,7 +357,7 @@
   align-items: center;
   justify-content: center;
   gap: clamp(10px, 1.2vw, 18px);
-  padding: 0 clamp(16px, 2.8vw, 40px);
+  padding: 0 clamp(20px, 4vw, 64px);
   width: 100%;
   box-sizing: border-box;
   pointer-events: auto;
@@ -697,6 +680,11 @@
     display: none; /* Hide on smaller tablets to keep view uncluttered */
   }
 
+  .dest-360-section {
+    height: clamp(580px, 82vh, 740px);
+    min-height: 560px;
+  }
+
   .dest-360-right-tools {
     top: 24px;
     right: 20px;
@@ -732,12 +720,9 @@
 
 @media (max-width: 640px) {
   .dest-360-section {
-    padding: 24px 0 40px 0;
-  }
-
-  .dest-360-stage-card {
-    height: 580px;
-    border-radius: 20px;
+    height: clamp(540px, 88vh, 640px);
+    min-height: 520px;
+    padding: 0;
   }
 
   .dest-360-editorial-block {

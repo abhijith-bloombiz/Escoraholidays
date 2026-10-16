@@ -107,8 +107,7 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   html.theme-v3 .mbn-item.active { color: var(--v3-deep); }
 }
 
-/* Custom cursor — deep green on light */
-html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
+
 
 /* ─── V3 NAVBAR TRIGGER ZONE (TOP ACTIVATION ZONE) ──────────── */
 .v3-nav-trigger-zone {
@@ -585,29 +584,23 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   padding-top: 6px;
 }
 
-.cinematic-footer-brand-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-size: clamp(42px, 4.4vw, 56px);
-  font-weight: 400;
-  letter-spacing: -0.015em;
-  color: #ffffff;
-  line-height: 1;
+.cinematic-footer-brand-link {
+  display: inline-block;
   text-decoration: none;
-  margin: 0;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }
 
-.cinematic-footer-plane {
-  display: inline-flex;
-  color: #c59a58;
-  transform: translate(2px, -8px);
-  transition: transform 0.3s ease;
+.cinematic-footer-brand-link:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
 }
 
-.cinematic-footer-brand-title:hover .cinematic-footer-plane {
-  transform: translate(6px, -12px);
+.cinematic-footer-brand-img {
+  height: clamp(54px, 5.2vw, 76px);
+  width: auto;
+  max-width: min(280px, 80vw);
+  object-fit: contain;
+  display: block;
 }
 
 .cinematic-footer-tagline {

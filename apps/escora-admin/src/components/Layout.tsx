@@ -12,6 +12,7 @@ import {
   ChevronRight,
   LogOut,
   NotebookText,
+  Mail,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/itineraries", label: "Itineraries", icon: NotebookText },
   { href: "/orders", label: "Bookings", icon: ShoppingBag },
   { href: "/enquiries", label: "Inbox", icon: MessageSquare },
+  { href: "/campaigns", label: "Campaigns", icon: Mail },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/media", label: "Media", icon: Image },
 ];

@@ -7,3 +7,5 @@ export * from "./media.model";
 export * from "./travel-category.model";
 export * from "./enquiry.model";
 export * from "./itinerary.model";
+export * from "./subscriber-consent.model";
+export * from "./campaign.model";

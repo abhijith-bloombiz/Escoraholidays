@@ -354,24 +354,22 @@ export default function Destination360Experience() {
   };
 
   return (
-    <section className="dest-360-section" id="dest-360" aria-label="360° Destination Experience">
-      <div className="dest-360-container">
-        {/* ── Main Cinematic Panoramic Frame ── */}
-        <div
-          className="dest-360-stage-card"
-          tabIndex={0}
-          onKeyDown={onKeyDown}
-          role="region"
-          aria-label="360° Destination Experience"
-        >
-          {/* Panoramic Stage Window with Interactive Pan & Crossfade */}
-          <div
-            className={`dest-360-stage-viewport ${isDraggingStage ? "is-dragging" : ""}`}
-            onPointerDown={handleStagePointerDown}
-            onPointerMove={handleStagePointerMove}
-            onPointerUp={handleStagePointerUp}
-            onPointerCancel={handleStagePointerUp}
-          >
+    <section
+      className="dest-360-section"
+      id="dest-360"
+      aria-label="360° Destination Experience"
+      tabIndex={0}
+      onKeyDown={onKeyDown}
+      role="region"
+    >
+      {/* ── Full-Bleed Section 360 Background Viewport ── */}
+      <div
+        className={`dest-360-stage-viewport ${isDraggingStage ? "is-dragging" : ""}`}
+        onPointerDown={handleStagePointerDown}
+        onPointerMove={handleStagePointerMove}
+        onPointerUp={handleStagePointerUp}
+        onPointerCancel={handleStagePointerUp}
+      >
             {DESTINATIONS_360.map((dest, idx) => {
               const isActive = activeIdx === idx;
               return (
@@ -587,8 +585,6 @@ export default function Destination360Experience() {
               </svg>
             </button>
           </div>
-        </div>
-      </div>
 
       {/* ── Interactive 360° Spherical Panorama Modal (Three.js) ── */}
       {is360Active && (

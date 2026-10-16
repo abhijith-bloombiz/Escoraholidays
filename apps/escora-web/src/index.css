@@ -183,7 +183,7 @@
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground selection:bg-primary selection:text-primary-foreground cursor-none;
+    @apply font-sans antialiased bg-background text-foreground selection:bg-primary selection:text-primary-foreground;
   }
 
   h1, h2, h3, h4, h5, h6,
@@ -517,44 +517,7 @@ html.lenis, html.lenis body {
   100% { transform: scale(1.1); }
 }
 
-/* Custom Cursor */
-.custom-cursor-dot {
-  width: 6px;
-  height: 6px;
-  background-color: var(--gold);
-  border-radius: 50%;
-  position: fixed;
-  pointer-events: none;
-  z-index: 9999;
-  transform: translate(-50%, -50%);
-  transition: width 0.2s, height 0.2s, background-color 0.2s;
-}
 
-.custom-cursor-ring {
-  width: 32px;
-  height: 32px;
-  border: 1px solid var(--gold-bright);
-  border-radius: 50%;
-  position: fixed;
-  pointer-events: none;
-  z-index: 9998;
-  transform: translate(-50%, -50%);
-  transition: transform 0.15s ease-out, width 0.2s, height 0.2s, border-color 0.2s;
-}
-
-body:has(a:hover, button:hover, [role="button"]:hover) .custom-cursor-dot {
-  background-color: var(--bg);
-  width: 4px;
-  height: 4px;
-}
-
-body:has(a:hover, button:hover, [role="button"]:hover) .custom-cursor-ring {
-  width: 48px;
-  height: 48px;
-  background-color: var(--gold);
-  border-color: transparent;
-  mix-blend-mode: difference;
-}
 
 /* ==========================================================================
    UNIFIED SECTION LABEL / EYEBROW SYSTEM

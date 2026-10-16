@@ -107,8 +107,7 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   html.theme-v3 .mbn-item.active { color: var(--v3-deep); }
 }
 
-/* Custom cursor — deep green on light */
-html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
+
 
 /* ─── V3 NAVBAR TRIGGER ZONE (TOP ACTIVATION ZONE) ──────────── */
 .v3-nav-trigger-zone {
@@ -177,25 +176,17 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   position: absolute;
   inset: 0;
   border-radius: 9999px;
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.72) 0%,
-    rgba(255, 255, 255, 0.52) 60%,
-    rgba(255, 255, 255, 0.65) 100%
-  );
-  backdrop-filter: blur(28px) saturate(190%) contrast(102%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(102%);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: #ffffff;
+  border: 1px solid rgba(220, 230, 224, 0.85);
   box-shadow:
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.85),
-    0 16px 44px rgba(26, 63, 44, 0.10),
+    0 16px 44px rgba(26, 63, 44, 0.08),
     0 3px 10px rgba(0, 0, 0, 0.04);
   pointer-events: none;
   z-index: 1;
   transition: background .4s, border-color .4s, box-shadow .4s, opacity .4s;
 }
 
-/* When in Hero section on homepage: background is transparent */
+/* When in Hero section on homepage: transparent */
 .v3-nav.is-over-hero {
   background: transparent !important;
 }
@@ -217,18 +208,11 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
 }
 
 .v3-nav.is-scrolled::before {
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.88) 0%,
-    rgba(255, 255, 255, 0.75) 100%
-  );
-  backdrop-filter: blur(36px) saturate(200%);
-  -webkit-backdrop-filter: blur(36px) saturate(200%);
-  border-color: rgba(255, 255, 255, 0.75);
+  background: #ffffff;
+  border: 1px solid rgba(220, 230, 224, 0.95);
   box-shadow:
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95),
-    0 16px 44px rgba(26, 63, 44, 0.12),
-    0 3px 10px rgba(0, 0, 0, 0.05);
+    0 16px 44px rgba(26, 63, 44, 0.10),
+    0 3px 10px rgba(0, 0, 0, 0.04);
 }
 
 .v3-nav-brand { display: flex; align-items: center; z-index: 2; margin-right: auto; }
@@ -325,15 +309,8 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   transform: translateX(-50%);
   width: 400px;
   border-radius: 18px;
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.32) 0%,
-    rgba(255, 255, 255, 0.14) 60%,
-    rgba(255, 255, 255, 0.22) 100%
-  );
-  backdrop-filter: blur(28px) saturate(190%) contrast(102%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%) contrast(102%);
-  border: 1px solid transparent;
+  background: #ffffff;
+  border: 1px solid rgba(220, 230, 224, 0.85);
   box-shadow: none;
   z-index: 50;
   display: grid;
@@ -353,6 +330,7 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
 .v3-nav-panel-inner {
   overflow: hidden;
   min-height: 0;
+  background: #ffffff;
 }
 
 .v3-nav-panel-grid {
@@ -362,6 +340,7 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   padding: 8px;
   transform: translateY(-8px);
   opacity: 0.6;
+  background: #ffffff;
   transition: transform 0.34s cubic-bezier(0.45, 0.05, 0.55, 0.95),
               opacity 0.30s ease;
 }
@@ -373,13 +352,11 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   opacity: 1;
   pointer-events: auto;
   visibility: visible;
-  border-color: rgba(255, 255, 255, 0.48);
+  background: #ffffff;
+  border-color: rgba(220, 230, 224, 0.95);
   box-shadow:
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.85),
-    inset 0 -1px 2px 0 rgba(255, 255, 255, 0.20),
-    inset 0 0 16px 0 rgba(255, 255, 255, 0.10),
-    0 22px 50px rgba(0, 0, 0, 0.09),
-    0 4px 14px rgba(26, 63, 44, 0.04);
+    0 22px 50px rgba(26, 63, 44, 0.12),
+    0 6px 18px rgba(0, 0, 0, 0.06);
   transition: grid-template-rows 0.38s cubic-bezier(0.16, 1, 0.3, 1),
               opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.25s ease,
@@ -397,23 +374,16 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
 }
 
 .v3-nav.is-scrolled .v3-nav-panel {
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 255, 255, 0.35) 100%
-  );
-  backdrop-filter: blur(36px) saturate(200%);
-  -webkit-backdrop-filter: blur(36px) saturate(200%);
+  background: #ffffff;
 }
 
 .v3-nav.is-scrolled .v3-nav-panel.open,
 .v3-nav.is-scrolled .v3-nav-dd:hover .v3-nav-panel {
-  border-color: rgba(255, 255, 255, 0.65);
+  background: #ffffff;
+  border-color: rgba(220, 230, 224, 0.95);
   box-shadow:
-    inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.90),
-    inset 0 -1px 2px 0 rgba(255, 255, 255, 0.25),
     0 22px 50px rgba(26, 63, 44, 0.12),
-    0 4px 14px rgba(0, 0, 0, 0.05);
+    0 6px 18px rgba(0, 0, 0, 0.06);
 }
 .v3-nav-panel a {
   display: flex;
@@ -432,15 +402,15 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
 }
 .v3-nav-panel a:hover {
   color: #C59B27;
-  background: rgba(255, 255, 255, 0.42);
-  box-shadow: inset 0 0.5px 1px 0 rgba(255, 255, 255, 0.8), 0 2px 6px rgba(0, 0, 0, 0.03);
+  background: #F3F7F4;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transform: translateX(2px);
 }
 .v3-nav-panel a.active {
   color: #C59B27;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.35);
-  box-shadow: inset 0 0.5px 1px 0 rgba(255, 255, 255, 0.6);
+  background: #E7EFE9;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .v3-nav-right { display: flex; align-items: center; gap: 16px; margin-left: auto; z-index: 2; }
@@ -585,29 +555,23 @@ html.theme-v3 .custom-cursor-ring { border-color: var(--v3-sage); }
   padding-top: 6px;
 }
 
-.cinematic-footer-brand-title {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-size: clamp(42px, 4.4vw, 56px);
-  font-weight: 400;
-  letter-spacing: -0.015em;
-  color: #ffffff;
-  line-height: 1;
+.cinematic-footer-brand-link {
+  display: inline-block;
   text-decoration: none;
-  margin: 0;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
 }
 
-.cinematic-footer-plane {
-  display: inline-flex;
-  color: #c59a58;
-  transform: translate(2px, -8px);
-  transition: transform 0.3s ease;
+.cinematic-footer-brand-link:hover {
+  transform: translateY(-2px);
+  opacity: 0.95;
 }
 
-.cinematic-footer-brand-title:hover .cinematic-footer-plane {
-  transform: translate(6px, -12px);
+.cinematic-footer-brand-img {
+  height: clamp(54px, 5.2vw, 76px);
+  width: auto;
+  max-width: min(280px, 80vw);
+  object-fit: contain;
+  display: block;
 }
 
 .cinematic-footer-tagline {

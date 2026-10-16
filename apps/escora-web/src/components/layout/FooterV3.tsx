@@ -1,4 +1,5 @@
 import { Link } from "wouter";
+import escoraLogoLight from "@assets/escora/escora-logo-light.png";
 
 export default function FooterV3() {
   return (
@@ -13,24 +14,13 @@ export default function FooterV3() {
         <div className="cinematic-footer-split">
           {/* ── Left Section: Brand & Persona ── */}
           <div className="cinematic-footer-brand">
-            <Link href="/" className="cinematic-footer-brand-title">
-              <span>Escora</span>
-              <span className="cinematic-footer-plane">
-                <svg
-                  viewBox="0 0 24 24"
-                  width="18"
-                  height="18"
-                  fill="none"
-                  stroke="#c59a58"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="m22 2-7 20-4-9-9-4Z" />
-                  <path d="M22 2 11 13" />
-                </svg>
-              </span>
+            <Link href="/" className="cinematic-footer-brand-link" aria-label="Escora Holidays Home">
+              <img
+                src={escoraLogoLight}
+                alt="Escora Holidays"
+                className="cinematic-footer-brand-img"
+                loading="lazy"
+              />
             </Link>
 
             <h3 className="cinematic-footer-tagline">
@@ -244,10 +234,6 @@ export default function FooterV3() {
               <p className="cinematic-footer-copy">© 2026 Escora. All rights reserved.</p>
               <div className="cinematic-footer-legal-links">
                 <Link href="/privacy-policy">Privacy Policy</Link>
-                <span className="cinematic-footer-legal-pipe">|</span>
-                <Link href="/privacy-policy">Terms &amp; Conditions</Link>
-                <span className="cinematic-footer-legal-pipe">|</span>
-                <Link href="/privacy-policy">Cookie Policy</Link>
               </div>
             </div>
           </div>

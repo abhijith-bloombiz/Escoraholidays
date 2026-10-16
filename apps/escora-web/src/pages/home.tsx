@@ -421,6 +421,26 @@ export default function Home() {
     "contact",
   ]);
   const [activeRetreatCard, setActiveRetreatCard] = useState<number>(1);
+
+  const handleRetreatCardClick = (i: number, e?: React.MouseEvent | React.KeyboardEvent) => {
+    setActiveRetreatCard(i);
+    setForm((f) => ({
+      ...f,
+      type: "Health & Wellness",
+      budget: f.budget || "₹10,000+ / night",
+    }));
+
+    const contactEl = document.getElementById("contact");
+    if (contactEl) {
+      if (e) e.preventDefault();
+      contactEl.scrollIntoView({ behavior: "smooth" });
+      window.history.pushState(null, "", "#contact");
+      setTimeout(() => {
+        const nameInput = document.getElementById("form-name") as HTMLInputElement | null;
+        nameInput?.focus({ preventScroll: true });
+      }, 700);
+    }
+  };
   const [activeTestimonialIdx, setActiveTestimonialIdx] = useState<number>(0);
   const [isTestimonialHovered, setIsTestimonialHovered] = useState<boolean>(false);
 
@@ -1043,27 +1063,13 @@ export default function Home() {
                 ESCORA RETREAT
               </div>
               <h2 className="retreat-title rv d1">
-                Healing, the <br />
-                <em>Kerala</em> way.
+                Healing, the <em>Kerala</em> way.
               </h2>
             </div>
             <div className="retreat-header-right rv d2">
               <p className="retreat-lede">
                 Set on the quiet shore of Vembanad Lake — our NABH-accredited wellness home, where physicians, yogis and kalari masters work as one. Every programme is composed for you alone.
               </p>
-              <a
-                className="retreat-enquire-btn"
-                href="#contact"
-                onClick={() => {
-                  setForm((f) => ({ ...f, type: "Wellness", budget: f.budget || "₹10,000+ / night" }));
-                }}
-              >
-                <span>Enquire about the retreat</span>
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14" />
-                  <path d="M12 5l7 7-7 7" />
-                </svg>
-              </a>
             </div>
           </div>
 
@@ -1071,19 +1077,17 @@ export default function Home() {
             {ESCORA_RETREAT_CARDS.map((card, i) => {
               const isActive = activeRetreatCard === i;
               return (
-                <div
+                <a
                   key={i}
+                  href="#contact"
                   className={`retreat-arch-card rv${i > 0 ? ` d${i}` : ""}${isActive ? " is-active" : ""}`}
-                  onClick={() => setActiveRetreatCard(i)}
-                  role="button"
-                  tabIndex={0}
+                  onClick={(e) => handleRetreatCardClick(i, e)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setActiveRetreatCard(i);
+                      handleRetreatCardClick(i, e);
                     }
                   }}
-                  aria-label={`${card.name} - Step ${card.step}`}
+                  aria-label={`Enquire about ${card.name} - Step ${card.step}`}
                 >
                   {/* Golden Apex Dot on active card */}
                   {isActive && <div className="retreat-apex-dot" aria-hidden="true" />}
@@ -1114,24 +1118,18 @@ export default function Home() {
                     <div className="retreat-card-photo-overlay" aria-hidden="true" />
                     <div className="retreat-card-photo-bottom">
                       <div className="retreat-card-num">{card.step}</div>
-                      <a
-                        href="#contact"
+                      <div
                         className="retreat-card-action-btn"
-                        aria-label={`Enquire about ${card.name}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveRetreatCard(i);
-                          setForm((f) => ({ ...f, type: "Wellness" }));
-                        }}
+                        aria-hidden="true"
                       >
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M5 12h14" />
                           <path d="M12 5l7 7-7 7" />
                         </svg>
-                      </a>
+                      </div>
                     </div>
                   </div>
-                </div>
+                </a>
               );
             })}
           </div>

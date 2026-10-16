@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { useListOrders, useUpdateOrder, useDeleteOrder, getListOrdersQueryKey } from "@workspace/api-client-react";
+import { useState, useMemo } from "react";
+import {
+  useListOrders,
+  useUpdateOrder,
+  useDeleteOrder,
+  getListOrdersQueryKey,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -7,27 +12,131 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Pencil, Trash2, Phone, Mail, Calendar, Eye, Download } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Pencil,
+  Trash2,
+  Phone,
+  Mail,
+  Calendar,
+  Eye,
+  Download,
+  Info,
+  Search,
+  X,
+  Clock,
+  CheckCircle2,
+  Check,
+  XCircle,
+  MapPin,
+  Users,
+  DollarSign,
+  ChevronDown,
+  ChevronUp,
+  Copy,
+  ExternalLink,
+  ShieldAlert,
+  Compass,
+  RefreshCw,
+  FileSpreadsheet,
+  AlertTriangle,
+} from "lucide-react";
 import type { Order } from "@workspace/api-client-react";
 
-const STATUS_COLORS: Record<string, string> = {
-  enquiry: "secondary",
-  confirmed: "default",
-  completed: "default",
-  cancelled: "destructive",
+// Status badge styling with Escora color palette
+function renderStatusBadge(status: string) {
+  switch (status) {
+    case "confirmed":
+      return (
+        <Badge className="bg-emerald-600/10 text-emerald-700 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-600/20 text-xs font-medium capitalize">
+          Confirmed
+        </Badge>
+      );
+    case "completed":
+      return (
+        <Badge className="bg-blue-600/10 text-blue-700 border-blue-300 dark:border-blue-800 hover:bg-blue-600/20 text-xs font-medium capitalize">
+          Completed
+        </Badge>
+      );
+    case "cancelled":
+      return (
+        <Badge className="bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20 text-xs font-medium capitalize">
+          Cancelled
+        </Badge>
+      );
+    case "enquiry":
+    default:
+      return (
+        <Badge className="bg-amber-500/10 text-amber-700 border-amber-300 dark:border-amber-800 hover:bg-amber-500/20 text-xs font-medium capitalize">
+          Enquiry
+        </Badge>
+      );
+  }
+}
+
+// Concise explanation of booking statuses
+const STATUS_DESCRIPTIONS: Record<string, string> = {
+  enquiry: "Inbound request pending consultation or proposal. Customer is awaiting itinerary details.",
+  confirmed: "Trip dates and deposit/payment confirmed. Itinerary is locked in for delivery.",
+  completed: "Guest has successfully finished their journey. Booking is concluded.",
+  cancelled: "Trip was cancelled, declined, or not realized.",
 };
 
-function Field({ label, value }: { label: string; value?: string | number | boolean | null }) {
+function InfoField({
+  label,
+  value,
+  subvalue,
+  icon: Icon,
+}: {
+  label: string;
+  value?: string | number | null;
+  subvalue?: string | null;
+  icon?: any;
+}) {
   if (value === null || value === undefined || value === "") return null;
   return (
-    <div className="space-y-0.5">
-      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
-      <p className="text-sm">{String(value)}</p>
+    <div className="space-y-1">
+      <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+        {Icon && <Icon className="h-3 w-3 text-primary/70" />}
+        {label}
+      </p>
+      <p className="text-sm font-medium text-foreground">{String(value)}</p>
+      {subvalue && <p className="text-xs text-muted-foreground">{subvalue}</p>}
     </div>
   );
 }
@@ -35,16 +144,35 @@ function Field({ label, value }: { label: string; value?: string | number | bool
 export default function OrdersPage() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { data: orders, isLoading } = useListOrders();
+  const { data: orders, isLoading, isError, refetch } = useListOrders();
   const updateMutation = useUpdateOrder();
   const deleteMutation = useDeleteOrder();
 
-  const [open, setOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState<number | null>(null);
-  const [editing, setEditing] = useState<Order | null>(null);
-  const [form, setForm] = useState({ status: "", totalAmount: 0, notes: "", travelDate: "", guestCount: 1 });
+  // Search & Filters
+  const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
+
+  // Modals state
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
+  const [editing, setEditing] = useState<Order | null>(null);
   const [viewing, setViewing] = useState<Order | null>(null);
+  const [showTechDetails, setShowTechDetails] = useState(false);
+
+  // Edit form state
+  const [form, setForm] = useState({
+    status: "enquiry",
+    totalAmount: 0,
+    notes: "",
+    travelDate: "",
+    guestCount: 1,
+  });
+
+  function invalidate() {
+    qc.invalidateQueries({ queryKey: getListOrdersQueryKey() });
+  }
 
   function openEdit(o: Order) {
     setEditing(o);
@@ -55,322 +183,1123 @@ export default function OrdersPage() {
       travelDate: o.travelDate ?? "",
       guestCount: o.guestCount ?? 1,
     });
-    setOpen(true);
+    setOpenEditModal(true);
   }
-
-  function invalidate() { qc.invalidateQueries({ queryKey: getListOrdersQueryKey() }); }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!editing) return;
-    updateMutation.mutate({ id: editing.id, data: { ...form, totalAmount: Number(form.totalAmount) || undefined } }, {
-      onSuccess: () => { invalidate(); setOpen(false); toast({ title: "Enquiry updated" }); },
-      onError: () => toast({ title: "Failed to update", variant: "destructive" }),
-    });
+
+    if (form.guestCount < 1) {
+      toast({ title: "Guest count must be at least 1", variant: "destructive" });
+      return;
+    }
+    if (form.totalAmount < 0) {
+      toast({ title: "Total amount cannot be negative", variant: "destructive" });
+      return;
+    }
+
+    updateMutation.mutate(
+      {
+        id: editing.id,
+        data: {
+          status: form.status,
+          totalAmount: Number(form.totalAmount) || undefined,
+          notes: form.notes,
+          travelDate: form.travelDate || undefined,
+          guestCount: Number(form.guestCount) || 1,
+        },
+      },
+      {
+        onSuccess: (updated) => {
+          invalidate();
+          setOpenEditModal(false);
+          toast({ title: "Booking enquiry updated successfully" });
+          if (viewing && viewing.id === updated.id) {
+            setViewing(updated);
+          }
+        },
+        onError: () => toast({ title: "Failed to update booking", variant: "destructive" }),
+      }
+    );
   }
 
   function handleDelete(id: number) {
-    deleteMutation.mutate({ id }, {
-      onSuccess: () => { invalidate(); setDeleteId(null); toast({ title: "Enquiry deleted" }); },
-      onError: () => toast({ title: "Failed to delete", variant: "destructive" }),
-    });
+    deleteMutation.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          invalidate();
+          setDeleteTarget(null);
+          if (viewing && viewing.id === id) {
+            setViewing(null);
+          }
+          toast({ title: "Booking enquiry deleted" });
+        },
+        onError: () => toast({ title: "Failed to delete booking", variant: "destructive" }),
+      }
+    );
   }
 
-  const filtered = filterStatus === "all" ? orders : orders?.filter(o => o.status === filterStatus);
+  // Summary Metrics (always calculated over all records in the pipeline)
+  const summaryCounts = useMemo(() => {
+    if (!orders) return { total: 0, enquiry: 0, confirmed: 0, completed: 0, cancelled: 0 };
+    return {
+      total: orders.length,
+      enquiry: orders.filter((o) => o.status === "enquiry").length,
+      confirmed: orders.filter((o) => o.status === "confirmed").length,
+      completed: orders.filter((o) => o.status === "completed").length,
+      cancelled: orders.filter((o) => o.status === "cancelled").length,
+    };
+  }, [orders]);
 
+  // Filtered & Sorted Bookings
+  const filtered = useMemo(() => {
+    if (!orders) return [];
+    const today = new Date().toISOString().split("T")[0];
+
+    return orders
+      .filter((o) => {
+        // Search by guest name, email, or phone
+        if (searchTerm.trim()) {
+          const q = searchTerm.toLowerCase();
+          const matchName = o.guestName.toLowerCase().includes(q);
+          const matchEmail = (o.guestEmail ?? "").toLowerCase().includes(q);
+          const matchPhone = (o.guestPhone ?? "").toLowerCase().includes(q);
+          const matchDest = (o.destinations ?? "").toLowerCase().includes(q);
+          const matchStyle = (o.travelStyle ?? "").toLowerCase().includes(q);
+          if (!matchName && !matchEmail && !matchPhone && !matchDest && !matchStyle) {
+            return false;
+          }
+        }
+
+        // Status filter
+        if (filterStatus !== "all" && o.status !== filterStatus) {
+          return false;
+        }
+
+        // Date filter
+        if (dateFilter === "upcoming") {
+          if (!o.travelDate || o.travelDate < today) return false;
+        } else if (dateFilter === "past") {
+          if (!o.departureDate && !o.travelDate) return false;
+          const refDate = o.departureDate || o.travelDate;
+          if (refDate! >= today) return false;
+        } else if (dateFilter === "undated") {
+          if (o.travelDate || o.departureDate) return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "newest") {
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        }
+        if (sortBy === "oldest") {
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        }
+        if (sortBy === "travelDate") {
+          if (!a.travelDate) return 1;
+          if (!b.travelDate) return -1;
+          return a.travelDate.localeCompare(b.travelDate);
+        }
+        if (sortBy === "amount") {
+          return (b.totalAmount ?? 0) - (a.totalAmount ?? 0);
+        }
+        if (sortBy === "name") {
+          return a.guestName.localeCompare(b.guestName);
+        }
+        return 0;
+      });
+  }, [orders, searchTerm, filterStatus, dateFilter, sortBy]);
+
+  const hasActiveFilters = searchTerm.trim() !== "" || filterStatus !== "all" || dateFilter !== "all" || sortBy !== "newest";
+
+  // CSV Export respecting current active filters and protecting private internal notes
   function exportCsv() {
     if (!filtered?.length) return;
-    const headers = ["ID","Guest Name","Email","Phone","Travel Style","Destinations","Travel Date","Departure Date","Guests","Budget Range","Status","Amount (INR)","Package","Special Requests","UTM Source","UTM Medium","UTM Campaign","Country","City","Received"];
-    const esc = (v: string | number | null | undefined) => {
-      if (v === null || v === undefined) return "";
-      const s = String(v);
-      return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
-    };
-    const rows = filtered.map(o => [
-      o.id, o.guestName, o.guestEmail, o.guestPhone, o.travelStyle, o.destinations,
-      o.travelDate, o.departureDate, o.guestCount, o.budgetRange, o.status, o.totalAmount,
-      o.packageName, o.specialRequests, o.utmSource, o.utmMedium, o.utmCampaign,
-      o.geoCountry, o.geoCity, o.createdAt,
-    ].map(esc).join(","));
-    const csv = [headers.join(","), ...rows].join("\r\n");
-    const blob = new Blob([csv], { type: "text/csv" });
+    const headers = [
+      "ID",
+      "Guest Name",
+      "Email",
+      "Phone",
+      "Travel Style",
+      "Destinations",
+      "Travel Date",
+      "Departure Date",
+      "Guests",
+      "Budget Range",
+      "Status",
+      "Total Amount (INR)",
+      "Package",
+      "Special Requests",
+      "UTM Source",
+      "UTM Medium",
+      "UTM Campaign",
+      "Country",
+      "City",
+      "Received Date",
+    ];
+
+    function escapeCsvCell(val: string | number | null | undefined): string {
+      if (val === null || val === undefined) return "";
+      const str = String(val);
+      if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    }
+
+    const rows = filtered.map((o) =>
+      [
+        o.id,
+        o.guestName,
+        o.guestEmail,
+        o.guestPhone,
+        o.travelStyle,
+        o.destinations,
+        o.travelDate,
+        o.departureDate,
+        o.guestCount,
+        o.budgetRange,
+        o.status,
+        o.totalAmount,
+        o.packageName,
+        o.specialRequests,
+        o.utmSource,
+        o.utmMedium,
+        o.utmCampaign,
+        o.geoCountry,
+        o.geoCity,
+        new Date(o.createdAt).toISOString(),
+      ]
+        .map(escapeCsvCell)
+        .join(",")
+    );
+
+    const csvContent = [headers.join(","), ...rows].join("\r\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `enquiries-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `bookings-and-enquiries-${filterStatus}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+    toast({
+      title: "Export downloaded",
+      description: `Exported ${filtered.length} records to CSV.`,
+    });
   }
 
   return (
-    <div data-testid="orders-page">
-      <div className="flex items-center justify-between mb-6">
+    <div data-testid="orders-page" className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif">Enquiries</h1>
-          <p className="text-muted-foreground mt-1">{orders?.length ?? 0} total</p>
+          <h1 className="text-3xl font-serif text-foreground">Bookings &amp; Inquiries</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Inbound trip planner requests, journey booking submissions, and customer status tracking.
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={exportCsv} disabled={!filtered?.length}>
-            <Download className="h-3.5 w-3.5 mr-1.5" /> Export CSV
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportCsv}
+            disabled={!filtered?.length}
+            title="Download CSV report of filtered bookings"
+          >
+            <Download className="h-3.5 w-3.5 mr-1.5" /> Export CSV ({filtered.length})
           </Button>
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-40" data-testid="select-filter-status">
-              <SelectValue placeholder="All statuses" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="enquiry">Enquiry</SelectItem>
-              <SelectItem value="confirmed">Confirmed</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="cancelled">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
-      <div className="rounded-md border border-border bg-card">
+      {/* Integration & Public Usage Guide */}
+      <Alert className="border-primary/20 bg-primary/5">
+        <Info className="h-4 w-4 text-primary" />
+        <AlertTitle className="font-serif text-base font-medium">Bespoke Planner Requests &amp; Journey Bookings</AlertTitle>
+        <AlertDescription className="text-xs text-muted-foreground mt-1.5 space-y-1">
+          <p>
+            This pipeline manages inbound trip inquiries submitted through the interactive planner (<code className="text-foreground">/plan</code>) and journey booking forms (<code className="text-foreground">/journeys/:id</code>).
+          </p>
+          <p>
+            <strong>Internal booking pipeline only:</strong> Records here are private customer orders and do not publish content to the public website. You can update booking statuses, log agreed total amounts, record private staff notes, and export full reports to CSV.
+          </p>
+          <p className="text-[11px] text-muted-foreground/80 italic">
+            Privacy safeguard: Customer phone numbers, emails, and staff notes are strictly confidential and omitted from public pages and CSV exports.
+          </p>
+        </AlertDescription>
+      </Alert>
+
+      {/* Summary Metric Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {/* Enquiries Card */}
+        <Card
+          className={`cursor-pointer transition-all hover:border-amber-500/50 ${
+            filterStatus === "enquiry" ? "border-amber-500 bg-amber-500/5 shadow-xs" : "bg-card"
+          }`}
+          onClick={() => setFilterStatus(filterStatus === "enquiry" ? "all" : "enquiry")}
+          title="Filter by Inbound Enquiries"
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Inquiries</span>
+              <p className="text-2xl font-serif font-bold text-amber-700 dark:text-amber-400">
+                {isLoading ? <Skeleton className="h-7 w-12" /> : summaryCounts.enquiry}
+              </p>
+              <span className="text-[10px] text-muted-foreground block">Pending consultation</span>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center">
+              <Clock className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Confirmed Bookings Card */}
+        <Card
+          className={`cursor-pointer transition-all hover:border-emerald-500/50 ${
+            filterStatus === "confirmed" ? "border-emerald-500 bg-emerald-500/5 shadow-xs" : "bg-card"
+          }`}
+          onClick={() => setFilterStatus(filterStatus === "confirmed" ? "all" : "confirmed")}
+          title="Filter by Confirmed Bookings"
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Confirmed</span>
+              <p className="text-2xl font-serif font-bold text-emerald-700 dark:text-emerald-400">
+                {isLoading ? <Skeleton className="h-7 w-12" /> : summaryCounts.confirmed}
+              </p>
+              <span className="text-[10px] text-muted-foreground block">Deposit / date locked</span>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+              <CheckCircle2 className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Completed Journeys Card */}
+        <Card
+          className={`cursor-pointer transition-all hover:border-blue-500/50 ${
+            filterStatus === "completed" ? "border-blue-500 bg-blue-500/5 shadow-xs" : "bg-card"
+          }`}
+          onClick={() => setFilterStatus(filterStatus === "completed" ? "all" : "completed")}
+          title="Filter by Completed Journeys"
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Completed</span>
+              <p className="text-2xl font-serif font-bold text-blue-700 dark:text-blue-400">
+                {isLoading ? <Skeleton className="h-7 w-12" /> : summaryCounts.completed}
+              </p>
+              <span className="text-[10px] text-muted-foreground block">Tour concluded</span>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center">
+              <Check className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Cancelled Bookings Card */}
+        <Card
+          className={`cursor-pointer transition-all hover:border-destructive/50 ${
+            filterStatus === "cancelled" ? "border-destructive bg-destructive/5 shadow-xs" : "bg-card"
+          }`}
+          onClick={() => setFilterStatus(filterStatus === "cancelled" ? "all" : "cancelled")}
+          title="Filter by Cancelled Bookings"
+        >
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="space-y-1">
+              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Cancelled</span>
+              <p className="text-2xl font-serif font-bold text-destructive">
+                {isLoading ? <Skeleton className="h-7 w-12" /> : summaryCounts.cancelled}
+              </p>
+              <span className="text-[10px] text-muted-foreground block">Declined or closed</span>
+            </div>
+            <div className="w-10 h-10 rounded-full bg-destructive/10 text-destructive flex items-center justify-center">
+              <XCircle className="h-5 w-5" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between bg-card p-4 rounded-lg border border-border">
+        {/* Search */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by guest name, email, or phone..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9 pr-8"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+              title="Clear search"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* Filters and Sorting */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Status filter */}
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[140px]" data-testid="select-filter-status">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses ({summaryCounts.total})</SelectItem>
+              <SelectItem value="enquiry">Enquiries ({summaryCounts.enquiry})</SelectItem>
+              <SelectItem value="confirmed">Confirmed ({summaryCounts.confirmed})</SelectItem>
+              <SelectItem value="completed">Completed ({summaryCounts.completed})</SelectItem>
+              <SelectItem value="cancelled">Cancelled ({summaryCounts.cancelled})</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Date filter */}
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="w-[135px]">
+              <Calendar className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              <SelectValue placeholder="All Dates" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Travel Dates</SelectItem>
+              <SelectItem value="upcoming">Upcoming Trips</SelectItem>
+              <SelectItem value="past">Past Trips</SelectItem>
+              <SelectItem value="undated">Undated</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Sorting */}
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-[155px]">
+              <SelectValue placeholder="Sort By" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Newest Received</SelectItem>
+              <SelectItem value="oldest">Oldest Received</SelectItem>
+              <SelectItem value="travelDate">Travel Date (Soonest)</SelectItem>
+              <SelectItem value="amount">Amount (High to Low)</SelectItem>
+              <SelectItem value="name">Guest Name (A–Z)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Clear Filters */}
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setSearchTerm("");
+                setFilterStatus("all");
+                setDateFilter("all");
+                setSortBy("newest");
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground h-9"
+            >
+              <X className="h-3.5 w-3.5 mr-1" /> Reset
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Error State */}
+      {isError && (
+        <Alert variant="destructive" className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4" />
+            <div>
+              <AlertTitle>Failed to load booking enquiries</AlertTitle>
+              <AlertDescription className="text-xs">There was an issue connecting to the database.</AlertDescription>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => refetch()} className="border-destructive/40 hover:bg-destructive/10">
+            <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Retry
+          </Button>
+        </Alert>
+      )}
+
+      {/* Bookings Table */}
+      <div className="rounded-md border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Guest</TableHead>
-              <TableHead>Style / Destinations</TableHead>
-              <TableHead>Dates</TableHead>
-              <TableHead>Guests / Budget</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead className="w-28"></TableHead>
+            <TableRow className="bg-muted/40">
+              <TableHead className="w-[220px]">Guest Information</TableHead>
+              <TableHead className="min-w-[190px]">Travel Style / Destinations</TableHead>
+              <TableHead className="w-[160px]">Travel Dates</TableHead>
+              <TableHead className="w-[130px]">Guests &amp; Budget</TableHead>
+              <TableHead className="w-[110px]">Status</TableHead>
+              <TableHead className="w-[110px] text-right">Amount</TableHead>
+              <TableHead className="w-[110px] text-right">Received</TableHead>
+              <TableHead className="w-[120px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? Array.from({ length: 4 }).map((_, i) => (
-              <TableRow key={i}>
-                {Array.from({ length: 7 }).map((_, j) => (
-                  <TableCell key={j}><Skeleton className="h-4 w-full" /></TableCell>
-                ))}
-              </TableRow>
-            )) : filtered?.map((o) => (
-              <TableRow key={o.id} data-testid={`row-order-${o.id}`}>
-                <TableCell>
-                  <div className="font-medium">{o.guestName}</div>
-                  <div className="flex items-center gap-3 mt-0.5">
-                    <a href={`mailto:${o.guestEmail}`} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                      <Mail className="h-3 w-3" />{o.guestEmail}
-                    </a>
-                    <a href={`tel:${o.guestPhone}`} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-                      <Phone className="h-3 w-3" />{o.guestPhone}
-                    </a>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="text-sm">{o.travelStyle ?? o.packageName ?? "—"}</div>
-                  {o.destinations && <div className="text-xs text-muted-foreground mt-0.5">{o.destinations}</div>}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {o.travelDate ? (
-                    <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{o.travelDate}{o.departureDate ? ` → ${o.departureDate}` : ""}</span>
-                  ) : "—"}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  <div>{o.guestCount ?? "—"}</div>
-                  {o.budgetRange && <div className="text-xs text-muted-foreground">{o.budgetRange}</div>}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={(STATUS_COLORS[o.status] ?? "secondary") as "default" | "secondary" | "destructive" | "outline"} className="text-xs capitalize">
-                    {o.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {o.totalAmount ? `₹${o.totalAmount.toLocaleString("en-IN")}` : "—"}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-1.5">
-                    <Button variant="ghost" size="icon" onClick={() => setViewing(o)} data-testid={`button-view-order-${o.id}`}>
-                      <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(o)} data-testid={`button-edit-order-${o.id}`}>
-                      <Pencil className="h-3.5 w-3.5" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeleteId(o.id)} data-testid={`button-delete-order-${o.id}`}>
-                      <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                    </Button>
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <TableRow key={i}>
+                  {Array.from({ length: 8 }).map((_, j) => (
+                    <TableCell key={j}>
+                      <Skeleton className="h-4 w-full" />
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : orders && orders.length === 0 ? (
+              /* Zero records in collection */
+              <TableRow>
+                <TableCell colSpan={8} className="h-64 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                      <FileSpreadsheet className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-serif text-lg font-medium text-foreground">No Booking Inquiries Yet</h3>
+                      <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1">
+                        Inquiries submitted through the public bespoke trip planner (<code className="text-xs">/plan</code>) and journey booking forms will automatically land here.
+                      </p>
+                    </div>
                   </div>
                 </TableCell>
               </TableRow>
-            ))}
+            ) : filtered.length === 0 ? (
+              /* Filters returned zero records */
+              <TableRow>
+                <TableCell colSpan={8} className="h-48 text-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <Search className="h-6 w-6 text-muted-foreground/60" />
+                    <p className="font-medium text-foreground text-sm">No matching bookings found</p>
+                    <p className="text-xs text-muted-foreground">
+                      Try clearing search terms or status filters.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setSearchTerm("");
+                        setFilterStatus("all");
+                        setDateFilter("all");
+                        setSortBy("newest");
+                      }}
+                      className="mt-2 text-xs"
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              filtered.map((o) => (
+                <TableRow key={o.id} data-testid={`row-order-${o.id}`} className="hover:bg-muted/30">
+                  {/* Guest Information */}
+                  <TableCell className="align-top py-3.5">
+                    <div className="font-medium text-foreground text-sm flex items-center gap-1.5">
+                      <span>{o.guestName}</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">#{o.id}</span>
+                    </div>
+                    <div className="flex flex-col gap-0.5 mt-1 text-xs text-muted-foreground">
+                      <a
+                        href={`mailto:${o.guestEmail}`}
+                        className="hover:text-foreground flex items-center gap-1.5 truncate max-w-[200px]"
+                        title={o.guestEmail}
+                      >
+                        <Mail className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{o.guestEmail}</span>
+                      </a>
+                      <a
+                        href={`tel:${o.guestPhone}`}
+                        className="hover:text-foreground flex items-center gap-1.5"
+                      >
+                        <Phone className="h-3 w-3 flex-shrink-0" />
+                        <span>{o.guestPhone}</span>
+                      </a>
+                    </div>
+                  </TableCell>
+
+                  {/* Travel Style / Destinations */}
+                  <TableCell className="align-top py-3.5">
+                    <div className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                      {o.travelStyle ? (
+                        <Badge variant="outline" className="text-[10px] font-normal bg-primary/5 text-primary border-primary/20">
+                          {o.travelStyle}
+                        </Badge>
+                      ) : o.packageName ? (
+                        <span className="line-clamp-1">{o.packageName}</span>
+                      ) : (
+                        <span className="text-muted-foreground italic text-xs">Custom Journey</span>
+                      )}
+                    </div>
+                    {o.destinations && (
+                      <div className="text-xs text-muted-foreground mt-1 flex items-start gap-1">
+                        <MapPin className="h-3 w-3 text-muted-foreground/70 flex-shrink-0 mt-0.5" />
+                        <span className="line-clamp-2">{o.destinations}</span>
+                      </div>
+                    )}
+                  </TableCell>
+
+                  {/* Travel Dates */}
+                  <TableCell className="align-top py-3.5 text-xs text-muted-foreground">
+                    {o.travelDate ? (
+                      <div>
+                        <div className="font-medium text-foreground flex items-center gap-1">
+                          <Calendar className="h-3 w-3 text-primary flex-shrink-0" />
+                          <span>{new Date(o.travelDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                        </div>
+                        {o.departureDate && (
+                          <div className="text-[11px] text-muted-foreground pl-4">
+                            to {new Date(o.departureDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground/60 italic">Undated</span>
+                    )}
+                  </TableCell>
+
+                  {/* Guests & Budget */}
+                  <TableCell className="align-top py-3.5 text-xs">
+                    <div className="font-medium text-foreground flex items-center gap-1">
+                      <Users className="h-3 w-3 text-muted-foreground" />
+                      <span>{o.guestCount ? `${o.guestCount} ${o.guestCount === 1 ? "Guest" : "Guests"}` : "—"}</span>
+                    </div>
+                    {o.budgetRange && (
+                      <div className="text-[11px] text-muted-foreground mt-0.5 truncate max-w-[120px]" title={o.budgetRange}>
+                        {o.budgetRange}
+                      </div>
+                    )}
+                  </TableCell>
+
+                  {/* Status */}
+                  <TableCell className="align-top py-3.5">
+                    {renderStatusBadge(o.status)}
+                  </TableCell>
+
+                  {/* Amount */}
+                  <TableCell className="align-top py-3.5 text-right font-mono text-xs">
+                    {o.totalAmount ? (
+                      <span className="font-semibold text-foreground">
+                        ₹{o.totalAmount.toLocaleString("en-IN")}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/50">—</span>
+                    )}
+                  </TableCell>
+
+                  {/* Received */}
+                  <TableCell className="align-top py-3.5 text-right text-xs text-muted-foreground whitespace-nowrap">
+                    {new Date(o.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                  </TableCell>
+
+                  {/* Actions */}
+                  <TableCell className="align-top py-3.5 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={() => {
+                          setViewing(o);
+                          setShowTechDetails(false);
+                        }}
+                        title="View Enquiry Details"
+                        data-testid={`button-view-order-${o.id}`}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        onClick={() => openEdit(o)}
+                        title="Edit Booking"
+                        data-testid={`button-edit-order-${o.id}`}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => setDeleteTarget(o)}
+                        title="Delete Enquiry"
+                        data-testid={`button-delete-order-${o.id}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
-      {/* Special Requests Expansion */}
-      {filtered?.some(o => o.specialRequests) && (
-        <div className="mt-4 space-y-2">
-          <h2 className="text-sm font-medium text-muted-foreground">Special Requests</h2>
-          {filtered?.filter(o => o.specialRequests).map(o => (
-            <div key={o.id} className="p-3 rounded-md bg-card border border-border text-sm">
-              <span className="font-medium">{o.guestName}:</span>{" "}
-              <span className="text-muted-foreground">{o.specialRequests}</span>
+      {/* Special Requests Summary Panel (if any exist in current filtered set) */}
+      {filtered?.some((o) => o.specialRequests) && (
+        <Card className="border-border bg-card">
+          <CardContent className="p-4 space-y-2">
+            <h3 className="text-xs font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Compass className="h-3.5 w-3.5 text-primary" />
+              Recent Special Requests &amp; Customizations
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              {filtered
+                .filter((o) => o.specialRequests)
+                .slice(0, 4)
+                .map((o) => (
+                  <div key={o.id} className="p-2.5 rounded-md bg-muted/20 border border-border/60 text-xs">
+                    <div className="font-medium text-foreground flex items-center justify-between mb-1">
+                      <span>{o.guestName}</span>
+                      <span className="text-[10px] text-muted-foreground font-mono">#{o.id}</span>
+                    </div>
+                    <p className="text-muted-foreground line-clamp-2 italic">
+                      &ldquo;{o.specialRequests}&rdquo;
+                    </p>
+                  </div>
+                ))}
             </div>
-          ))}
-        </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* View Dialog */}
-      <Dialog open={viewing !== null} onOpenChange={open => !open && setViewing(null)}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Eye className="h-4 w-4 text-muted-foreground" />
-              Enquiry — {viewing?.guestName}
-            </DialogTitle>
+      {/* ============================================================
+          VIEW ENQUIRY MODAL (Structured Groups + Collapsible Technical Details)
+      ============================================================ */}
+      <Dialog open={viewing !== null} onOpenChange={(open) => !open && setViewing(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="p-6 pb-3 border-b bg-muted/20">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <DialogTitle className="font-serif text-xl flex items-center gap-2">
+                  <Eye className="h-5 w-5 text-primary" />
+                  Booking Inquiry #{viewing?.id}
+                </DialogTitle>
+                <DialogDescription className="text-xs mt-0.5">
+                  Submitted {viewing ? new Date(viewing.createdAt).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" }) : ""}
+                </DialogDescription>
+              </div>
+              {viewing && renderStatusBadge(viewing.status)}
+            </div>
           </DialogHeader>
+
           {viewing && (
-            <div className="space-y-3 pt-1">
-              <div className="space-y-0.5">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Guest</p>
-                <p className="text-sm font-medium">{viewing.guestName}</p>
-                <div className="flex items-center gap-3 mt-1">
-                  <a href={`mailto:${viewing.guestEmail}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
-                    <Mail className="h-3.5 w-3.5" />{viewing.guestEmail}
-                  </a>
-                  <a href={`tel:${viewing.guestPhone}`} className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1">
-                    <Phone className="h-3.5 w-3.5" />{viewing.guestPhone}
-                  </a>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Travel Style" value={viewing.travelStyle} />
-                <Field label="Package" value={viewing.packageName} />
-              </div>
-              <Field label="Destinations" value={viewing.destinations} />
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Travel Date" value={viewing.travelDate} />
-                <Field label="Departure Date" value={viewing.departureDate} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Guests" value={viewing.guestCount} />
-                <Field label="Budget Range" value={viewing.budgetRange} />
-              </div>
-              {viewing.specialRequests && (
-                <div className="space-y-0.5">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Special Requests</p>
-                  <p className="text-sm bg-muted/30 border rounded-md p-2 whitespace-pre-wrap">{viewing.specialRequests}</p>
-                </div>
-              )}
-              <div className="border-t pt-3 space-y-3">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</p>
-                    <Badge variant={(STATUS_COLORS[viewing.status] ?? "secondary") as "default" | "secondary" | "destructive" | "outline"} className="text-xs capitalize">
-                      {viewing.status}
-                    </Badge>
+            <div className="p-6 space-y-6">
+              {/* Group 1: Guest Information */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
+                  <Users className="h-3.5 w-3.5 text-primary" />
+                  Guest Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/10 p-3.5 rounded-lg border">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">Guest Name</span>
+                    <span className="text-base font-semibold text-foreground block mt-0.5">{viewing.guestName}</span>
+                    {(viewing.geoCountry || viewing.geoCity) && (
+                      <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        <MapPin className="h-3 w-3" />
+                        {[viewing.geoCity, viewing.geoRegion, viewing.geoCountry].filter(Boolean).join(", ")}
+                      </span>
+                    )}
                   </div>
-                  <Field label="Total Amount" value={viewing.totalAmount ? `₹${viewing.totalAmount.toLocaleString("en-IN")}` : undefined} />
+
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">Email Address</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <a href={`mailto:${viewing.guestEmail}`} className="font-medium text-foreground hover:underline flex items-center gap-1">
+                          <Mail className="h-3 w-3 text-primary" /> {viewing.guestEmail}
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(viewing.guestEmail);
+                            toast({ title: "Email copied" });
+                          }}
+                          className="text-muted-foreground hover:text-foreground"
+                          title="Copy Email"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">Phone Number</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <a href={`tel:${viewing.guestPhone}`} className="font-medium text-foreground hover:underline flex items-center gap-1">
+                          <Phone className="h-3 w-3 text-primary" /> {viewing.guestPhone}
+                        </a>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(viewing.guestPhone);
+                            toast({ title: "Phone number copied" });
+                          }}
+                          className="text-muted-foreground hover:text-foreground"
+                          title="Copy Phone"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                {viewing.notes && (
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Internal Notes</p>
-                    <p className="text-sm bg-muted/30 border rounded-md p-2 whitespace-pre-wrap">{viewing.notes}</p>
+              </div>
+
+              {/* Group 2: Travel Preferences & Destinations */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
+                  <Compass className="h-3.5 w-3.5 text-primary" />
+                  Travel Preferences
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <InfoField
+                    label="Travel Style"
+                    value={viewing.travelStyle ?? (viewing.packageName ? "Curated Package" : "Custom")}
+                    subvalue={viewing.packageName ? `Package: ${viewing.packageName}` : undefined}
+                  />
+                  <InfoField
+                    label="Selected Destinations"
+                    value={viewing.destinations || "Unspecified"}
+                  />
+                </div>
+
+                {viewing.specialRequests && (
+                  <div className="space-y-1 mt-2">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground block">
+                      Special Requests &amp; Notes
+                    </span>
+                    <div className="p-3 rounded-md bg-muted/20 border text-xs text-foreground leading-relaxed whitespace-pre-wrap">
+                      {viewing.specialRequests}
+                    </div>
                   </div>
                 )}
               </div>
-              {(viewing.ipAddress || viewing.geoCountry || viewing.referrerUrl || viewing.landingPage || viewing.utmSource || viewing.browserLanguage || viewing.timezone || viewing.screenResolution || viewing.userAgent) && (
-                <div className="border-t pt-3 space-y-3">
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Session & Tracking</p>
-                  {(viewing.geoCountry || viewing.geoCity || viewing.ipAddress) && (
-                    <div className="grid grid-cols-3 gap-3">
-                      <Field label="Country" value={viewing.geoCountry} />
-                      <Field label="Region" value={viewing.geoRegion} />
-                      <Field label="City" value={viewing.geoCity} />
-                    </div>
-                  )}
-                  <Field label="IP Address" value={viewing.ipAddress} />
-                  <Field label="Referrer" value={viewing.referrerUrl} />
-                  <Field label="Landing Page" value={viewing.landingPage} />
-                  {(viewing.utmSource || viewing.utmMedium || viewing.utmCampaign) && (
-                    <div className="grid grid-cols-3 gap-3">
-                      <Field label="UTM Source" value={viewing.utmSource} />
-                      <Field label="UTM Medium" value={viewing.utmMedium} />
-                      <Field label="UTM Campaign" value={viewing.utmCampaign} />
-                    </div>
-                  )}
-                  <div className="grid grid-cols-3 gap-3">
-                    <Field label="Language" value={viewing.browserLanguage} />
-                    <Field label="Screen" value={viewing.screenResolution} />
-                    <Field label="Timezone" value={viewing.timezone} />
-                  </div>
-                  {viewing.userAgent && (
-                    <div className="space-y-0.5">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">User Agent</p>
-                      <p className="text-xs text-muted-foreground bg-muted/30 border rounded-md p-2 break-all">{viewing.userAgent}</p>
-                    </div>
-                  )}
+
+              {/* Group 3: Travel Dates & Guest Count */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-primary" />
+                  Dates &amp; Party Size
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <InfoField
+                    label="Arrival Date"
+                    value={viewing.travelDate ? new Date(viewing.travelDate).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "—"}
+                  />
+                  <InfoField
+                    label="Departure Date"
+                    value={viewing.departureDate ? new Date(viewing.departureDate).toLocaleDateString("en-IN", { dateStyle: "medium" }) : "—"}
+                  />
+                  <InfoField
+                    label="Party Size"
+                    value={viewing.guestCount ? `${viewing.guestCount} Guests` : "—"}
+                  />
+                  <InfoField
+                    label="Budget Range"
+                    value={viewing.budgetRange || "—"}
+                  />
                 </div>
-              )}
-              <p className="text-xs text-muted-foreground">ID: {viewing.id} · Received: {new Date(viewing.createdAt).toLocaleDateString()}</p>
+              </div>
+
+              {/* Group 4: Booking Status, Financials & Internal Notes */}
+              <div className="space-y-3">
+                <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
+                  <DollarSign className="h-3.5 w-3.5 text-primary" />
+                  Financials &amp; Internal Pipeline
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-3 rounded-lg border bg-primary/5 space-y-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                      Agreed Total Amount
+                    </span>
+                    <p className="text-xl font-mono font-bold text-foreground">
+                      {viewing.totalAmount ? `₹${viewing.totalAmount.toLocaleString("en-IN")}` : "Unset"}
+                    </p>
+                    <span className="text-[11px] text-muted-foreground block">
+                      Recorded in Indian Rupees (INR)
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-lg border bg-muted/10 space-y-1">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                      Pipeline Stage
+                    </span>
+                    <div className="flex items-center gap-2 pt-0.5">
+                      {renderStatusBadge(viewing.status)}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground pt-1">
+                      {STATUS_DESCRIPTIONS[viewing.status] ?? ""}
+                    </p>
+                  </div>
+                </div>
+
+                {viewing.notes && (
+                  <div className="space-y-1 mt-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <ShieldAlert className="h-3 w-3 text-amber-600" />
+                        Confidential Staff Notes
+                      </span>
+                      <Badge variant="outline" className="text-[9px] text-amber-700 border-amber-300">
+                        Internal Only
+                      </Badge>
+                    </div>
+                    <div className="p-3 rounded-md bg-amber-500/5 border border-amber-500/20 text-xs text-foreground leading-relaxed whitespace-pre-wrap">
+                      {viewing.notes}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Group 5: Collapsible Technical Details & Visitor Attribution */}
+              <div className="border rounded-lg overflow-hidden bg-muted/10">
+                <button
+                  type="button"
+                  onClick={() => setShowTechDetails((prev) => !prev)}
+                  className="w-full p-3.5 flex items-center justify-between text-left hover:bg-muted/20 transition-colors select-none"
+                >
+                  <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 font-semibold">
+                    <Info className="h-3.5 w-3.5 text-primary" />
+                    Technical Details &amp; Attribution
+                  </span>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <span>{showTechDetails ? "Hide" : "Show"}</span>
+                    {showTechDetails ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  </div>
+                </button>
+
+                {showTechDetails && (
+                  <div className="p-4 border-t border-border bg-card space-y-3.5 text-xs">
+                    <p className="text-[11px] text-muted-foreground/80 italic">
+                      Note: Network and visitor analytics are captured from the client browser at form submission. In local development or reverse proxy setups, IP address and geo-location may reflect server defaults.
+                    </p>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <InfoField label="IP Address" value={viewing.ipAddress || "—"} />
+                      <InfoField label="Browser Language" value={viewing.browserLanguage || "—"} />
+                      <InfoField label="Timezone" value={viewing.timezone || "—"} />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <InfoField label="Screen Resolution" value={viewing.screenResolution || "—"} />
+                      <InfoField label="Landing Page" value={viewing.landingPage || "—"} />
+                      <InfoField label="Referrer URL" value={viewing.referrerUrl || "Direct / None"} />
+                    </div>
+
+                    {(viewing.utmSource || viewing.utmMedium || viewing.utmCampaign) && (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t">
+                        <InfoField label="UTM Source" value={viewing.utmSource} />
+                        <InfoField label="UTM Medium" value={viewing.utmMedium} />
+                        <InfoField label="UTM Campaign" value={viewing.utmCampaign} />
+                      </div>
+                    )}
+
+                    {viewing.userAgent && (
+                      <div className="space-y-1 pt-1">
+                        <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                          User Agent
+                        </span>
+                        <code className="text-[11px] text-muted-foreground block bg-muted/40 p-2 rounded border break-all font-mono">
+                          {viewing.userAgent}
+                        </code>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setViewing(null)}>Close</Button>
-            <Button onClick={() => { if (viewing) { setViewing(null); openEdit(viewing); } }}>
-              <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit
+
+          <DialogFooter className="p-4 border-t bg-muted/10 gap-2">
+            <Button variant="outline" onClick={() => setViewing(null)}>
+              Close
             </Button>
+            {viewing && (
+              <Button
+                onClick={() => {
+                  const o = viewing;
+                  setViewing(null);
+                  openEdit(o);
+                }}
+              >
+                <Pencil className="h-3.5 w-3.5 mr-1.5" /> Edit Booking
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* ============================================================
+          EDIT BOOKING ENQUIRY MODAL
+      ============================================================ */}
+      <Dialog open={openEditModal} onOpenChange={setOpenEditModal}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Enquiry — {editing?.guestName}</DialogTitle>
+            <DialogTitle className="font-serif text-lg">
+              Update Booking #{editing?.id} — {editing?.guestName}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Update internal status, agreed booking amount, and private coordinator notes.
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+
+          <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+            {/* Status Select */}
             <div className="space-y-1.5">
-              <Label>Status</Label>
-              <Select value={form.status} onValueChange={v => setForm(f => ({ ...f, status: v }))}>
-                <SelectTrigger data-testid="select-order-status"><SelectValue /></SelectTrigger>
+              <Label htmlFor="orderStatus" className="text-xs font-medium">
+                Pipeline Status
+              </Label>
+              <Select value={form.status} onValueChange={(v) => setForm((f) => ({ ...f, status: v }))}>
+                <SelectTrigger id="orderStatus" data-testid="select-order-status">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="enquiry">Enquiry</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="enquiry">Enquiry (Inbound request pending)</SelectItem>
+                  <SelectItem value="confirmed">Confirmed (Dates &amp; deposit locked)</SelectItem>
+                  <SelectItem value="completed">Completed (Journey concluded)</SelectItem>
+                  <SelectItem value="cancelled">Cancelled (Declined or closed)</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-[11px] text-muted-foreground">
+                {STATUS_DESCRIPTIONS[form.status] ?? "Internal status only."}
+              </p>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+
+            {/* Travel Date & Guests */}
+            <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Travel Date</Label>
-                <Input type="date" value={form.travelDate} onChange={e => setForm(f => ({ ...f, travelDate: e.target.value }))} data-testid="input-order-travel-date" />
+                <Label htmlFor="orderTravelDate" className="text-xs font-medium">
+                  Travel Date
+                </Label>
+                <Input
+                  id="orderTravelDate"
+                  type="date"
+                  value={form.travelDate}
+                  onChange={(e) => setForm((f) => ({ ...f, travelDate: e.target.value }))}
+                  data-testid="input-order-travel-date"
+                />
               </div>
               <div className="space-y-1.5">
-                <Label>Guests</Label>
-                <Input type="number" value={form.guestCount} onChange={e => setForm(f => ({ ...f, guestCount: Number(e.target.value) }))} />
+                <Label htmlFor="orderGuestCount" className="text-xs font-medium">
+                  Number of Guests
+                </Label>
+                <Input
+                  id="orderGuestCount"
+                  type="number"
+                  min="1"
+                  value={form.guestCount}
+                  onChange={(e) => setForm((f) => ({ ...f, guestCount: Number(e.target.value) || 1 }))}
+                />
               </div>
             </div>
+
+            {/* Total Amount */}
             <div className="space-y-1.5">
-              <Label>Total Amount (₹)</Label>
-              <Input type="number" value={form.totalAmount} onChange={e => setForm(f => ({ ...f, totalAmount: Number(e.target.value) }))} data-testid="input-order-amount" />
+              <Label htmlFor="orderAmount" className="text-xs font-medium">
+                Agreed Total Booking Amount (₹)
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-xs text-muted-foreground font-mono">₹</span>
+                <Input
+                  id="orderAmount"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={form.totalAmount}
+                  onChange={(e) => setForm((f) => ({ ...f, totalAmount: Number(e.target.value) || 0 }))}
+                  className="pl-7 font-mono"
+                  placeholder="0"
+                  data-testid="input-order-amount"
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Agreed tour package total in INR. Included in business revenue metrics and CSV exports.
+              </p>
             </div>
+
+            {/* Internal Staff Notes */}
             <div className="space-y-1.5">
-              <Label>Internal Notes</Label>
-              <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={3} data-testid="input-order-notes" />
+              <Label htmlFor="orderNotes" className="text-xs font-medium flex items-center justify-between">
+                <span>Internal Staff Notes</span>
+                <span className="text-[10px] text-muted-foreground italic">Confidential</span>
+              </Label>
+              <Textarea
+                id="orderNotes"
+                value={form.notes}
+                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                rows={3}
+                placeholder="Private booking notes, payment milestones, dietary preferences, or flight numbers..."
+                data-testid="input-order-notes"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Staff notes are confidential and never visible to the customer or on public links.
+              </p>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-              <Button type="submit" disabled={updateMutation.isPending} data-testid="button-submit-order">Save Changes</Button>
+
+            <DialogFooter className="gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setOpenEditModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateMutation.isPending} data-testid="button-submit-order">
+                {updateMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={deleteId !== null} onOpenChange={open => !open && setDeleteId(null)}>
+      {/* ============================================================
+          SAFE DELETE CONFIRMATION ALERT DIALOG
+      ============================================================ */}
+      <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete enquiry?</AlertDialogTitle>
-            <AlertDialogDescription>This will permanently remove the guest's enquiry.</AlertDialogDescription>
+            <AlertDialogTitle className="font-serif text-lg text-destructive flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5" />
+              Delete Booking Enquiry?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 text-sm">
+              <p>
+                Are you sure you want to permanently delete the inquiry for{" "}
+                <strong className="text-foreground">{deleteTarget?.guestName}</strong>{" "}
+                (Booking Reference <strong className="text-foreground">#{deleteTarget?.id}</strong>)?
+              </p>
+              {deleteTarget && (
+                <div className="p-3 rounded-md bg-muted/40 border text-xs space-y-1">
+                  <p>
+                    <span className="text-muted-foreground">Contact:</span> {deleteTarget.guestEmail} · {deleteTarget.guestPhone}
+                  </p>
+                  {deleteTarget.travelDate && (
+                    <p>
+                      <span className="text-muted-foreground">Travel Date:</span> {deleteTarget.travelDate}
+                    </p>
+                  )}
+                  {deleteTarget.totalAmount ? (
+                    <p>
+                      <span className="text-muted-foreground">Amount:</span> ₹{deleteTarget.totalAmount.toLocaleString("en-IN")}
+                    </p>
+                  ) : null}
+                </div>
+              )}
+              <p className="text-xs text-destructive">
+                This action cannot be undone. All recorded preferences, internal notes, and tracking data will be removed.
+              </p>
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteId && handleDelete(deleteId)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+            <AlertDialogAction
+              onClick={() => deleteTarget && handleDelete(deleteTarget.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Enquiry
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

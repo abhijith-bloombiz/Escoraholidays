@@ -2,6 +2,7 @@ import { Router, type IRouter } from "express";
 import { OrderModel, getNextSequence } from "@workspace/db";
 import {
   ListOrdersQueryParams,
+  ExportOrdersQueryParams,
   ListOrdersResponse,
   CreateOrderBody,
   GetOrderParams,
@@ -40,7 +41,7 @@ async function lookupGeo(ip: string): Promise<{ geoCountry?: string; geoRegion?:
 }
 
 router.get("/orders/export", async (req, res): Promise<void> => {
-  const query = ListOrdersQueryParams.safeParse(req.query);
+  const query = ExportOrdersQueryParams.safeParse(req.query);
   if (!query.success) {
     res.status(400).json({ error: query.error.message });
     return;
@@ -82,7 +83,7 @@ router.get("/orders/export", async (req, res): Promise<void> => {
   res.send(csv);
 });
 
-router.get("/orders", async (req, res): Promise<void> => {
+router.get("/orders", async (req, res, next): Promise<void> => {
   const query = ListOrdersQueryParams.safeParse(req.query);
   if (!query.success) {
     res.status(400).json({ error: query.error.message });
@@ -97,15 +98,34 @@ router.get("/orders", async (req, res): Promise<void> => {
   try {
     const orders = await OrderModel.find(filter).sort({ createdAt: 1 }).lean();
     res.json(ListOrdersResponse.parse(orders.map(serializeDates)));
-  } catch {
-    res.json([]);
+  } catch (err) {
+    next(err);
   }
 });
 
-router.post("/orders", async (req, res): Promise<void> => {
+const VALID_ORDER_STATUSES = ["enquiry", "confirmed", "completed", "cancelled"] as const;
+
+router.post("/orders", async (req, res, next): Promise<void> => {
   const parsed = CreateOrderBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  if (!parsed.data.guestName?.trim()) {
+    res.status(400).json({ error: "guestName cannot be empty" });
+    return;
+  }
+  if (!parsed.data.guestEmail?.trim()) {
+    res.status(400).json({ error: "guestEmail cannot be empty" });
+    return;
+  }
+  if (
+    parsed.data.guestCount !== undefined &&
+    parsed.data.guestCount !== null &&
+    (!Number.isInteger(parsed.data.guestCount) || parsed.data.guestCount < 1)
+  ) {
+    res.status(400).json({ error: "guestCount must be an integer of at least 1" });
     return;
   }
 
@@ -122,24 +142,32 @@ router.post("/orders", async (req, res): Promise<void> => {
     logger.warn("Geo lookup failed");
   }
 
-  const id = await getNextSequence("orders");
-  const orderDoc = await OrderModel.create({
-    ...parsed.data,
-    id,
-    ipAddress,
-    userAgent,
-    ...geo,
-  });
+  try {
+    const id = await getNextSequence("orders");
+    const orderDoc = await OrderModel.create({
+      ...parsed.data,
+      id,
+      ipAddress,
+      userAgent,
+      ...geo,
+    });
 
-  const order = orderDoc.toObject();
+    const order = orderDoc.toObject();
 
-  // Send emails asynchronously — don't block the response
-  Promise.all([
-    sendBookingConfirmation(order),
-    sendAdminBookingNotification(order),
-  ]).catch(() => { /* non-fatal */ });
+    // Send emails asynchronously — don't block the response
+    Promise.all([
+      sendBookingConfirmation(order),
+      sendAdminBookingNotification(order),
+    ]).catch(() => { /* non-fatal */ });
 
-  res.status(201).json(GetOrderResponse.parse(serializeDates(order)));
+    res.status(201).json(GetOrderResponse.parse(serializeDates(order)));
+  } catch (err: any) {
+    if (err.name === "ValidationError" || err.name === "CastError") {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
 });
 
 router.get("/orders/:id", async (req, res): Promise<void> => {
@@ -160,7 +188,7 @@ router.get("/orders/:id", async (req, res): Promise<void> => {
   }
 });
 
-router.patch("/orders/:id", async (req, res): Promise<void> => {
+router.patch("/orders/:id", async (req, res, next): Promise<void> => {
   const params = UpdateOrderParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -171,30 +199,65 @@ router.patch("/orders/:id", async (req, res): Promise<void> => {
     res.status(400).json({ error: parsed.error.message });
     return;
   }
-  const order = await OrderModel.findOneAndUpdate(
-    { id: params.data.id },
-    { $set: { ...parsed.data, updatedAt: new Date() } },
-    { new: true }
-  ).lean();
-  if (!order) {
-    res.status(404).json({ error: "Order not found" });
+
+  if (
+    parsed.data.status !== undefined &&
+    !VALID_ORDER_STATUSES.includes(parsed.data.status as any)
+  ) {
+    res.status(400).json({
+      error: `Invalid status "${parsed.data.status}". Supported statuses: ${VALID_ORDER_STATUSES.join(", ")}`,
+    });
     return;
   }
-  res.json(UpdateOrderResponse.parse(serializeDates(order)));
+  if (
+    parsed.data.guestCount !== undefined &&
+    parsed.data.guestCount !== null &&
+    (!Number.isInteger(parsed.data.guestCount) || parsed.data.guestCount < 1)
+  ) {
+    res.status(400).json({ error: "guestCount must be an integer of at least 1" });
+    return;
+  }
+  if (parsed.data.totalAmount !== undefined && parsed.data.totalAmount !== null && parsed.data.totalAmount < 0) {
+    res.status(400).json({ error: "totalAmount must be greater than or equal to 0" });
+    return;
+  }
+
+  try {
+    const order = await OrderModel.findOneAndUpdate(
+      { id: params.data.id },
+      { $set: { ...parsed.data, updatedAt: new Date() } },
+      { new: true, runValidators: true }
+    ).lean();
+    if (!order) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+    res.json(UpdateOrderResponse.parse(serializeDates(order)));
+  } catch (err: any) {
+    if (err.name === "ValidationError" || err.name === "CastError") {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    next(err);
+  }
 });
 
-router.delete("/orders/:id", async (req, res): Promise<void> => {
+router.delete("/orders/:id", async (req, res, next): Promise<void> => {
   const params = DeleteOrderParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
     return;
   }
-  const order = await OrderModel.findOneAndDelete({ id: params.data.id }).lean();
-  if (!order) {
-    res.status(404).json({ error: "Order not found" });
-    return;
+  try {
+    const order = await OrderModel.findOneAndDelete({ id: params.data.id }).lean();
+    if (!order) {
+      res.status(404).json({ error: "Order not found" });
+      return;
+    }
+    res.sendStatus(204);
+  } catch (err) {
+    next(err);
   }
-  res.sendStatus(204);
 });
 
 export default router;

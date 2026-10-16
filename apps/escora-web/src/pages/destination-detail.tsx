@@ -12,8 +12,10 @@ export default function DestinationDetail() {
 
   const { data: apiDestinations, isLoading } = useListDestinations({ published: true });
 
-  const apiMatch = apiDestinations?.find((d) => (d.slug || slugify(d.name)) === slug);
-  const dest = apiMatch ?? findKeralaDestinationBySlug(slug);
+  const apiMatch = apiDestinations?.find(
+    (d) => String(d.id) === slug || (d.slug || slugify(d.name)).toLowerCase() === slug
+  );
+  const dest = apiMatch ?? (isLoading ? undefined : (apiDestinations && apiDestinations.length > 0 ? undefined : findKeralaDestinationBySlug(slug)));
 
   let highlights: string[] = [];
   const rawHighlights = dest && "highlights" in dest ? dest.highlights : undefined;

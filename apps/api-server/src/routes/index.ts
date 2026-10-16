@@ -10,14 +10,16 @@ import dashboardRouter from "./dashboard";
 import travelCategoriesRouter from "./travel-categories";
 import enquiriesRouter from "./enquiries";
 import itinerariesRouter from "./itineraries";
+import aiRouter from "./ai";
 import { requireAuth } from "../middleware/auth";
 import { notFoundHandler } from "../middleware/not-found";
 
 const router: IRouter = Router();
 
-// Public: health + auth
+// Public: health + auth + AI foundation
 router.use(healthRouter);
 router.use(authRouter);
+router.use(aiRouter);
 
 // Public GETs, protected writes — destinations, packages, journal
 // GET /destinations, GET /destinations/:id  → public
@@ -36,6 +38,7 @@ router.delete("/packages/:id", requireAuth, packagesRouter);
 
 router.get("/journal", journalRouter);
 router.get("/journal/:id", journalRouter);
+router.post("/journal/ai-assist", requireAuth, journalRouter);
 router.post("/journal", requireAuth, journalRouter);
 router.patch("/journal/:id", requireAuth, journalRouter);
 router.delete("/journal/:id", requireAuth, journalRouter);
@@ -54,11 +57,13 @@ router.get("/enquiries", requireAuth, enquiriesRouter);
 router.get("/enquiries/:id", requireAuth, enquiriesRouter);
 router.patch("/enquiries/:id", requireAuth, enquiriesRouter);
 router.delete("/enquiries/:id", requireAuth, enquiriesRouter);
+router.post("/enquiries/:id/ai-assist", requireAuth, enquiriesRouter);
 
 // Itineraries: share-by-token lookup is public, everything else admin only
 router.get("/itineraries/share/:token", itinerariesRouter);
 router.get("/itineraries", requireAuth, itinerariesRouter);
 router.post("/itineraries", requireAuth, itinerariesRouter);
+router.post("/itineraries/ai-assist", requireAuth, itinerariesRouter);
 router.get("/itineraries/:id", requireAuth, itinerariesRouter);
 router.patch("/itineraries/:id", requireAuth, itinerariesRouter);
 router.delete("/itineraries/:id", requireAuth, itinerariesRouter);
@@ -73,6 +78,7 @@ router.delete("/travel-categories/:id", requireAuth, travelCategoriesRouter);
 // Media: uploaded files must be publicly servable
 router.get("/media/files/:name", mediaRouter);
 router.get("/media", requireAuth, mediaRouter);
+router.post("/media/upload", requireAuth, mediaRouter);
 router.post("/media", requireAuth, mediaRouter);
 router.delete("/media/:id", requireAuth, mediaRouter);
 

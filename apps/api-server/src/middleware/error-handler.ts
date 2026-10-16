@@ -11,7 +11,14 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  const statusCode = typeof err.statusCode === "number" && err.statusCode >= 400 && err.statusCode < 600
+  const isClientError =
+    err.name === "ValidationError" ||
+    err.name === "CastError" ||
+    err.name === "ZodError";
+
+  const statusCode = isClientError
+    ? 400
+    : typeof err.statusCode === "number" && err.statusCode >= 400 && err.statusCode < 600
     ? err.statusCode
     : 500;
 

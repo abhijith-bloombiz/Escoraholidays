@@ -240,22 +240,64 @@ function ShareButtons({ url, title }: { url: string; title: string }) {
 
 export default function JournalDetail() {
   const { id } = useParams();
-  const postId = Number(id);
+  const rawId = id ? decodeURIComponent(id) : "";
+  const isNumeric = /^\d+$/.test(rawId);
+  const lookupId = isNumeric ? Number(rawId) : rawId;
 
-  const { data: apiPost, isLoading } = useGetJournalPost(postId, {
-    query: { enabled: !!postId, queryKey: getGetJournalPostQueryKey(postId) },
+  const { data: apiPost, isLoading } = useGetJournalPost(lookupId as any, {
+    query: { enabled: !!lookupId, queryKey: getGetJournalPostQueryKey(lookupId as any), retry: 1 },
   });
   const { data: relatedApiData } = useListJournalPosts({ published: true });
 
-  /* Prefer API data; fall back to mock */
-  const mockPost = MOCK_ARTICLES.find((a) => a.id === postId) ?? MOCK_ARTICLES[0];
-  const post = apiPost ?? mockPost;
+  const post = apiPost;
 
-  const relatedMock = MOCK_ARTICLES.filter((a) => a.id !== postId).slice(0, 3);
-  const relatedPosts =
-    relatedApiData && relatedApiData.length > 0
-      ? relatedApiData.filter((p) => p.id !== postId).slice(0, 3)
-      : relatedMock;
+  useSeo({
+    title: post?.title ?? "Journal",
+    description: post?.excerpt ?? undefined,
+    image: (post as any)?.imageUrl ?? undefined,
+    url: typeof window !== "undefined" ? window.location.href : `https://www.escoraholidays.com/journal/${rawId}`,
+    type: "article",
+    jsonLd: post ? {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: post.title,
+      description: post.excerpt,
+      image: (post as any).imageUrl,
+      author: { "@type": "Person", name: (post as any).authorName ?? "Escora Editorial" },
+      publisher: { "@type": "Organization", name: "Escora" },
+      datePublished: (post as any).publishedAt,
+      url: typeof window !== "undefined" ? window.location.href : `https://www.escoraholidays.com/journal/${post.slug || post.id}`,
+    } : undefined,
+  });
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="w-12 h-12 border-t border-gold animate-spin rounded-full" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!post) {
+    return (
+      <Layout>
+        <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 text-center px-6">
+          <p className="font-mono text-gold text-sm tracking-[0.3em] uppercase">Not Found</p>
+          <h1 className="font-serif text-4xl text-ink">Story not found</h1>
+          <p className="text-ink-mute max-w-md">This dispatch may have been moved, unpublished, or does not exist.</p>
+          <Link href="/journal" className="font-mono text-xs text-gold uppercase tracking-widest hover:underline">
+            ← Back to Journal
+          </Link>
+        </div>
+      </Layout>
+    );
+  }
+
+  const relatedPosts = (relatedApiData ?? [])
+    .filter((p) => p.id !== post.id && p.slug !== post.slug)
+    .slice(0, 3);
 
   const authorName = (post as any).authorName ?? "Escora Editorial";
   const authorRole = (post as MockPost).authorRole ?? "Escora Editorial";
@@ -266,26 +308,7 @@ export default function JournalDetail() {
   const readTime = (post as any).readTimeMinutes;
   const rawContent = (post as any).content ?? "";
   const paragraphs = parseParagraphs(rawContent);
-  const pageUrl = typeof window !== "undefined" ? window.location.href : `https://www.escoraholidays.com/journal/${postId}`;
-
-  useSeo({
-    title: post.title,
-    description: post.excerpt ?? undefined,
-    image: (post as any).imageUrl ?? undefined,
-    url: pageUrl,
-    type: "article",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "Article",
-      headline: post.title,
-      description: post.excerpt,
-      image: (post as any).imageUrl,
-      author: { "@type": "Person", name: authorName },
-      publisher: { "@type": "Organization", name: "Escora" },
-      datePublished: (post as any).publishedAt,
-      url: pageUrl,
-    },
-  });
+  const pageUrl = typeof window !== "undefined" ? window.location.href : `https://www.escoraholidays.com/journal/${post.slug || post.id}`;
 
   return (
     <Layout>

@@ -19,6 +19,262 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
+  /health:
+    get:
+      operationId: getHealth
+      summary: Health check alias
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /health/status:
+    get:
+      operationId: getHealthStatus
+      summary: Detailed health and database connection status
+      responses:
+        "200":
+          description: System healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedHealthStatus"
+        "503":
+          description: System degraded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedHealthStatus"
+
+  # ── AI Service Foundation ───────────────────────────────────
+  /ai/status:
+    get:
+      operationId: getAiStatus
+      summary: Get AI service configuration and model status
+      tags:
+        - AI
+      responses:
+        "200":
+          description: AI service status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiStatusResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ai/generate:
+    post:
+      operationId: generateAiResponse
+      summary: Generate structured AI completion through provider
+      tags:
+        - AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiGenerateInput"
+      responses:
+        "200":
+          description: Successful AI generation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiGenerateResponse"
+        "400":
+          description: Validation error or malformed request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI service not configured or provider unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ai/assistant:
+    post:
+      operationId: askAiAssistant
+      summary: Public AI Travel Assistant conversation with Escora grounding
+      tags:
+        - AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiAssistantInput"
+      responses:
+        "200":
+          description: Successful AI assistant response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiAssistantResponse"
+        "400":
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI service unavailable or unconfigured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /ai/plan:
+    post:
+      operationId: generateTripPlan
+      summary: Generate and refine bespoke slow-luxury Kerala trip itineraries with Escora grounding
+      tags:
+        - AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TripPlanInput"
+      responses:
+        "200":
+          description: Successful AI trip plan generation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripPlanResponse"
+        "400":
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI service unavailable or unconfigured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Authentication ───────────────────────────────────────────
+  /auth/login:
+    post:
+      operationId: login
+      summary: Admin login
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Successfully authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResult"
+        "401":
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Admin logout
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogoutResult"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      operationId: getAuthMe
+      summary: Get current authenticated session
+      tags:
+        - Auth
+      responses:
+        "200":
+          description: Current session status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthMeResponse"
+        "401":
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthMeResponse"
+
   # ── Destinations ──────────────────────────────────────────────
   /destinations:
     get:
@@ -321,6 +577,57 @@ paths:
         "204":
           description: Deleted
 
+  /itineraries/ai-assist:
+    post:
+      operationId: assistItinerary
+      summary: AI Itinerary Assistant — Generate or refine day-by-day slow-luxury proposal draft grounded in Escora catalogue
+      tags:
+        - Itineraries
+        - AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryAiAssistInput"
+      responses:
+        "200":
+          description: AI-assisted itinerary draft proposal with verified catalogue grounding and confirmation flags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItineraryAiAssistResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized admin session required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Provider generation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI service unconfigured or offline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   # ── Travel Categories ─────────────────────────────────────────
   /travel-categories:
     get:
@@ -446,6 +753,35 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Order"
+
+  /orders/export:
+    get:
+      operationId: exportOrders
+      summary: Export enquiries / orders as CSV
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        "200":
+          description: CSV file content
+          content:
+            text/csv:
+              schema:
+                type: string
+        "400":
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /orders/{id}:
     get:
@@ -591,6 +927,63 @@ paths:
         "204":
           description: Deleted
 
+  /enquiries/{id}/ai-assist:
+    post:
+      operationId: assistEnquiry
+      summary: AI Enquiry Assistant — Summarize, extract explicit facts, draft reply, and suggest next action
+      tags:
+        - Enquiries
+        - AI
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnquiryAiAssistInput"
+      responses:
+        "200":
+          description: AI Enquiry Analysis and Draft Reply
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnquiryAiAssistResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized admin session required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Enquiry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   # ── Journal Posts ─────────────────────────────────────────────
   /journal:
     get:
@@ -689,11 +1082,69 @@ paths:
         "204":
           description: Deleted
 
+  /journal/ai-assist:
+    post:
+      operationId: assistJournalPost
+      summary: AI Content Assistant — Generate, refine, rewrite, and optimize travel journal stories grounded in Escora catalogue
+      tags:
+        - Journal
+        - AI
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JournalAiAssistInput"
+      responses:
+        "200":
+          description: AI-generated or refined article content with verified catalog grounding and confirmation flags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JournalAiAssistResponse"
+        "400":
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized admin session required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Provider generation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: AI service unconfigured or offline
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   # ── Media ─────────────────────────────────────────────────────
   /media:
     get:
       operationId: listMedia
       summary: List uploaded media
+      parameters:
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [all, uploads, external]
       responses:
         "200":
           description: OK
@@ -715,6 +1166,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Media"
+
+  /media/files/{name}:
+    get:
+      operationId: getMediaFile
+      summary: Serve uploaded media file
+      parameters:
+        - in: path
+          name: name
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Media file content
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "400":
+          description: Invalid filename
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: File not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /media/{id}:
     delete:
@@ -750,6 +1232,61 @@ components:
       required: [status]
       properties:
         status:
+          type: string
+
+    DetailedHealthStatus:
+      type: object
+      required: [status, database, uptimeSeconds, timestamp]
+      properties:
+        status:
+          type: string
+        database:
+          type: string
+        uptimeSeconds:
+          type: integer
+        timestamp:
+          type: string
+
+    # ── Authentication ───────────────────────────────────────────
+    LoginInput:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    LoginResult:
+      type: object
+      required: [ok, username]
+      properties:
+        ok:
+          type: boolean
+        username:
+          type: string
+
+    LogoutResult:
+      type: object
+      required: [ok]
+      properties:
+        ok:
+          type: boolean
+
+    AuthMeResponse:
+      type: object
+      required: [authenticated]
+      properties:
+        authenticated:
+          type: boolean
+        username:
+          type: ["string", "null"]
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
           type: string
 
     # ── Destination ──────────────────────────────────────────────
@@ -1216,6 +1753,353 @@ components:
         createdBy:
           type: string
 
+    # ── AI Itinerary Assistant (Phase 3B) ────────────────────────
+    ItineraryAiActivity:
+      type: object
+      required: [title]
+      properties:
+        time:
+          type: string
+          description: Indicative activity time window (e.g. 'Morning', 'Late Afternoon', 'Sunset')
+        title:
+          type: string
+        description:
+          type: string
+
+    ItineraryAiDay:
+      type: object
+      required: [day, title, activities]
+      properties:
+        day:
+          type: integer
+        date:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        destination:
+          type: string
+        activities:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItineraryAiActivity"
+
+    ItineraryAiStay:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          description: Indicative boutique sanctuary or heritage estate
+        location:
+          type: string
+        checkIn:
+          type: string
+        checkOut:
+          type: string
+        nights:
+          type: integer
+        roomType:
+          type: string
+        notes:
+          type: string
+
+    ItineraryAiCatalogDestination:
+      type: object
+      required: [name, slug, region]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        region:
+          type: string
+        highlights:
+          type: string
+
+    ItineraryAiCatalogPackage:
+      type: object
+      required: [title, slug]
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        duration:
+          type: string
+
+    ItineraryAiCatalogMatches:
+      type: object
+      required: [destinations, packages]
+      properties:
+        destinations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItineraryAiCatalogDestination"
+        packages:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItineraryAiCatalogPackage"
+
+    ItineraryAiAssistInput:
+      type: object
+      properties:
+        customerName:
+          type: string
+          description: Customer or party name
+        customerEmail:
+          type: string
+          description: Customer contact email
+        customerPhone:
+          type: string
+          description: Customer contact phone
+        destination:
+          type: string
+          description: Primary destination or route
+        durationDays:
+          type: integer
+          minimum: 2
+          maximum: 30
+          default: 7
+          description: Total trip duration in days
+        startDate:
+          type: string
+          description: Optional start date (YYYY-MM-DD) or travel season
+        pace:
+          type: string
+          enum: [unhurried-slow, balanced, active-discovery]
+          default: unhurried-slow
+          description: Desired travel pace
+        travelerType:
+          type: string
+          default: "Couple / Pair"
+        budgetTier:
+          type: string
+          default: "Signature Slow-Luxury"
+        interests:
+          type: array
+          items:
+            type: string
+          description: Preferred themes
+        notes:
+          type: string
+          description: Special customer wishes or requirements
+        enquiryId:
+          type: integer
+          description: Optional reference enquiry ID to pull verified requirements from
+        refinementPrompt:
+          type: string
+          description: Staff instructions for adjusting pace, days, or experiences
+        currentItinerary:
+          type: object
+          description: Existing itinerary state for iterative refinement
+
+    ItineraryAiAssistResponse:
+      type: object
+      required: [title, destination, summary, days, stays, inclusions, exclusions, verifiedCatalogMatches, unconfirmedItems, travelDesignerAdvice, disclaimer]
+      properties:
+        title:
+          type: string
+          description: Proposed proposal title
+        destination:
+          type: string
+          description: Primary destination region
+        durationDays:
+          type: integer
+        durationNights:
+          type: integer
+        summary:
+          type: string
+          description: Slow-luxury narrative journey overview
+        coverImageUrl:
+          type: string
+          description: Suggested cover image URL from verified destination catalogue
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItineraryAiDay"
+        stays:
+          type: array
+          items:
+            $ref: "#/components/schemas/ItineraryAiStay"
+        inclusions:
+          type: array
+          items:
+            type: string
+        exclusions:
+          type: array
+          items:
+            type: string
+        verifiedCatalogMatches:
+          $ref: "#/components/schemas/ItineraryAiCatalogMatches"
+        unconfirmedItems:
+          type: array
+          items:
+            type: string
+          description: Operational items requiring human staff verification
+        travelDesignerAdvice:
+          type: string
+          description: Practical routing guidance, transfer times, and seasonal pacing tips
+        disclaimer:
+          type: string
+          description: Human-in-the-loop review reminder
+
+    # ── AI Content Assistant (Phase 3C) ─────────────────────────
+    JournalAiArticleInput:
+      type: object
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        category:
+          type: string
+        excerpt:
+          type: string
+        content:
+          type: string
+        tags:
+          type: string
+
+    JournalAiSeoMetadata:
+      type: object
+      required: [metaTitle, metaDescription, keywords]
+      properties:
+        metaTitle:
+          type: string
+          description: Concise, SEO-optimized title for search result snippets
+        metaDescription:
+          type: string
+          description: Compelling search engine snippet description (140-160 characters)
+        keywords:
+          type: array
+          items:
+            type: string
+          description: Suggested focus keywords and search terms
+
+    JournalAiCatalogDestination:
+      type: object
+      required: [name, slug, region]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        region:
+          type: string
+        highlights:
+          type: string
+
+    JournalAiCatalogPackage:
+      type: object
+      required: [title, slug]
+      properties:
+        title:
+          type: string
+        slug:
+          type: string
+        duration:
+          type: string
+
+    JournalAiCatalogMatches:
+      type: object
+      required: [destinations, packages]
+      properties:
+        destinations:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalAiCatalogDestination"
+        packages:
+          type: array
+          items:
+            $ref: "#/components/schemas/JournalAiCatalogPackage"
+
+    JournalAiAssistInput:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [generate_draft, suggest_metadata, rewrite, expand, shorten, refine, generate_seo]
+          description: Action requested from AI content assistant
+        topic:
+          type: string
+          description: Article topic, title idea, or story angle
+        destination:
+          type: string
+          description: Target Kerala destination or region
+        targetAudience:
+          type: string
+          description: Target reader persona (e.g. Honeymooners, Slow-travelers, Heritage seekers)
+        instructions:
+          type: string
+          description: Specific editorial instructions, focal points, or styling guidelines
+        currentArticle:
+          $ref: "#/components/schemas/JournalAiArticleInput"
+          description: Current draft state from editor
+        selectedText:
+          type: string
+          description: Selected portion of article text for rewrite, expand, shorten, or refine
+        tone:
+          type: string
+          enum: [slow-luxury, poetic-evocative, practical-concise, cultural-immersive]
+          default: slow-luxury
+          description: Desired editorial tone
+
+    JournalAiAssistResponse:
+      type: object
+      required: [action, suggestedTitles, suggestedSlug, suggestedCategory, suggestedExcerpt, suggestedIntroduction, draftContent, refinedText, seo, suggestedTags, readTimeMinutes, verifiedCatalogMatches, unverifiedClaims, editorialAdvice, disclaimer]
+      properties:
+        action:
+          type: string
+        suggestedTitles:
+          type: array
+          items:
+            type: string
+          description: Array of evocative, slow-luxury editorial titles
+        suggestedSlug:
+          type: string
+          description: URL-friendly article slug
+        suggestedCategory:
+          type: string
+          description: Recommended article category
+        suggestedExcerpt:
+          type: string
+          description: Compelling lead paragraph and preview excerpt
+        suggestedIntroduction:
+          type: string
+          description: Engaging article introduction hook
+        draftContent:
+          type: string
+          description: Generated or expanded article body in clean semantic HTML
+        refinedText:
+          type: string
+          description: Refined or rewritten text snippet for selection replacement
+        seo:
+          $ref: "#/components/schemas/JournalAiSeoMetadata"
+        suggestedTags:
+          type: array
+          items:
+            type: string
+          description: Recommended comma-delimited article filter tags
+        readTimeMinutes:
+          type: integer
+          description: Estimated reading time in minutes
+        verifiedCatalogMatches:
+          $ref: "#/components/schemas/JournalAiCatalogMatches"
+        unverifiedClaims:
+          type: array
+          items:
+            type: string
+          description: Explicitly flagged factual claims requiring staff verification
+        editorialAdvice:
+          type: string
+          description: Curator notes on sensory imagery, local authenticity, and pacing
+        disclaimer:
+          type: string
+          description: Human review and editorial safeguard notice
+
     # ── Order ────────────────────────────────────────────────────
     Order:
       type: object
@@ -1394,6 +2278,114 @@ components:
         status:
           type: string
 
+    EnquiryAiAssistInput:
+      type: object
+      properties:
+        focusPrompt:
+          type: string
+          description: Optional travel designer direction or focus for the reply and recommendations
+        replyTone:
+          type: string
+          enum: [warm-luxury, concise, detailed]
+          default: warm-luxury
+          description: The desired tone for the crafted reply draft
+
+    EnquiryAiSummary:
+      type: object
+      required: [overview, destinations, travelDates, groupSize, budget, unansweredQuestions]
+      properties:
+        overview:
+          type: string
+          description: Concise summary of the customer's request and primary intent
+        destinations:
+          type: array
+          items:
+            type: string
+          description: Destinations of interest explicitly mentioned in the enquiry
+        travelDates:
+          type: string
+          description: Explicit travel dates, season, or "Unknown / Not specified"
+        groupSize:
+          type: string
+          description: Explicit party size, count, or "Unknown / Not specified"
+        budget:
+          type: string
+          description: Explicit budget tier, currency, or "Unknown / Not specified"
+        unansweredQuestions:
+          type: array
+          items:
+            type: string
+          description: Direct questions asked by the customer that need answering
+
+    EnquiryExtractedPreferences:
+      type: object
+      required: [destinations, travelDates, groupSize, budget, travelStyle, specialRequests, missingDetails]
+      properties:
+        destinations:
+          type: array
+          items:
+            type: string
+        travelDates:
+          type: string
+        groupSize:
+          type: string
+        budget:
+          type: string
+        travelStyle:
+          type: string
+        specialRequests:
+          type: array
+          items:
+            type: string
+        missingDetails:
+          type: array
+          items:
+            type: string
+          description: Information gaps marked as unknown to ask the guest about
+
+    EnquirySuggestedReply:
+      type: object
+      required: [subject, greeting, body, signoff]
+      properties:
+        subject:
+          type: string
+        greeting:
+          type: string
+        body:
+          type: string
+        signoff:
+          type: string
+
+    EnquiryNextAction:
+      type: object
+      required: [recommendedAction, rationale, priority]
+      properties:
+        recommendedAction:
+          type: string
+        rationale:
+          type: string
+        priority:
+          type: string
+          enum: [low, medium, high]
+
+    EnquiryAiAssistResponse:
+      type: object
+      required: [enquiryId, summary, extractedPreferences, suggestedReply, nextAction, disclaimer]
+      properties:
+        enquiryId:
+          type: integer
+        summary:
+          $ref: "#/components/schemas/EnquiryAiSummary"
+        extractedPreferences:
+          $ref: "#/components/schemas/EnquiryExtractedPreferences"
+        suggestedReply:
+          $ref: "#/components/schemas/EnquirySuggestedReply"
+        nextAction:
+          $ref: "#/components/schemas/EnquiryNextAction"
+        disclaimer:
+          type: string
+          description: Human-in-the-loop review reminder
+
     # ── Journal Post ─────────────────────────────────────────────
     JournalPost:
       type: object
@@ -1490,6 +2482,19 @@ components:
           type: string
 
     # ── Media ────────────────────────────────────────────────────
+    MediaReference:
+      type: object
+      required: [type, id, title, field]
+      properties:
+        type:
+          type: string
+        id:
+          type: integer
+        title:
+          type: string
+        field:
+          type: string
+
     Media:
       type: object
       required: [id, filename, url, mimeType, createdAt]
@@ -1506,6 +2511,17 @@ components:
           type: ["integer", "null"]
         createdAt:
           type: string
+        storageType:
+          type: string
+          enum: [upload, external]
+        fileExists:
+          type: boolean
+        usageCount:
+          type: integer
+        references:
+          type: array
+          items:
+            $ref: "#/components/schemas/MediaReference"
 
     # ── Dashboard ────────────────────────────────────────────────
     DashboardStats:
@@ -1551,3 +2567,256 @@ components:
           type: string
         count:
           type: integer
+
+    AiStatusResponse:
+      type: object
+      required: [configured, provider, model, available]
+      properties:
+        configured:
+          type: boolean
+        provider:
+          type: string
+        model:
+          type: string
+        available:
+          type: boolean
+        message:
+          type: string
+        availableModels:
+          type: array
+          items:
+            type: string
+
+    AiMessage:
+      type: object
+      required: [role, content]
+      properties:
+        role:
+          type: string
+          enum: [system, user, assistant]
+        content:
+          type: string
+
+    AiGenerateInput:
+      type: object
+      properties:
+        prompt:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiMessage"
+        systemPrompt:
+          type: string
+        maxTokens:
+          type: integer
+        temperature:
+          type: number
+
+    AiGenerateResponse:
+      type: object
+      required: [content, model, provider]
+      properties:
+        content:
+          type: string
+        model:
+          type: string
+        provider:
+          type: string
+        usage:
+          type: object
+          properties:
+            promptTokens:
+              type: integer
+            completionTokens:
+              type: integer
+            totalTokens:
+              type: integer
+        finishReason:
+          type: string
+
+    AiAssistantInput:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+        history:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiMessage"
+
+    AiGroundedEntity:
+      type: object
+      required: [title, url, type]
+      properties:
+        title:
+          type: string
+        url:
+          type: string
+        type:
+          type: string
+
+    AiAssistantResponse:
+      type: object
+      required: [message, provider, model]
+      properties:
+        message:
+          type: string
+        provider:
+          type: string
+        model:
+          type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+        groundedEntities:
+          type: array
+          items:
+            $ref: "#/components/schemas/AiGroundedEntity"
+
+    TripPlanInput:
+      type: object
+      required: [durationDays]
+      properties:
+        durationDays:
+          type: integer
+          minimum: 2
+          maximum: 30
+          default: 7
+        seasonOrDates:
+          type: string
+          default: "Winter (October to March)"
+        startLocation:
+          type: string
+          default: "Kochi (COK Airport)"
+        travelersCount:
+          type: integer
+          minimum: 1
+          maximum: 50
+          default: 2
+        travelerType:
+          type: string
+          default: "Couple / Pair"
+        budgetTier:
+          type: string
+          default: "Signature Slow-Luxury"
+        currency:
+          type: string
+          default: "INR"
+        interests:
+          type: array
+          items:
+            type: string
+          default: ["tea-hills", "backwaters", "heritage"]
+        pace:
+          type: string
+          default: "Slow & Unhurried"
+        additionalNotes:
+          type: string
+        refinementPrompt:
+          type: string
+        currentItinerary:
+          type: object
+          description: Previous itinerary object for iterative refinement
+
+    TripItineraryDay:
+      type: object
+      required: [day, title, destination, morningActivity, afternoonActivity, eveningActivity, stayRecommendation]
+      properties:
+        day:
+          type: integer
+        title:
+          type: string
+        destination:
+          type: string
+        destinationSlug:
+          type: string
+        theme:
+          type: string
+        morningActivity:
+          type: string
+        afternoonActivity:
+          type: string
+        eveningActivity:
+          type: string
+        stayRecommendation:
+          type: string
+        travelNote:
+          type: string
+
+    TripPlanEntity:
+      type: object
+      required: [name, slug, url, type]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        url:
+          type: string
+        type:
+          type: string
+        highlightsOrRoute:
+          type: string
+
+    TripItinerary:
+      type: object
+      required: [title, tagline, overview, durationDays, durationNights, routeSequence, idealSeason, pace, budgetGuidance, days, verifiedDestinations, verifiedJourneys, catalogueNotice, practicalAdvice]
+      properties:
+        title:
+          type: string
+        tagline:
+          type: string
+        overview:
+          type: string
+        durationDays:
+          type: integer
+        durationNights:
+          type: integer
+        routeSequence:
+          type: array
+          items:
+            type: string
+        idealSeason:
+          type: string
+        pace:
+          type: string
+        budgetGuidance:
+          type: string
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripItineraryDay"
+        verifiedDestinations:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripPlanEntity"
+        verifiedJourneys:
+          type: array
+          items:
+            $ref: "#/components/schemas/TripPlanEntity"
+        practicalAdvice:
+          type: array
+          items:
+            type: string
+        catalogueNotice:
+          type: string
+        realisticAssessment:
+          type: string
+
+    TripPlanResponse:
+      type: object
+      required: [itinerary, provider, model]
+      properties:
+        itinerary:
+          $ref: "#/components/schemas/TripItinerary"
+        provider:
+          type: string
+        model:
+          type: string
+        refinementSuggestions:
+          type: array
+          items:
+            type: string

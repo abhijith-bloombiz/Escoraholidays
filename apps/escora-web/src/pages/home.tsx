@@ -1021,10 +1021,14 @@ export default function Home() {
       </section>
 
       {/* ═══════════════════════ 3D DESTINATION EXPLORER ═══════════════════════ */}
-      <Kerala3DDestinationExplorer ref={exploreSectionRef} id="explore-kerala" />
+      <Kerala3DDestinationExplorer
+        ref={exploreSectionRef}
+        id="explore-kerala"
+        destinations={destinationsData}
+      />
 
       {/* ═══════════════════════ 360° DESTINATION EXPERIENCE ═══════════════════════ */}
-      <Destination360Experience />
+      <Destination360Experience destinations={destinationsData} />
 
 
       {/* ═══════════════════════ WHY ESCORA — LANDSCAPE PANORAMA ═══════════════════════ */}

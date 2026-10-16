@@ -1,9 +1,15 @@
 import app from "./app";
-import { config } from "./config/env";
+import { config, validateProductionConfig } from "./config/env";
 import { logger } from "./lib/logger";
 import { connectDB, disconnectDB } from "@workspace/db";
 
 async function bootstrap() {
+  validateProductionConfig(config);
+
+  if (!config.isProduction) {
+    logger.info("Dev Notice: Running in local development mode with standard dev defaults.");
+  }
+
   try {
     await connectDB();
     logger.info("Connected to MongoDB successfully");
@@ -29,7 +35,7 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
-  logger.fatal({ err }, "Fatal error during server startup");
+  logger.fatal({ err: err instanceof Error ? err.message : String(err) }, "Fatal error during server startup");
   process.exit(1);
 });
 

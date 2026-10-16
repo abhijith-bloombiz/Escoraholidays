@@ -15,11 +15,13 @@ import Journal from "@/pages/journal";
 import JournalDetail from "@/pages/journal-detail";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import Plan from "@/pages/plan";
+import TripPlanner from "@/pages/trip-planner";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import CategoryDetail from "@/pages/category-detail";
 import ItineraryShare from "@/pages/itinerary-share";
 import DestinationsV3 from "@/pages/destinations-v3";
+import AiTravelAssistant from "@/components/ai/AiTravelAssistant";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -44,6 +46,8 @@ function Router() {
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
       <Route path="/plan" component={Plan} />
+      <Route path="/trip-planner" component={TripPlanner} />
+      <Route path="/ai-planner" component={TripPlanner} />
       <Route path="/privacy-policy" component={PrivacyPolicy} />
       <Route path="/collections/:category" component={CategoryDetail} />
       <Route path="/itinerary/:token">
@@ -67,6 +71,7 @@ function App() {
             <ScrollToTop />
             <Router />
           </SmoothScroll>
+          <AiTravelAssistant />
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

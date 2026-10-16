@@ -4,6 +4,8 @@
  * Api
  * OpenAPI spec version: 1.0.0
  */
+import type { MediaReference } from './mediaReference';
+import type { MediaStorageType } from './mediaStorageType';
 
 export interface Media {
   id: number;
@@ -13,4 +15,8 @@ export interface Media {
   /** @nullable */
   sizeBytes?: number | null;
   createdAt: string;
+  storageType?: MediaStorageType;
+  fileExists?: boolean;
+  usageCount?: number;
+  references?: MediaReference[];
 }

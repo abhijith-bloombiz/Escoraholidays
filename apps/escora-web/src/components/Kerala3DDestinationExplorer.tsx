@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
+import type { Destination } from "@workspace/api-client-react";
 import Kerala3DMapCanvas from "./Kerala3DMapCanvas";
 import DepthCarousel from "./DepthCarousel";
 import "./Kerala3DDestinationExplorer.css";
@@ -124,37 +125,149 @@ export const WHEEL_DESTINATIONS: DestinationItem[] = [
   },
 ];
 
-const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, { id?: string }>((props, ref) => {
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [selectedDistrict, setSelectedDistrict] = useState<string>("Idukki");
+export interface Kerala3DDestinationExplorerProps {
+  id?: string;
+  destinations?: Destination[];
+}
 
-  const currentDest = WHEEL_DESTINATIONS[activeIdx];
+const DESTINATION_ALIASES: Record<string, string[]> = {
+  kochi: ["kochi", "fort-kochi"],
+  "fort-kochi": ["kochi", "fort-kochi"],
+  alleppey: ["alleppey", "alappuzha"],
+  alappuzha: ["alleppey", "alappuzha"],
+};
 
-  // Selection handler from DepthCarousel
-  const handleCarouselChange = useCallback((idx: number, item: DestinationItem) => {
-    setActiveIdx(idx);
-    if (item && item.associatedDistrict) {
-      setSelectedDistrict(item.associatedDistrict);
-    }
-  }, []);
+const VALID_KERALA_DISTRICTS = new Set([
+  "Alappuzha",
+  "Ernakulam",
+  "Idukki",
+  "Kannur",
+  "Kasaragod",
+  "Kollam",
+  "Kottayam",
+  "Kozhikode",
+  "Malappuram",
+  "Palakkad",
+  "Pathanamthitta",
+  "Thiruvananthapuram",
+  "Thrissur",
+  "Wayanad",
+]);
 
-  // Selection handler from map click
-  const handleSelectDistrict = useCallback((districtName: string, associatedDestId?: string) => {
-    setSelectedDistrict(districtName);
+function findMatchingDestination(
+  destinations: Destination[] | undefined,
+  localId: string,
+  localSlug: string,
+  localName?: string
+): Destination | undefined {
+  if (!destinations || !Array.isArray(destinations) || destinations.length === 0) {
+    return undefined;
+  }
 
-    if (associatedDestId) {
-      const matchIdx = WHEEL_DESTINATIONS.findIndex((d) => d.id === associatedDestId);
-      if (matchIdx !== -1) {
-        setActiveIdx(matchIdx);
+  const normId = localId.toLowerCase().trim();
+  const normSlug = localSlug.toLowerCase().trim();
+  const aliases = new Set<string>([
+    normId,
+    normSlug,
+    ...(DESTINATION_ALIASES[normId] || []),
+    ...(DESTINATION_ALIASES[normSlug] || []),
+  ]);
+
+  // 1. Direct match on slug / alias
+  let match = destinations.find((d) => d?.slug && aliases.has(d.slug.toLowerCase().trim()));
+  if (match) return match;
+
+  // 2. Fallback match on name
+  if (localName) {
+    const normName = localName.toLowerCase().trim();
+    match = destinations.find((d) => {
+      if (!d?.name) return false;
+      const dbNormName = d.name.toLowerCase().trim();
+      return (
+        dbNormName === normName ||
+        (normId === "kochi" && (dbNormName === "fort kochi" || dbNormName === "kochi")) ||
+        (normId === "alleppey" && (dbNormName === "alappuzha" || dbNormName === "alleppey"))
+      );
+    });
+    if (match) return match;
+  }
+
+  return undefined;
+}
+
+const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestinationExplorerProps>(
+  ({ id = "explore-kerala", destinations }, ref) => {
+    const [activeIdx, setActiveIdx] = useState(0);
+    const [selectedDistrict, setSelectedDistrict] = useState<string>("Idukki");
+
+    // Merge API destination records into WHEEL_DESTINATIONS, keeping local fallbacks
+    const items = useMemo<DestinationItem[]>(() => {
+      return WHEEL_DESTINATIONS.map((item) => {
+        const dbMatch = findMatchingDestination(destinations, item.id, item.slug, item.name);
+        if (!dbMatch) return item;
+
+        // Safe region -> associatedDistrict validation against 14 Kerala districts
+        let associatedDistrict = item.associatedDistrict;
+        if (dbMatch.region && typeof dbMatch.region === "string") {
+          const trimmedRegion = dbMatch.region.trim();
+          const matchedDistrict = Array.from(VALID_KERALA_DISTRICTS).find(
+            (dist) => dist.toLowerCase() === trimmedRegion.toLowerCase()
+          );
+          if (matchedDistrict) {
+            associatedDistrict = matchedDistrict;
+          }
+        }
+
+        // Safe cover image verification
+        const validCoverImage =
+          dbMatch.imageUrl && typeof dbMatch.imageUrl === "string" && dbMatch.imageUrl.trim().length > 0
+            ? dbMatch.imageUrl.trim()
+            : item.image;
+
+        return {
+          ...item,
+          name: dbMatch.name?.trim() ? dbMatch.name.trim() : item.name,
+          category: dbMatch.type?.trim() ? dbMatch.type.trim().toUpperCase() : item.category,
+          tagline: dbMatch.shortDesc?.trim() ? dbMatch.shortDesc.trim() : item.tagline,
+          description: dbMatch.description?.trim() || dbMatch.shortDesc?.trim() || item.description,
+          slug: dbMatch.slug?.trim() ? dbMatch.slug.trim() : item.slug,
+          image: validCoverImage,
+          associatedDistrict,
+          features: item.features, // map & icon features stay local
+        };
+      });
+    }, [destinations]);
+
+    const currentDest = items[activeIdx] || items[0] || WHEEL_DESTINATIONS[0];
+
+    // Selection handler from DepthCarousel
+    const handleCarouselChange = useCallback((idx: number, item: DestinationItem) => {
+      setActiveIdx(idx);
+      if (item && item.associatedDistrict) {
+        setSelectedDistrict(item.associatedDistrict);
       }
-    }
-  }, []);
+    }, []);
+
+    // Selection handler from map click
+    const handleSelectDistrict = useCallback(
+      (districtName: string, associatedDestId?: string) => {
+        setSelectedDistrict(districtName);
+
+        if (associatedDestId) {
+          const matchIdx = items.findIndex((d) => d.id === associatedDestId);
+          if (matchIdx !== -1) {
+            setActiveIdx(matchIdx);
+          }
+        }
+      },
+      [items]
+    );
 
   return (
     <section
       ref={ref}
       className="kerala-3d-explorer-section"
-      id={props.id || "explore-kerala"}
+      id={id}
       aria-label="Explore Kerala 3D Destination Explorer"
     >
       {/* ── Refined Luxury Background Layers (Low-opacity landscape + Soft Ivory-White Mist) ── */}
@@ -205,7 +318,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, { id?: string 
               ══════════════════════════════════════════════════ */}
           <div className="kerala-3d-carousel-col" aria-label="Explore Kerala Depth Carousel">
             <DepthCarousel
-              items={WHEEL_DESTINATIONS}
+              items={items}
               activeIndex={activeIdx}
               onChange={handleCarouselChange}
               cardWidth={328}

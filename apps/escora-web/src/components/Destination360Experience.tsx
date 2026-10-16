@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Link } from "wouter";
+import type { Destination } from "@workspace/api-client-react";
 import "./Destination360Experience.css";
 
 // ── Destination Image Assets ──
@@ -220,13 +221,101 @@ function PanoramaModal({
   );
 }
 
-export default function Destination360Experience() {
+export interface Destination360ExperienceProps {
+  destinations?: Destination[];
+}
+
+const DESTINATION_ALIASES: Record<string, string[]> = {
+  kochi: ["kochi", "fort-kochi"],
+  "fort-kochi": ["kochi", "fort-kochi"],
+  alleppey: ["alleppey", "alappuzha"],
+  alappuzha: ["alleppey", "alappuzha"],
+};
+
+function findMatchingDestination(
+  destinations: Destination[] | undefined,
+  localId: string,
+  localSlug: string,
+  localName?: string
+): Destination | undefined {
+  if (!destinations || !Array.isArray(destinations) || destinations.length === 0) {
+    return undefined;
+  }
+
+  const normId = localId.toLowerCase().trim();
+  const normSlug = localSlug.toLowerCase().trim();
+  const aliases = new Set<string>([
+    normId,
+    normSlug,
+    ...(DESTINATION_ALIASES[normId] || []),
+    ...(DESTINATION_ALIASES[normSlug] || []),
+  ]);
+
+  // 1. Direct match on slug / alias
+  let match = destinations.find((d) => d?.slug && aliases.has(d.slug.toLowerCase().trim()));
+  if (match) return match;
+
+  // 2. Fallback match on name
+  if (localName) {
+    const normName = localName.toLowerCase().trim();
+    match = destinations.find((d) => {
+      if (!d?.name) return false;
+      const dbNormName = d.name.toLowerCase().trim();
+      return (
+        dbNormName === normName ||
+        (normId === "kochi" && (dbNormName === "fort kochi" || dbNormName === "kochi")) ||
+        (normId === "alleppey" && (dbNormName === "alappuzha" || dbNormName === "alleppey"))
+      );
+    });
+    if (match) return match;
+  }
+
+  return undefined;
+}
+
+export default function Destination360Experience({ destinations }: Destination360ExperienceProps = {}) {
   const [activeIdx, setActiveIdx] = useState(0);
   const [is360Active, setIs360Active] = useState(false);
   const touchStartX = useRef<number | null>(null);
 
-  const activeDest = DESTINATIONS[activeIdx];
-  const total = DESTINATIONS.length;
+  // Merge published API destination data into DESTINATIONS, keeping local fallbacks and local panorama assets
+  const items = useMemo<Destination360Item[]>(() => {
+    return DESTINATIONS.map((item) => {
+      const dbMatch = findMatchingDestination(destinations, item.id, item.slug, item.name);
+      if (!dbMatch) return item;
+
+      // Safe cover image verification for slide backdrop
+      const validCoverImage =
+        dbMatch.imageUrl && typeof dbMatch.imageUrl === "string" && dbMatch.imageUrl.trim().length > 0
+          ? dbMatch.imageUrl.trim()
+          : item.image;
+
+      // Safe region/location label
+      let location = item.location;
+      if (dbMatch.region && typeof dbMatch.region === "string" && dbMatch.region.trim().length > 0) {
+        const trimmedRegion = dbMatch.region.trim();
+        location = trimmedRegion.toLowerCase().includes("kerala")
+          ? trimmedRegion
+          : `${trimmedRegion}, Kerala`;
+      }
+
+      return {
+        ...item,
+        name: dbMatch.name?.trim() ? dbMatch.name.trim() : item.name,
+        category: dbMatch.type?.trim() ? dbMatch.type.trim() : item.category,
+        description: dbMatch.shortDesc?.trim() || dbMatch.description?.trim() || item.description,
+        slug: dbMatch.slug?.trim() ? dbMatch.slug.trim() : item.slug,
+        location,
+        image: validCoverImage,
+        // STRICT REQUIREMENT: Keep local panorama asset for Three.js sphere texture.
+        // Never overwrite with 2D admin imageUrl.
+        panorama: item.panorama,
+      };
+    });
+  }, [destinations]);
+
+  const activeDest = items[activeIdx] || items[0] || DESTINATIONS[0];
+  const total = items.length;
 
   const handlePrev = useCallback(() => {
     setActiveIdx((prev) => (prev > 0 ? prev - 1 : total - 1));
@@ -269,7 +358,7 @@ export default function Destination360Experience() {
           aria-label="360° Destination Experience Carousel"
         >
           {/* Panoramic Scenery Backdrop Slides with Cross-Fade */}
-          {DESTINATIONS.map((dest, idx) => (
+          {items.map((dest, idx) => (
             <div
               key={dest.id}
               className={`dest-360-bg-slide ${activeIdx === idx ? "is-active" : ""}`}
@@ -444,7 +533,7 @@ export default function Destination360Experience() {
 
               {/* Center Dash Dots */}
               <div className="dest-360-pagination" role="tablist" aria-label="Destination slides">
-                {DESTINATIONS.map((dest, idx) => (
+                {items.map((dest, idx) => (
                   <button
                     key={dest.id}
                     type="button"

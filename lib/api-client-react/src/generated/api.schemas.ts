@@ -8,6 +8,37 @@ export interface HealthStatus {
   status: string;
 }
 
+export interface DetailedHealthStatus {
+  status: string;
+  database: string;
+  uptimeSeconds: number;
+  timestamp: string;
+}
+
+export interface LoginInput {
+  username: string;
+  password: string;
+}
+
+export interface LoginResult {
+  ok: boolean;
+  username: string;
+}
+
+export interface LogoutResult {
+  ok: boolean;
+}
+
+export interface AuthMeResponse {
+  authenticated: boolean;
+  /** @nullable */
+  username?: string | null;
+}
+
+export interface ErrorResponse {
+  error: string;
+}
+
 export interface Destination {
   id: number;
   name: string;
@@ -287,6 +318,239 @@ export interface ItineraryUpdate {
   createdBy?: string;
 }
 
+export interface ItineraryAiActivity {
+  /** Indicative activity time window (e.g. 'Morning', 'Late Afternoon', 'Sunset') */
+  time?: string;
+  title: string;
+  description?: string;
+}
+
+export interface ItineraryAiDay {
+  day: number;
+  date?: string;
+  title: string;
+  description?: string;
+  destination?: string;
+  activities: ItineraryAiActivity[];
+}
+
+export interface ItineraryAiStay {
+  /** Indicative boutique sanctuary or heritage estate */
+  name: string;
+  location?: string;
+  checkIn?: string;
+  checkOut?: string;
+  nights?: number;
+  roomType?: string;
+  notes?: string;
+}
+
+export interface ItineraryAiCatalogDestination {
+  name: string;
+  slug: string;
+  region: string;
+  highlights?: string;
+}
+
+export interface ItineraryAiCatalogPackage {
+  title: string;
+  slug: string;
+  duration?: string;
+}
+
+export interface ItineraryAiCatalogMatches {
+  destinations: ItineraryAiCatalogDestination[];
+  packages: ItineraryAiCatalogPackage[];
+}
+
+/**
+ * Desired travel pace
+ */
+export type ItineraryAiAssistInputPace = typeof ItineraryAiAssistInputPace[keyof typeof ItineraryAiAssistInputPace];
+
+
+export const ItineraryAiAssistInputPace = {
+  'unhurried-slow': 'unhurried-slow',
+  balanced: 'balanced',
+  'active-discovery': 'active-discovery',
+} as const;
+
+/**
+ * Existing itinerary state for iterative refinement
+ */
+export type ItineraryAiAssistInputCurrentItinerary = { [key: string]: unknown };
+
+export interface ItineraryAiAssistInput {
+  /** Customer or party name */
+  customerName?: string;
+  /** Customer contact email */
+  customerEmail?: string;
+  /** Customer contact phone */
+  customerPhone?: string;
+  /** Primary destination or route */
+  destination?: string;
+  /**
+     * Total trip duration in days
+     * @minimum 2
+     * @maximum 30
+     */
+  durationDays?: number;
+  /** Optional start date (YYYY-MM-DD) or travel season */
+  startDate?: string;
+  /** Desired travel pace */
+  pace?: ItineraryAiAssistInputPace;
+  travelerType?: string;
+  budgetTier?: string;
+  /** Preferred themes */
+  interests?: string[];
+  /** Special customer wishes or requirements */
+  notes?: string;
+  /** Optional reference enquiry ID to pull verified requirements from */
+  enquiryId?: number;
+  /** Staff instructions for adjusting pace, days, or experiences */
+  refinementPrompt?: string;
+  /** Existing itinerary state for iterative refinement */
+  currentItinerary?: ItineraryAiAssistInputCurrentItinerary;
+}
+
+export interface ItineraryAiAssistResponse {
+  /** Proposed proposal title */
+  title: string;
+  /** Primary destination region */
+  destination: string;
+  durationDays?: number;
+  durationNights?: number;
+  /** Slow-luxury narrative journey overview */
+  summary: string;
+  /** Suggested cover image URL from verified destination catalogue */
+  coverImageUrl?: string;
+  days: ItineraryAiDay[];
+  stays: ItineraryAiStay[];
+  inclusions: string[];
+  exclusions: string[];
+  verifiedCatalogMatches: ItineraryAiCatalogMatches;
+  /** Operational items requiring human staff verification */
+  unconfirmedItems: string[];
+  /** Practical routing guidance, transfer times, and seasonal pacing tips */
+  travelDesignerAdvice: string;
+  /** Human-in-the-loop review reminder */
+  disclaimer: string;
+}
+
+export interface JournalAiArticleInput {
+  title?: string;
+  slug?: string;
+  category?: string;
+  excerpt?: string;
+  content?: string;
+  tags?: string;
+}
+
+export interface JournalAiSeoMetadata {
+  /** Concise, SEO-optimized title for search result snippets */
+  metaTitle: string;
+  /** Compelling search engine snippet description (140-160 characters) */
+  metaDescription: string;
+  /** Suggested focus keywords and search terms */
+  keywords: string[];
+}
+
+export interface JournalAiCatalogDestination {
+  name: string;
+  slug: string;
+  region: string;
+  highlights?: string;
+}
+
+export interface JournalAiCatalogPackage {
+  title: string;
+  slug: string;
+  duration?: string;
+}
+
+export interface JournalAiCatalogMatches {
+  destinations: JournalAiCatalogDestination[];
+  packages: JournalAiCatalogPackage[];
+}
+
+/**
+ * Action requested from AI content assistant
+ */
+export type JournalAiAssistInputAction = typeof JournalAiAssistInputAction[keyof typeof JournalAiAssistInputAction];
+
+
+export const JournalAiAssistInputAction = {
+  generate_draft: 'generate_draft',
+  suggest_metadata: 'suggest_metadata',
+  rewrite: 'rewrite',
+  expand: 'expand',
+  shorten: 'shorten',
+  refine: 'refine',
+  generate_seo: 'generate_seo',
+} as const;
+
+/**
+ * Desired editorial tone
+ */
+export type JournalAiAssistInputTone = typeof JournalAiAssistInputTone[keyof typeof JournalAiAssistInputTone];
+
+
+export const JournalAiAssistInputTone = {
+  'slow-luxury': 'slow-luxury',
+  'poetic-evocative': 'poetic-evocative',
+  'practical-concise': 'practical-concise',
+  'cultural-immersive': 'cultural-immersive',
+} as const;
+
+export interface JournalAiAssistInput {
+  /** Action requested from AI content assistant */
+  action: JournalAiAssistInputAction;
+  /** Article topic, title idea, or story angle */
+  topic?: string;
+  /** Target Kerala destination or region */
+  destination?: string;
+  /** Target reader persona (e.g. Honeymooners, Slow-travelers, Heritage seekers) */
+  targetAudience?: string;
+  /** Specific editorial instructions, focal points, or styling guidelines */
+  instructions?: string;
+  /** Current draft state from editor */
+  currentArticle?: JournalAiArticleInput;
+  /** Selected portion of article text for rewrite, expand, shorten, or refine */
+  selectedText?: string;
+  /** Desired editorial tone */
+  tone?: JournalAiAssistInputTone;
+}
+
+export interface JournalAiAssistResponse {
+  action: string;
+  /** Array of evocative, slow-luxury editorial titles */
+  suggestedTitles: string[];
+  /** URL-friendly article slug */
+  suggestedSlug: string;
+  /** Recommended article category */
+  suggestedCategory: string;
+  /** Compelling lead paragraph and preview excerpt */
+  suggestedExcerpt: string;
+  /** Engaging article introduction hook */
+  suggestedIntroduction: string;
+  /** Generated or expanded article body in clean semantic HTML */
+  draftContent: string;
+  /** Refined or rewritten text snippet for selection replacement */
+  refinedText: string;
+  seo: JournalAiSeoMetadata;
+  /** Recommended comma-delimited article filter tags */
+  suggestedTags: string[];
+  /** Estimated reading time in minutes */
+  readTimeMinutes: number;
+  verifiedCatalogMatches: JournalAiCatalogMatches;
+  /** Explicitly flagged factual claims requiring staff verification */
+  unverifiedClaims: string[];
+  /** Curator notes on sensory imagery, local authenticity, and pacing */
+  editorialAdvice: string;
+  /** Human review and editorial safeguard notice */
+  disclaimer: string;
+}
+
 export interface Order {
   id: number;
   /** @nullable */
@@ -404,6 +668,83 @@ export interface EnquiryUpdate {
   status?: string;
 }
 
+/**
+ * The desired tone for the crafted reply draft
+ */
+export type EnquiryAiAssistInputReplyTone = typeof EnquiryAiAssistInputReplyTone[keyof typeof EnquiryAiAssistInputReplyTone];
+
+
+export const EnquiryAiAssistInputReplyTone = {
+  'warm-luxury': 'warm-luxury',
+  concise: 'concise',
+  detailed: 'detailed',
+} as const;
+
+export interface EnquiryAiAssistInput {
+  /** Optional travel designer direction or focus for the reply and recommendations */
+  focusPrompt?: string;
+  /** The desired tone for the crafted reply draft */
+  replyTone?: EnquiryAiAssistInputReplyTone;
+}
+
+export interface EnquiryAiSummary {
+  /** Concise summary of the customer's request and primary intent */
+  overview: string;
+  /** Destinations of interest explicitly mentioned in the enquiry */
+  destinations: string[];
+  /** Explicit travel dates, season, or "Unknown / Not specified" */
+  travelDates: string;
+  /** Explicit party size, count, or "Unknown / Not specified" */
+  groupSize: string;
+  /** Explicit budget tier, currency, or "Unknown / Not specified" */
+  budget: string;
+  /** Direct questions asked by the customer that need answering */
+  unansweredQuestions: string[];
+}
+
+export interface EnquiryExtractedPreferences {
+  destinations: string[];
+  travelDates: string;
+  groupSize: string;
+  budget: string;
+  travelStyle: string;
+  specialRequests: string[];
+  /** Information gaps marked as unknown to ask the guest about */
+  missingDetails: string[];
+}
+
+export interface EnquirySuggestedReply {
+  subject: string;
+  greeting: string;
+  body: string;
+  signoff: string;
+}
+
+export type EnquiryNextActionPriority = typeof EnquiryNextActionPriority[keyof typeof EnquiryNextActionPriority];
+
+
+export const EnquiryNextActionPriority = {
+  low: 'low',
+  medium: 'medium',
+  high: 'high',
+} as const;
+
+export interface EnquiryNextAction {
+  recommendedAction: string;
+  rationale: string;
+  priority: EnquiryNextActionPriority;
+}
+
+export interface EnquiryAiAssistResponse {
+  enquiryId: number;
+  summary: EnquiryAiSummary;
+  extractedPreferences: EnquiryExtractedPreferences;
+  suggestedReply: EnquirySuggestedReply;
+  nextAction: EnquiryNextAction;
+  /** Human-in-the-loop review reminder */
+  disclaimer: string;
+}
+
 export interface JournalPost {
   id: number;
   title: string;
@@ -462,6 +803,21 @@ export interface JournalPostUpdate {
   publishedAt?: string;
 }
 
+export interface MediaReference {
+  type: string;
+  id: number;
+  title: string;
+  field: string;
+}
+
+export type MediaStorageType = typeof MediaStorageType[keyof typeof MediaStorageType];
+
+
+export const MediaStorageType = {
+  upload: 'upload',
+  external: 'external',
+} as const;
+
 export interface Media {
   id: number;
   filename: string;
@@ -470,6 +826,10 @@ export interface Media {
   /** @nullable */
   sizeBytes?: number | null;
   createdAt: string;
+  storageType?: MediaStorageType;
+  fileExists?: boolean;
+  usageCount?: number;
+  references?: MediaReference[];
 }
 
 export interface StatusCount {
@@ -491,6 +851,145 @@ export interface DashboardStats {
   totalRevenue?: number;
   recentOrders: Order[];
   ordersByStatus: StatusCount[];
+}
+
+export interface AiStatusResponse {
+  configured: boolean;
+  provider: string;
+  model: string;
+  available: boolean;
+  message?: string;
+  availableModels?: string[];
+}
+
+export type AiMessageRole = typeof AiMessageRole[keyof typeof AiMessageRole];
+
+
+export const AiMessageRole = {
+  system: 'system',
+  user: 'user',
+  assistant: 'assistant',
+} as const;
+
+export interface AiMessage {
+  role: AiMessageRole;
+  content: string;
+}
+
+export interface AiGenerateInput {
+  prompt?: string;
+  messages?: AiMessage[];
+  systemPrompt?: string;
+  maxTokens?: number;
+  temperature?: number;
+}
+
+export type AiGenerateResponseUsage = {
+  promptTokens?: number;
+  completionTokens?: number;
+  totalTokens?: number;
+};
+
+export interface AiGenerateResponse {
+  content: string;
+  model: string;
+  provider: string;
+  usage?: AiGenerateResponseUsage;
+  finishReason?: string;
+}
+
+export interface AiAssistantInput {
+  message: string;
+  history?: AiMessage[];
+}
+
+export interface AiGroundedEntity {
+  title: string;
+  url: string;
+  type: string;
+}
+
+export interface AiAssistantResponse {
+  message: string;
+  provider: string;
+  model: string;
+  suggestions?: string[];
+  groundedEntities?: AiGroundedEntity[];
+}
+
+/**
+ * Previous itinerary object for iterative refinement
+ */
+export type TripPlanInputCurrentItinerary = { [key: string]: unknown };
+
+export interface TripPlanInput {
+  /**
+     * @minimum 2
+     * @maximum 30
+     */
+  durationDays: number;
+  seasonOrDates?: string;
+  startLocation?: string;
+  /**
+     * @minimum 1
+     * @maximum 50
+     */
+  travelersCount?: number;
+  travelerType?: string;
+  budgetTier?: string;
+  currency?: string;
+  interests?: string[];
+  pace?: string;
+  additionalNotes?: string;
+  refinementPrompt?: string;
+  /** Previous itinerary object for iterative refinement */
+  currentItinerary?: TripPlanInputCurrentItinerary;
+}
+
+export interface TripItineraryDay {
+  day: number;
+  title: string;
+  destination: string;
+  destinationSlug?: string;
+  theme?: string;
+  morningActivity: string;
+  afternoonActivity: string;
+  eveningActivity: string;
+  stayRecommendation: string;
+  travelNote?: string;
+}
+
+export interface TripPlanEntity {
+  name: string;
+  slug: string;
+  url: string;
+  type: string;
+  highlightsOrRoute?: string;
+}
+
+export interface TripItinerary {
+  title: string;
+  tagline: string;
+  overview: string;
+  durationDays: number;
+  durationNights: number;
+  routeSequence: string[];
+  idealSeason: string;
+  pace: string;
+  budgetGuidance: string;
+  days: TripItineraryDay[];
+  verifiedDestinations: TripPlanEntity[];
+  verifiedJourneys: TripPlanEntity[];
+  practicalAdvice: string[];
+  catalogueNotice: string;
+  realisticAssessment?: string;
+}
+
+export interface TripPlanResponse {
+  itinerary: TripItinerary;
+  provider: string;
+  model: string;
+  refinementSuggestions?: string[];
 }
 
 export type ListDestinationsParams = {
@@ -516,6 +1015,10 @@ export type ListOrdersParams = {
 status?: string;
 };
 
+export type ExportOrdersParams = {
+status?: string;
+};
+
 export type ListEnquiriesParams = {
 status?: string;
 };
@@ -525,4 +1028,17 @@ category?: string;
 published?: boolean;
 tag?: string;
 };
+
+export type ListMediaParams = {
+type?: ListMediaType;
+};
+
+export type ListMediaType = typeof ListMediaType[keyof typeof ListMediaType];
+
+
+export const ListMediaType = {
+  all: 'all',
+  uploads: 'uploads',
+  external: 'external',
+} as const;
 

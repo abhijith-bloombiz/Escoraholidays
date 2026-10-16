@@ -57,6 +57,7 @@ export default function TheEscoraWay() {
       aria-label="The Escora Way"
       ref={sectionRef}
     >
+      <span id="escora-way" className="sr-only" aria-hidden="true" />
       {/* Background ambient warm glows */}
       <div className="escora-way-glow-left" aria-hidden="true" />
       <div className="escora-way-glow-right" aria-hidden="true" />

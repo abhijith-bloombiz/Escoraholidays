@@ -93,10 +93,10 @@ export const DEFAULT_EXCLUSIONS: string[] = [
 ];
 
 export const DEFAULT_AGENCY_CONTACT = {
-  phone: "9496933336",
-  email: "mc@escoraholidays.com",
-  instagram: "escora_holidays",
-  website: "http://www.escoraholidays.com",
+  phone: "+91 9400280420",
+  email: "info@escoraholidays.com",
+  instagram: "escoraholidays",
+  website: "www.escoraholidays.com",
   emergencyContacts: "+91 9400280420 | +91 8157003344",
   curatorName: "Midhilaj Chelakkal",
   curatorPhone: "+91 9745585813",

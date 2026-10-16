@@ -10,6 +10,10 @@ import {
   DEFAULT_PAYMENT_TERMS,
   DEFAULT_IMPORTANT_INFO,
 } from "@/lib/itinerary";
+import alleppeyCoverImg from "@assets/escora/destinations/alleppey.jpg";
+import kovalamCleanImg from "@assets/escora/destinations/kovalam-clean.jpg";
+import padmanabhaswamyImg from "@assets/escora/destinations/padmanabhaswamy-temple.jpg";
+import varkalaImg from "@assets/escora/destinations/varkala.jpg";
 
 export interface ItineraryTemplate {
   id: string;
@@ -56,7 +60,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
     curatorPhone: "+91 9745585813",
     emergencyContacts: "+91 9400280420 | +91 8157003344",
     referenceNumber: "L100021/Q1020",
-    createdDate: "01-10-2026",
+    createdDate: "29-10-2026",
     adults: 1,
     children: 0,
     infants: 0,
@@ -71,7 +75,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
       destination: "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
       vehicleType: "Private Dedicated Chauffeur Driven AC Sedan / SUV",
     },
-    coverImageUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=2000&q=80",
+    coverImageUrl: alleppeyCoverImg,
     days: [
       {
         day: 1,
@@ -83,10 +87,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         optionalActivities: ["Optional (on request): an evening Kathakali performance at Margi."],
         meals: "Dinner at leisure. Trivandrum offers a good mix of local Kerala cuisine and multi-cuisine dining options around the city.",
         stay: "Stay: Uday Samudra Leisure Beach Hotel",
-        imageUrls: [
-          "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
-        ],
+        imageUrls: [padmanabhaswamyImg, varkalaImg],
         activities: [],
       },
       {
@@ -102,11 +103,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         ],
         meals: "Dinner at leisure. Kovalam has a wide choice of seafood and multi-cuisine restaurants along the coast.",
         stay: "Stay: The Leela Kovalam, a Raviz Hotel",
-        imageUrls: [
-          "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1593693397690-362cb9666c6b?auto=format&fit=crop&w=800&q=80",
-          "https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=80",
-        ],
+        imageUrls: [],
         activities: [],
       },
       {
@@ -116,9 +113,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         subtitle: "Kovalam to Departure",
         description:
           "After a leisurely breakfast, enjoy a final stroll along the shoreline. Check out of your resort and if time permits, enjoy some shopping at Lulu Mall before proceeding to the airport, departing with beautiful memories of Kerala.",
-        imageUrls: [
-          "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80",
-        ],
+        imageUrls: [kovalamCleanImg],
         activities: [],
       },
     ],

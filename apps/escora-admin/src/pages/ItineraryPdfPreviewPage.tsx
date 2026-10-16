@@ -23,7 +23,7 @@ const sampleItineraryData: ItineraryPrintData = {
   curatorName: template.curatorName || "Midhilaj Chelakkal",
   curatorPhone: template.curatorPhone || "+91 9745585813",
   emergencyContacts: template.emergencyContacts || "+91 9400280420 | +91 8157003344",
-  createdDate: template.createdDate || "01-10-2026",
+  createdDate: template.createdDate || "29-10-2026",
   adults: template.adults ?? 1,
   children: template.children ?? 0,
   infants: template.infants ?? 0,
@@ -49,15 +49,16 @@ export default function ItineraryPdfPreviewPage() {
     <div className="pdf-preview-root min-h-screen bg-[#ececec]">
       <style>{`
         @page {
-          size: A4;
-          margin: 10mm;
+          size: 210mm 297mm;
+          margin: 0;
         }
         @media screen {
           .pdf-preview-canvas {
             margin: 24px auto !important;
-            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
-            border-radius: 8px;
-            overflow: hidden;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            overflow: visible !important;
           }
         }
         @media print {

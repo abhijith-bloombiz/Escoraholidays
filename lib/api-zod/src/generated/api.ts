@@ -548,6 +548,18 @@ export const ListItinerariesResponseItem = zod.object({
   "currency": zod.string(),
   "status": zod.string(),
   "createdBy": zod.string().nullish(),
+  "referenceNumber": zod.string().nullish(),
+  "curatorName": zod.string().nullish(),
+  "curatorPhone": zod.string().nullish(),
+  "emergencyContacts": zod.string().nullish(),
+  "adults": zod.number().nullish(),
+  "children": zod.number().nullish(),
+  "infants": zod.number().nullish(),
+  "tripIncludes": zod.string().nullish(),
+  "transportation": zod.string().nullish(),
+  "hotelTerms": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "importantInfo": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -1538,6 +1550,413 @@ export const GetDashboardStatsResponse = zod.object({
   "status": zod.string(),
   "count": zod.number()
 }))
+})
+
+
+/**
+ * @summary List all email campaigns
+ */
+export const ListCampaignsQueryParams = zod.object({
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']).optional()
+})
+
+export const ListCampaignsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "previewText": zod.string().nullish(),
+  "contentHtml": zod.string(),
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish()
+}),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
+  "scheduledAt": zod.string().nullish(),
+  "approvedBy": zod.string().nullish(),
+  "approvedAt": zod.string().nullish(),
+  "sentAt": zod.string().nullish(),
+  "stats": zod.object({
+  "totalRecipients": zod.number(),
+  "sentCount": zod.number(),
+  "failedCount": zod.number(),
+  "skippedCount": zod.number()
+}),
+  "deliveries": zod.array(zod.object({
+  "recipientEmail": zod.string(),
+  "recipientName": zod.string(),
+  "status": zod.enum(['sent', 'failed', 'skipped_unsubscribed']),
+  "sentAt": zod.string().optional(),
+  "messageId": zod.string().nullish(),
+  "error": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListCampaignsResponse = zod.array(ListCampaignsResponseItem)
+
+
+/**
+ * @summary Create a new campaign draft
+ */
+export const CreateCampaignBody = zod.object({
+  "name": zod.string(),
+  "subject": zod.string(),
+  "previewText": zod.string().optional(),
+  "contentHtml": zod.string(),
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish()
+}).optional()
+})
+
+
+/**
+ * @summary Get campaign by ID with statistics and delivery summary
+ */
+export const GetCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "previewText": zod.string().nullish(),
+  "contentHtml": zod.string(),
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish()
+}),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
+  "scheduledAt": zod.string().nullish(),
+  "approvedBy": zod.string().nullish(),
+  "approvedAt": zod.string().nullish(),
+  "sentAt": zod.string().nullish(),
+  "stats": zod.object({
+  "totalRecipients": zod.number(),
+  "sentCount": zod.number(),
+  "failedCount": zod.number(),
+  "skippedCount": zod.number()
+}),
+  "deliveries": zod.array(zod.object({
+  "recipientEmail": zod.string(),
+  "recipientName": zod.string(),
+  "status": zod.enum(['sent', 'failed', 'skipped_unsubscribed']),
+  "sentAt": zod.string().optional(),
+  "messageId": zod.string().nullish(),
+  "error": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a campaign draft
+ */
+export const UpdateCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateCampaignBody = zod.object({
+  "name": zod.string().optional(),
+  "subject": zod.string().optional(),
+  "previewText": zod.string().optional(),
+  "contentHtml": zod.string().optional(),
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish()
+}).optional()
+})
+
+export const UpdateCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "previewText": zod.string().nullish(),
+  "contentHtml": zod.string(),
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish()
+}),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
+  "scheduledAt": zod.string().nullish(),
+  "approvedBy": zod.string().nullish(),
+  "approvedAt": zod.string().nullish(),
+  "sentAt": zod.string().nullish(),
+  "stats": zod.object({
+  "totalRecipients": zod.number(),
+  "sentCount": zod.number(),
+  "failedCount": zod.number(),
+  "skippedCount": zod.number()
+}),
+  "deliveries": zod.array(zod.object({
+  "recipientEmail": zod.string(),
+  "recipientName": zod.string(),
+  "status": zod.enum(['sent', 'failed', 'skipped_unsubscribed']),
+  "sentAt": zod.string().optional(),
+  "messageId": zod.string().nullish(),
+  "error": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a draft campaign
+ */
+export const DeleteCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Preview matching recipients and consent stats for campaign
+ */
+export const PreviewCampaignAudienceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const PreviewCampaignAudienceResponse = zod.object({
+  "eligibleRecipients": zod.number(),
+  "activeSubscribers": zod.number(),
+  "unsubscribedCount": zod.number(),
+  "sampleRecipients": zod.array(zod.object({
+  "name": zod.string(),
+  "email": zod.string(),
+  "source": zod.string(),
+  "isSubscribed": zod.boolean()
+}))
+})
+
+
+/**
+ * @summary Explicit staff approval required before sending or scheduling
+ */
+export const ApproveCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ApproveCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "previewText": zod.string().nullish(),
+  "contentHtml": zod.string(),
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish()
+}),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
+  "scheduledAt": zod.string().nullish(),
+  "approvedBy": zod.string().nullish(),
+  "approvedAt": zod.string().nullish(),
+  "sentAt": zod.string().nullish(),
+  "stats": zod.object({
+  "totalRecipients": zod.number(),
+  "sentCount": zod.number(),
+  "failedCount": zod.number(),
+  "skippedCount": zod.number()
+}),
+  "deliveries": zod.array(zod.object({
+  "recipientEmail": zod.string(),
+  "recipientName": zod.string(),
+  "status": zod.enum(['sent', 'failed', 'skipped_unsubscribed']),
+  "sentAt": zod.string().optional(),
+  "messageId": zod.string().nullish(),
+  "error": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Schedule an approved campaign for automatic delivery
+ */
+export const ScheduleCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ScheduleCampaignBody = zod.object({
+  "scheduledAt": zod.string().describe('Target ISO timestamp for send')
+})
+
+export const ScheduleCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "previewText": zod.string().nullish(),
+  "contentHtml": zod.string(),
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish()
+}),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
+  "scheduledAt": zod.string().nullish(),
+  "approvedBy": zod.string().nullish(),
+  "approvedAt": zod.string().nullish(),
+  "sentAt": zod.string().nullish(),
+  "stats": zod.object({
+  "totalRecipients": zod.number(),
+  "sentCount": zod.number(),
+  "failedCount": zod.number(),
+  "skippedCount": zod.number()
+}),
+  "deliveries": zod.array(zod.object({
+  "recipientEmail": zod.string(),
+  "recipientName": zod.string(),
+  "status": zod.enum(['sent', 'failed', 'skipped_unsubscribed']),
+  "sentAt": zod.string().optional(),
+  "messageId": zod.string().nullish(),
+  "error": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Trigger campaign delivery (checks approval and consent exclusions)
+ */
+export const SendCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const SendCampaignBody = zod.object({
+  "mock": zod.boolean().optional().describe('Optional simulation mode')
+})
+
+export const SendCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "previewText": zod.string().nullish(),
+  "contentHtml": zod.string(),
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish()
+}),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
+  "scheduledAt": zod.string().nullish(),
+  "approvedBy": zod.string().nullish(),
+  "approvedAt": zod.string().nullish(),
+  "sentAt": zod.string().nullish(),
+  "stats": zod.object({
+  "totalRecipients": zod.number(),
+  "sentCount": zod.number(),
+  "failedCount": zod.number(),
+  "skippedCount": zod.number()
+}),
+  "deliveries": zod.array(zod.object({
+  "recipientEmail": zod.string(),
+  "recipientName": zod.string(),
+  "status": zod.enum(['sent', 'failed', 'skipped_unsubscribed']),
+  "sentAt": zod.string().optional(),
+  "messageId": zod.string().nullish(),
+  "error": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Cancel a scheduled or approved campaign
+ */
+export const CancelCampaignParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const CancelCampaignResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "subject": zod.string(),
+  "previewText": zod.string().nullish(),
+  "contentHtml": zod.string(),
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish()
+}),
+  "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
+  "scheduledAt": zod.string().nullish(),
+  "approvedBy": zod.string().nullish(),
+  "approvedAt": zod.string().nullish(),
+  "sentAt": zod.string().nullish(),
+  "stats": zod.object({
+  "totalRecipients": zod.number(),
+  "sentCount": zod.number(),
+  "failedCount": zod.number(),
+  "skippedCount": zod.number()
+}),
+  "deliveries": zod.array(zod.object({
+  "recipientEmail": zod.string(),
+  "recipientName": zod.string(),
+  "status": zod.enum(['sent', 'failed', 'skipped_unsubscribed']),
+  "sentAt": zod.string().optional(),
+  "messageId": zod.string().nullish(),
+  "error": zod.string().nullish()
+})).optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary List subscriber consent and unsubscribe status
+ */
+export const ListSubscribersQueryParams = zod.object({
+  "subscribed": zod.coerce.boolean().optional()
+})
+
+export const ListSubscribersResponseItem = zod.object({
+  "email": zod.string(),
+  "name": zod.string().nullish(),
+  "subscribed": zod.boolean(),
+  "token": zod.string(),
+  "unsubscribedAt": zod.string().nullish(),
+  "source": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListSubscribersResponse = zod.array(ListSubscribersResponseItem)
+
+
+/**
+ * @summary Public one-click unsubscribe endpoint via GET link
+ */
+export const UnsubscribeGuestGetQueryParams = zod.object({
+  "token": zod.coerce.string(),
+  "email": zod.coerce.string()
+})
+
+export const UnsubscribeGuestGetResponse = zod.object({
+  "ok": zod.boolean().optional(),
+  "message": zod.string().optional()
+})
+
+
+/**
+ * @summary Public unsubscribe endpoint via POST
+ */
+export const UnsubscribeGuestBody = zod.object({
+  "token": zod.string(),
+  "email": zod.string()
+})
+
+export const UnsubscribeGuestResponse = zod.object({
+  "ok": zod.boolean().optional(),
+  "message": zod.string().optional()
 })
 
 

@@ -40,6 +40,53 @@ async function send(to: string, subject: string, html: string): Promise<void> {
 }
 
 /**
+ * Sends an email and returns detailed delivery status for audit and tracking.
+ */
+export async function sendEmailWithStatus(options: {
+  to: string;
+  subject: string;
+  html: string;
+  headers?: Record<string, string>;
+}): Promise<{ success: boolean; messageId?: string; error?: string }> {
+  if (!resend) {
+    return { success: false, error: "Resend email provider is not configured" };
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      headers: options.headers,
+    });
+
+    if (error) {
+      if (error.message?.includes("domain is not verified") && FROM !== "onboarding@resend.dev") {
+        logger.warn("Custom domain not verified yet on Resend. Falling back to onboarding@resend.dev");
+        const fallback = await resend.emails.send({
+          from: "onboarding@resend.dev",
+          to: options.to,
+          subject: options.subject,
+          html: options.html,
+          headers: options.headers,
+        });
+
+        if (!fallback.error && fallback.data) {
+          return { success: true, messageId: fallback.data.id };
+        }
+        return { success: false, error: fallback.error?.message || "Delivery failed" };
+      }
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, messageId: data?.id };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Unexpected delivery error" };
+  }
+}
+
+/**
  * Send a verification / test email to confirm Resend is working.
  */
 export async function sendTestEmail(to = "abhijith.bloombiz@gmail.com"): Promise<void> {

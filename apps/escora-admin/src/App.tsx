@@ -14,6 +14,7 @@ import OrdersPage from "@/pages/OrdersPage";
 import JournalPage from "@/pages/JournalPage";
 import MediaPage from "@/pages/MediaPage";
 import EnquiriesPage from "@/pages/EnquiriesPage";
+import CampaignsPage from "@/pages/CampaignsPage";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/LoginPage";
 import ItineraryPdfPreviewPage from "@/pages/ItineraryPdfPreviewPage";
@@ -70,6 +71,7 @@ function ProtectedRouter() {
         <Route path="/journal" component={JournalPage} />
         <Route path="/media" component={MediaPage} />
         <Route path="/enquiries" component={EnquiriesPage} />
+        <Route path="/campaigns" component={CampaignsPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

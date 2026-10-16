@@ -1225,6 +1225,425 @@ paths:
               schema:
                 $ref: "#/components/schemas/DashboardStats"
 
+  # ── Campaigns (Campaign Automation) ───────────────────────────
+  /campaigns:
+    get:
+      operationId: listCampaigns
+      summary: List all email campaigns
+      tags:
+        - Campaigns
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: "#/components/schemas/CampaignStatus"
+      responses:
+        "200":
+          description: List of campaigns
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Campaign"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      operationId: createCampaign
+      summary: Create a new campaign draft
+      tags:
+        - Campaigns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignInput"
+      responses:
+        "201":
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    get:
+      operationId: getCampaign
+      summary: Get campaign by ID with statistics and delivery summary
+      tags:
+        - Campaigns
+      responses:
+        "200":
+          description: Campaign details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      operationId: updateCampaign
+      summary: Update a campaign draft
+      tags:
+        - Campaigns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignUpdate"
+      responses:
+        "200":
+          description: Campaign updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        "400":
+          description: Invalid input or campaign not in draft status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    delete:
+      operationId: deleteCampaign
+      summary: Delete a draft campaign
+      tags:
+        - Campaigns
+      responses:
+        "204":
+          description: Campaign deleted
+        "400":
+          description: Cannot delete sent campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/{id}/audience-preview:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: previewCampaignAudience
+      summary: Preview matching recipients and consent stats for campaign
+      tags:
+        - Campaigns
+      responses:
+        "200":
+          description: Audience estimate and breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignAudiencePreview"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/{id}/approve:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: approveCampaign
+      summary: Explicit staff approval required before sending or scheduling
+      tags:
+        - Campaigns
+      responses:
+        "200":
+          description: Campaign approved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        "400":
+          description: Invalid state for approval
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/{id}/schedule:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: scheduleCampaign
+      summary: Schedule an approved campaign for automatic delivery
+      tags:
+        - Campaigns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignScheduleInput"
+      responses:
+        "200":
+          description: Campaign scheduled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        "400":
+          description: Campaign must be approved before scheduling
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/{id}/send:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: sendCampaign
+      summary: Trigger campaign delivery (checks approval and consent exclusions)
+      tags:
+        - Campaigns
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignSendInput"
+      responses:
+        "200":
+          description: Campaign send executed or initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        "400":
+          description: Cannot send unapproved campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/{id}/cancel:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: integer
+    post:
+      operationId: cancelCampaign
+      summary: Cancel a scheduled or approved campaign
+      tags:
+        - Campaigns
+      responses:
+        "200":
+          description: Campaign cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Campaign"
+        "400":
+          description: Cannot cancel already sent campaign
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/subscribers:
+    get:
+      operationId: listSubscribers
+      summary: List subscriber consent and unsubscribe status
+      tags:
+        - Campaigns
+      parameters:
+        - in: query
+          name: subscribed
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: List of subscriber consent records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SubscriberConsent"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /campaigns/unsubscribe:
+    get:
+      operationId: unsubscribeGuestGet
+      summary: Public one-click unsubscribe endpoint via GET link
+      tags:
+        - Campaigns
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: email
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Unsubscribe confirmed HTML or JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  message:
+                    type: string
+        "400":
+          description: Invalid unsubscribe token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: unsubscribeGuest
+      summary: Public unsubscribe endpoint via POST
+      tags:
+        - Campaigns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignUnsubscribeInput"
+      responses:
+        "200":
+          description: Successfully unsubscribed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                  message:
+                    type: string
+        "400":
+          description: Invalid token or email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -1671,6 +2090,30 @@ components:
           type: string
         createdBy:
           type: ["string", "null"]
+        referenceNumber:
+          type: ["string", "null"]
+        curatorName:
+          type: ["string", "null"]
+        curatorPhone:
+          type: ["string", "null"]
+        emergencyContacts:
+          type: ["string", "null"]
+        adults:
+          type: ["integer", "null"]
+        children:
+          type: ["integer", "null"]
+        infants:
+          type: ["integer", "null"]
+        tripIncludes:
+          type: ["string", "null"]
+        transportation:
+          type: ["string", "null"]
+        hotelTerms:
+          type: ["string", "null"]
+        paymentTerms:
+          type: ["string", "null"]
+        importantInfo:
+          type: ["string", "null"]
         createdAt:
           type: string
         updatedAt:
@@ -1714,6 +2157,30 @@ components:
           type: string
         createdBy:
           type: string
+        referenceNumber:
+          type: string
+        curatorName:
+          type: string
+        curatorPhone:
+          type: string
+        emergencyContacts:
+          type: string
+        adults:
+          type: integer
+        children:
+          type: integer
+        infants:
+          type: integer
+        tripIncludes:
+          type: string
+        transportation:
+          type: string
+        hotelTerms:
+          type: string
+        paymentTerms:
+          type: string
+        importantInfo:
+          type: string
 
     ItineraryUpdate:
       type: object
@@ -1751,6 +2218,30 @@ components:
         status:
           type: string
         createdBy:
+          type: string
+        referenceNumber:
+          type: string
+        curatorName:
+          type: string
+        curatorPhone:
+          type: string
+        emergencyContacts:
+          type: string
+        adults:
+          type: integer
+        children:
+          type: integer
+        infants:
+          type: integer
+        tripIncludes:
+          type: string
+        transportation:
+          type: string
+        hotelTerms:
+          type: string
+        paymentTerms:
+          type: string
+        importantInfo:
           type: string
 
     # ── AI Itinerary Assistant (Phase 3B) ────────────────────────
@@ -2820,3 +3311,194 @@ components:
           type: array
           items:
             type: string
+
+    # ── Campaign Automation ───────────────────────────────────────
+    CampaignStatus:
+      type: string
+      enum: [draft, approved, scheduled, sending, sent, cancelled, failed]
+
+    CampaignAudienceType:
+      type: string
+      enum: [all_contacts, enquiries_only, confirmed_guests, custom_segment]
+
+    CampaignTargetAudience:
+      type: object
+      required: [type]
+      properties:
+        type:
+          $ref: "#/components/schemas/CampaignAudienceType"
+        destinations:
+          type: array
+          items:
+            type: string
+        travelStyle:
+          type: ["string", "null"]
+
+    CampaignDeliveryStats:
+      type: object
+      required: [totalRecipients, sentCount, failedCount, skippedCount]
+      properties:
+        totalRecipients:
+          type: integer
+        sentCount:
+          type: integer
+        failedCount:
+          type: integer
+        skippedCount:
+          type: integer
+
+    CampaignDeliveryItem:
+      type: object
+      required: [recipientEmail, recipientName, status]
+      properties:
+        recipientEmail:
+          type: string
+        recipientName:
+          type: string
+        status:
+          type: string
+          enum: [sent, failed, skipped_unsubscribed]
+        sentAt:
+          type: string
+        messageId:
+          type: ["string", "null"]
+        error:
+          type: ["string", "null"]
+
+    Campaign:
+      type: object
+      required: [id, name, subject, contentHtml, targetAudience, status, stats, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        subject:
+          type: string
+        previewText:
+          type: ["string", "null"]
+        contentHtml:
+          type: string
+        targetAudience:
+          $ref: "#/components/schemas/CampaignTargetAudience"
+        status:
+          $ref: "#/components/schemas/CampaignStatus"
+        scheduledAt:
+          type: ["string", "null"]
+        approvedBy:
+          type: ["string", "null"]
+        approvedAt:
+          type: ["string", "null"]
+        sentAt:
+          type: ["string", "null"]
+        stats:
+          $ref: "#/components/schemas/CampaignDeliveryStats"
+        deliveries:
+          type: array
+          items:
+            $ref: "#/components/schemas/CampaignDeliveryItem"
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CampaignInput:
+      type: object
+      required: [name, subject, contentHtml]
+      properties:
+        name:
+          type: string
+        subject:
+          type: string
+        previewText:
+          type: string
+        contentHtml:
+          type: string
+        targetAudience:
+          $ref: "#/components/schemas/CampaignTargetAudience"
+
+    CampaignUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        subject:
+          type: string
+        previewText:
+          type: string
+        contentHtml:
+          type: string
+        targetAudience:
+          $ref: "#/components/schemas/CampaignTargetAudience"
+
+    CampaignAudiencePreview:
+      type: object
+      required: [eligibleRecipients, activeSubscribers, unsubscribedCount, sampleRecipients]
+      properties:
+        eligibleRecipients:
+          type: integer
+        activeSubscribers:
+          type: integer
+        unsubscribedCount:
+          type: integer
+        sampleRecipients:
+          type: array
+          items:
+            type: object
+            required: [name, email, source, isSubscribed]
+            properties:
+              name:
+                type: string
+              email:
+                type: string
+              source:
+                type: string
+              isSubscribed:
+                type: boolean
+
+    SubscriberConsent:
+      type: object
+      required: [email, subscribed, token, source, createdAt, updatedAt]
+      properties:
+        email:
+          type: string
+        name:
+          type: ["string", "null"]
+        subscribed:
+          type: boolean
+        token:
+          type: string
+        unsubscribedAt:
+          type: ["string", "null"]
+        source:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    CampaignScheduleInput:
+      type: object
+      required: [scheduledAt]
+      properties:
+        scheduledAt:
+          type: string
+          description: Target ISO timestamp for send
+
+    CampaignSendInput:
+      type: object
+      properties:
+        mock:
+          type: boolean
+          description: Optional simulation mode
+
+    CampaignUnsubscribeInput:
+      type: object
+      required: [token, email]
+      properties:
+        token:
+          type: string
+        email:
+          type: string
+
+

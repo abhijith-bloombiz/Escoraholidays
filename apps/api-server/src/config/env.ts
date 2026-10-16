@@ -44,6 +44,7 @@ export interface AppConfig {
   groqApiKey?: string;
   groqModel: string;
   groqBaseUrl?: string;
+  campaignSendingEnabled: boolean;
 }
 
 const rawPort = process.env.PORT || "8080";
@@ -165,6 +166,7 @@ export const config: AppConfig = {
   groqApiKey: process.env.GROQ_API_KEY?.trim() || undefined,
   groqModel: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
   groqBaseUrl: process.env.GROQ_BASE_URL?.trim() || undefined,
+  campaignSendingEnabled: process.env.CAMPAIGN_SENDING_ENABLED === "true",
 };
 
 // Fail fast immediately on import if running under production environment

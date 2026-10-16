@@ -10,6 +10,8 @@ import dashboardRouter from "./dashboard";
 import travelCategoriesRouter from "./travel-categories";
 import enquiriesRouter from "./enquiries";
 import itinerariesRouter from "./itineraries";
+import invoicesRouter from "./invoices";
+import campaignsRouter from "./campaigns";
 import aiRouter from "./ai";
 import invoicesRouter from "./invoices";
 import { requireAuth } from "../middleware/auth";
@@ -17,10 +19,13 @@ import { notFoundHandler } from "../middleware/not-found";
 
 const router: IRouter = Router();
 
-// Public: health + auth + AI foundation
+// Public: health + auth + AI foundation + campaign unsubscribe
 router.use(healthRouter);
 router.use(authRouter);
 router.use(aiRouter);
+router.get("/campaigns/unsubscribe", campaignsRouter);
+router.post("/campaigns/unsubscribe", campaignsRouter);
+
 
 // Public GETs, protected writes — destinations, packages, journal
 // GET /destinations, GET /destinations/:id  → public
@@ -89,6 +94,9 @@ router.get("/media", requireAuth, mediaRouter);
 router.post("/media/upload", requireAuth, mediaRouter);
 router.post("/media", requireAuth, mediaRouter);
 router.delete("/media/:id", requireAuth, mediaRouter);
+
+// Campaigns: Admin only (drafting, audience resolution, approval, scheduling, sending)
+router.use(requireAuth, campaignsRouter);
 
 // Admin dashboard stats
 router.use("/dashboard", requireAuth, dashboardRouter);

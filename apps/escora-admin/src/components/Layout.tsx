@@ -12,6 +12,7 @@ import {
   ChevronRight,
   LogOut,
   NotebookText,
+  Mail,
   ReceiptText,
 } from "lucide-react";
 import { useState } from "react";
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/invoices", label: "Invoices", icon: ReceiptText },
   { href: "/orders", label: "Bookings", icon: ShoppingBag },
   { href: "/enquiries", label: "Inbox", icon: MessageSquare },
+  { href: "/campaigns", label: "Campaigns", icon: Mail },
   { href: "/journal", label: "Journal", icon: BookOpen },
   { href: "/media", label: "Media", icon: Image },
 ];

@@ -1040,6 +1040,144 @@ export interface TripPlanResponse {
   refinementSuggestions?: string[];
 }
 
+export type CampaignStatus = typeof CampaignStatus[keyof typeof CampaignStatus];
+
+
+export const CampaignStatus = {
+  draft: 'draft',
+  approved: 'approved',
+  scheduled: 'scheduled',
+  sending: 'sending',
+  sent: 'sent',
+  cancelled: 'cancelled',
+  failed: 'failed',
+} as const;
+
+export type CampaignAudienceType = typeof CampaignAudienceType[keyof typeof CampaignAudienceType];
+
+
+export const CampaignAudienceType = {
+  all_contacts: 'all_contacts',
+  enquiries_only: 'enquiries_only',
+  confirmed_guests: 'confirmed_guests',
+  custom_segment: 'custom_segment',
+} as const;
+
+export interface CampaignTargetAudience {
+  type: CampaignAudienceType;
+  destinations?: string[];
+  /** @nullable */
+  travelStyle?: string | null;
+}
+
+export interface CampaignDeliveryStats {
+  totalRecipients: number;
+  sentCount: number;
+  failedCount: number;
+  skippedCount: number;
+}
+
+export type CampaignDeliveryItemStatus = typeof CampaignDeliveryItemStatus[keyof typeof CampaignDeliveryItemStatus];
+
+
+export const CampaignDeliveryItemStatus = {
+  sent: 'sent',
+  failed: 'failed',
+  skipped_unsubscribed: 'skipped_unsubscribed',
+} as const;
+
+export interface CampaignDeliveryItem {
+  recipientEmail: string;
+  recipientName: string;
+  status: CampaignDeliveryItemStatus;
+  sentAt?: string;
+  /** @nullable */
+  messageId?: string | null;
+  /** @nullable */
+  error?: string | null;
+}
+
+export interface Campaign {
+  id: number;
+  name: string;
+  subject: string;
+  /** @nullable */
+  previewText?: string | null;
+  contentHtml: string;
+  targetAudience: CampaignTargetAudience;
+  status: CampaignStatus;
+  /** @nullable */
+  scheduledAt?: string | null;
+  /** @nullable */
+  approvedBy?: string | null;
+  /** @nullable */
+  approvedAt?: string | null;
+  /** @nullable */
+  sentAt?: string | null;
+  stats: CampaignDeliveryStats;
+  deliveries?: CampaignDeliveryItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampaignInput {
+  name: string;
+  subject: string;
+  previewText?: string;
+  contentHtml: string;
+  targetAudience?: CampaignTargetAudience;
+}
+
+export interface CampaignUpdate {
+  name?: string;
+  subject?: string;
+  previewText?: string;
+  contentHtml?: string;
+  targetAudience?: CampaignTargetAudience;
+}
+
+export type CampaignAudiencePreviewSampleRecipientsItem = {
+  name: string;
+  email: string;
+  source: string;
+  isSubscribed: boolean;
+};
+
+export interface CampaignAudiencePreview {
+  eligibleRecipients: number;
+  activeSubscribers: number;
+  unsubscribedCount: number;
+  sampleRecipients: CampaignAudiencePreviewSampleRecipientsItem[];
+}
+
+export interface SubscriberConsent {
+  email: string;
+  /** @nullable */
+  name?: string | null;
+  subscribed: boolean;
+  token: string;
+  /** @nullable */
+  unsubscribedAt?: string | null;
+  source: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CampaignScheduleInput {
+  /** Target ISO timestamp for send */
+  scheduledAt: string;
+}
+
+export interface CampaignSendInput {
+  /** Optional simulation mode */
+  mock?: boolean;
+}
+
+export interface CampaignUnsubscribeInput {
+  token: string;
+  email: string;
+}
+
 export type ListDestinationsParams = {
 type?: string;
 published?: boolean;
@@ -1089,4 +1227,27 @@ export const ListMediaType = {
   uploads: 'uploads',
   external: 'external',
 } as const;
+
+export type ListCampaignsParams = {
+status?: CampaignStatus;
+};
+
+export type ListSubscribersParams = {
+subscribed?: boolean;
+};
+
+export type UnsubscribeGuestGetParams = {
+token: string;
+email: string;
+};
+
+export type UnsubscribeGuestGet200 = {
+  ok?: boolean;
+  message?: string;
+};
+
+export type UnsubscribeGuest200 = {
+  ok?: boolean;
+  message?: string;
+};
 

@@ -433,41 +433,65 @@ export async function cancelCampaign(id: number): Promise<ICampaign> {
  */
 export async function sendCampaign(
   id: number,
-  options?: { mock?: boolean }
+  options?: { mock?: boolean; alreadyClaimed?: boolean }
 ): Promise<ICampaign> {
-  const campaign = await CampaignModel.findOne({ id });
-  if (!campaign) {
-    throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
-  }
+  let campaign;
 
-  // 1. Staff Approval Safeguard
-  if (campaign.status !== "approved" && campaign.status !== "scheduled") {
-    throw new CampaignError(
-      `Campaign #${id} cannot be sent because it has not been approved by staff (current status: "${campaign.status}")`,
-      400,
-      "APPROVAL_REQUIRED"
+  if (options?.alreadyClaimed) {
+    campaign = await CampaignModel.findOne({ id });
+    if (!campaign) {
+      throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
+    }
+  } else {
+    // 1. Atomic Campaign Claiming Safeguard:
+    // Prevents duplicate concurrent sends across multiple workers or HTTP requests.
+    campaign = await CampaignModel.findOneAndUpdate(
+      {
+        id,
+        status: { $in: ["approved", "scheduled"] },
+        approvedBy: { $ne: null },
+      },
+      {
+        $set: { status: "sending" },
+      },
+      { new: true }
     );
+
+    if (!campaign) {
+      const existing = await CampaignModel.findOne({ id }).lean();
+      if (!existing) {
+        throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
+      }
+      if (!existing.approvedBy) {
+        throw new CampaignError(
+          `Campaign #${id} lacks authorized staff approval metadata`,
+          400,
+          "APPROVAL_REQUIRED"
+        );
+      }
+      if (existing.status !== "approved" && existing.status !== "scheduled") {
+        throw new CampaignError(
+          `Campaign #${id} cannot be sent because it has not been approved by staff (current status: "${existing.status}")`,
+          400,
+          "APPROVAL_REQUIRED"
+        );
+      }
+      throw new CampaignError(
+        `Campaign #${id} cannot be sent in status "${existing.status}"`,
+        400,
+        "INVALID_STATE"
+      );
+    }
   }
 
-  if (!campaign.approvedBy) {
-    throw new CampaignError(
-      `Campaign #${id} lacks authorized staff approval metadata`,
-      400,
-      "APPROVAL_REQUIRED"
-    );
-  }
-
-  campaign.status = "sending";
-  await campaign.save();
-
-  // 2. Resolve audience and cross-reference consent
+  // 2. Resolve audience
   const { eligible } = await resolveAudience(campaign.targetAudience);
 
   // 3. Determine if live delivery is permissible
-  // Safeguard: Never send real emails unless explicitly enabled via env AND API key is present AND not in mock mode
+  // Safe sending default: Never send real emails unless explicitly enabled via env AND API key is present AND not in mock mode
   const isLiveDelivery =
-    config.campaignSendingEnabled &&
-    Boolean(config.resendApiKey) &&
+    config.campaignSendingEnabled === true &&
+    Boolean(config.resendApiKey && config.resendApiKey.trim().length > 0) &&
     options?.mock !== true;
 
   logger.info(
@@ -480,18 +504,58 @@ export async function sendCampaign(
     "[Campaign] Beginning campaign delivery dispatch"
   );
 
-  const deliveries: ICampaign["deliveries"] = [];
+  // Existing deliveries map for restart recovery and duplicate prevention
+  const existingDeliveryMap = new Map(
+    (campaign.deliveries || []).map((d) => [d.recipientEmail.toLowerCase(), d])
+  );
+
+  const finalDeliveries: ICampaign["deliveries"] = [];
   let sentCount = 0;
   let failedCount = 0;
   let skippedCount = 0;
 
   for (const recipient of eligible) {
-    // 4. Strict Consent Safeguard: Exclude any recipient who unsubscribed
-    if (!recipient.isSubscribed) {
-      deliveries.push({
+    const normalizedEmail = recipient.email.toLowerCase();
+
+    // Check if recipient was already delivered in a previous run (e.g., recovery after server restart)
+    const existing = existingDeliveryMap.get(normalizedEmail);
+    if (
+      existing &&
+      (existing.status === "sent" ||
+        existing.status === "accepted" ||
+        existing.status === "delivered" ||
+        existing.status === "simulated" ||
+        existing.status === "skipped_unsubscribed")
+    ) {
+      finalDeliveries.push(
+        typeof (existing as any).toObject === "function"
+          ? (existing as any).toObject()
+          : { ...existing }
+      );
+      if (
+        existing.status === "sent" ||
+        existing.status === "accepted" ||
+        existing.status === "delivered" ||
+        existing.status === "simulated"
+      ) {
+        sentCount++;
+      } else {
+        skippedCount++;
+      }
+      continue;
+    }
+
+    // 4. Strict Consent Safeguard: Recheck recipient consent immediately before dispatch in DB
+    const latestConsent = await SubscriberConsentModel.findOne({
+      email: normalizedEmail,
+    }).lean();
+
+    if (!recipient.isSubscribed || (latestConsent && !latestConsent.subscribed)) {
+      finalDeliveries.push({
         recipientEmail: recipient.email,
         recipientName: recipient.name,
         status: "skipped_unsubscribed",
+        deliveryStatus: "skipped_unsubscribed",
         sentAt: new Date(),
         error: "Recipient opted out of marketing communications",
       });
@@ -500,15 +564,23 @@ export async function sendCampaign(
     }
 
     // 5. Render personalized content with merge tags & CAN-SPAM compliant unsubscribe link
-    const personalizedHtml = renderTemplate(campaign.contentHtml, recipient);
-    const unsubscribeUrl = `${config.publicUrl.replace(/\/$/, "")}/api/campaigns/unsubscribe?token=${recipient.token}&email=${encodeURIComponent(recipient.email)}`;
+    const personalizedHtml = renderTemplate(campaign.contentHtml, {
+      ...recipient,
+      token: latestConsent?.token || recipient.token,
+    });
+    const recipientToken = latestConsent?.token || recipient.token;
+    const unsubscribeUrl = `${config.publicUrl.replace(/\/$/, "")}/api/campaigns/unsubscribe?token=${recipientToken}&email=${encodeURIComponent(recipient.email)}`;
 
     if (isLiveDelivery) {
+      // Deterministic idempotency key: avoids duplicate sends even after ambiguous network disconnects
+      const idempotencyKey = `escora-camp-${campaign.id}-${crypto.createHash("sha256").update(normalizedEmail).digest("hex").slice(0, 16)}`;
+
       try {
         const sendResult = await sendEmailWithStatus({
           to: recipient.email,
           subject: campaign.subject,
           html: personalizedHtml,
+          idempotencyKey,
           headers: {
             "List-Unsubscribe": `<${unsubscribeUrl}>`,
             "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
@@ -516,29 +588,32 @@ export async function sendCampaign(
         });
 
         if (sendResult.success) {
-          deliveries.push({
+          finalDeliveries.push({
             recipientEmail: recipient.email,
             recipientName: recipient.name,
-            status: "sent",
+            status: "accepted",
+            deliveryStatus: "accepted",
             sentAt: new Date(),
             messageId: sendResult.messageId || null,
           });
           sentCount++;
         } else {
-          deliveries.push({
+          finalDeliveries.push({
             recipientEmail: recipient.email,
             recipientName: recipient.name,
             status: "failed",
+            deliveryStatus: "failed",
             sentAt: new Date(),
             error: sendResult.error || "Delivery provider rejected email",
           });
           failedCount++;
         }
       } catch (err: any) {
-        deliveries.push({
+        finalDeliveries.push({
           recipientEmail: recipient.email,
           recipientName: recipient.name,
           status: "failed",
+          deliveryStatus: "failed",
           sentAt: new Date(),
           error: err?.message || "Delivery exception",
         });
@@ -546,10 +621,11 @@ export async function sendCampaign(
       }
     } else {
       // 6. Safe Mock / Simulation Mode: Zero outbound calls to Resend
-      deliveries.push({
+      finalDeliveries.push({
         recipientEmail: recipient.email,
         recipientName: recipient.name,
         status: "sent",
+        deliveryStatus: "simulated",
         sentAt: new Date(),
         messageId: `mock_resend_msg_${crypto.randomUUID()}`,
       });
@@ -557,17 +633,33 @@ export async function sendCampaign(
     }
   }
 
-  // 7. Update statistics and finalize campaign status
-  campaign.status = "sent";
-  campaign.sentAt = new Date();
-  campaign.stats = {
+  // 7. Update statistics and finalize campaign status atomically
+  const sentAt = new Date();
+  const stats = {
     totalRecipients: eligible.length,
     sentCount,
     failedCount,
     skippedCount,
   };
-  campaign.deliveries = deliveries;
-  await campaign.save();
+
+  await CampaignModel.updateOne(
+    { id: campaign.id },
+    {
+      $set: {
+        status: "sent",
+        sentAt,
+        stats,
+        deliveries: finalDeliveries,
+        deliveryMode: isLiveDelivery ? "live" : "simulated",
+        updatedAt: new Date(),
+      },
+    }
+  );
+
+  const updatedCampaign = await CampaignModel.findOne({ id: campaign.id });
+  if (!updatedCampaign) {
+    throw new CampaignError(`Campaign #${id} not found after delivery`, 404, "NOT_FOUND");
+  }
 
   logger.info(
     {
@@ -580,7 +672,7 @@ export async function sendCampaign(
     "[Campaign] Campaign dispatch finished"
   );
 
-  return campaign.toObject();
+  return updatedCampaign.toObject();
 }
 
 /**

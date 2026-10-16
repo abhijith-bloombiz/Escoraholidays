@@ -1,5 +1,8 @@
+import crypto from "node:crypto";
 import { Router, Request, Response, NextFunction } from "express";
-import { CampaignModel } from "@workspace/db";
+import { CampaignModel, SubscriberConsentModel } from "@workspace/db";
+import { config } from "../config/env";
+import { logger } from "../lib/logger";
 import {
   CreateCampaignBody,
   UpdateCampaignBody,
@@ -23,6 +26,19 @@ import {
 
 const router = Router();
 
+function normalizeCampaignDeliveryMode(c: any) {
+  if (!c) return c;
+  if (
+    !c.deliveryMode &&
+    c.deliveries?.some(
+      (d: any) => d.deliveryStatus === "simulated" || (typeof d.messageId === "string" && d.messageId.startsWith("mock_"))
+    )
+  ) {
+    c.deliveryMode = "simulated";
+  }
+  return c;
+}
+
 /**
  * GET /api/campaigns
  * Lists all marketing campaigns. Admin only.
@@ -35,7 +51,7 @@ router.get("/campaigns", async (req: Request, res: Response, next: NextFunction)
       query.status = status;
     }
     const campaigns = await CampaignModel.find(query).sort({ createdAt: -1 }).lean();
-    res.json(campaigns);
+    res.json(campaigns.map(normalizeCampaignDeliveryMode));
   } catch (err) {
     next(err);
   }
@@ -149,6 +165,143 @@ router.post(
 );
 
 /**
+ * Validates Svix webhook signature for Resend events.
+ */
+export function verifyResendWebhookSignature(
+  payload: string,
+  headers: { id?: string; timestamp?: string; signature?: string },
+  secret?: string
+): boolean {
+  if (!secret) return false;
+  const { id, timestamp, signature } = headers;
+  if (!id || !timestamp || !signature) return false;
+
+  // Protect against replay attacks (5-minute tolerance)
+  const tsNum = Number(timestamp);
+  if (Number.isNaN(tsNum)) return false;
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (Math.abs(nowSec - tsNum) > 300) return false;
+
+  try {
+    const secretKey = secret.startsWith("whsec_") ? secret.slice(6) : secret;
+    const keyBytes = Buffer.from(secretKey, "base64");
+
+    const toSign = `${id}.${timestamp}.${payload}`;
+    const computedHmac = crypto.createHmac("sha256", keyBytes).update(toSign).digest("base64");
+
+    const passedSignatures = signature.split(" ").map((s) => s.replace(/^v1,/, ""));
+    for (const sig of passedSignatures) {
+      const sigBuf = Buffer.from(sig, "base64");
+      const compBuf = Buffer.from(computedHmac, "base64");
+      if (sigBuf.length === compBuf.length && crypto.timingSafeEqual(sigBuf, compBuf)) {
+        return true;
+      }
+    }
+  } catch {
+    return false;
+  }
+  return false;
+}
+
+/**
+ * POST /api/campaigns/webhooks/resend
+ * Public authenticated webhook endpoint for Resend delivery, bounce, and spam complaint tracking.
+ */
+router.post(
+  "/campaigns/webhooks/resend",
+  async (req: Request, res: Response): Promise<void> => {
+    const rawBody = typeof req.body === "string" ? req.body : JSON.stringify(req.body);
+    const svixId = req.headers["svix-id"] as string | undefined;
+    const svixTimestamp = req.headers["svix-timestamp"] as string | undefined;
+    const svixSignature = req.headers["svix-signature"] as string | undefined;
+
+    if (config.resendWebhookSecret) {
+      const isValid = verifyResendWebhookSignature(
+        rawBody,
+        { id: svixId, timestamp: svixTimestamp, signature: svixSignature },
+        config.resendWebhookSecret
+      );
+      if (!isValid) {
+        logger.warn({ svixId }, "[CampaignWebhook] Invalid Resend webhook signature");
+        res.status(401).json({ error: "Invalid webhook signature" });
+        return;
+      }
+    } else if (config.isProduction) {
+      logger.error("[CampaignWebhook] Missing RESEND_WEBHOOK_SECRET in production; rejecting webhook.");
+      res.status(401).json({ error: "Webhook secret not configured in production" });
+      return;
+    }
+
+    const event = req.body;
+    const eventType = event?.type as string | undefined;
+    const emailId = event?.data?.email_id || event?.data?.id;
+
+    if (!eventType || !emailId) {
+      res.status(400).json({ error: "Invalid webhook payload structure" });
+      return;
+    }
+
+    logger.info({ eventType, emailId }, "[CampaignWebhook] Processing Resend webhook event");
+
+    try {
+      const campaign = await CampaignModel.findOne({ "deliveries.messageId": emailId });
+      if (campaign) {
+        const delivery = campaign.deliveries.find((d) => d.messageId === emailId);
+        if (delivery) {
+          if (eventType === "email.delivered") {
+            delivery.status = "delivered";
+            delivery.deliveryStatus = "delivered";
+            delivery.deliveredAt = new Date();
+          } else if (eventType === "email.bounced") {
+            delivery.status = "bounced";
+            delivery.deliveryStatus = "bounced";
+            delivery.error = event?.data?.bounce?.message || "Email address bounced";
+          } else if (eventType === "email.complained") {
+            delivery.status = "complained";
+            delivery.deliveryStatus = "complained";
+            delivery.error = "Recipient reported spam complaint";
+          }
+          await campaign.save();
+        }
+      }
+
+      // If bounced or complained, permanently record opt-out in SubscriberConsentModel
+      if (eventType === "email.bounced" || eventType === "email.complained") {
+        const recipients: string[] = Array.isArray(event?.data?.to)
+          ? event.data.to
+          : typeof event?.data?.to === "string"
+          ? [event.data.to]
+          : [];
+
+        for (const rEmail of recipients) {
+          if (rEmail && rEmail.includes("@")) {
+            await SubscriberConsentModel.findOneAndUpdate(
+              { email: rEmail.toLowerCase() },
+              {
+                $set: {
+                  subscribed: false,
+                  unsubscribedAt: new Date(),
+                  source: eventType === "email.bounced" ? "resend_bounce" : "resend_complaint",
+                },
+              }
+            );
+            logger.warn(
+              { email: rEmail, reason: eventType },
+              "[CampaignWebhook] Recipient permanently unsubscribed due to delivery event"
+            );
+          }
+        }
+      }
+
+      res.status(200).json({ received: true, event: eventType, emailId });
+    } catch (err: any) {
+      logger.error({ err: err?.message, emailId }, "[CampaignWebhook] Failed to process webhook event");
+      res.status(500).json({ error: "Failed to process delivery event" });
+    }
+  }
+);
+
+/**
  * GET /api/campaigns/:id
  * Retrieves campaign details with stats and delivery logs. Admin only.
  */
@@ -168,7 +321,7 @@ router.get(
         return;
       }
 
-      res.json(campaign);
+      res.json(normalizeCampaignDeliveryMode(campaign));
     } catch (err) {
       next(err);
     }

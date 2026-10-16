@@ -20,6 +20,11 @@ import { assistItinerary } from "../services/ai/itinerary-assistant";
 import { aiService } from "../services/ai/ai-service";
 import { AiServiceError } from "../services/ai/types";
 import { logger } from "../lib/logger";
+import {
+  triggerItineraryUpdate,
+  triggerFinalItineraryDelivery,
+  queueApprovalRequiredNotification,
+} from "../services/notification-service";
 
 const router: IRouter = Router();
 
@@ -175,6 +180,12 @@ router.patch("/itineraries/:id", async (req, res, next): Promise<void> => {
   }
 
   try {
+    const existingItinerary = await ItineraryModel.findOne({ id: params.data.id }).lean();
+    if (!existingItinerary) {
+      res.status(404).json({ error: "Itinerary not found" });
+      return;
+    }
+
     const itinerary = await ItineraryModel.findOneAndUpdate(
       { id: params.data.id },
       { $set: { ...parsed.data, updatedAt: new Date() } },
@@ -184,12 +195,66 @@ router.patch("/itineraries/:id", async (req, res, next): Promise<void> => {
       res.status(404).json({ error: "Itinerary not found" });
       return;
     }
+
+    // If itinerary is confirmed, trigger update notification or queue for approval
+    if (itinerary.status === "confirmed") {
+      if (req.body.requiresApproval || req.body.isMajorChange) {
+        queueApprovalRequiredNotification({
+          type: "major_itinerary_update",
+          category: "transactional",
+          relatedType: "itinerary",
+          relatedId: itinerary.id,
+          recipientEmail: itinerary.customerEmail || "",
+          recipientName: itinerary.customerName,
+          subject: `Important Update to Your Kerala Itinerary: ${itinerary.title}`,
+          bodyHtml: `<p>A major revision has been made to your travel plan for <strong>${itinerary.title}</strong>. Please review your updated itinerary details.</p>`,
+          metadata: { isMajorChange: true },
+        }).catch(() => {});
+      } else {
+        triggerItineraryUpdate(itinerary, existingItinerary).catch((err) => {
+          logger.error(
+            { err: err?.message, itineraryId: itinerary.id },
+            "[ItineraryRoute] Failed to dispatch itinerary update notification"
+          );
+        });
+      }
+    }
+
     res.json(UpdateItineraryResponse.parse(serializeDates(itinerary)));
   } catch (err: any) {
     if (err.name === "ValidationError" || err.name === "CastError") {
       res.status(400).json({ error: err.message });
       return;
     }
+    next(err);
+  }
+});
+
+// Deliver final confirmed itinerary to customer
+router.post("/itineraries/:id/deliver-final", async (req, res, next): Promise<void> => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: "Invalid itinerary ID" });
+    return;
+  }
+
+  try {
+    const itinerary = await ItineraryModel.findOne({ id }).lean();
+    if (!itinerary) {
+      res.status(404).json({ error: "Itinerary not found" });
+      return;
+    }
+
+    if (itinerary.status === "draft" || itinerary.status === "archived") {
+      res.status(400).json({
+        error: "Draft or archived itineraries cannot be delivered as final. Please mark as confirmed first.",
+      });
+      return;
+    }
+
+    const notif = await triggerFinalItineraryDelivery(itinerary);
+    res.json({ success: true, notification: notif });
+  } catch (err) {
     next(err);
   }
 });

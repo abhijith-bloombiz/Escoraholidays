@@ -10,3 +10,4 @@ export * from "./itinerary.model";
 export * from "./subscriber-consent.model";
 export * from "./campaign.model";
 export * from "./invoice.model";
+export * from "./notification.model";

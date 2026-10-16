@@ -1,5 +1,10 @@
 import { Router, type IRouter } from "express";
 import { InvoiceModel, getNextSequence } from "@workspace/db";
+import { logger } from "../lib/logger";
+import {
+  triggerPaymentReceipt,
+  schedulePaymentDeadlineReminder,
+} from "../services/notification-service";
 
 const router: IRouter = Router();
 
@@ -64,7 +69,15 @@ router.post("/invoices", async (req, res): Promise<void> => {
       balanceDue,
     });
 
-    res.status(201).json(serializeDates(invoice.toObject()));
+    const invoiceObj = invoice.toObject();
+
+    if (invoiceObj.dueDate && invoiceObj.balanceDue > 0) {
+      schedulePaymentDeadlineReminder(invoiceObj).catch((err) => {
+        logger.error({ err: err?.message, invoiceId: invoiceObj.id }, "[InvoiceRoute] Failed to schedule payment deadline reminder");
+      });
+    }
+
+    res.status(201).json(serializeDates(invoiceObj));
   } catch (error: any) {
     console.error("Error creating invoice:", error);
     res.status(400).json({ error: error.message || "Failed to create invoice" });
@@ -98,19 +111,22 @@ router.patch("/invoices/:id", async (req, res): Promise<void> => {
   }
 
   try {
+    const existing = await InvoiceModel.findOne({ id }).lean();
+    if (!existing) {
+      res.status(404).json({ error: "Invoice not found" });
+      return;
+    }
+
     const updates = { ...req.body, updatedAt: new Date() };
     if (updates.totalAmount !== undefined || updates.paidAmount !== undefined) {
-      const existing = await InvoiceModel.findOne({ id }).lean();
-      if (existing) {
-        const total = updates.totalAmount !== undefined ? Number(updates.totalAmount) : existing.totalAmount;
-        const paid = updates.paidAmount !== undefined ? Number(updates.paidAmount) : existing.paidAmount;
-        updates.balanceDue = Math.max(0, total - paid);
-        if (updates.status === undefined) {
-          if (updates.balanceDue === 0 && total > 0) {
-            updates.status = "paid";
-          } else if (paid > 0 && updates.balanceDue > 0) {
-            updates.status = "partially_paid";
-          }
+      const total = updates.totalAmount !== undefined ? Number(updates.totalAmount) : existing.totalAmount;
+      const paid = updates.paidAmount !== undefined ? Number(updates.paidAmount) : existing.paidAmount;
+      updates.balanceDue = Math.max(0, total - paid);
+      if (updates.status === undefined) {
+        if (updates.balanceDue === 0 && total > 0) {
+          updates.status = "paid";
+        } else if (paid > 0 && updates.balanceDue > 0) {
+          updates.status = "partially_paid";
         }
       }
     }
@@ -119,6 +135,23 @@ router.patch("/invoices/:id", async (req, res): Promise<void> => {
     if (!updated) {
       res.status(404).json({ error: "Invoice not found" });
       return;
+    }
+
+    // Trigger payment receipt if payment recorded or invoice transitioned to paid/partially_paid
+    const newPaidAmount = Number(updated.paidAmount) || 0;
+    const oldPaidAmount = Number(existing.paidAmount) || 0;
+    const paymentOccurred = newPaidAmount > oldPaidAmount || (existing.status !== "paid" && updated.status === "paid");
+
+    if (paymentOccurred && newPaidAmount > 0) {
+      const amountPaidNow = newPaidAmount > oldPaidAmount ? newPaidAmount - oldPaidAmount : newPaidAmount;
+      triggerPaymentReceipt(updated, amountPaidNow).catch((err) => {
+        logger.error({ err: err?.message, invoiceId: updated.id }, "[InvoiceRoute] Payment receipt trigger error");
+      });
+    }
+
+    // If dueDate changed and balance is still due, reschedule payment reminder
+    if (updates.dueDate && updated.balanceDue > 0 && updated.status !== "paid") {
+      schedulePaymentDeadlineReminder(updated).catch(() => {});
     }
 
     res.json(serializeDates(updated));

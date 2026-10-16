@@ -15,6 +15,12 @@ import {
   AssistEnquiryResponse,
 } from "@workspace/api-zod";
 import { sendContactConfirmation, sendAdminContactNotification } from "../lib/email";
+import {
+  scheduleEnquiryFollowup,
+  cancelEnquiryFollowup,
+  triggerEnquiryAcknowledgement,
+  sendManualAdminEmail,
+} from "../services/notification-service";
 import { aiService, AiServiceError, assistEnquiry } from "../services/ai";
 import { createRateLimiter } from "../middleware/rate-limiter";
 import { logger } from "../lib/logger";
@@ -63,7 +69,13 @@ router.post("/enquiries", async (req, res, next): Promise<void> => {
     Promise.all([
       sendContactConfirmation(enquiry),
       sendAdminContactNotification(enquiry),
+      triggerEnquiryAcknowledgement(enquiry),
     ]).catch(() => { /* non-fatal */ });
+
+    // Schedule polite customer follow-up in durable DB queue
+    scheduleEnquiryFollowup(enquiry).catch((err) => {
+      logger.error({ err: err?.message, enquiryId: enquiry.id }, "[EnquiryRoute] Failed to schedule enquiry follow-up");
+    });
 
     res.status(201).json(GetEnquiryResponse.parse(serialized));
   } catch (err: any) {
@@ -145,6 +157,12 @@ router.patch("/enquiries/:id", async (req, res, next): Promise<void> => {
       res.status(404).json({ error: "Enquiry not found" });
       return;
     }
+
+    // If enquiry was marked as replied, cancel any pending customer follow-up
+    if (row.status === "replied") {
+      cancelEnquiryFollowup(row.id, "Staff replied to enquiry").catch(() => {});
+    }
+
     res.json(UpdateEnquiryResponse.parse(serializeDates(row)));
   } catch (err: any) {
     if (err.name === "ValidationError" || err.name === "CastError") {
@@ -167,6 +185,10 @@ router.delete("/enquiries/:id", async (req, res, next): Promise<void> => {
       res.status(404).json({ error: "Enquiry not found" });
       return;
     }
+
+    // Cancel pending follow-up job if enquiry is deleted
+    cancelEnquiryFollowup(params.data.id, "Enquiry deleted").catch(() => {});
+
     res.sendStatus(204);
   } catch (err) {
     next(err);
@@ -242,5 +264,52 @@ router.post(
     }
   }
 );
+
+/**
+ * POST /api/enquiries/:id/reply
+ * Allows staff to send a custom reviewed response to a customer enquiry.
+ * Updates enquiry status to "replied" and cancels any pending automated follow-up.
+ */
+router.post("/enquiries/:id/reply", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: "Invalid enquiry ID" });
+    return;
+  }
+
+  const { title, replyMessage, markReplied = true } = req.body;
+  if (!replyMessage || typeof replyMessage !== "string" || !replyMessage.trim()) {
+    res.status(400).json({ error: "Reply message cannot be empty" });
+    return;
+  }
+
+  try {
+    const enquiry = await EnquiryModel.findOne({ id }).lean();
+    if (!enquiry) {
+      res.status(404).json({ error: "Enquiry not found" });
+      return;
+    }
+
+    const notification = await sendManualAdminEmail({
+      type: "custom_enquiry_response",
+      category: "administrative",
+      relatedType: "enquiry",
+      relatedId: enquiry.id,
+      recipientEmail: enquiry.email,
+      recipientName: enquiry.name,
+      title: title?.trim() || `Reply to Your Escora Journey Enquiry (#${enquiry.id})`,
+      bodyHtml: `<p style="white-space: pre-wrap;">${replyMessage.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`,
+    });
+
+    if (markReplied) {
+      await EnquiryModel.updateOne({ id }, { $set: { status: "replied", updatedAt: new Date() } });
+      await cancelEnquiryFollowup(enquiry.id, "Staff sent manual response");
+    }
+
+    res.json({ success: true, notification });
+  } catch (err) {
+    next(err);
+  }
+});
 
 export default router;

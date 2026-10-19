@@ -4,6 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
 import {
   useGenerateTripPlan,
+  useListDestinations,
   type TripPlanInput,
   type TripItinerary,
 } from "@workspace/api-client-react";
@@ -16,6 +17,7 @@ import {
   Coins,
   Clock,
   ArrowRight,
+  ArrowLeft,
   RotateCcw,
   RefreshCw,
   ExternalLink,
@@ -26,9 +28,17 @@ import {
   Sun,
   ShieldCheck,
   Check,
+  Search,
+  Star,
+  X,
+  Heart,
+  Leaf,
+  Minus,
+  Plus,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DESTINATION_PHOTOS } from "@/lib/destinationPhotos";
 
 const DURATION_PRESETS = [4, 7, 10, 14];
 
@@ -46,29 +56,150 @@ const START_HUBS = [
 ];
 
 const TRAVELER_TYPES = [
-  { label: "Couple / Pair", desc: "Secluded, romantic slow luxury" },
-  { label: "Solo Traveler", desc: "Contemplative, personalized pace" },
-  { label: "Family with Children", desc: "Gentle pacing, nature & heritage" },
-  { label: "Friends / Small Group", desc: "Private estates & shared discoveries" },
+  { label: "Couple / Pair", desc: "Secluded, romantic slow luxury", icon: Heart },
+  { label: "Solo Traveler", desc: "Contemplative, personalized pace", icon: Compass },
+  { label: "Family with Children", desc: "Gentle pacing, nature & heritage", icon: Users },
+  { label: "Friends / Small Group", desc: "Private estates & shared discoveries", icon: Users },
 ];
 
-const BUDGET_TIERS = [
+const JOURNEY_TYPES = [
+  {
+    id: "honeymoon",
+    label: "Honeymoon & Romance",
+    desc: "Intimate pool villas, candlelit backwater cruises, and secluded hill mist.",
+    icon: "🕯️",
+  },
+  {
+    id: "family",
+    label: "Family Expedition",
+    desc: "Child-friendly pacing, wildlife sanctuaries, living spice estates, and calm waters.",
+    icon: "🌿",
+  },
+  {
+    id: "heritage",
+    label: "Slow Heritage & Culture",
+    desc: "Ancient spice trading ports, Kathakali rituals, and Dutch-colonial quarters.",
+    icon: "🏛️",
+  },
+  {
+    id: "wilderness",
+    label: "Wilderness & Mist Hills",
+    desc: "High-range tea plantations, misty Western Ghats trails, and bio-reserves.",
+    icon: "⛰️",
+  },
+  {
+    id: "wellness",
+    label: "Ayurveda & Healing",
+    desc: "Authentic Panchakarma therapies, herbal diet, daily yoga, and deep stillness.",
+    icon: "✦",
+  },
+  {
+    id: "coastal",
+    label: "Coastal & Beach",
+    desc: "Arabian Sea clifftop sunsets, tranquil golden sands, and fresh coastal cuisine.",
+    icon: "🌊",
+  },
+];
+
+export type SupportedCurrency = "INR" | "USD" | "EUR" | "GBP" | "AED";
+
+export interface CurrencyConfig {
+  code: SupportedCurrency;
+  symbol: string;
+  name: string;
+  inrPerUnit: number;
+}
+
+export const SUPPORTED_CURRENCIES: SupportedCurrency[] = ["INR", "USD", "EUR", "GBP", "AED"];
+
+export const CURRENCY_CONFIGS: Record<SupportedCurrency, CurrencyConfig> = {
+  INR: { code: "INR", symbol: "₹", name: "Indian Rupee", inrPerUnit: 1 },
+  USD: { code: "USD", symbol: "$", name: "US Dollar", inrPerUnit: 83.5 },
+  EUR: { code: "EUR", symbol: "€", name: "Euro", inrPerUnit: 91.0 },
+  GBP: { code: "GBP", symbol: "£", name: "British Pound", inrPerUnit: 106.0 },
+  AED: { code: "AED", symbol: "د.إ", name: "UAE Dirham", inrPerUnit: 22.75 },
+};
+
+export interface BudgetTier {
+  tier: string;
+  minInr: number;
+  maxInr: number;
+  isPlus?: boolean;
+  indicative: string;
+  desc: string;
+}
+
+const BUDGET_TIERS: BudgetTier[] = [
   {
     tier: "Conscious Explorer",
+    minInr: 0,
+    maxInr: 150000,
     indicative: "Under ₹1.5L / ~$1,800",
     desc: "Boutique eco-lodges, private car & chauffeur, authentic Kerala hospitality",
   },
   {
     tier: "Signature Slow-Luxury",
+    minInr: 150000,
+    maxInr: 350000,
     indicative: "₹1.5L – ₹3.5L / ~$2,000 – $4,000",
     desc: "Heritage plantation bungalows, private lake cruise, curated artisan dining",
   },
   {
     tier: "Ultra-Luxury Sanctuaries",
+    minInr: 350000,
+    maxInr: 650000,
+    isPlus: true,
     indicative: "₹3.5L – ₹6.5L+ / ~$4,500+",
     desc: "Private pool villas, bespoke ayurvedic physicians, dedicated naturalist guides",
   },
 ];
+
+function formatCurrencyAmount(inrAmount: number, currency: SupportedCurrency): string {
+  const config = CURRENCY_CONFIGS[currency] || CURRENCY_CONFIGS.INR;
+  if (currency === "INR") {
+    const lakhs = inrAmount / 100000;
+    return `₹${lakhs % 1 === 0 ? lakhs.toFixed(0) : lakhs.toFixed(1)}L`;
+  }
+
+  const rawConverted = inrAmount / config.inrPerUnit;
+  let rounded: number;
+  if (rawConverted >= 10000) {
+    rounded = Math.round(rawConverted / 500) * 500;
+  } else if (rawConverted >= 2000) {
+    rounded = Math.round(rawConverted / 100) * 100;
+  } else {
+    rounded = Math.round(rawConverted / 50) * 50;
+  }
+
+  const formattedNum = rounded.toLocaleString("en-US");
+  if (currency === "AED") {
+    return `د.إ ${formattedNum}`;
+  }
+  return `${config.symbol}${formattedNum}`;
+}
+
+export function getBudgetTierDisplay(b: BudgetTier, currency: string): string {
+  const curr = (SUPPORTED_CURRENCIES.includes(currency as SupportedCurrency)
+    ? currency
+    : "INR") as SupportedCurrency;
+
+  const inrMin = b.minInr > 0 ? `₹${(b.minInr / 100000).toFixed(1)}L` : "";
+  const inrMax = `₹${(b.maxInr / 100000).toFixed(1)}L${b.isPlus ? "+" : ""}`;
+  const inrRange = b.minInr === 0 ? `Under ${inrMax}` : `${inrMin} – ${inrMax}`;
+
+  if (curr === "INR") {
+    const usdMin = formatCurrencyAmount(b.minInr, "USD");
+    const usdMax = formatCurrencyAmount(b.maxInr, "USD");
+    const usdPart = b.minInr === 0 ? `~${usdMax}` : b.isPlus ? `~${usdMin}+` : `~${usdMin} – ${usdMax}`;
+    return `${inrRange} / ${usdPart}`;
+  }
+
+  const currMin = formatCurrencyAmount(b.minInr, curr);
+  const currMax = `${formatCurrencyAmount(b.maxInr, curr)}${b.isPlus ? "+" : ""}`;
+  const currRange = b.minInr === 0 ? `Under ${currMax}` : `${currMin} – ${currMax}`;
+
+  return `${currRange} / ~${inrRange}`;
+}
 
 const INTERESTS = [
   { id: "tea-hills", label: "Tea Hills & Mist", icon: "🌱", desc: "High-range colonial estates & mountain trails" },
@@ -95,6 +226,78 @@ const PACING_OPTIONS = [
   },
 ];
 
+const FALLBACK_DESTINATIONS = [
+  { id: "munnar", name: "Munnar", slug: "munnar", region: "Tea Hills & Mist" },
+  { id: "alleppey", name: "Alleppey", slug: "alleppey", region: "Backwaters & Canals" },
+  { id: "fort-kochi", name: "Fort Kochi", slug: "fort-kochi", region: "Colonial & Spice Heritage" },
+  { id: "thekkady", name: "Thekkady", slug: "thekkady", region: "Periyar Tiger Reserve" },
+  { id: "kovalam", name: "Kovalam", slug: "kovalam", region: "Quiet Coastal Beaches" },
+  { id: "wayanad", name: "Wayanad", slug: "wayanad", region: "Rainforests & Mist" },
+  { id: "kumarakom", name: "Kumarakom", slug: "kumarakom", region: "Vembanad Lake Sanctuary" },
+  { id: "varkala", name: "Varkala", slug: "varkala", region: "Red Cliffs & Mineral Springs" },
+  { id: "bekal", name: "Bekal", slug: "bekal", region: "Historic Fort & Secluded Shores" },
+  { id: "kannur", name: "Kannur", slug: "kannur", region: "Theyyam & Heritage Coast" },
+];
+
+const STEPS = [
+  {
+    step: 1,
+    title: "Trip Details",
+    subtitle: "When & how long",
+    badge: "TRIP DETAILS",
+    hint: "Let's start with the basics",
+  },
+  {
+    step: 2,
+    title: "Travellers",
+    subtitle: "Who's travelling",
+    badge: "TRAVELLERS & PARTY",
+    hint: "Tailoring space & rhythm",
+  },
+  {
+    step: 3,
+    title: "Journey Type",
+    subtitle: "What kind of trip",
+    badge: "JOURNEY SPIRIT",
+    hint: "Setting the overall tone",
+  },
+  {
+    step: 4,
+    title: "Destinations",
+    subtitle: "Where to go",
+    badge: "CURATED DESTINATIONS",
+    hint: "Verified Escora sanctuaries",
+  },
+  {
+    step: 5,
+    title: "Experiences",
+    subtitle: "What to explore",
+    badge: "EXPERIENCES & RHYTHMS",
+    hint: "Multi-select supported",
+  },
+  {
+    step: 6,
+    title: "Travel Pace",
+    subtitle: "How you like to travel",
+    badge: "TRAVEL PACE",
+    hint: "Unhurried Western Ghats transit",
+  },
+  {
+    step: 7,
+    title: "Budget",
+    subtitle: "Your comfort range",
+    badge: "BUDGET & COMFORT",
+    hint: "Transparent indicative pricing",
+  },
+  {
+    step: 8,
+    title: "Special Requests",
+    subtitle: "Any preferences",
+    badge: "FINAL PREFERENCES",
+    hint: "Review & bespoke generation",
+  },
+];
+
 const LOADING_STEPS = [
   "Consulting verified Escora sanctuary catalog...",
   "Balancing road transit times through the Western Ghats...",
@@ -112,21 +315,48 @@ export default function TripPlannerPage() {
 
   const [, setLocation] = useLocation();
 
-  // Form state
+  // Multi-step navigation state
+  const [currentStep, setCurrentStep] = useState(1);
+
+  // Step 1: Trip Details state
+  const [dateMode, setDateMode] = useState<"fixed" | "flexible" | "unsure">("fixed");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [durationDays, setDurationDays] = useState(7);
   const [seasonOrDates, setSeasonOrDates] = useState(SEASONS[0].label);
   const [customDates, setCustomDates] = useState("");
-  const [startLocation, setStartLocation] = useState(START_HUBS[0].code);
+
+  // Step 2: Travellers state
   const [travelersCount, setTravelersCount] = useState(2);
   const [travelerType, setTravelerType] = useState(TRAVELER_TYPES[0].label);
-  const [budgetTier, setBudgetTier] = useState(BUDGET_TIERS[1].tier);
-  const [currency, setCurrency] = useState("INR");
+  const [adultsCount, setAdultsCount] = useState(2);
+  const [childrenCount, setChildrenCount] = useState(0);
+
+  // Step 3: Journey Type state
+  const [journeyType, setJourneyType] = useState(JOURNEY_TYPES[0].label);
+
+  // Step 4: Destinations & Starting Gateway state
+  const [startLocation, setStartLocation] = useState(START_HUBS[0].code);
+  const [destinationMode, setDestinationMode] = useState<"choose" | "recommend" | "both">("choose");
+  const [selectedDestinations, setSelectedDestinations] = useState<string[]>(["Munnar", "Alleppey"]);
+  const [mustVisitDestinations, setMustVisitDestinations] = useState<string[]>(["Munnar"]);
+  const [destinationSearch, setDestinationSearch] = useState("");
+
+  // Step 5: Experiences state
   const [selectedInterests, setSelectedInterests] = useState<string[]>([
     "tea-hills",
     "backwaters",
     "heritage",
   ]);
+
+  // Step 6: Travel Pace state
   const [pace, setPace] = useState(PACING_OPTIONS[0].pace);
+
+  // Step 7: Budget state
+  const [budgetTier, setBudgetTier] = useState(BUDGET_TIERS[1].tier);
+  const [currency, setCurrency] = useState("INR");
+
+  // Step 8: Special Requests state
   const [additionalNotes, setAdditionalNotes] = useState("");
 
   // Result state
@@ -135,12 +365,82 @@ export default function TripPlannerPage() {
   const [refinementInput, setRefinementInput] = useState("");
   const [copiedLink, setCopiedLink] = useState(false);
 
+  // Composition animation state
+  const [compositionStage, setCompositionStage] = useState<"idle" | "composing" | "ready">("idle");
+  const composedTripTitleRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!itinerary) {
+      setCompositionStage("idle");
+      return;
+    }
+
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) {
+      setCompositionStage("ready");
+      composedTripTitleRef.current = itinerary.title;
+      return;
+    }
+
+    if (composedTripTitleRef.current === itinerary.title) {
+      setCompositionStage("ready");
+      return;
+    }
+
+    setCompositionStage("composing");
+    const timer = setTimeout(() => {
+      setCompositionStage("ready");
+      composedTripTitleRef.current = itinerary.title;
+    }, 1600);
+
+    return () => clearTimeout(timer);
+  }, [itinerary]);
+
+  function handleScrollToForm() {
+    formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   // Loading animation state
   const [loadingStepIndex, setLoadingStepIndex] = useState(0);
 
   const itineraryRef = useRef<HTMLDivElement>(null);
+  const formTopRef = useRef<HTMLDivElement>(null);
 
   const planMutation = useGenerateTripPlan();
+  const { data: publishedDestinations } = useListDestinations({ published: true });
+
+  const catalogDestinations =
+    publishedDestinations && publishedDestinations.length > 0
+      ? publishedDestinations
+      : FALLBACK_DESTINATIONS;
+
+  // Keep duration and dates consistent
+  useEffect(() => {
+    if (dateMode === "fixed" && startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && end > start) {
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        if (diffDays >= 2 && diffDays <= 30) {
+          setDurationDays(diffDays);
+        }
+        // Auto-detect season based on start month
+        const month = start.getMonth() + 1;
+        if (month >= 10 || month <= 2) {
+          setSeasonOrDates("Winter Peak");
+        } else if (month >= 6 && month <= 8) {
+          setSeasonOrDates("Monsoon & Ayurveda");
+        } else {
+          setSeasonOrDates("Summer Mist");
+        }
+      }
+    }
+  }, [startDate, endDate, dateMode]);
 
   // Cycle loading step messages during pending query
   useEffect(() => {
@@ -154,18 +454,104 @@ export default function TripPlannerPage() {
     return () => clearInterval(interval);
   }, [planMutation.isPending]);
 
+  function selectDuration(days: number) {
+    const bounded = Math.max(2, Math.min(30, days));
+    setDurationDays(bounded);
+    if (dateMode === "fixed" && startDate) {
+      const start = new Date(startDate);
+      if (!isNaN(start.getTime())) {
+        const end = new Date(start);
+        end.setDate(start.getDate() + (bounded - 1));
+        setEndDate(end.toISOString().split("T")[0]);
+      }
+    }
+  }
+
   function toggleInterest(id: string) {
     setSelectedInterests((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
   }
 
+  function toggleDestination(destName: string) {
+    setSelectedDestinations((prev) => {
+      if (prev.includes(destName)) {
+        setMustVisitDestinations((m) => m.filter((d) => d !== destName));
+        return prev.filter((d) => d !== destName);
+      } else {
+        return [...prev, destName];
+      }
+    });
+  }
+
+  function toggleMustVisit(e: React.MouseEvent, destName: string) {
+    e.stopPropagation();
+    setMustVisitDestinations((prev) =>
+      prev.includes(destName) ? prev.filter((d) => d !== destName) : [...prev, destName]
+    );
+    if (!selectedDestinations.includes(destName)) {
+      setSelectedDestinations((prev) => [...prev, destName]);
+    }
+  }
+
+  function goToNextStep() {
+    if (currentStep < 8) {
+      setCurrentStep((s) => s + 1);
+      formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function goToPrevStep() {
+    if (currentStep > 1) {
+      setCurrentStep((s) => s - 1);
+      formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function handleStepClick(targetStep: number) {
+    setCurrentStep(targetStep);
+    formTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function handleGenerateItinerary(e?: React.FormEvent) {
     if (e) e.preventDefault();
 
+    let formattedDates = seasonOrDates;
+    if (dateMode === "fixed" && startDate && endDate) {
+      formattedDates = `Fixed dates: ${startDate} to ${endDate}`;
+    } else if (dateMode === "unsure") {
+      formattedDates = "Flexible dates / Suggest best season";
+    } else if (customDates.trim()) {
+      formattedDates = customDates.trim();
+    }
+
+    const notesParts: string[] = [];
+    if (journeyType) {
+      notesParts.push(`Journey Spirit: ${journeyType}`);
+    }
+    if (destinationMode === "recommend") {
+      notesParts.push("Destinations: Please recommend optimal sequence");
+    } else if (selectedDestinations.length > 0) {
+      const mustVisits = selectedDestinations.filter((d) => mustVisitDestinations.includes(d));
+      if (mustVisits.length > 0) {
+        notesParts.push(`Must-visit destinations: ${mustVisits.join(", ")}`);
+      }
+      const otherDests = selectedDestinations.filter((d) => !mustVisitDestinations.includes(d));
+      if (otherDests.length > 0) {
+        notesParts.push(`Additional preferred destinations: ${otherDests.join(", ")}`);
+      }
+      notesParts.push(`Destination Mode: ${destinationMode === "both" ? "Curated mix" : "Selected places"}`);
+    }
+    if (travelerType.includes("Family") && childrenCount > 0) {
+      notesParts.push(`Party Breakdown: ${adultsCount} Adults, ${childrenCount} Children`);
+    }
+    if (additionalNotes.trim()) {
+      notesParts.push(`Special Requests: ${additionalNotes.trim()}`);
+    }
+
     const payload: TripPlanInput = {
       durationDays,
-      seasonOrDates: customDates.trim() || seasonOrDates,
+      seasonOrDates: formattedDates,
       startLocation,
       travelersCount,
       travelerType,
@@ -173,7 +559,7 @@ export default function TripPlannerPage() {
       currency,
       interests: selectedInterests.length > 0 ? selectedInterests : ["tea-hills", "backwaters"],
       pace,
-      additionalNotes: additionalNotes.trim() || undefined,
+      additionalNotes: notesParts.length > 0 ? notesParts.join(" | ") : undefined,
     };
 
     planMutation.mutate(
@@ -195,9 +581,16 @@ export default function TripPlannerPage() {
 
     setRefinementInput("");
 
+    let formattedDates = seasonOrDates;
+    if (dateMode === "fixed" && startDate && endDate) {
+      formattedDates = `Fixed dates: ${startDate} to ${endDate}`;
+    } else if (dateMode === "unsure") {
+      formattedDates = "Flexible dates / Suggest best season";
+    }
+
     const payload: TripPlanInput = {
       durationDays: itinerary.durationDays || durationDays,
-      seasonOrDates: customDates.trim() || seasonOrDates,
+      seasonOrDates: formattedDates,
       startLocation,
       travelersCount,
       travelerType,
@@ -227,7 +620,6 @@ export default function TripPlannerPage() {
   function handleContinueToHumanDesigner() {
     if (!itinerary) return;
 
-    // Package itinerary summary to prefill standard enquiry flow
     const destinationsList = itinerary.verifiedDestinations?.map((d) => d.name) || itinerary.routeSequence || [];
     const notesSummary = `AI Trip Plan Reference: "${itinerary.title}"\nRoute: ${itinerary.routeSequence?.join(" → ")}\nDuration: ${itinerary.durationDays} Days / ${itinerary.durationNights} Nights\nPace: ${itinerary.pace}\nEstimated Budget Guidance: ${itinerary.budgetGuidance}`;
 
@@ -264,20 +656,23 @@ export default function TripPlannerPage() {
     setTimeout(() => setCopiedLink(false), 2500);
   }
 
+  const activeStepMeta = STEPS[currentStep - 1] || STEPS[0];
+  const isComposing = compositionStage === "composing";
+
   return (
     <Layout>
       <div className="bg-[#FAF8F5] min-h-screen text-[#293D1F]">
-        {/* Hero Section */}
-        <section className="relative pt-28 pb-16 px-4 sm:px-6 lg:px-8 border-b border-[#CCD7D2]/60 overflow-hidden bg-gradient-to-b from-[#F2F6F3] to-[#FAF8F5]">
+        {/* Hero Section — Preserved exactly */}
+        <section className="relative pt-28 pb-16 px-4 sm:px-6 lg:px-8 border-b border-[#D5DED7]/60 overflow-hidden bg-gradient-to-b from-[#F2F6F3] to-[#FAF8F5]">
           <div className="max-w-4xl mx-auto text-center space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1A3F2C]/10 border border-[#1A3F2C]/20 text-[#1A3F2C] text-xs font-mono uppercase tracking-widest">
-              <Sparkles className="h-3.5 w-3.5 text-[#c59a58]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#193F2D]/10 border border-[#193F2D]/20 text-[#193F2D] text-xs font-mono uppercase tracking-widest">
+              <Sparkles className="h-3.5 w-3.5 text-[#758B78]" />
               <span>Grounded Slow-Luxury Engine</span>
             </div>
 
-            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-[#1A3F2C] leading-tight">
+            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-[#193F2D] leading-tight">
               Tailor Your Slow Voyage <br />
-              <span className="italic font-normal text-[#c59a58]">Across God&apos;s Own Country</span>
+              <span className="italic font-normal text-[#758B78]">Across God&apos;s Own Country</span>
             </h1>
 
             <p className="text-sm sm:text-base text-[#56664C] max-w-2xl mx-auto leading-relaxed">
@@ -286,366 +681,1070 @@ export default function TripPlannerPage() {
 
             <div className="flex items-center justify-center gap-6 pt-2 text-[11px] font-mono text-[#788A63]">
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 text-[#1A3F2C]" />
+                <ShieldCheck className="h-3.5 w-3.5 text-[#193F2D]" />
                 100% Verified Published Catalog
               </span>
               <span className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-[#1A3F2C]" />
+                <Clock className="h-3.5 w-3.5 text-[#193F2D]" />
                 Realistic Western Ghats Pacing
               </span>
               <span className="flex items-center gap-1.5 hidden sm:flex">
-                <Coins className="h-3.5 w-3.5 text-[#1A3F2C]" />
+                <Coins className="h-3.5 w-3.5 text-[#193F2D]" />
                 Honest Indicative Guidance
               </span>
             </div>
           </div>
         </section>
 
-        {/* Main Content Area */}
-        <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Step 1: Input Form */}
-          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#CCD7D2]/70 shadow-sm space-y-10">
-            <form onSubmit={handleGenerateItinerary} className="space-y-10">
-              {/* Duration & Presets */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-[#c59a58]" />
-                    <span>1. Trip Duration</span>
-                  </label>
-                  <span className="text-xs font-serif font-medium text-[#1A3F2C]">
-                    {durationDays} Days / {Math.max(1, durationDays - 1)} Nights
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-                  {DURATION_PRESETS.map((days) => (
+        {/* Multi-Step Form Section — Two-Panel Layout */}
+        <section ref={formTopRef} className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-14">
+          <form onSubmit={handleGenerateItinerary}>
+            {/* Mobile / Tablet Compact Step Header (< lg) */}
+            <div className="lg:hidden mb-6 bg-white rounded-2xl p-4 border border-[#D5DED7] shadow-2xs space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-mono font-semibold text-[#193F2D]">
+                  Step {currentStep} of 8: <span className="font-sans font-medium text-[#293D1F]">{activeStepMeta.title}</span>
+                </span>
+                <span className="text-[11px] font-mono text-[#56664C]">
+                  {Math.round((currentStep / 8) * 100)}% Completed
+                </span>
+              </div>
+              <div className="w-full h-1.5 bg-[#E2EAE4] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[#193F2D] rounded-full transition-all duration-300"
+                  style={{ width: `${(currentStep / 8) * 100}%` }}
+                />
+              </div>
+              {/* Mobile horizontal pill navigation */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 pt-0.5 no-scrollbar">
+                {STEPS.map((s) => {
+                  const isActive = s.step === currentStep;
+                  const isCompleted = s.step < currentStep;
+                  return (
                     <button
-                      key={days}
+                      key={s.step}
                       type="button"
-                      onClick={() => setDurationDays(days)}
-                      className={`p-3 rounded-xl border text-xs font-medium transition-all ${
-                        durationDays === days
-                          ? "bg-[#1A3F2C] text-white border-[#1A3F2C] shadow-2xs"
-                          : "bg-white text-[#293D1F] border-[#CCD7D2]/80 hover:bg-[#F3F7F4]"
+                      onClick={() => handleStepClick(s.step)}
+                      className={`px-2.5 py-1 rounded-full text-[11px] font-medium shrink-0 transition-all ${
+                        isActive
+                          ? "bg-[#193F2D] text-white"
+                          : isCompleted
+                          ? "bg-[#E8F0EA] text-[#193F2D] border border-[#D5DED7]"
+                          : "bg-white text-[#788A63] border border-[#D5DED7]/60"
                       }`}
                     >
-                      <span className="block text-sm font-semibold">{days} Days</span>
-                      <span className="text-[10px] opacity-75">{days - 1} Nights</span>
+                      {s.step}. {s.title}
                     </button>
-                  ))}
-
-                  {/* Custom duration counter */}
-                  <div className="flex items-center justify-between border border-[#CCD7D2]/80 rounded-xl px-3 bg-[#FAF8F5]">
-                    <button
-                      type="button"
-                      onClick={() => setDurationDays((d) => Math.max(2, d - 1))}
-                      className="text-base font-bold text-[#1A3F2C] hover:opacity-70 p-1"
-                      aria-label="Decrease days"
-                    >
-                      −
-                    </button>
-                    <span className="text-xs font-semibold">{durationDays}d</span>
-                    <button
-                      type="button"
-                      onClick={() => setDurationDays((d) => Math.min(30, d + 1))}
-                      className="text-base font-bold text-[#1A3F2C] hover:opacity-70 p-1"
-                      aria-label="Increase days"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
+                  );
+                })}
               </div>
+            </div>
 
-              {/* Season & Starting Point */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <label className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold flex items-center gap-2">
-                    <Sun className="h-4 w-4 text-[#c59a58]" />
-                    <span>2. Season or Preferred Timing</span>
-                  </label>
-                  <div className="space-y-2">
-                    {SEASONS.map((s) => (
-                      <button
-                        key={s.label}
-                        type="button"
-                        onClick={() => {
-                          setSeasonOrDates(s.label);
-                          setCustomDates("");
-                        }}
-                        className={`w-full text-left p-3 rounded-xl border text-xs transition-all ${
-                          seasonOrDates === s.label && !customDates
-                            ? "bg-[#1A3F2C] text-white border-[#1A3F2C]"
-                            : "bg-white border-[#CCD7D2]/80 text-[#293D1F] hover:bg-[#F3F7F4]"
-                        }`}
-                      >
-                        <div className="flex justify-between items-center font-medium">
-                          <span>{s.label}</span>
-                          <span className="text-[10px] font-mono opacity-80">{s.range}</span>
-                        </div>
-                        <p className={`text-[11px] mt-0.5 ${seasonOrDates === s.label && !customDates ? "text-white/80" : "text-[#56664C]"}`}>
-                          {s.desc}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            {/* Desktop Two-Panel Layout */}
+            <div className="flex flex-col lg:flex-row items-start gap-8 lg:gap-10">
+              {/* Left Panel: Step Navigation (hidden on mobile, visible on desktop) */}
+              <aside className="hidden lg:block w-72 shrink-0 bg-transparent py-2">
+                <div className="sticky top-28 space-y-8">
+                  {/* Vertical Step Navigator */}
+                  <div className="relative pl-1">
+                    {/* Continuous vertical connector line */}
+                    <div className="absolute left-[17px] top-4 bottom-6 w-[1.5px] bg-[#D5DED7] -z-0" />
 
-                <div className="space-y-3">
-                  <label className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-[#c59a58]" />
-                    <span>3. Starting Hub / Arrival Gateway</span>
-                  </label>
-                  <div className="space-y-2">
-                    {START_HUBS.map((hub) => (
-                      <button
-                        key={hub.code}
-                        type="button"
-                        onClick={() => setStartLocation(hub.code)}
-                        className={`w-full text-left p-3 rounded-xl border text-xs transition-all ${
-                          startLocation === hub.code
-                            ? "bg-[#1A3F2C] text-white border-[#1A3F2C]"
-                            : "bg-white border-[#CCD7D2]/80 text-[#293D1F] hover:bg-[#F3F7F4]"
-                        }`}
-                      >
-                        <div className="font-medium">{hub.name}</div>
-                        <p className={`text-[11px] mt-0.5 ${startLocation === hub.code ? "text-white/80" : "text-[#56664C]"}`}>
-                          {hub.desc}
-                        </p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                    <div className="space-y-6 relative z-10">
+                      {STEPS.map((s) => {
+                        const isActive = s.step === currentStep;
+                        const isCompleted = s.step < currentStep;
+                        const isUpcoming = s.step > currentStep;
 
-              {/* Travelers & Travel Style */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold flex items-center gap-2">
-                      <Users className="h-4 w-4 text-[#c59a58]" />
-                      <span>4. Travelers & Party</span>
-                    </label>
-                    <div className="flex items-center gap-2 text-xs font-medium">
-                      <span>{travelersCount} Traveler{travelersCount > 1 ? "s" : ""}</span>
-                      <div className="inline-flex border border-[#CCD7D2] rounded-lg bg-[#FAF8F5] px-2 py-0.5">
-                        <button
-                          type="button"
-                          onClick={() => setTravelersCount((c) => Math.max(1, c - 1))}
-                          className="px-1 font-bold text-[#1A3F2C]"
-                        >
-                          −
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setTravelersCount((c) => Math.min(20, c + 1))}
-                          className="px-1 font-bold text-[#1A3F2C]"
-                        >
-                          +
-                        </button>
-                      </div>
+                        return (
+                          <div
+                            key={s.step}
+                            onClick={() => (isCompleted || isActive) && handleStepClick(s.step)}
+                            className={`flex items-start gap-3.5 group text-left transition-all ${
+                              isCompleted || isActive ? "cursor-pointer" : "cursor-default"
+                            }`}
+                          >
+                            {/* Numbered Indicator Circle */}
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center font-mono text-xs font-semibold shrink-0 transition-all ${
+                                isActive
+                                  ? "bg-[#193F2D] text-white shadow-xs ring-4 ring-[#193F2D]/15"
+                                  : isCompleted
+                                  ? "bg-[#E8F0EA] text-[#193F2D] border border-[#193F2D]/30 group-hover:bg-[#D5DED7]"
+                                  : "bg-white text-[#758B78] border border-[#D5DED7]"
+                              }`}
+                            >
+                              {isCompleted ? (
+                                <Check className="h-3.5 w-3.5 text-[#193F2D]" />
+                              ) : (
+                                s.step
+                              )}
+                            </div>
+
+                            {/* Step Labels */}
+                            <div className="pt-0.5">
+                              <div
+                                className={`text-sm font-semibold transition-colors ${
+                                  isActive
+                                    ? "text-[#193F2D]"
+                                    : isCompleted
+                                    ? "text-[#293D1F] group-hover:text-[#193F2D]"
+                                    : "text-[#758B78]"
+                                }`}
+                              >
+                                {s.title}
+                              </div>
+                              <div
+                                className={`text-xs mt-0.5 ${
+                                  isActive
+                                    ? "text-[#56664C]"
+                                    : isCompleted
+                                    ? "text-[#788A63]"
+                                    : "text-[#A0B0A5]"
+                                }`}
+                              >
+                                {s.subtitle}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    {TRAVELER_TYPES.map((t) => (
-                      <button
-                        key={t.label}
-                        type="button"
-                        onClick={() => setTravelerType(t.label)}
-                        className={`p-2.5 rounded-xl border text-left text-xs transition-all ${
-                          travelerType === t.label
-                            ? "bg-[#1A3F2C] text-white border-[#1A3F2C]"
-                            : "bg-white border-[#CCD7D2]/80 text-[#293D1F] hover:bg-[#F3F7F4]"
-                        }`}
+                  {/* Sidebar Bottom Progress & Subtle Illustration */}
+                  <div className="pt-4 border-t border-[#D5DED7]/70">
+                    <div className="flex items-center justify-between text-xs font-mono text-[#56664C] mb-2">
+                      <span className="font-semibold text-[#193F2D]">Step {currentStep} of 8</span>
+                      <span>{Math.round((currentStep / 8) * 100)}%</span>
+                    </div>
+                    <div className="w-full h-1.5 bg-[#E2EAE4] rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#193F2D] rounded-full transition-all duration-300"
+                        style={{ width: `${(currentStep / 8) * 100}%` }}
+                      />
+                    </div>
+
+                    {/* Subtle aesthetic watermarked hills illustration */}
+                    <div className="mt-6 flex justify-end pr-2 opacity-60">
+                      <svg
+                        className="w-24 h-10 text-[#193F2D]/25"
+                        viewBox="0 0 100 40"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.2"
                       >
-                        <span className="font-semibold block">{t.label}</span>
-                        <span className={`text-[10px] block mt-0.5 truncate ${travelerType === t.label ? "text-white/80" : "text-[#56664C]"}`}>
-                          {t.desc}
-                        </span>
-                      </button>
-                    ))}
+                        <path d="M0 35 Q 25 12 50 30 T 100 20" />
+                        <path d="M15 38 Q 45 20 75 35 T 100 32" />
+                        <path d="M70 22 C 72 15 78 15 80 22" />
+                        <path d="M85 24 C 86 18 90 18 92 24" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
+              </aside>
 
-                <div className="space-y-3">
-                  <label className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-[#c59a58]" />
-                    <span>5. Preferred Pacing</span>
-                  </label>
-                  <div className="space-y-2">
-                    {PACING_OPTIONS.map((p) => (
-                      <button
-                        key={p.pace}
-                        type="button"
-                        onClick={() => setPace(p.pace)}
-                        className={`w-full text-left p-3 rounded-xl border text-xs transition-all ${
-                          pace === p.pace
-                            ? "bg-[#1A3F2C] text-white border-[#1A3F2C]"
-                            : "bg-white border-[#CCD7D2]/80 text-[#293D1F] hover:bg-[#F3F7F4]"
-                        }`}
-                      >
-                        <div className="font-medium">{p.pace}</div>
-                        <p className={`text-[11px] mt-0.5 ${pace === p.pace ? "text-white/80" : "text-[#56664C]"}`}>
-                          {p.desc}
-                        </p>
-                      </button>
-                    ))}
+              {/* Right Panel: Active Step Content Card */}
+              <main className="flex-1 w-full bg-white rounded-3xl border border-[#D5DED7] p-6 sm:p-10 shadow-2xs min-h-[580px] flex flex-col justify-between">
+                <div>
+                  {/* Step Top Header */}
+                  <div className="border-b border-[#D5DED7]/60 pb-6 mb-8">
+                    <div className="flex items-center justify-between text-xs text-[#56664C] mb-2">
+                      <span className="font-mono uppercase tracking-widest text-[11px] font-semibold text-[#193F2D] flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5 text-[#193F2D]" />
+                        <span>{activeStepMeta.badge}</span>
+                      </span>
+                      <span className="text-[11px] font-mono text-[#788A63] flex items-center gap-1">
+                        <Sparkles className="h-3 w-3 text-[#788A63]" />
+                        <span>{activeStepMeta.hint}</span>
+                      </span>
+                    </div>
+
+                    <h2 className="font-serif text-2xl sm:text-3xl font-medium text-[#193F2D] tracking-tight">
+                      {currentStep === 1 && "When are you travelling?"}
+                      {currentStep === 2 && "Who is travelling with you?"}
+                      {currentStep === 3 && "What kind of journey are you envisioning?"}
+                      {currentStep === 4 && "Where would you like to travel?"}
+                      {currentStep === 5 && "What would you like to explore?"}
+                      {currentStep === 6 && "How would you like to pace your journey?"}
+                      {currentStep === 7 && "What is your comfort range?"}
+                      {currentStep === 8 && "Any special requests or celebrations?"}
+                    </h2>
+
+                    <p className="text-xs sm:text-sm text-[#56664C] leading-relaxed mt-1.5 max-w-2xl">
+                      {currentStep === 1 && "Choose your travel dates or just a duration — we'll suggest the best time based on the season."}
+                      {currentStep === 2 && "Specify your travel party so we can tailor sanctuary accommodations and room configurations."}
+                      {currentStep === 3 && "Select the primary spirit of your Kerala passage to guide our curator engine."}
+                      {currentStep === 4 && "Choose from Escora's verified sanctuaries or let our algorithm sequence the optimal route."}
+                      {currentStep === 5 && "Select any experiences and rhythms you gravitate towards during your journey."}
+                      {currentStep === 6 && "Kerala's geography is best savoured unhurriedly. Choose a transit tempo that suits your travel style."}
+                      {currentStep === 7 && "Indicative slow-luxury guidance including private chauffeur, heritage boutique stays, and curated activities."}
+                      {currentStep === 8 && "Tell us about any dietary preferences, anniversaries, mobility needs, or specific wishes."}
+                    </p>
                   </div>
-                </div>
-              </div>
 
-              {/* Interests (Multi-select) */}
-              <div className="space-y-3">
-                <label className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold flex items-center justify-between">
-                  <span className="flex items-center gap-2">
-                    <Compass className="h-4 w-4 text-[#c59a58]" />
-                    <span>6. Core Travel Interests</span>
-                  </span>
-                  <span className="text-[11px] font-normal text-[#56664C] lowercase font-sans">
-                    (select any you gravitate towards)
-                  </span>
-                </label>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-                  {INTERESTS.map((int) => {
-                    const isSelected = selectedInterests.includes(int.id);
-                    return (
-                      <button
-                        key={int.id}
-                        type="button"
-                        onClick={() => toggleInterest(int.id)}
-                        className={`p-3 rounded-xl border text-left text-xs transition-all flex items-start gap-2.5 ${
-                          isSelected
-                            ? "bg-[#F3F7F4] border-[#1A3F2C] text-[#1A3F2C] ring-1 ring-[#1A3F2C]"
-                            : "bg-white border-[#CCD7D2]/80 text-[#56664C] hover:bg-[#FAF8F5]"
-                        }`}
-                      >
-                        <span className="text-lg shrink-0 mt-0.5">{int.icon}</span>
-                        <div>
-                          <div className="font-semibold flex items-center gap-1.5 text-xs text-[#1A3F2C]">
-                            <span>{int.label}</span>
-                            {isSelected && <Check className="h-3 w-3 text-[#1A3F2C]" />}
+                  {/* STEP 1: Trip Details */}
+                  {currentStep === 1 && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                      {/* Date Mode 3-Card Grid */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                        <button
+                          type="button"
+                          onClick={() => setDateMode("fixed")}
+                          className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                            dateMode === "fixed"
+                              ? "bg-[#E8F0EA] border-[#193F2D] ring-1 ring-[#193F2D] shadow-2xs"
+                              : "bg-white border-[#D5DED7] hover:bg-[#FAF8F5] hover:border-[#193F2D]/40"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="w-8 h-8 rounded-lg bg-[#E8F0EA] flex items-center justify-center text-[#193F2D]">
+                              <Calendar className="h-4 w-4" />
+                            </div>
+                            {dateMode === "fixed" && (
+                              <span className="w-4 h-4 rounded-full bg-[#193F2D] text-white flex items-center justify-center text-[10px]">
+                                <Check className="h-2.5 w-2.5" />
+                              </span>
+                            )}
                           </div>
-                          <p className="text-[10px] text-[#56664C] mt-0.5">{int.desc}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                          <div>
+                            <div className="text-sm font-semibold text-[#193F2D]">Fixed Dates</div>
+                            <div className="text-xs text-[#56664C] mt-0.5">I know my travel dates</div>
+                          </div>
+                        </button>
 
-              {/* Budget Tier & Currency */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold flex items-center gap-2">
-                    <Coins className="h-4 w-4 text-[#c59a58]" />
-                    <span>7. Indicative Budget Tier</span>
-                  </label>
-                  <div className="flex items-center gap-1 text-[11px] font-mono">
-                    {["INR", "USD", "EUR", "GBP"].map((curr) => (
-                      <button
-                        key={curr}
-                        type="button"
-                        onClick={() => setCurrency(curr)}
-                        className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
-                          currency === curr
-                            ? "bg-[#1A3F2C] text-white"
-                            : "bg-[#FAF8F5] text-[#56664C] hover:bg-[#CCD7D2]/40"
-                        }`}
-                      >
-                        {curr}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                        <button
+                          type="button"
+                          onClick={() => setDateMode("flexible")}
+                          className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                            dateMode === "flexible"
+                              ? "bg-[#E8F0EA] border-[#193F2D] ring-1 ring-[#193F2D] shadow-2xs"
+                              : "bg-white border-[#D5DED7] hover:bg-[#FAF8F5] hover:border-[#193F2D]/40"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="w-8 h-8 rounded-lg bg-[#E8F0EA] flex items-center justify-center text-[#193F2D]">
+                              <Calendar className="h-4 w-4" />
+                            </div>
+                            {dateMode === "flexible" && (
+                              <span className="w-4 h-4 rounded-full bg-[#193F2D] text-white flex items-center justify-center text-[10px]">
+                                <Check className="h-2.5 w-2.5" />
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-[#193F2D]">Flexible Dates</div>
+                            <div className="text-xs text-[#56664C] mt-0.5">Show me the best time</div>
+                          </div>
+                        </button>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {BUDGET_TIERS.map((b) => (
-                    <button
-                      key={b.tier}
-                      type="button"
-                      onClick={() => setBudgetTier(b.tier)}
-                      className={`p-3.5 rounded-xl border text-left text-xs transition-all ${
-                        budgetTier === b.tier
-                          ? "bg-[#1A3F2C] text-white border-[#1A3F2C] shadow-2xs"
-                          : "bg-white border-[#CCD7D2]/80 text-[#293D1F] hover:bg-[#F3F7F4]"
-                      }`}
-                    >
-                      <div className="font-semibold text-xs">{b.tier}</div>
-                      <div className={`text-[11px] font-mono mt-0.5 ${budgetTier === b.tier ? "text-[#e6ca92]" : "text-[#c59a58]"}`}>
-                        {b.indicative}
+                        <button
+                          type="button"
+                          onClick={() => setDateMode("unsure")}
+                          className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                            dateMode === "unsure"
+                              ? "bg-[#E8F0EA] border-[#193F2D] ring-1 ring-[#193F2D] shadow-2xs"
+                              : "bg-white border-[#D5DED7] hover:bg-[#FAF8F5] hover:border-[#193F2D]/40"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="w-8 h-8 rounded-lg bg-[#E8F0EA] flex items-center justify-center text-[#193F2D]">
+                              <Calendar className="h-4 w-4" />
+                            </div>
+                            {dateMode === "unsure" && (
+                              <span className="w-4 h-4 rounded-full bg-[#193F2D] text-white flex items-center justify-center text-[10px]">
+                                <Check className="h-2.5 w-2.5" />
+                              </span>
+                            )}
+                          </div>
+                          <div>
+                            <div className="text-sm font-semibold text-[#193F2D]">I&apos;m not sure yet</div>
+                            <div className="text-xs text-[#56664C] mt-0.5">Just choose a duration</div>
+                          </div>
+                        </button>
                       </div>
-                      <p className={`text-[10px] mt-1.5 leading-relaxed ${budgetTier === b.tier ? "text-white/80" : "text-[#56664C]"}`}>
-                        {b.desc}
-                      </p>
+
+                      {/* Date Controls Container */}
+                      {dateMode === "fixed" && (
+                        <div className="bg-[#FAF8F5] border border-[#D5DED7] rounded-2xl p-4 sm:p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-[#193F2D] mb-1.5">
+                              Start Date
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="w-full bg-white border border-[#D5DED7] rounded-xl px-3.5 py-2.5 text-xs text-[#293D1F] focus:outline-none focus:ring-1 focus:ring-[#193F2D] focus:border-[#193F2D] transition-all"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold text-[#193F2D] mb-1.5">
+                              End Date
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="date"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                min={startDate || undefined}
+                                className="w-full bg-white border border-[#D5DED7] rounded-xl px-3.5 py-2.5 text-xs text-[#293D1F] focus:outline-none focus:ring-1 focus:ring-[#193F2D] focus:border-[#193F2D] transition-all"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {dateMode === "flexible" && (
+                        <div className="bg-[#FAF8F5] border border-[#D5DED7] rounded-2xl p-4 sm:p-5 space-y-3">
+                          <label className="block text-xs font-semibold text-[#193F2D]">
+                            Preferred Season or Window
+                          </label>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                            {SEASONS.map((s) => (
+                              <button
+                                key={s.label}
+                                type="button"
+                                onClick={() => {
+                                  setSeasonOrDates(s.label);
+                                  setCustomDates("");
+                                }}
+                                className={`p-3 rounded-xl border text-left text-xs transition-all ${
+                                  seasonOrDates === s.label && !customDates
+                                    ? "bg-[#193F2D] text-white border-[#193F2D]"
+                                    : "bg-white border-[#D5DED7] text-[#293D1F] hover:bg-[#E8F0EA]"
+                                }`}
+                              >
+                                <div className="font-semibold">{s.label}</div>
+                                <div className={`text-[10px] font-mono mt-0.5 ${seasonOrDates === s.label && !customDates ? "text-white/80" : "text-[#788A63]"}`}>
+                                  {s.range}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {dateMode === "unsure" && (
+                        <div className="bg-[#FAF8F5] border border-[#D5DED7] rounded-2xl p-4 sm:p-5 flex items-center gap-3 text-xs text-[#56664C]">
+                          <div className="w-8 h-8 rounded-lg bg-[#E8F0EA] flex items-center justify-center text-[#193F2D] shrink-0">
+                            <Sparkles className="h-4 w-4" />
+                          </div>
+                          <p>
+                            No fixed dates needed! Pick a duration below, and our curation engine will suggest the most pleasant timing for your chosen journey style.
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Subtle "OR" Divider */}
+                      <div className="relative my-6">
+                        <div className="border-t border-[#E2EAE4]" />
+                        <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-[11px] font-mono text-[#788A63] tracking-widest uppercase">
+                          OR
+                        </span>
+                      </div>
+
+                      {/* Question 2: How long would you like to travel? */}
+                      <div className="space-y-3.5">
+                        <div className="flex items-center justify-between">
+                          <label className="text-sm font-semibold text-[#193F2D]">
+                            How long would you like to travel?
+                          </label>
+                          <span className="text-xs font-mono font-medium text-[#193F2D]">
+                            {durationDays} Days / {Math.max(1, durationDays - 1)} Nights
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                          {DURATION_PRESETS.map((days) => {
+                            const isSelected = durationDays === days;
+                            return (
+                              <button
+                                key={days}
+                                type="button"
+                                onClick={() => selectDuration(days)}
+                                className={`p-3.5 rounded-2xl border text-center transition-all relative flex flex-col justify-center items-center ${
+                                  isSelected
+                                    ? "bg-[#193F2D] text-white border-[#193F2D] shadow-2xs"
+                                    : "bg-white text-[#293D1F] border-[#D5DED7] hover:bg-[#FAF8F5]"
+                                }`}
+                              >
+                                {isSelected && (
+                                  <span className="absolute top-2 right-2 w-4 h-4 rounded-full bg-white text-[#193F2D] flex items-center justify-center text-[10px]">
+                                    <Check className="h-2.5 w-2.5" />
+                                  </span>
+                                )}
+                                <span className="block text-sm font-semibold">{days} Days</span>
+                                <span className={`text-[10px] block mt-0.5 ${isSelected ? "text-white/80" : "text-[#788A63]"}`}>
+                                  {days - 1} Nights
+                                </span>
+                              </button>
+                            );
+                          })}
+
+                          {/* Custom duration counter */}
+                          <div className="border border-[#D5DED7] rounded-2xl p-3 bg-white flex flex-col justify-between items-center text-center">
+                            <span className="text-xs font-semibold text-[#193F2D]">Custom</span>
+                            <div className="flex items-center justify-center gap-2 mt-1">
+                              <button
+                                type="button"
+                                onClick={() => selectDuration(durationDays - 1)}
+                                className="w-6 h-6 rounded-full bg-[#FAF8F5] border border-[#D5DED7] flex items-center justify-center text-xs font-bold text-[#193F2D] hover:bg-[#E8F0EA]"
+                                aria-label="Decrease days"
+                              >
+                                <Minus className="h-3 w-3" />
+                              </button>
+                              <span className="text-xs font-mono font-semibold text-[#193F2D] w-6 text-center">
+                                {durationDays}d
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => selectDuration(durationDays + 1)}
+                                className="w-6 h-6 rounded-full bg-[#FAF8F5] border border-[#D5DED7] flex items-center justify-center text-xs font-bold text-[#193F2D] hover:bg-[#E8F0EA]"
+                                aria-label="Increase days"
+                              >
+                                <Plus className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom Tip Banner matching reference */}
+                      <div className="bg-[#E8F0EA]/60 border border-[#D5DED7] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-4 mt-6">
+                        <img
+                          src={DESTINATION_PHOTOS.munnar}
+                          alt="Munnar Tea Hills"
+                          className="w-full sm:w-28 h-20 rounded-xl object-cover shrink-0 border border-[#D5DED7]/50 shadow-2xs"
+                        />
+                        <div className="space-y-1 text-center sm:text-left">
+                          <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs sm:text-sm font-semibold text-[#193F2D]">
+                            <Leaf className="h-4 w-4 text-[#193F2D]" />
+                            <span>Not sure about the exact dates?</span>
+                          </div>
+                          <p className="text-xs text-[#56664C] leading-relaxed">
+                            That&apos;s completely fine. Choose a duration and we&apos;ll suggest the best time to travel based on the season, weather and local experiences.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 2: Travellers */}
+                  {currentStep === 2 && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                      <div className="space-y-3">
+                        <label className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
+                          Travel Party Type
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {TRAVELER_TYPES.map((t) => {
+                            const isSelected = travelerType === t.label;
+                            const IconComponent = t.icon;
+                            return (
+                              <button
+                                key={t.label}
+                                type="button"
+                                onClick={() => setTravelerType(t.label)}
+                                className={`p-4 rounded-2xl border text-left transition-all flex items-start gap-3.5 ${
+                                  isSelected
+                                    ? "bg-[#E8F0EA] border-[#193F2D] ring-1 ring-[#193F2D] shadow-2xs"
+                                    : "bg-white border-[#D5DED7] hover:bg-[#FAF8F5]"
+                                }`}
+                              >
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                  isSelected ? "bg-[#193F2D] text-white" : "bg-[#E8F0EA] text-[#193F2D]"
+                                }`}>
+                                  <IconComponent className="h-4 w-4" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="font-semibold text-xs text-[#193F2D] flex items-center justify-between">
+                                    <span>{t.label}</span>
+                                    {isSelected && <Check className="h-3.5 w-3.5 text-[#193F2D]" />}
+                                  </div>
+                                  <p className="text-[11px] text-[#56664C] mt-1">{t.desc}</p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Number of Travellers Counter */}
+                      <div className="bg-[#FAF8F5] border border-[#D5DED7] rounded-2xl p-5 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-xs font-semibold text-[#193F2D]">Total Travellers</div>
+                            <div className="text-[11px] text-[#788A63]">Accommodated across private suites or villas</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setTravelersCount((c) => Math.max(1, c - 1))}
+                              className="w-8 h-8 rounded-full bg-white border border-[#D5DED7] flex items-center justify-center font-bold text-[#193F2D] hover:bg-[#E8F0EA]"
+                            >
+                              <Minus className="h-3.5 w-3.5" />
+                            </button>
+                            <span className="w-8 text-center font-mono font-semibold text-sm text-[#193F2D]">
+                              {travelersCount}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setTravelersCount((c) => Math.min(20, c + 1))}
+                              className="w-8 h-8 rounded-full bg-white border border-[#D5DED7] flex items-center justify-center font-bold text-[#193F2D] hover:bg-[#E8F0EA]"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Optional Adult / Child Details */}
+                        {travelerType.includes("Family") && (
+                          <div className="pt-4 border-t border-[#D5DED7]/50 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-[#D5DED7]/60">
+                              <div>
+                                <span className="text-xs font-semibold text-[#193F2D] block">Adults (12+)</span>
+                                <span className="text-[10px] text-[#788A63]">Primary guests</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setAdultsCount((a) => Math.max(1, a - 1))}
+                                  className="w-6 h-6 rounded-full bg-[#FAF8F5] border border-[#D5DED7] flex items-center justify-center text-xs text-[#193F2D]"
+                                >
+                                  -
+                                </button>
+                                <span className="font-mono text-xs font-semibold text-[#193F2D] w-4 text-center">
+                                  {adultsCount}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setAdultsCount((a) => Math.min(10, a + 1))}
+                                  className="w-6 h-6 rounded-full bg-[#FAF8F5] border border-[#D5DED7] flex items-center justify-center text-xs text-[#193F2D]"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-white border border-[#D5DED7]/60">
+                              <div>
+                                <span className="text-xs font-semibold text-[#193F2D] block">Children (0–11)</span>
+                                <span className="text-[10px] text-[#788A63]">Extra beds or interconnecting rooms</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setChildrenCount((c) => Math.max(0, c - 1))}
+                                  className="w-6 h-6 rounded-full bg-[#FAF8F5] border border-[#D5DED7] flex items-center justify-center text-xs text-[#193F2D]"
+                                >
+                                  -
+                                </button>
+                                <span className="font-mono text-xs font-semibold text-[#193F2D] w-4 text-center">
+                                  {childrenCount}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => setChildrenCount((c) => Math.min(10, c + 1))}
+                                  className="w-6 h-6 rounded-full bg-[#FAF8F5] border border-[#D5DED7] flex items-center justify-center text-xs text-[#193F2D]"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 3: Journey Type */}
+                  {currentStep === 3 && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                        {JOURNEY_TYPES.map((jt) => {
+                          const isSelected = journeyType === jt.label;
+                          return (
+                            <button
+                              key={jt.id}
+                              type="button"
+                              onClick={() => setJourneyType(jt.label)}
+                              className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? "bg-[#E8F0EA] border-[#193F2D] ring-1 ring-[#193F2D] shadow-2xs"
+                                  : "bg-white border-[#D5DED7] hover:bg-[#FAF8F5]"
+                              }`}
+                            >
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xl">{jt.icon}</span>
+                                  {isSelected && (
+                                    <span className="w-4 h-4 rounded-full bg-[#193F2D] text-white flex items-center justify-center text-[10px]">
+                                      <Check className="h-2.5 w-2.5" />
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-xs font-semibold text-[#193F2D]">{jt.label}</div>
+                                <p className="text-[11px] text-[#56664C] mt-1.5 leading-relaxed">{jt.desc}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 4: Destinations & Starting Hub */}
+                  {currentStep === 4 && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                      {/* Starting Gateway / Hub */}
+                      <div className="space-y-2.5">
+                        <label className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-[#193F2D]" />
+                          <span>Starting Hub / Arrival Gateway</span>
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                          {START_HUBS.map((hub) => (
+                            <button
+                              key={hub.code}
+                              type="button"
+                              onClick={() => setStartLocation(hub.code)}
+                              className={`p-3 rounded-xl border text-left text-xs transition-all ${
+                                startLocation === hub.code
+                                  ? "bg-[#193F2D] text-white border-[#193F2D]"
+                                  : "bg-white border-[#D5DED7] text-[#293D1F] hover:bg-[#FAF8F5]"
+                              }`}
+                            >
+                              <div className="font-semibold text-xs truncate">{hub.name.split("(")[0]}</div>
+                              <span className={`text-[10px] font-mono block mt-0.5 ${
+                                startLocation === hub.code ? "text-white/80" : "text-[#788A63]"
+                              }`}>
+                                {hub.code === "Flexible" ? "Escora Curated" : hub.code}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Mode selector */}
+                      <div className="space-y-2.5 pt-2">
+                        <label className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
+                          Destination Selection Mode
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                          {[
+                            { id: "choose", label: "I'll choose", desc: "Select specific places" },
+                            { id: "recommend", label: "Recommend for me", desc: "Optimal algorithm route" },
+                            { id: "both", label: "A mix of both", desc: "Must-visits + bridge" },
+                          ].map((mode) => (
+                            <button
+                              key={mode.id}
+                              type="button"
+                              onClick={() => setDestinationMode(mode.id as any)}
+                              className={`p-3 rounded-xl border text-left text-xs transition-all ${
+                                destinationMode === mode.id
+                                  ? "bg-[#E8F0EA] border-[#193F2D] ring-1 ring-[#193F2D] text-[#193F2D]"
+                                  : "bg-white border-[#D5DED7] text-[#56664C] hover:bg-[#FAF8F5]"
+                              }`}
+                            >
+                              <div className="font-semibold">{mode.label}</div>
+                              <div className="text-[10px] text-[#788A63] mt-0.5">{mode.desc}</div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Destination Catalog Grid (when choose or both) */}
+                      {destinationMode !== "recommend" ? (
+                        <div className="space-y-3 pt-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <label className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold">
+                              Select from Verified Escora Catalog
+                            </label>
+                            {/* Search input */}
+                            <div className="relative w-full sm:w-64">
+                              <Search className="h-3.5 w-3.5 text-[#788A63] absolute left-3 top-1/2 -translate-y-1/2" />
+                              <input
+                                type="text"
+                                value={destinationSearch}
+                                onChange={(e) => setDestinationSearch(e.target.value)}
+                                placeholder="Search destinations..."
+                                className="w-full pl-8 pr-3 py-1.5 rounded-lg border border-[#D5DED7] text-xs bg-white focus:outline-none focus:ring-1 focus:ring-[#193F2D]"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Selected destinations chips */}
+                          {selectedDestinations.length > 0 && (
+                            <div className="flex flex-wrap items-center gap-1.5 p-2.5 bg-[#FAF8F5] rounded-xl border border-[#D5DED7]/60">
+                              <span className="text-[11px] font-mono text-[#56664C] mr-1">Selected:</span>
+                              {selectedDestinations.map((name) => {
+                                const isMust = mustVisitDestinations.includes(name);
+                                return (
+                                  <span
+                                    key={name}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white border border-[#D5DED7] text-xs text-[#193F2D] font-medium"
+                                  >
+                                    {isMust && <Star className="h-3 w-3 fill-[#193F2D] text-[#193F2D]" />}
+                                    <span>{name}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleDestination(name)}
+                                      className="hover:text-red-600 ml-0.5"
+                                      aria-label={`Remove ${name}`}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* Destination Cards */}
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 max-h-64 overflow-y-auto pr-1">
+                            {catalogDestinations
+                              .filter((d: any) =>
+                                d.name.toLowerCase().includes(destinationSearch.toLowerCase()) ||
+                                (d.region && d.region.toLowerCase().includes(destinationSearch.toLowerCase()))
+                              )
+                              .map((dest: any) => {
+                                const isSelected = selectedDestinations.includes(dest.name);
+                                const isMust = mustVisitDestinations.includes(dest.name);
+                                const slug = dest.slug || dest.name.toLowerCase().replace(/\s+/g, "-");
+                                const photo = DESTINATION_PHOTOS[slug] || DESTINATION_PHOTOS[dest.name.toLowerCase()];
+
+                                return (
+                                  <div
+                                    key={dest.name}
+                                    onClick={() => toggleDestination(dest.name)}
+                                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex items-center gap-2.5 ${
+                                      isSelected
+                                        ? "bg-[#E8F0EA] border-[#193F2D] ring-1 ring-[#193F2D]"
+                                        : "bg-white border-[#D5DED7] hover:border-[#193F2D]/40 hover:bg-[#FAF8F5]"
+                                    }`}
+                                  >
+                                    {photo ? (
+                                      <img
+                                        src={photo}
+                                        alt={dest.name}
+                                        className="w-10 h-10 rounded-lg object-cover shrink-0 border border-[#D5DED7]/40"
+                                      />
+                                    ) : (
+                                      <div className="w-10 h-10 rounded-lg bg-[#E8F0EA] flex items-center justify-center text-[#193F2D] text-xs font-serif font-bold shrink-0">
+                                        {dest.name[0]}
+                                      </div>
+                                    )}
+
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-semibold text-xs text-[#193F2D] truncate flex items-center justify-between">
+                                        <span className="truncate">{dest.name}</span>
+                                      </div>
+                                      <span className="text-[10px] text-[#788A63] truncate block">
+                                        {dest.region || "Kerala Sanctuary"}
+                                      </span>
+                                    </div>
+
+                                    {isSelected && (
+                                      <button
+                                        type="button"
+                                        onClick={(e) => toggleMustVisit(e, dest.name)}
+                                        className="p-1 text-[#788A63] hover:text-[#193F2D]"
+                                        title={isMust ? "Must-Visit destination" : "Mark as Must-Visit"}
+                                      >
+                                        <Star
+                                          className={`h-3.5 w-3.5 ${
+                                            isMust ? "fill-[#193F2D] text-[#193F2D]" : "text-[#D5DED7]"
+                                          }`}
+                                        />
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="p-6 rounded-2xl bg-[#FAF8F5] border border-[#D5DED7] space-y-2">
+                          <div className="text-xs font-semibold text-[#193F2D] flex items-center gap-1.5">
+                            <Compass className="h-4 w-4 text-[#193F2D]" />
+                            <span>Algorithmic Route Curation</span>
+                          </div>
+                          <p className="text-xs text-[#56664C] leading-relaxed">
+                            Escora&apos;s slow-travel engine will calculate realistic Western Ghats driving corridors and handpick 2–4 complementary sanctuaries tailored specifically to your {durationDays}-day timeline and {journeyType} preferences.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* STEP 5: Experiences (Interests) */}
+                  {currentStep === 5 && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                        {INTERESTS.map((int) => {
+                          const isSelected = selectedInterests.includes(int.id);
+                          return (
+                            <button
+                              key={int.id}
+                              type="button"
+                              onClick={() => toggleInterest(int.id)}
+                              className={`p-3.5 rounded-2xl border text-left text-xs transition-all flex items-start gap-3 ${
+                                isSelected
+                                  ? "bg-[#E8F0EA] border-[#193F2D] ring-1 ring-[#193F2D] shadow-2xs"
+                                  : "bg-white border-[#D5DED7] text-[#56664C] hover:bg-[#FAF8F5]"
+                              }`}
+                            >
+                              <span className="text-xl shrink-0 mt-0.5">{int.icon}</span>
+                              <div className="flex-1">
+                                <div className="font-semibold flex items-center justify-between text-xs text-[#193F2D]">
+                                  <span>{int.label}</span>
+                                  {isSelected && <Check className="h-3.5 w-3.5 text-[#193F2D]" />}
+                                </div>
+                                <p className="text-[11px] text-[#56664C] mt-1 leading-relaxed">{int.desc}</p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 6: Travel Pace */}
+                  {currentStep === 6 && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      <div className="space-y-3">
+                        {PACING_OPTIONS.map((p) => {
+                          const isSelected = pace === p.pace;
+                          return (
+                            <button
+                              key={p.pace}
+                              type="button"
+                              onClick={() => setPace(p.pace)}
+                              className={`w-full text-left p-4 rounded-2xl border transition-all flex items-start justify-between gap-4 ${
+                                isSelected
+                                  ? "bg-[#E8F0EA] border-[#193F2D] ring-1 ring-[#193F2D] shadow-2xs"
+                                  : "bg-white border-[#D5DED7] hover:bg-[#FAF8F5]"
+                              }`}
+                            >
+                              <div>
+                                <div className="font-semibold text-xs sm:text-sm text-[#193F2D]">{p.pace}</div>
+                                <p className="text-xs text-[#56664C] mt-1 leading-relaxed">{p.desc}</p>
+                              </div>
+                              {isSelected && (
+                                <span className="w-5 h-5 rounded-full bg-[#193F2D] text-white flex items-center justify-center shrink-0 text-xs">
+                                  <Check className="h-3 w-3" />
+                                </span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 7: Budget */}
+                  {currentStep === 7 && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                      {/* Currency selector */}
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold">
+                          Preferred Currency
+                        </label>
+                        <div className="flex items-center gap-1.5 text-[11px] font-mono">
+                          {SUPPORTED_CURRENCIES.map((curr) => {
+                            const isCurrSelected = currency === curr;
+                            return (
+                              <button
+                                key={curr}
+                                type="button"
+                                onClick={() => setCurrency(curr)}
+                                className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                                  isCurrSelected
+                                    ? "bg-[#193F2D] text-white shadow-xs"
+                                    : "bg-white text-[#56664C] border border-[#D5DED7] hover:bg-[#E8F0EA] hover:text-[#193F2D]"
+                                }`}
+                                data-testid={`currency-${curr}`}
+                              >
+                                {curr}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Budget Tiers */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                        {BUDGET_TIERS.map((b) => {
+                          const isSelected = budgetTier === b.tier;
+                          return (
+                            <button
+                              key={b.tier}
+                              type="button"
+                              onClick={() => setBudgetTier(b.tier)}
+                              className={`p-4 rounded-2xl border text-left transition-all flex flex-col justify-between ${
+                                isSelected
+                                  ? "bg-[#193F2D] text-white border-[#193F2D] shadow-2xs"
+                                  : "bg-white border-[#D5DED7] text-[#293D1F] hover:bg-[#E8F0EA]/40"
+                              }`}
+                            >
+                              <div>
+                                <div className="font-semibold text-xs sm:text-sm">{b.tier}</div>
+                                <div className={`text-xs font-mono mt-1 ${isSelected ? "text-[#E8F0EA] font-semibold" : "text-[#193F2D] font-semibold"}`}>
+                                  {getBudgetTierDisplay(b, currency)}
+                                </div>
+                                <p className={`text-[11px] mt-2 leading-relaxed ${isSelected ? "text-white/85" : "text-[#56664C]"}`}>
+                                  {b.desc}
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* STEP 8: Special Requests & Review */}
+                  {currentStep === 8 && (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                      <div className="space-y-2">
+                        <label className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
+                          Special Requests & Notes (Optional)
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={additionalNotes}
+                          onChange={(e) => setAdditionalNotes(e.target.value)}
+                          placeholder="e.g., We celebrate our 10th anniversary; prefer private heritage villas, vegetarian cuisine, and zero early morning transfers..."
+                          className="w-full rounded-2xl border border-[#D5DED7] p-4 text-xs bg-[#FAF8F5] text-[#293D1F] placeholder:text-[#788A63] focus:outline-none focus:ring-1 focus:ring-[#193F2D] focus:bg-white transition-all resize-none"
+                          maxLength={1000}
+                        />
+                      </div>
+
+                      {/* Summary Review Card */}
+                      <div className="bg-[#FAF8F5] border border-[#D5DED7] rounded-2xl p-5 space-y-3">
+                        <div className="text-xs font-mono uppercase tracking-wider font-semibold text-[#193F2D]">
+                          Journey Summary Snapshot
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+                          <div>
+                            <span className="text-[10px] font-mono text-[#788A63] block uppercase">Duration</span>
+                            <span className="font-semibold text-[#193F2D]">{durationDays} Days / {durationDays - 1} Nights</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-mono text-[#788A63] block uppercase">Dates / Season</span>
+                            <span className="font-semibold text-[#193F2D]">
+                              {dateMode === "fixed" && startDate && endDate
+                                ? `${startDate} to ${endDate}`
+                                : dateMode === "unsure"
+                                ? "Flexible / Season guidance"
+                                : seasonOrDates}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-mono text-[#788A63] block uppercase">Travellers</span>
+                            <span className="font-semibold text-[#193F2D]">{travelersCount} ({travelerType})</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-mono text-[#788A63] block uppercase">Journey Spirit</span>
+                            <span className="font-semibold text-[#193F2D]">{journeyType}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-mono text-[#788A63] block uppercase">Destinations</span>
+                            <span className="font-semibold text-[#193F2D] truncate block">
+                              {destinationMode === "recommend"
+                                ? "Escora Curated Route"
+                                : selectedDestinations.length > 0
+                                ? selectedDestinations.join(", ")
+                                : "Flexible"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-mono text-[#788A63] block uppercase">Budget Tier</span>
+                            <span className="font-semibold text-[#193F2D] block truncate">{budgetTier} ({currency})</span>
+                            <span className="text-[10px] font-mono text-[#56664C] block truncate">
+                              {getBudgetTierDisplay(BUDGET_TIERS.find((b) => b.tier === budgetTier) || BUDGET_TIERS[1], currency)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-[#788A63] pt-1">
+                        <ShieldCheck className="h-4 w-4 text-[#193F2D]" />
+                        <span>100% verified Escora catalog data. Instant bespoke slow-luxury generation.</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Navigation Row */}
+                <div className="pt-8 border-t border-[#E2EAE4] flex items-center justify-between gap-4 mt-8">
+                  {currentStep > 1 ? (
+                    <button
+                      type="button"
+                      onClick={goToPrevStep}
+                      className="px-5 py-2.5 rounded-full border border-[#D5DED7] text-[#293D1F] hover:bg-[#E8F0EA] text-xs sm:text-sm font-medium flex items-center gap-2 transition-all"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      <span>Back</span>
                     </button>
-                  ))}
+                  ) : (
+                    <div />
+                  )}
+
+                  {currentStep < 8 ? (
+                    <button
+                      type="button"
+                      onClick={goToNextStep}
+                      className="px-7 py-3 rounded-full bg-[#193F2D] hover:bg-[#255239] text-white text-xs sm:text-sm font-medium flex items-center gap-2 transition-all shadow-sm"
+                    >
+                      <span>Continue to {STEPS[currentStep].title}</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={planMutation.isPending}
+                      className="px-8 py-3.5 rounded-full bg-[#193F2D] hover:bg-[#255239] text-white text-xs sm:text-sm font-medium flex items-center gap-2 shadow-sm transition-all"
+                      data-testid="button-generate-trip-plan"
+                    >
+                      <Sparkles className="h-4 w-4 text-[#E8F0EA]" />
+                      <span>{planMutation.isPending ? "Crafting Itinerary..." : "Design Bespoke Itinerary"}</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-              </div>
-
-              {/* Special Requests / Additional Notes */}
-              <div className="space-y-2">
-                <label className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold block">
-                  8. Special Requests & Preferences (Optional)
-                </label>
-                <textarea
-                  rows={2}
-                  value={additionalNotes}
-                  onChange={(e) => setAdditionalNotes(e.target.value)}
-                  placeholder="e.g., We celebrate our 10th anniversary; prefer private heritage villas, vegetarian cuisine, and zero early morning transfers..."
-                  className="w-full rounded-xl border border-[#CCD7D2] p-3 text-xs bg-[#FAF8F5] text-[#293D1F] placeholder:text-[#788A63] focus:outline-none focus:ring-1 focus:ring-[#1A3F2C] focus:bg-white transition-all resize-none"
-                  maxLength={1000}
-                />
-              </div>
-
-              {/* Submit Button */}
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div className="text-[11px] text-[#788A63] flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-[#1A3F2C]" />
-                  <span>No payment required. Free slow-luxury plan generation.</span>
-                </div>
-
-                <Button
-                  type="submit"
-                  disabled={planMutation.isPending}
-                  className="w-full sm:w-auto px-8 py-6 rounded-xl bg-[#1A3F2C] text-white hover:bg-[#255239] transition-all font-medium text-sm flex items-center justify-center gap-2 shadow-sm"
-                  data-testid="button-generate-trip-plan"
-                >
-                  <Sparkles className="h-4 w-4 text-[#c59a58]" />
-                  <span>{planMutation.isPending ? "Crafting Itinerary..." : "Design Bespoke Itinerary"}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </form>
-          </div>
+              </main>
+            </div>
+          </form>
 
           {/* Loading Overlay / Progress Card */}
           {planMutation.isPending && (
-            <div className="mt-8 p-10 rounded-3xl bg-white border border-[#CCD7D2] text-center space-y-4 shadow-sm animate-in fade-in duration-300">
-              <div className="w-14 h-14 rounded-full bg-[#F3F7F4] border border-[#c59a58]/40 flex items-center justify-center mx-auto text-[#c59a58] animate-pulse">
+            <div className="mt-8 p-10 rounded-3xl bg-white border border-[#D5DED7] text-center space-y-4 shadow-sm animate-in fade-in duration-300">
+              <div className="w-14 h-14 rounded-full bg-[#E8F0EA] border border-[#758B78]/40 flex items-center justify-center mx-auto text-[#193F2D] animate-pulse">
                 <Compass className="h-7 w-7 animate-spin [animation-duration:8s]" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-serif text-lg font-semibold text-[#1A3F2C]">
+                <h3 className="font-serif text-lg font-semibold text-[#193F2D]">
                   Curating Your Slow-Luxury Passage
                 </h3>
                 <p className="text-xs text-[#56664C] italic font-mono transition-all duration-300">
                   {LOADING_STEPS[loadingStepIndex]}
                 </p>
               </div>
-              <div className="max-w-xs mx-auto h-1.5 bg-[#F3F7F4] rounded-full overflow-hidden">
-                <div className="h-full bg-[#1A3F2C] rounded-full animate-progress" />
+              <div className="max-w-xs mx-auto h-1.5 bg-[#E8F0EA] rounded-full overflow-hidden">
+                <div className="h-full bg-[#193F2D] rounded-full animate-progress" />
               </div>
             </div>
           )}
 
           {/* Error Message */}
           {planMutation.isError && (
-            <div className="mt-8 p-6 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
-              <div className="flex items-center gap-2 text-amber-800 font-semibold text-sm">
-                <AlertCircle className="h-5 w-5" />
+            <div className="mt-8 p-6 rounded-2xl bg-[#E8F0EA] border border-[#D5DED7] space-y-3">
+              <div className="flex items-center gap-2 text-[#193F2D] font-semibold text-sm">
+                <AlertCircle className="h-5 w-5 text-[#193F2D]" />
                 <span>Notice</span>
               </div>
               <p className="text-xs text-[#56664C] leading-relaxed">
@@ -656,365 +1755,551 @@ export default function TripPlannerPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => handleGenerateItinerary()}
-                className="text-xs border-[#1A3F2C]/30 text-[#1A3F2C] hover:bg-[#1A3F2C] hover:text-white"
+                className="text-xs border-[#193F2D]/30 text-[#193F2D] hover:bg-[#193F2D] hover:text-white"
               >
                 <RefreshCw className="h-3 w-3 mr-1" /> Retry Generation
               </Button>
             </div>
           )}
 
-          {/* Step 2: Generated Itinerary View */}
+          {/* Generated Itinerary View — Unified Editorial Travel Proposal */}
           {itinerary && (
-            <div ref={itineraryRef} className="mt-12 space-y-10 animate-in fade-in duration-500">
-              {/* Itinerary Header Card */}
-              <div className="bg-[#1A3F2C] text-white rounded-3xl p-6 sm:p-10 space-y-6 shadow-md border border-[#293D1F]">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-[#c59a58]/20 text-[#e6ca92] border-0 text-[10px] font-mono uppercase tracking-widest px-2.5 py-0.5">
-                      Bespoke Itinerary
-                    </Badge>
-                    <span className="text-xs text-white/70 font-mono">
-                      {itinerary.durationDays} Days / {itinerary.durationNights} Nights
+            <div
+              ref={itineraryRef}
+              className="mt-12 max-w-4xl mx-auto bg-white rounded-3xl border border-[#D5DED7] shadow-sm overflow-hidden text-[#293D1F]"
+            >
+              {/* Embedded CSS for AI Composition Animation & Print Styles */}
+              <style>{`
+                @keyframes titleStrokeDraw {
+                  0% { stroke-dashoffset: 180; }
+                  100% { stroke-dashoffset: 0; }
+                }
+                @keyframes clipRevealText {
+                  0% { clip-path: inset(0 100% 0 0); opacity: 0.15; }
+                  100% { clip-path: inset(0 0 0 0); opacity: 1; }
+                }
+                @keyframes editorialFadeUp {
+                  0% { opacity: 0; transform: translateY(10px); }
+                  100% { opacity: 1; transform: translateY(0); }
+                }
+                .animate-stroke-draw {
+                  stroke-dasharray: 180;
+                  stroke-dashoffset: 0;
+                  animation: titleStrokeDraw 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+                .animate-clip-title {
+                  animation: clipRevealText 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+                }
+                .animate-editorial-fade {
+                  animation: editorialFadeUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+                }
+                @media (prefers-reduced-motion: reduce) {
+                  .animate-stroke-draw,
+                  .animate-clip-title,
+                  .animate-editorial-fade {
+                    animation: none !important;
+                    opacity: 1 !important;
+                    clip-path: none !important;
+                    transform: none !important;
+                    stroke-dashoffset: 0 !important;
+                  }
+                }
+                @media print {
+                  .no-print { display: none !important; }
+                  .print-break-inside-avoid { break-inside: avoid; }
+                  body { background: white !important; }
+                }
+              `}</style>
+
+              {/* A. Trip Introduction & Header */}
+              <div className="p-6 sm:p-10 space-y-6">
+                {/* Folio Meta Row & Document Actions */}
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#D5DED7]/70 pb-4">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#758B78] font-semibold">
+                      Bespoke Voyage Proposal
                     </span>
+                    <span className="text-xs text-[#56664C] font-mono">
+                      • {itinerary.durationDays} Days / {itinerary.durationNights} Nights
+                    </span>
+                    {/* Composition Status Indicator */}
+                    {compositionStage === "composing" ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E8F0EA] text-[#193F2D] text-[11px] font-mono font-medium animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#193F2D]" />
+                        Composing your journey...
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#E8F0EA] text-[#193F2D] text-[11px] font-mono font-medium">
+                        <Sparkles className="h-3 w-3 text-[#758B78]" />
+                        Your journey is ready
+                      </span>
+                    )}
                   </div>
 
-                  {/* Actions: Copy & Print */}
-                  <div className="flex items-center gap-2">
+                  {/* Actions: Copy, Print, Modify */}
+                  <div className="flex items-center gap-2 no-print">
                     <button
+                      type="button"
                       onClick={handleCopySummary}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-white transition-colors flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-lg border border-[#D5DED7] hover:bg-[#FAF8F5] text-xs text-[#193F2D] transition-colors flex items-center gap-1.5 font-medium"
                       title="Copy itinerary summary"
                     >
-                      {copiedLink ? <Check className="h-3.5 w-3.5 text-[#e6ca92]" /> : <Share2 className="h-3.5 w-3.5" />}
+                      {copiedLink ? <Check className="h-3.5 w-3.5 text-[#193F2D]" /> : <Share2 className="h-3.5 w-3.5 text-[#758B78]" />}
                       <span className="hidden sm:inline">{copiedLink ? "Copied" : "Copy"}</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => window.print()}
-                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-white transition-colors flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-lg border border-[#D5DED7] hover:bg-[#FAF8F5] text-xs text-[#193F2D] transition-colors flex items-center gap-1.5 font-medium"
                       title="Print or save as PDF"
                     >
-                      <Printer className="h-3.5 w-3.5" />
+                      <Printer className="h-3.5 w-3.5 text-[#758B78]" />
                       <span className="hidden sm:inline">Print</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleScrollToForm}
+                      className="px-3 py-1.5 rounded-lg border border-[#D5DED7] hover:bg-[#FAF8F5] text-xs text-[#758B78] hover:text-[#193F2D] transition-colors flex items-center gap-1.5 font-medium"
+                      title="Adjust preferences"
+                    >
+                      <RotateCcw className="h-3 w-3 text-[#758B78]" />
+                      <span className="hidden sm:inline">Modify</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-3">
-                  <h2 className="font-serif text-2xl sm:text-4xl font-semibold tracking-tight text-white leading-tight">
-                    {itinerary.title}
-                  </h2>
-                  <p className="font-serif italic text-[#e6ca92] text-sm sm:text-base leading-relaxed">
+                {/* Editorial Title & Overview */}
+                <div className="space-y-3 pt-1">
+                  <div className="relative inline-block">
+                    <h2
+                      className={`font-serif text-2xl sm:text-4xl lg:text-[2.6rem] font-medium text-[#193F2D] leading-[1.2] tracking-tight ${
+                        isComposing ? "animate-clip-title" : ""
+                      }`}
+                    >
+                      {itinerary.title}
+                    </h2>
+                    {/* AI composition SVG stroke underline accent */}
+                    <div className="pt-2">
+                      <svg
+                        className={`h-2.5 w-40 text-[#758B78] ${
+                          isComposing ? "animate-stroke-draw" : ""
+                        }`}
+                        viewBox="0 0 160 10"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                      >
+                        <path d="M2 8 C 45 2, 95 10, 158 4" />
+                      </svg>
+                    </div>
+                  </div>
+
+                  <p
+                    className={`font-serif italic text-[#56664C] text-base sm:text-lg leading-relaxed ${
+                      isComposing ? "animate-editorial-fade [animation-delay:200ms]" : ""
+                    }`}
+                  >
                     &ldquo;{itinerary.tagline}&rdquo;
                   </p>
-                  <p className="text-xs sm:text-sm text-white/80 leading-relaxed pt-2 max-w-3xl whitespace-pre-line">
+
+                  <p
+                    className={`text-xs sm:text-sm text-[#56664C] leading-relaxed max-w-3xl whitespace-pre-line pt-1 ${
+                      isComposing ? "animate-editorial-fade [animation-delay:300ms]" : ""
+                    }`}
+                  >
                     {itinerary.overview}
                   </p>
                 </div>
 
-                {/* Route Ribbon */}
-                <div className="pt-2">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#e6ca92] block mb-2">
+                {/* Route Sequence Ribbon */}
+                <div
+                  className={`pt-1 ${
+                    isComposing ? "animate-editorial-fade [animation-delay:400ms]" : ""
+                  }`}
+                >
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#758B78] font-semibold block mb-2">
                     Curated Route Sequence:
                   </span>
                   <div className="flex flex-wrap items-center gap-2">
                     {itinerary.routeSequence.map((stop, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <span className="px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-white font-medium">
+                        <span className="px-3.5 py-1 rounded-full bg-[#FAF8F5] border border-[#D5DED7] text-xs font-medium text-[#193F2D]">
                           {stop}
                         </span>
                         {idx < itinerary.routeSequence.length - 1 && (
-                          <ChevronRight className="h-3.5 w-3.5 text-[#c59a58]" />
+                          <ChevronRight className="h-3.5 w-3.5 text-[#758B78]" />
                         )}
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Quick Spec Pills */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4 border-t border-white/10 text-xs">
-                  <div>
-                    <span className="text-[10px] font-mono text-white/60 block uppercase">Pace</span>
-                    <span className="font-medium text-white">{itinerary.pace}</span>
+                {/* Key Metadata Spec Strip */}
+                <div
+                  className={`grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-[#FAF8F5] border border-[#D5DED7]/70 text-xs ${
+                    isComposing ? "animate-editorial-fade [animation-delay:480ms]" : ""
+                  }`}
+                >
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#758B78] block">
+                      Duration
+                    </span>
+                    <span className="font-semibold text-[#193F2D]">
+                      {itinerary.durationDays} Days / {itinerary.durationNights} Nights
+                    </span>
                   </div>
-                  <div>
-                    <span className="text-[10px] font-mono text-white/60 block uppercase">Ideal Timing</span>
-                    <span className="font-medium text-white">{itinerary.idealSeason}</span>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#758B78] block">
+                      Pacing
+                    </span>
+                    <span className="font-semibold text-[#193F2D]">{itinerary.pace}</span>
                   </div>
-                  <div className="col-span-2 sm:col-span-1">
-                    <span className="text-[10px] font-mono text-white/60 block uppercase">Indicative Budget</span>
-                    <span className="font-medium text-[#e6ca92] line-clamp-1">{budgetTier}</span>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#758B78] block">
+                      Ideal Season
+                    </span>
+                    <span className="font-semibold text-[#193F2D]">{itinerary.idealSeason}</span>
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#758B78] block">
+                      Comfort Range
+                    </span>
+                    <span className="font-semibold text-[#193F2D] line-clamp-1">
+                      {budgetTier} ({currency})
+                    </span>
                   </div>
                 </div>
+
+                {/* Realistic Assessment Advisory (if present) */}
+                {itinerary.realisticAssessment && (
+                  <div
+                    className={`p-4 rounded-2xl bg-[#E8F0EA]/70 border border-[#D5DED7] space-y-1.5 ${
+                      isComposing ? "animate-editorial-fade [animation-delay:550ms]" : ""
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 text-[#193F2D] text-xs font-semibold font-mono uppercase tracking-wider">
+                      <ShieldCheck className="h-4 w-4 text-[#758B78]" />
+                      <span>Slow-Luxury Feasibility & Transit Assessment</span>
+                    </div>
+                    <p className="text-xs text-[#56664C] leading-relaxed">
+                      {itinerary.realisticAssessment}
+                    </p>
+                  </div>
+                )}
               </div>
 
-              {/* Realistic Assessment Advisory (if present) */}
-              {itinerary.realisticAssessment && (
-                <div className="p-5 rounded-2xl bg-[#F3F7F4] border border-[#CCD7D2] space-y-1.5">
-                  <div className="flex items-center gap-2 text-[#1A3F2C] text-xs font-semibold font-mono uppercase tracking-wider">
-                    <ShieldCheck className="h-4 w-4 text-[#c59a58]" />
-                    <span>Slow-Luxury Feasibility & Transit Assessment</span>
-                  </div>
-                  <p className="text-xs text-[#56664C] leading-relaxed">
-                    {itinerary.realisticAssessment}
-                  </p>
-                </div>
-              )}
-
-              {/* Day-by-Day Timeline Arc */}
-              <div className="space-y-6">
+              {/* B. Day-by-Day Journey Arc — Continuous Timeline */}
+              <div className="border-t border-[#D5DED7]/70 p-6 sm:p-10 space-y-8 bg-[#FAF8F5]/30">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-serif text-xl sm:text-2xl font-semibold text-[#1A3F2C]">
-                    Day-by-Day Journey Arc
-                  </h3>
-                  <span className="text-xs font-mono text-[#788A63]">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#758B78] font-semibold block">
+                      Curated Chronicle
+                    </span>
+                    <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#193F2D] mt-0.5">
+                      Day-by-Day Journey Arc
+                    </h3>
+                  </div>
+                  <span className="text-xs font-mono text-[#56664C] bg-[#E8F0EA] px-3 py-1 rounded-full border border-[#D5DED7]">
                     {itinerary.days.length} Daily Chapters
                   </span>
                 </div>
 
-                <div className="space-y-4">
-                  {itinerary.days.map((day) => (
-                    <div
-                      key={day.day}
-                      className="bg-white rounded-2xl p-5 sm:p-6 border border-[#CCD7D2]/80 shadow-2xs space-y-4 transition-all hover:border-[#1A3F2C]/30"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#CCD7D2]/40 pb-3">
-                        <div className="flex items-center gap-2.5">
-                          <span className="w-8 h-8 rounded-full bg-[#1A3F2C] text-white flex items-center justify-center font-mono text-xs font-bold shrink-0">
-                            {day.day}
-                          </span>
-                          <div>
-                            <h4 className="font-serif font-semibold text-sm sm:text-base text-[#1A3F2C]">
-                              {day.title}
-                            </h4>
-                            {day.theme && (
-                              <span className="text-[11px] text-[#788A63] font-mono">
-                                Theme: {day.theme}
+                {/* Continuous Timeline */}
+                <div className="relative pl-7 sm:pl-9">
+                  {/* Subtle vertical connector line */}
+                  <div className="absolute left-[13px] sm:left-[17px] top-4 bottom-8 w-[1.5px] bg-[#D5DED7]" />
+
+                  <div className="space-y-8 relative z-10">
+                    {itinerary.days.map((day, idx) => (
+                      <div
+                        key={day.day}
+                        className={`relative group ${
+                          isComposing ? "animate-editorial-fade" : ""
+                        }`}
+                        style={
+                          isComposing
+                            ? { animationDelay: `${Math.min(1300, 600 + idx * 100)}ms` }
+                            : undefined
+                        }
+                      >
+                        {/* Timeline Marker Circle */}
+                        <div className="absolute -left-7 sm:-left-9 top-0.5 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#193F2D] text-white flex items-center justify-center font-mono text-xs font-bold ring-4 ring-white shadow-2xs">
+                          {day.day}
+                        </div>
+
+                        {/* Day Content Container */}
+                        <div className="bg-white rounded-2xl p-5 sm:p-6 border border-[#D5DED7] shadow-2xs space-y-4 transition-all hover:border-[#193F2D]/30">
+                          {/* Day Header */}
+                          <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#D5DED7]/50 pb-3">
+                            <div className="flex flex-wrap items-baseline gap-2">
+                              <h4 className="font-serif font-medium text-base sm:text-lg text-[#193F2D]">
+                                {day.title}
+                              </h4>
+                              {day.theme && (
+                                <span className="text-xs font-mono text-[#758B78] italic">
+                                  — {day.theme}
+                                </span>
+                              )}
+                            </div>
+
+                            {day.destinationSlug ? (
+                              <Link
+                                href={`/destinations/${day.destinationSlug}`}
+                                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-[#E8F0EA] border border-[#D5DED7] text-[#193F2D] hover:bg-[#193F2D] hover:text-white transition-colors"
+                              >
+                                <span>{day.destination}</span>
+                                <ExternalLink className="h-2.5 w-2.5" />
+                              </Link>
+                            ) : (
+                              <span className="text-xs font-mono text-[#56664C] bg-[#FAF8F5] border border-[#D5DED7] px-2.5 py-0.5 rounded-full">
+                                {day.destination}
                               </span>
                             )}
                           </div>
-                        </div>
 
-                        {day.destinationSlug && (
-                          <Link
-                            href={`/destinations/${day.destinationSlug}`}
-                            className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-[#F3F7F4] border border-[#CCD7D2] text-[#1A3F2C] hover:bg-[#1A3F2C] hover:text-white transition-colors"
-                          >
-                            <span>{day.destination}</span>
-                            <ExternalLink className="h-2.5 w-2.5" />
-                          </Link>
-                        )}
-                      </div>
-
-                      {/* 3 Activities Blocks */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-                        <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#CCD7D2]/50 space-y-1">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#788A63] font-semibold block">
-                            🌅 Morning Rhythm
-                          </span>
-                          <p className="text-[#293D1F] leading-relaxed">{day.morningActivity}</p>
-                        </div>
-                        <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#CCD7D2]/50 space-y-1">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#788A63] font-semibold block">
-                            ☀️ Afternoon Discovery
-                          </span>
-                          <p className="text-[#293D1F] leading-relaxed">{day.afternoonActivity}</p>
-                        </div>
-                        <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#CCD7D2]/50 space-y-1">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-[#788A63] font-semibold block">
-                            🌙 Evening Serenity
-                          </span>
-                          <p className="text-[#293D1F] leading-relaxed">{day.eveningActivity}</p>
-                        </div>
-                      </div>
-
-                      {/* Stay & Travel Note */}
-                      <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs border-t border-[#CCD7D2]/30 text-[#56664C]">
-                        <div className="flex items-center gap-1.5">
-                          <span className="font-mono text-[10px] uppercase text-[#788A63]">Sanctuary:</span>
-                          <span className="font-medium text-[#1A3F2C]">{day.stayRecommendation}</span>
-                        </div>
-                        {day.travelNote && (
-                          <div className="text-[11px] font-mono text-[#788A63] italic">
-                            🚗 {day.travelNote}
+                          {/* 3 Activities Blocks */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                            <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#D5DED7]/60 space-y-1">
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-[#758B78] font-semibold flex items-center gap-1">
+                                <span>🌅</span> Morning Rhythm
+                              </span>
+                              <p className="text-[#293D1F] leading-relaxed">{day.morningActivity}</p>
+                            </div>
+                            <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#D5DED7]/60 space-y-1">
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-[#758B78] font-semibold flex items-center gap-1">
+                                <span>☀️</span> Afternoon Discovery
+                              </span>
+                              <p className="text-[#293D1F] leading-relaxed">{day.afternoonActivity}</p>
+                            </div>
+                            <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#D5DED7]/60 space-y-1">
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-[#758B78] font-semibold flex items-center gap-1">
+                                <span>🌙</span> Evening Serenity
+                              </span>
+                              <p className="text-[#293D1F] leading-relaxed">{day.eveningActivity}</p>
+                            </div>
                           </div>
-                        )}
+
+                          {/* Stay & Travel Note */}
+                          <div className="pt-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs border-t border-[#D5DED7]/50 text-[#56664C]">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-mono text-[10px] uppercase tracking-wider text-[#758B78] font-semibold">
+                                Sanctuary:
+                              </span>
+                              <span className="font-medium text-[#193F2D]">{day.stayRecommendation}</span>
+                            </div>
+                            {day.travelNote && (
+                              <div className="text-[11px] font-mono text-[#788A63] italic flex items-center gap-1">
+                                <span>🚗</span>
+                                <span>{day.travelNote}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* C. Practical Travel Information & Verified Escora Catalog Alignment */}
+              <div className="border-t border-[#D5DED7]/70 p-6 sm:p-10 space-y-6">
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#758B78] font-semibold block">
+                    Catalog Grounding
+                  </span>
+                  <h3 className="font-serif text-xl sm:text-2xl font-medium text-[#193F2D] mt-0.5">
+                    Verified Escora Catalog Alignment
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Verified Destinations */}
+                  <div className="bg-[#FAF8F5] rounded-2xl p-5 border border-[#D5DED7] space-y-3">
+                    <span className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
+                      Verified Destinations Included
+                    </span>
+                    <div className="space-y-2">
+                      {itinerary.verifiedDestinations?.map((dest, i) => (
+                        <Link
+                          key={i}
+                          href={dest.url}
+                          className="block p-3 rounded-xl bg-white border border-[#D5DED7]/70 hover:border-[#193F2D] hover:bg-[#E8F0EA]/40 transition-all group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-serif font-semibold text-xs text-[#193F2D] group-hover:text-[#758B78] transition-colors">
+                              {dest.name}
+                            </span>
+                            <ExternalLink className="h-3 w-3 text-[#788A63] group-hover:text-[#193F2D]" />
+                          </div>
+                          <p className="text-[11px] text-[#56664C] mt-1 line-clamp-1">
+                            {dest.highlightsOrRoute}
+                          </p>
+                        </Link>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Verified Catalog Offerings Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Verified Destinations */}
-                <div className="bg-white rounded-2xl p-6 border border-[#CCD7D2]/80 space-y-3">
-                  <span className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold block">
-                    Verified Escora Destinations
-                  </span>
-                  <div className="space-y-2">
-                    {itinerary.verifiedDestinations?.map((dest, i) => (
-                      <Link
-                        key={i}
-                        href={dest.url}
-                        className="block p-3 rounded-xl border border-[#CCD7D2]/60 hover:border-[#1A3F2C] hover:bg-[#F3F7F4] transition-all group"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-serif font-semibold text-xs text-[#1A3F2C] group-hover:text-[#c59a58]">
-                            {dest.name}
-                          </span>
-                          <ExternalLink className="h-3 w-3 text-[#788A63] group-hover:text-[#1A3F2C]" />
-                        </div>
-                        <p className="text-[11px] text-[#56664C] mt-1 line-clamp-1">
-                          {dest.highlightsOrRoute}
-                        </p>
-                      </Link>
-                    ))}
                   </div>
-                </div>
 
-                {/* Verified Curated Journeys */}
-                <div className="bg-white rounded-2xl p-6 border border-[#CCD7D2]/80 space-y-3">
-                  <span className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold block">
-                    Related Escora Curated Journeys
-                  </span>
-                  <div className="space-y-2">
-                    {itinerary.verifiedJourneys?.map((pkg, i) => (
-                      <Link
-                        key={i}
-                        href={pkg.url}
-                        className="block p-3 rounded-xl border border-[#CCD7D2]/60 hover:border-[#1A3F2C] hover:bg-[#F3F7F4] transition-all group"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-serif font-semibold text-xs text-[#1A3F2C] group-hover:text-[#c59a58]">
-                            {pkg.name}
-                          </span>
-                          <ExternalLink className="h-3 w-3 text-[#788A63] group-hover:text-[#1A3F2C]" />
-                        </div>
-                        <p className="text-[11px] text-[#56664C] mt-1 line-clamp-1 font-mono">
-                          Route: {pkg.highlightsOrRoute}
-                        </p>
-                      </Link>
-                    ))}
+                  {/* Verified Curated Journeys */}
+                  <div className="bg-[#FAF8F5] rounded-2xl p-5 border border-[#D5DED7] space-y-3">
+                    <span className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
+                      Related Curated Journeys
+                    </span>
+                    <div className="space-y-2">
+                      {itinerary.verifiedJourneys?.map((pkg, i) => (
+                        <Link
+                          key={i}
+                          href={pkg.url}
+                          className="block p-3 rounded-xl bg-white border border-[#D5DED7]/70 hover:border-[#193F2D] hover:bg-[#E8F0EA]/40 transition-all group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-serif font-semibold text-xs text-[#193F2D] group-hover:text-[#758B78] transition-colors">
+                              {pkg.name}
+                            </span>
+                            <ExternalLink className="h-3 w-3 text-[#788A63] group-hover:text-[#193F2D]" />
+                          </div>
+                          <p className="text-[11px] text-[#56664C] mt-1 line-clamp-1 font-mono">
+                            Route: {pkg.highlightsOrRoute}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Indicative Budget Guidance Box */}
-              <div className="p-6 rounded-2xl bg-white border border-[#CCD7D2]/80 space-y-2">
-                <span className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold block">
-                  Indicative Budget & Transparent Guidance
-                </span>
-                <p className="text-xs text-[#56664C] leading-relaxed">
-                  {itinerary.budgetGuidance}
-                </p>
-                <p className="text-[11px] text-[#788A63] italic pt-1 border-t border-[#CCD7D2]/40 font-mono">
-                  {itinerary.catalogueNotice}
-                </p>
-              </div>
-
-              {/* Practical Slow-Travel Tips */}
-              {itinerary.practicalAdvice && itinerary.practicalAdvice.length > 0 && (
-                <div className="p-6 rounded-2xl bg-[#F3F7F4] border border-[#CCD7D2]/80 space-y-3">
-                  <span className="text-xs font-mono uppercase tracking-wider text-[#1A3F2C] font-semibold block">
-                    Sensory & Practical Travel Notes
-                  </span>
-                  <ul className="space-y-2 text-xs text-[#293D1F]">
-                    {itinerary.practicalAdvice.map((advice, i) => (
-                      <li key={i} className="flex items-start gap-2">
-                        <span className="text-[#c59a58] font-bold">✦</span>
-                        <span>{advice}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Refinement Section (Iterative Prompting) */}
-              <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#CCD7D2] shadow-sm space-y-4">
-                <div className="space-y-1">
-                  <h4 className="font-serif font-semibold text-base text-[#1A3F2C] flex items-center gap-2">
-                    <RotateCcw className="h-4 w-4 text-[#c59a58]" />
-                    <span>Refine & Personalize This Itinerary</span>
-                  </h4>
-                  <p className="text-xs text-[#56664C]">
-                    Want more unhurried days, specific Ayurvedic healing, or a different balance of sea and tea hills? Request a bespoke refinement:
-                  </p>
-                </div>
-
-                {/* 1-Click Refinement Suggestions */}
-                {refinementSuggestions.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {refinementSuggestions.map((sug, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => handleRefineItinerary(sug)}
-                        disabled={planMutation.isPending}
-                        className="text-xs px-3 py-1.5 rounded-full border border-[#CCD7D2] bg-[#FAF8F5] hover:bg-[#1A3F2C] hover:text-white hover:border-[#1A3F2C] text-[#293D1F] transition-all flex items-center gap-1.5"
-                      >
-                        <Sparkles className="h-3 w-3 text-[#c59a58]" />
-                        <span>{sug}</span>
-                      </button>
-                    ))}
+              {/* D. Important Notes, Guidance & Recommendations */}
+              <div className="border-t border-[#D5DED7]/70 p-6 sm:p-10 space-y-5 bg-[#FAF8F5]/50">
+                {/* Practical Slow-Travel Tips */}
+                {itinerary.practicalAdvice && itinerary.practicalAdvice.length > 0 && (
+                  <div className="p-5 rounded-2xl bg-white border border-[#D5DED7] space-y-3">
+                    <span className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
+                      Sensory & Practical Travel Notes
+                    </span>
+                    <ul className="space-y-2 text-xs text-[#293D1F]">
+                      {itinerary.practicalAdvice.map((advice, i) => (
+                        <li key={i} className="flex items-start gap-2.5">
+                          <span className="text-[#758B78] font-bold text-sm leading-none shrink-0">✦</span>
+                          <span className="leading-relaxed">{advice}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
 
-                {/* Freeform Refinement Prompt */}
-                <div className="flex gap-2 pt-2">
-                  <input
-                    type="text"
-                    value={refinementInput}
-                    onChange={(e) => setRefinementInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleRefineItinerary(refinementInput)}
-                    placeholder="e.g., Make the pace slower with 3 nights in Munnar and less driving..."
-                    className="flex-1 rounded-xl border border-[#CCD7D2] px-3.5 py-2.5 text-xs bg-[#FAF8F5] text-[#293D1F] focus:outline-none focus:ring-1 focus:ring-[#1A3F2C] focus:bg-white transition-all"
-                    disabled={planMutation.isPending}
-                  />
-                  <Button
-                    onClick={() => handleRefineItinerary(refinementInput)}
-                    disabled={!refinementInput.trim() || planMutation.isPending}
-                    className="rounded-xl bg-[#1A3F2C] text-white hover:bg-[#255239] text-xs px-4"
-                  >
-                    Refine
-                  </Button>
+                {/* Indicative Budget Guidance Box */}
+                <div className="p-5 rounded-2xl bg-white border border-[#D5DED7] space-y-2">
+                  <span className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
+                    Indicative Budget & Transparent Guidance
+                  </span>
+                  <p className="text-xs text-[#56664C] leading-relaxed">
+                    {itinerary.budgetGuidance}
+                  </p>
+                  <p className="text-[11px] text-[#788A63] italic pt-1 border-t border-[#D5DED7]/50 font-mono">
+                    {itinerary.catalogueNotice}
+                  </p>
                 </div>
               </div>
 
-              {/* Connect to Existing Escora Flows CTA */}
-              <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-[#1A3F2C] to-[#122B1E] text-white text-center space-y-4 shadow-lg">
-                <div className="w-12 h-12 rounded-full bg-white/10 border border-[#c59a58]/40 flex items-center justify-center mx-auto text-[#c59a58]">
-                  <Compass className="h-6 w-6" />
+              {/* E. Bespoke Refinement & Final Actions */}
+              <div className="border-t border-[#D5DED7]/70 p-6 sm:p-10 space-y-8 bg-white no-print">
+                {/* Refinement Section */}
+                <div className="bg-[#FAF8F5] rounded-2xl p-5 sm:p-6 border border-[#D5DED7] space-y-4">
+                  <div className="space-y-1">
+                    <h4 className="font-serif font-semibold text-base text-[#193F2D] flex items-center gap-2">
+                      <RotateCcw className="h-4 w-4 text-[#758B78]" />
+                      <span>Refine & Personalize This Itinerary</span>
+                    </h4>
+                    <p className="text-xs text-[#56664C]">
+                      Want more unhurried days, specific Ayurvedic healing, or a different balance of sea and tea hills? Request a bespoke refinement:
+                    </p>
+                  </div>
+
+                  {/* 1-Click Refinement Suggestions */}
+                  {refinementSuggestions.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {refinementSuggestions.map((sug, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => handleRefineItinerary(sug)}
+                          disabled={planMutation.isPending}
+                          className="text-xs px-3 py-1.5 rounded-full border border-[#D5DED7] bg-white hover:bg-[#193F2D] hover:text-white hover:border-[#193F2D] text-[#293D1F] transition-all flex items-center gap-1.5"
+                        >
+                          <Sparkles className="h-3 w-3 text-[#758B78]" />
+                          <span>{sug}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Freeform Refinement Prompt */}
+                  <div className="flex gap-2 pt-1">
+                    <input
+                      type="text"
+                      value={refinementInput}
+                      onChange={(e) => setRefinementInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleRefineItinerary(refinementInput)}
+                      placeholder="e.g., Make the pace slower with 3 nights in Munnar and less driving..."
+                      className="flex-1 rounded-xl border border-[#D5DED7] px-3.5 py-2.5 text-xs bg-white text-[#293D1F] focus:outline-none focus:ring-1 focus:ring-[#193F2D] transition-all"
+                      disabled={planMutation.isPending}
+                    />
+                    <Button
+                      onClick={() => handleRefineItinerary(refinementInput)}
+                      disabled={!refinementInput.trim() || planMutation.isPending}
+                      className="rounded-xl bg-[#193F2D] text-white hover:bg-[#255239] text-xs px-4"
+                    >
+                      Refine
+                    </Button>
+                  </div>
                 </div>
-                <h3 className="font-serif text-2xl sm:text-3xl font-semibold">
-                  Bring This Voyage to Life
-                </h3>
-                <p className="text-xs sm:text-sm text-white/80 max-w-xl mx-auto leading-relaxed">
-                  Every Escora journey is personally adapted by human travel designers. Continue with this draft plan to our bespoke enquiry flow, where we reserve private boutique sanctuaries, arrange chauffeur allocations, and tailor inclusions to your preferences.
-                </p>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-                  <Button
-                    onClick={handleContinueToHumanDesigner}
-                    className="w-full sm:w-auto px-8 py-6 rounded-xl bg-[#c59a58] hover:bg-[#b58c4c] text-white font-medium text-sm flex items-center justify-center gap-2 shadow-md transition-all"
-                    data-testid="button-continue-to-plan"
-                  >
-                    <span>Handcraft With an Escora Travel Designer</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+                {/* Designer Handcraft Closing Area */}
+                <div className="p-6 sm:p-8 rounded-2xl bg-[#E8F0EA]/60 border border-[#D5DED7] text-center space-y-4">
+                  <div className="w-10 h-10 rounded-full bg-white border border-[#D5DED7] flex items-center justify-center mx-auto text-[#193F2D]">
+                    <Compass className="h-5 w-5" />
+                  </div>
+                  <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#193F2D]">
+                    Bring This Voyage to Life
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#56664C] max-w-xl mx-auto leading-relaxed">
+                    Every Escora journey is personally adapted by human travel designers. Continue with this draft plan to our bespoke enquiry flow, where we reserve private boutique sanctuaries, arrange chauffeur allocations, and tailor inclusions to your preferences.
+                  </p>
 
-                  <Button
-                    variant="outline"
-                    onClick={handleShareWhatsApp}
-                    className="w-full sm:w-auto px-6 py-6 rounded-xl border-white/20 text-white hover:bg-white/10 text-xs flex items-center justify-center gap-2"
-                  >
-                    <span>Speak on WhatsApp</span>
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </Button>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                    <Button
+                      onClick={handleContinueToHumanDesigner}
+                      className="w-full sm:w-auto px-7 py-5 rounded-xl bg-[#193F2D] hover:bg-[#255239] text-white font-medium text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all"
+                      data-testid="button-continue-to-plan"
+                    >
+                      <span>Handcraft With an Escora Travel Designer</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      onClick={handleShareWhatsApp}
+                      className="w-full sm:w-auto px-6 py-5 rounded-xl border-[#193F2D]/30 bg-white text-[#193F2D] hover:bg-[#193F2D] hover:text-white text-xs flex items-center justify-center gap-2 transition-all"
+                    >
+                      <span>Speak on WhatsApp</span>
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={handleScrollToForm}
+                      className="text-xs font-mono text-[#788A63] hover:text-[#193F2D] underline underline-offset-4 transition-colors"
+                    >
+                      ← Return to planner to adjust preferences
+                    </button>
+                  </div>
+
+                  <p className="text-[10px] font-mono text-[#788A63] pt-1">
+                    No automated bookings or upfront commitment. Strictly private review with your designer.
+                  </p>
                 </div>
-
-                <p className="text-[10px] font-mono text-white/60 pt-2">
-                  No automated bookings or upfront commitment. Strictly private review with your designer.
-                </p>
               </div>
             </div>
           )}

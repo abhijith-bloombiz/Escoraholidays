@@ -3,15 +3,51 @@ import { useListDestinations, useCreateOrder } from "@workspace/api-client-react
 import Layout from "@/components/layout/Layout";
 import { Link } from "wouter";
 import { useSeo } from "@/hooks/useSeo";
+import {
+  Heart,
+  Users,
+  User,
+  Leaf,
+  UsersRound,
+  Check,
+  ChevronRight,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  Calendar,
+  ShieldCheck,
+  Minus,
+  Plus,
+} from "lucide-react";
 
 type TravelStyle = "Honeymoon" | "Family" | "Solo" | "Wellness" | "Bespoke Group";
 
-const TRAVEL_STYLES: { label: TravelStyle; desc: string; icon: string }[] = [
-  { label: "Honeymoon", desc: "Intimate escapes for two", icon: "♡" },
-  { label: "Family", desc: "Memories across generations", icon: "◈" },
-  { label: "Solo", desc: "Your pace, your way", icon: "◎" },
-  { label: "Wellness", desc: "Ayurveda, rest and renewal", icon: "✦" },
-  { label: "Bespoke Group", desc: "Curated for private groups", icon: "◇" },
+const TRAVEL_STYLES: { label: TravelStyle; desc: string; icon: any }[] = [
+  {
+    label: "Honeymoon",
+    desc: "Intimate escapes for two, designed for meaningful moments.",
+    icon: Heart,
+  },
+  {
+    label: "Family",
+    desc: "Memories across generations with comfort and ease.",
+    icon: Users,
+  },
+  {
+    label: "Solo",
+    desc: "Your pace, your way with meaningful experiences.",
+    icon: User,
+  },
+  {
+    label: "Wellness",
+    desc: "Ayurveda, rest and renewal in serene surroundings.",
+    icon: Leaf,
+  },
+  {
+    label: "Bespoke Group",
+    desc: "Curated journeys for private groups with shared interests.",
+    icon: UsersRound,
+  },
 ];
 
 const BUDGET_OPTIONS = [
@@ -54,7 +90,7 @@ const TOTAL_STEPS = 5;
 
 export default function PlanPage() {
   useSeo({
-    title: "Plan Your Private Kerala Holiday — Custom Itinerary Builder",
+    title: "Plan Your Private Kerala Holiday — Custom Itinerary Builder | Escora",
     description: "Start planning your bespoke Kerala holiday with Escora. Tell us your travel dates, group size, and interests — honeymoon, Ayurveda retreat, family trip, or luxury getaway — and we'll craft your perfect itinerary.",
     url: "https://www.escoraholidays.com/plan",
   });
@@ -94,8 +130,15 @@ export default function PlanPage() {
     }
   }, []);
 
-  function next() { setStep((s) => Math.min(s + 1, TOTAL_STEPS)); }
-  function back() { setStep((s) => Math.max(s - 1, 1)); }
+  function next() {
+    setStep((s) => Math.min(s + 1, TOTAL_STEPS));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function back() {
+    setStep((s) => Math.max(s - 1, 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   function toggleDestination(name: string) {
     setForm((f) => ({
@@ -154,486 +197,534 @@ export default function PlanPage() {
 
   return (
     <Layout>
-      <div style={{ minHeight: "100vh", background: "var(--bg)", paddingTop: "var(--page-top-pad, clamp(100px, 11vw, 136px))" }}>
-
-        {/* Progress bar */}
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: 3, zIndex: 300, background: "var(--hair-soft, rgba(232,220,196,0.1))" }}>
-          <div style={{ height: "100%", background: "var(--gold)", width: `${(step / TOTAL_STEPS) * 100}%`, transition: "width 0.5s cubic-bezier(0.16,1,0.3,1)" }} />
-        </div>
-
-        <div style={{ maxWidth: "var(--container-narrow, 680px)", margin: "0 auto", padding: "clamp(24px, 3vw, 40px) var(--gutter) clamp(56px, 7vw, 96px)" }}>
-
-          {/* AI Trip Planner bridge card */}
-          <div style={{
-            marginBottom: 24,
-            padding: "16px 20px",
-            borderRadius: 8,
-            border: "1px solid var(--hair, rgba(232,220,196,0.25))",
-            background: "var(--tint, rgba(200,163,97,0.06))",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 12,
-          }}>
-            <div>
-              <div style={{ fontFamily: "var(--f-serif)", fontSize: 15, color: "var(--ink)", fontWeight: 500 }}>
-                Looking for an instant AI-designed itinerary?
+      <div className="min-h-screen bg-[#FAF8F5] text-[#293D1F] pt-28 pb-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* AI Trip Planner Bridge Card */}
+          <div className="bg-[#F3F7F4] border border-[#DCE6E0] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
+            <div className="space-y-0.5">
+              <div className="font-serif text-sm sm:text-base font-semibold text-[#183628] flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-[#183628]" />
+                <span>Looking for an instant AI-designed itinerary?</span>
               </div>
-              <div style={{ fontFamily: "var(--f-body)", fontSize: 12, color: "var(--ink-soft)" }}>
+              <p className="text-xs text-[#56664C] leading-relaxed">
                 Curate a bespoke day-by-day slow-luxury passage in seconds, grounded in our verified catalog.
-              </div>
+              </p>
             </div>
             <Link
               href="/trip-planner"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 16px",
-                borderRadius: 4,
-                background: "var(--gold)",
-                color: "#fff",
-                fontSize: 12,
-                fontWeight: 600,
-                textDecoration: "none",
-                fontFamily: "var(--f-mono)",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase",
-              }}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#183628] hover:bg-[#255239] text-white text-xs font-mono uppercase tracking-wider font-medium transition-all shrink-0 shadow-xs"
             >
               <span>AI Trip Planner</span>
-              <span>→</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          {/* Step label */}
-          <p className="section-label" style={{ marginBottom: 16 }}>
-            <span className="dot" />Step {step} of {TOTAL_STEPS}
-          </p>
+          {/* Main White Form Container */}
+          <div className="bg-white rounded-3xl border border-[#CCD7D2]/80 p-6 sm:p-10 lg:p-12 shadow-2xs">
+            {/* Step Header Indicator with 5-segment Progress Bar */}
+            <ProgressIndicator step={step} total={TOTAL_STEPS} />
 
-          {/* Step 1 — Travel Style */}
-          {step === 1 && (
-            <div>
-              <h1 style={{ fontFamily: "var(--f-serif)", fontSize: "clamp(2rem,5vw,3rem)", color: "var(--ink)", fontWeight: 300, lineHeight: 1.15, marginBottom: 12 }}>
-                How would you like to travel?
-              </h1>
-              <p style={{ fontFamily: "var(--f-body)", color: "var(--ink-soft)", marginBottom: 40, fontSize: 15 }}>
-                This helps us shape the tone and pace of your journey.
-              </p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(180px, 100%), 1fr))", gap: 12, marginBottom: 48 }}>
-                {TRAVEL_STYLES.map((s) => (
-                  <button
-                    key={s.label}
-                    onClick={() => setForm((f) => ({ ...f, travelStyle: s.label }))}
-                    style={{
-                      textAlign: "left",
-                      padding: "20px 20px",
-                      border: `1px solid ${form.travelStyle === s.label ? "var(--gold)" : "var(--hair, rgba(232,220,196,0.15))"}`,
-                      borderRadius: 4,
-                      background: form.travelStyle === s.label ? "var(--tint, rgba(200,163,97,0.08))" : "transparent",
-                      cursor: "pointer",
-                      transition: "border-color 0.2s, background 0.2s",
-                    }}
-                  >
-                    <div style={{ fontSize: 22, marginBottom: 10, color: "var(--gold)" }}>{s.icon}</div>
-                    <div style={{ fontFamily: "var(--f-serif)", fontSize: 17, color: "var(--ink)", marginBottom: 4 }}>{s.label}</div>
-                    <div style={{ fontFamily: "var(--f-body)", fontSize: 12, color: "var(--ink-soft)" }}>{s.desc}</div>
-                  </button>
-                ))}
-              </div>
-              <StepActions onNext={next} nextDisabled={!form.travelStyle} showBack={false} />
-            </div>
-          )}
-
-          {/* Step 2 — Destinations */}
-          {step === 2 && (
-            <div>
-              <h1 style={{ fontFamily: "var(--f-serif)", fontSize: "clamp(2rem,5vw,3rem)", color: "var(--ink)", fontWeight: 300, lineHeight: 1.15, marginBottom: 12 }}>
-                Where do you want to go?
-              </h1>
-              <p style={{ fontFamily: "var(--f-body)", color: "var(--ink-soft)", marginBottom: 40, fontSize: 15 }}>
-                Select one or more — we'll weave them into a seamless journey.
-              </p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 48 }}>
-                {destinations && destinations.length > 0
-                  ? destinations.map((d) => (
-                    <button
-                      key={d.id}
-                      onClick={() => toggleDestination(d.name)}
-                      style={{
-                        padding: "10px 20px",
-                        border: `1px solid ${form.destinations.includes(d.name) ? "var(--gold)" : "var(--hair, rgba(232,220,196,0.2))"}`,
-                        borderRadius: 999,
-                        background: form.destinations.includes(d.name) ? "var(--tint, rgba(200,163,97,0.12))" : "transparent",
-                        fontFamily: "var(--f-body)",
-                        fontSize: 13,
-                        color: form.destinations.includes(d.name) ? "var(--gold)" : "var(--ink-soft)",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      {d.name}
-                    </button>
-                  ))
-                  : ["Alleppey", "Munnar", "Fort Kochi", "Thekkady", "Kovalam", "Wayanad", "Varkala", "Kumarakom"].map((name) => (
-                    <button
-                      key={name}
-                      onClick={() => toggleDestination(name)}
-                      style={{
-                        padding: "10px 20px",
-                        border: `1px solid ${form.destinations.includes(name) ? "var(--gold)" : "var(--hair, rgba(232,220,196,0.2))"}`,
-                        borderRadius: 999,
-                        background: form.destinations.includes(name) ? "var(--tint, rgba(200,163,97,0.12))" : "transparent",
-                        fontFamily: "var(--f-body)",
-                        fontSize: 13,
-                        color: form.destinations.includes(name) ? "var(--gold)" : "var(--ink-soft)",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      {name}
-                    </button>
-                  ))
-                }
-              </div>
-              {form.destinations.length > 0 && (
-                <p style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.12em", color: "var(--gold)", marginBottom: 32 }}>
-                  {form.destinations.length} selected — {form.destinations.join(" · ")}
+            {/* Step 1 — Travel Style */}
+            {step === 1 && (
+              <div className="animate-in fade-in duration-300">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                  How would you like <br />
+                  <span className="italic font-normal">to travel?</span>
+                </h1>
+                <p className="text-sm text-[#56664C] leading-relaxed mb-8">
+                  This helps us shape the tone and pace of your journey.
                 </p>
-              )}
-              <StepActions onNext={next} onBack={back} nextLabel="Continue" />
-            </div>
-          )}
 
-          {/* Step 3 — Trip Details */}
-          {step === 3 && (
-            <div>
-              <h1 style={{ fontFamily: "var(--f-serif)", fontSize: "clamp(2rem,5vw,3rem)", color: "var(--ink)", fontWeight: 300, lineHeight: 1.15, marginBottom: 12 }}>
-                Tell us about your trip.
-              </h1>
-              <p style={{ fontFamily: "var(--f-body)", color: "var(--ink-soft)", marginBottom: 40, fontSize: 15 }}>
-                Approximate dates and group size help us plan the right experiences.
-              </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                  {TRAVEL_STYLES.map((s) => {
+                    const isSelected = form.travelStyle === s.label;
+                    const IconComponent = s.icon;
+                    return (
+                      <button
+                        key={s.label}
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, travelStyle: s.label }))}
+                        className={`p-5 rounded-2xl border text-left transition-all relative flex flex-col justify-between min-h-[140px] group ${
+                          isSelected
+                            ? "border-2 border-[#183628] bg-[#F4F7F5] ring-1 ring-[#183628] shadow-2xs"
+                            : "border border-[#DCE6E0] bg-white hover:border-[#183628]/40 hover:bg-[#FAF8F5]"
+                        }`}
+                      >
+                        {/* Top row: Icon and checkmark */}
+                        <div className="flex items-center justify-between mb-4">
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
+                            isSelected ? "bg-[#183628] text-white" : "bg-[#EFF4F0] text-[#183628]"
+                          }`}>
+                            <IconComponent className="w-4 h-4" />
+                          </div>
+                          {isSelected && (
+                            <span className="w-5 h-5 rounded-full bg-[#183628] text-white flex items-center justify-center text-[10px] shadow-xs">
+                              <Check className="w-3 h-3" />
+                            </span>
+                          )}
+                        </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(200px, 100%), 1fr))", gap: 20, marginBottom: 24 }}>
-                <Field label="Arrival date">
-                  <input
-                    type="date"
-                    value={form.arrivalDate}
-                    onChange={(e) => setForm((f) => ({ ...f, arrivalDate: e.target.value }))}
-                    style={inputStyle}
-                  />
-                </Field>
-                <Field label="Departure date">
-                  <input
-                    type="date"
-                    value={form.departureDate}
-                    onChange={(e) => setForm((f) => ({ ...f, departureDate: e.target.value }))}
-                    style={inputStyle}
-                  />
-                </Field>
-              </div>
+                        {/* Content */}
+                        <div className="space-y-1">
+                          <div className="font-serif text-lg font-medium text-[#183628]">
+                            {s.label}
+                          </div>
+                          <p className="text-xs text-[#56664C] leading-relaxed pr-8">
+                            {s.desc}
+                          </p>
+                        </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(200px, 100%), 1fr))", gap: 20, marginBottom: 32 }}>
-                <Field label="Adults">
-                  <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <CounterBtn onClick={() => setForm((f) => ({ ...f, adults: Math.max(1, f.adults - 1) }))}>−</CounterBtn>
-                    <span style={{ fontFamily: "var(--f-serif)", fontSize: 24, color: "var(--ink)", minWidth: 32, textAlign: "center" }}>{form.adults}</span>
-                    <CounterBtn onClick={() => setForm((f) => ({ ...f, adults: f.adults + 1 }))}>+</CounterBtn>
-                  </div>
-                </Field>
-                <Field label="Children">
-                  <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <CounterBtn onClick={() => setForm((f) => ({ ...f, children: Math.max(0, f.children - 1) }))}>−</CounterBtn>
-                    <span style={{ fontFamily: "var(--f-serif)", fontSize: 24, color: "var(--ink)", minWidth: 32, textAlign: "center" }}>{form.children}</span>
-                    <CounterBtn onClick={() => setForm((f) => ({ ...f, children: f.children + 1 }))}>+</CounterBtn>
-                  </div>
-                </Field>
-              </div>
-
-              <Field label="Approximate budget per person">
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 8 }}>
-                  {BUDGET_OPTIONS.map((b) => (
-                    <button
-                      key={b}
-                      onClick={() => setForm((f) => ({ ...f, budgetRange: b }))}
-                      style={{
-                        padding: "9px 18px",
-                        border: `1px solid ${form.budgetRange === b ? "var(--gold)" : "var(--hair, rgba(232,220,196,0.2))"}`,
-                        borderRadius: 999,
-                        background: form.budgetRange === b ? "var(--tint, rgba(200,163,97,0.12))" : "transparent",
-                        fontFamily: "var(--f-mono)",
-                        fontSize: 12,
-                        letterSpacing: "0.05em",
-                        color: form.budgetRange === b ? "var(--gold)" : "var(--ink-soft)",
-                        cursor: "pointer",
-                        transition: "all 0.2s",
-                      }}
-                    >
-                      {b}
-                    </button>
-                  ))}
+                        {/* Bottom right arrow button */}
+                        <div className={`absolute bottom-4 right-4 w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
+                          isSelected
+                            ? "border-[#183628] text-[#183628] bg-white"
+                            : "border-[#DCE6E0] text-[#788A63] bg-white group-hover:border-[#183628]/40 group-hover:text-[#183628]"
+                        }`}>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-              </Field>
 
-              <div style={{ marginTop: 40 }}>
+                <StepActions
+                  onNext={next}
+                  nextDisabled={!form.travelStyle}
+                  showBack={false}
+                />
+              </div>
+            )}
+
+            {/* Step 2 — Destinations */}
+            {step === 2 && (
+              <div className="animate-in fade-in duration-300">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                  Where do you want <br />
+                  <span className="italic font-normal">to go?</span>
+                </h1>
+                <p className="text-sm text-[#56664C] leading-relaxed mb-8">
+                  Select one or more — we&apos;ll weave them into a seamless journey.
+                </p>
+
+                <div className="flex flex-wrap gap-2.5 mb-6">
+                  {destinations && destinations.length > 0
+                    ? destinations.map((d) => {
+                        const isSelected = form.destinations.includes(d.name);
+                        return (
+                          <button
+                            key={d.id}
+                            type="button"
+                            onClick={() => toggleDestination(d.name)}
+                            className={`px-4 py-2.5 rounded-full text-xs sm:text-sm transition-all flex items-center gap-2 ${
+                              isSelected
+                                ? "bg-[#183628] text-white border-2 border-[#183628] font-medium shadow-2xs"
+                                : "bg-white border border-[#DCE6E0] text-[#293D1F] hover:bg-[#FAF8F5] hover:border-[#183628]/40"
+                            }`}
+                          >
+                            <span>{d.name}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5" />}
+                          </button>
+                        );
+                      })
+                    : ["Alleppey", "Munnar", "Fort Kochi", "Thekkady", "Kovalam", "Wayanad", "Varkala", "Kumarakom"].map((name) => {
+                        const isSelected = form.destinations.includes(name);
+                        return (
+                          <button
+                            key={name}
+                            type="button"
+                            onClick={() => toggleDestination(name)}
+                            className={`px-4 py-2.5 rounded-full text-xs sm:text-sm transition-all flex items-center gap-2 ${
+                              isSelected
+                                ? "bg-[#183628] text-white border-2 border-[#183628] font-medium shadow-2xs"
+                                : "bg-white border border-[#DCE6E0] text-[#293D1F] hover:bg-[#FAF8F5] hover:border-[#183628]/40"
+                            }`}
+                          >
+                            <span>{name}</span>
+                            {isSelected && <Check className="w-3.5 h-3.5" />}
+                          </button>
+                        );
+                      })
+                  }
+                </div>
+
+                {form.destinations.length > 0 && (
+                  <div className="p-3 bg-[#F4F7F5] rounded-xl border border-[#DCE6E0] text-xs font-mono text-[#183628] mb-8">
+                    <span className="font-semibold">{form.destinations.length} selected:</span>{" "}
+                    {form.destinations.join(" · ")}
+                  </div>
+                )}
+
+                <StepActions onNext={next} onBack={back} nextLabel="Continue" />
+              </div>
+            )}
+
+            {/* Step 3 — Trip Details */}
+            {step === 3 && (
+              <div className="animate-in fade-in duration-300">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                  Tell us about <br />
+                  <span className="italic font-normal">your trip.</span>
+                </h1>
+                <p className="text-sm text-[#56664C] leading-relaxed mb-8">
+                  Approximate dates and group size help us plan the right experiences.
+                </p>
+
+                {/* Arrival & Departure */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-2">
+                      Arrival Date
+                    </label>
+                    <input
+                      type="date"
+                      value={form.arrivalDate}
+                      onChange={(e) => setForm((f) => ({ ...f, arrivalDate: e.target.value }))}
+                      className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#183628] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-2">
+                      Departure Date
+                    </label>
+                    <input
+                      type="date"
+                      value={form.departureDate}
+                      onChange={(e) => setForm((f) => ({ ...f, departureDate: e.target.value }))}
+                      min={form.arrivalDate || undefined}
+                      className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#183628] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Adults & Children Counter */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <div className="bg-[#FAF8F5] border border-[#DCE6E0] rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-[#183628]">Adults</div>
+                      <div className="text-[11px] text-[#788A63]">Ages 12 and above</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, adults: Math.max(1, f.adults - 1) }))}
+                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#183628] hover:bg-[#EFF4F0]"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="w-8 text-center font-serif text-lg font-medium text-[#183628]">
+                        {form.adults}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, adults: f.adults + 1 }))}
+                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#183628] hover:bg-[#EFF4F0]"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="bg-[#FAF8F5] border border-[#DCE6E0] rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-semibold text-[#183628]">Children</div>
+                      <div className="text-[11px] text-[#788A63]">Under 12 years</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, children: Math.max(0, f.children - 1) }))}
+                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#183628] hover:bg-[#EFF4F0]"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="w-8 text-center font-serif text-lg font-medium text-[#183628]">
+                        {form.children}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, children: f.children + 1 }))}
+                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#183628] hover:bg-[#EFF4F0]"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Approximate Budget Per Person */}
+                <div className="space-y-3 mb-8">
+                  <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold">
+                    Approximate Budget Per Person
+                  </label>
+                  <div className="flex flex-wrap gap-2.5">
+                    {BUDGET_OPTIONS.map((b) => {
+                      const isSelected = form.budgetRange === b;
+                      return (
+                        <button
+                          key={b}
+                          type="button"
+                          onClick={() => setForm((f) => ({ ...f, budgetRange: b }))}
+                          className={`px-4 py-2.5 rounded-full text-xs font-mono transition-all ${
+                            isSelected
+                              ? "bg-[#183628] text-white border-2 border-[#183628] font-semibold shadow-2xs"
+                              : "bg-white border border-[#DCE6E0] text-[#293D1F] hover:bg-[#FAF8F5]"
+                          }`}
+                        >
+                          {b}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
                 <StepActions onNext={next} onBack={back} />
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step 4 — Preferences */}
-          {step === 4 && (
-            <div>
-              <h1 style={{ fontFamily: "var(--f-serif)", fontSize: "clamp(2rem,5vw,3rem)", color: "var(--ink)", fontWeight: 300, lineHeight: 1.15, marginBottom: 12 }}>
-                Anything we should know?
-              </h1>
-              <p style={{ fontFamily: "var(--f-body)", color: "var(--ink-soft)", marginBottom: 40, fontSize: 15 }}>
-                Special occasions, dietary requirements, accommodation preferences, pace of travel — tell us everything.
-              </p>
-              <textarea
-                value={form.preferences}
-                onChange={(e) => setForm((f) => ({ ...f, preferences: e.target.value }))}
-                placeholder="E.g. celebrating our anniversary, prefer heritage stays, vegetarian, leisurely pace with no early mornings…"
-                rows={7}
-                style={{
-                  ...inputStyle,
-                  resize: "vertical",
-                  width: "100%",
-                  fontFamily: "var(--f-body)",
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                }}
-              />
-              <div style={{ marginTop: 40 }}>
+            {/* Step 4 — Preferences */}
+            {step === 4 && (
+              <div className="animate-in fade-in duration-300">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                  Anything we <br />
+                  <span className="italic font-normal">should know?</span>
+                </h1>
+                <p className="text-sm text-[#56664C] leading-relaxed mb-8">
+                  Special occasions, dietary requirements, accommodation preferences, pace of travel — tell us everything.
+                </p>
+
+                <div className="space-y-2 mb-8">
+                  <textarea
+                    value={form.preferences}
+                    onChange={(e) => setForm((f) => ({ ...f, preferences: e.target.value }))}
+                    placeholder="E.g. celebrating our anniversary, prefer heritage stays, vegetarian, leisurely pace with no early mornings…"
+                    rows={6}
+                    className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-2xl p-4 text-sm text-[#293D1F] placeholder:text-[#788A63] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all resize-none leading-relaxed"
+                  />
+                </div>
+
                 <StepActions onNext={next} onBack={back} nextLabel="Almost there" />
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Step 5 — Contact */}
-          {step === 5 && (
-            <form onSubmit={handleSubmit}>
-              <h1 style={{ fontFamily: "var(--f-serif)", fontSize: "clamp(2rem,5vw,3rem)", color: "var(--ink)", fontWeight: 300, lineHeight: 1.15, marginBottom: 12 }}>
-                How can we reach you?
-              </h1>
-              <p style={{ fontFamily: "var(--f-body)", color: "var(--ink-soft)", marginBottom: 40, fontSize: 15 }}>
-                A journey designer will be in touch within 24 hours.
-              </p>
+            {/* Step 5 — Contact */}
+            {step === 5 && (
+              <form onSubmit={handleSubmit} className="animate-in fade-in duration-300">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                  How can we <br />
+                  <span className="italic font-normal">reach you?</span>
+                </h1>
+                <p className="text-sm text-[#56664C] leading-relaxed mb-8">
+                  A journey designer will be in touch within 24 hours.
+                </p>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 20, marginBottom: 32 }}>
-                <Field label="Full name *">
-                  <input
-                    type="text"
-                    required
-                    value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                    placeholder="Your name"
-                    style={inputStyle}
+                <div className="space-y-4 mb-8">
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-1.5">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={form.name}
+                      onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                      placeholder="Your name"
+                      className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#293D1F] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-1.5">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                      placeholder="you@example.com"
+                      className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#293D1F] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-1.5">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={form.phone}
+                      onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
+                      placeholder="+91 98765 43210"
+                      className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#293D1F] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
+                    />
+                  </div>
+                </div>
+
+                {/* Summary Snapshot Card */}
+                <div className="bg-[#FAF8F5] border border-[#DCE6E0] rounded-2xl p-5 sm:p-6 space-y-3 mb-8">
+                  <div className="text-xs font-mono uppercase tracking-wider font-semibold text-[#183628] flex items-center gap-1.5 pb-2 border-b border-[#DCE6E0]/60">
+                    <ShieldCheck className="w-4 h-4 text-[#183628]" />
+                    <span>Your Itinerary Summary</span>
+                  </div>
+                  <SummaryRow label="Travel style" value={form.travelStyle || "—"} />
+                  <SummaryRow label="Destinations" value={form.destinations.length ? form.destinations.join(", ") : "—"} />
+                  <SummaryRow
+                    label="Dates"
+                    value={form.arrivalDate && form.departureDate ? `${form.arrivalDate} → ${form.departureDate}` : form.arrivalDate || "—"}
                   />
-                </Field>
-                <Field label="Email *">
-                  <input
-                    type="email"
-                    required
-                    value={form.email}
-                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                    placeholder="you@example.com"
-                    style={inputStyle}
+                  <SummaryRow
+                    label="Travellers"
+                    value={`${form.adults} adult${form.adults !== 1 ? "s" : ""}${form.children ? `, ${form.children} child${form.children !== 1 ? "ren" : ""}` : ""}`}
                   />
-                </Field>
-                <Field label="Phone *">
-                  <input
-                    type="tel"
-                    required
-                    value={form.phone}
-                    onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                    placeholder="+91 98765 43210"
-                    style={inputStyle}
-                  />
-                </Field>
-              </div>
+                  <SummaryRow label="Budget" value={form.budgetRange || "—"} />
+                </div>
 
-              {/* Summary card */}
-              <div style={{ border: "1px solid var(--hair, rgba(232,220,196,0.15))", borderRadius: 4, padding: "20px 24px", marginBottom: 32, background: "var(--tint, rgba(232,220,196,0.03))" }}>
-                <p className="section-label" style={{ marginBottom: 14 }}><span className="dot" />Your itinerary summary</p>
-                <SummaryRow label="Travel style" value={form.travelStyle || "—"} />
-                <SummaryRow label="Destinations" value={form.destinations.length ? form.destinations.join(", ") : "—"} />
-                <SummaryRow label="Dates" value={form.arrivalDate && form.departureDate ? `${form.arrivalDate} → ${form.departureDate}` : form.arrivalDate || "—"} />
-                <SummaryRow label="Travellers" value={`${form.adults} adult${form.adults !== 1 ? "s" : ""}${form.children ? `, ${form.children} child${form.children !== 1 ? "ren" : ""}` : ""}`} />
-                <SummaryRow label="Budget" value={form.budgetRange || "—"} />
-              </div>
+                {error && (
+                  <p className="text-xs text-red-600 mb-4">{error}</p>
+                )}
 
-              {error && (
-                <p style={{ fontFamily: "var(--f-body)", fontSize: 13, color: "#e05252", marginBottom: 16 }}>{error}</p>
-              )}
+                <div className="pt-6 border-t border-[#E2EAE4] flex items-center justify-between gap-4">
+                  <button
+                    type="button"
+                    onClick={back}
+                    className="px-6 py-3 rounded-full border border-[#CCD7D2] text-[#293D1F] hover:bg-[#F3F7F4] text-sm font-medium flex items-center gap-2 transition-all"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>Back</span>
+                  </button>
 
-              <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                <button type="button" onClick={back} style={backBtnStyle}>← Back</button>
-                <button
-                  type="submit"
-                  disabled={createOrder.isPending}
-                  style={{
-                    background: "var(--gold)",
-                    color: "var(--bg)",
-                    border: "none",
-                    padding: "14px 36px",
-                    borderRadius: 999,
-                    fontFamily: "var(--f-body)",
-                    fontSize: 14,
-                    fontWeight: 500,
-                    letterSpacing: "0.02em",
-                    cursor: createOrder.isPending ? "not-allowed" : "pointer",
-                    opacity: createOrder.isPending ? 0.7 : 1,
-                    transition: "opacity 0.2s",
-                  }}
-                >
-                  {createOrder.isPending ? "Sending…" : "Send Enquiry"}
-                </button>
-              </div>
+                  <button
+                    type="submit"
+                    disabled={createOrder.isPending}
+                    className="px-8 py-3.5 rounded-full bg-[#183628] hover:bg-[#255239] text-white font-medium text-sm flex items-center gap-2 transition-all shadow-sm disabled:opacity-60"
+                  >
+                    <span>{createOrder.isPending ? "Sending…" : "Send Enquiry"}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
 
-              <p style={{ fontFamily: "var(--f-body)", fontSize: 12, color: "var(--ink-mute)", marginTop: 16 }}>
-                We'll never share your details. By submitting you agree to our{" "}
-                <Link href="/privacy-policy" style={{ color: "var(--gold)", textDecoration: "none" }}>privacy policy</Link>.
-              </p>
-            </form>
-          )}
+                <p className="text-xs text-[#788A63] mt-4 text-center">
+                  We&apos;ll never share your details. By submitting you agree to our{" "}
+                  <Link href="/privacy-policy" className="text-[#183628] underline underline-offset-2">
+                    privacy policy
+                  </Link>.
+                </p>
+              </form>
+            )}
+          </div>
         </div>
       </div>
     </Layout>
+  );
+}
+
+function ProgressIndicator({ step, total = 5 }: { step: number; total?: number }) {
+  return (
+    <div className="flex items-center gap-4 mb-6">
+      <span className="text-xs font-mono uppercase tracking-widest font-semibold text-[#56664C]">
+        STEP {step} OF {total}
+      </span>
+      <div className="flex items-center gap-1.5">
+        {Array.from({ length: total }, (_, i) => i + 1).map((s) => {
+          const isActive = s === step;
+          const isCompleted = s < step;
+          return (
+            <div
+              key={s}
+              className={`h-1 w-8 sm:w-10 rounded-full transition-all duration-300 ${
+                isActive
+                  ? "bg-[#183628]"
+                  : isCompleted
+                  ? "bg-[#56664C]"
+                  : "bg-[#DCE6E0]"
+              }`}
+            />
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function StepActions({
+  onNext,
+  onBack,
+  nextDisabled = false,
+  nextLabel = "Continue",
+  showBack = true,
+}: {
+  onNext: () => void;
+  onBack?: () => void;
+  nextDisabled?: boolean;
+  nextLabel?: string;
+  showBack?: boolean;
+}) {
+  return (
+    <div className="pt-8 border-t border-[#E2EAE4] flex items-center justify-between gap-4 mt-8">
+      {showBack && onBack ? (
+        <button
+          type="button"
+          onClick={onBack}
+          className="px-6 py-3 rounded-full border border-[#CCD7D2] text-[#293D1F] hover:bg-[#F3F7F4] text-sm font-medium flex items-center gap-2 transition-all"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span>Back</span>
+        </button>
+      ) : (
+        <div />
+      )}
+      <button
+        type="button"
+        onClick={onNext}
+        disabled={nextDisabled}
+        className={`px-8 py-3.5 rounded-full font-medium text-sm flex items-center gap-2 transition-all shadow-sm ${
+          nextDisabled
+            ? "bg-[#DCE6E0] text-[#788A63] cursor-not-allowed"
+            : "bg-[#183628] hover:bg-[#255239] text-white"
+        }`}
+      >
+        <span>{nextLabel}</span>
+        <ArrowRight className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between items-baseline py-1.5 border-b border-[#DCE6E0]/60 last:border-b-0 text-xs">
+      <span className="font-mono text-[11px] uppercase tracking-wider text-[#788A63]">{label}</span>
+      <span className="font-medium text-[#183628] max-w-[65%] text-right">{value}</span>
+    </div>
   );
 }
 
 function SuccessScreen({ name }: { name: string }) {
   return (
     <Layout>
-      <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-        <div style={{ textAlign: "center", maxWidth: 520 }}>
-          <div style={{ fontFamily: "var(--f-serif)", fontSize: 48, color: "var(--gold)", marginBottom: 24 }}>✦</div>
-          <h1 style={{ fontFamily: "var(--f-serif)", fontSize: "clamp(2rem,5vw,2.8rem)", color: "var(--ink)", fontWeight: 300, lineHeight: 1.2, marginBottom: 16 }}>
+      <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-6 text-[#293D1F]">
+        <div className="bg-white rounded-3xl border border-[#DCE6E0] p-8 sm:p-12 text-center max-w-lg mx-auto shadow-2xs space-y-4">
+          <div className="w-14 h-14 rounded-full bg-[#EFF4F0] flex items-center justify-center text-[#183628] mx-auto">
+            <Sparkles className="w-7 h-7" />
+          </div>
+          <h1 className="font-serif text-2xl sm:text-3xl font-medium text-[#183628]">
             Your journey begins, {name.split(" ")[0]}.
           </h1>
-          <p style={{ fontFamily: "var(--f-body)", color: "var(--ink-soft)", fontSize: 15, lineHeight: 1.7, marginBottom: 40 }}>
-            We've received your itinerary. A journey designer will be in touch within 24 hours to start crafting your experience.
+          <p className="text-xs sm:text-sm text-[#56664C] leading-relaxed">
+            We&apos;ve received your itinerary. A journey designer will be in touch within 24 hours to start crafting your experience.
           </p>
-          <Link
-            href="/"
-            style={{
-              fontFamily: "var(--f-mono)",
-              fontSize: 12,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: "var(--gold)",
-              textDecoration: "none",
-              borderBottom: "1px solid var(--hair, rgba(200,163,97,0.4))",
-              paddingBottom: 2,
-            }}
-          >
-            Return home
-          </Link>
+          <div className="pt-4">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-[#183628] hover:bg-[#255239] text-white text-xs sm:text-sm font-medium transition-all shadow-sm"
+            >
+              <span>Return Home</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </div>
     </Layout>
   );
 }
-
-function StepActions({
-  onNext, onBack, nextDisabled = false, nextLabel = "Continue", showBack = true,
-}: {
-  onNext: () => void; onBack?: () => void; nextDisabled?: boolean; nextLabel?: string; showBack?: boolean;
-}) {
-  return (
-    <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-      {showBack && onBack && (
-        <button onClick={onBack} style={backBtnStyle}>← Back</button>
-      )}
-      <button
-        onClick={onNext}
-        disabled={nextDisabled}
-        style={{
-          background: nextDisabled ? "var(--tint-strong, rgba(200,163,97,0.3))" : "var(--gold)",
-          color: "var(--bg)",
-          border: "none",
-          padding: "14px 36px",
-          borderRadius: 999,
-          fontFamily: "var(--f-body)",
-          fontSize: 14,
-          fontWeight: 500,
-          letterSpacing: "0.02em",
-          cursor: nextDisabled ? "not-allowed" : "pointer",
-          transition: "background 0.2s",
-        }}
-      >
-        {nextLabel}
-      </button>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label style={{ display: "block", fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--ink-soft)", marginBottom: 10 }}>
-        {label}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-function CounterBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        width: 36, height: 36,
-        border: "1px solid var(--hair, rgba(232,220,196,0.2))",
-        borderRadius: "50%",
-        background: "transparent",
-        color: "var(--ink-soft)",
-        fontFamily: "var(--f-body)",
-        fontSize: 18,
-        cursor: "pointer",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        transition: "border-color 0.2s, color 0.2s",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", paddingBottom: 10, marginBottom: 10, borderBottom: "1px solid var(--hair-soft, rgba(232,220,196,0.08))" }}>
-      <span style={{ fontFamily: "var(--f-mono)", fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ink-mute)" }}>{label}</span>
-      <span style={{ fontFamily: "var(--f-body)", fontSize: 13, color: "var(--ink-soft)", maxWidth: "60%", textAlign: "right" }}>{value}</span>
-    </div>
-  );
-}
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  background: "transparent",
-  border: "1px solid var(--hair, rgba(232,220,196,0.2))",
-  borderRadius: 4,
-  padding: "12px 16px",
-  fontFamily: "var(--f-body)",
-  fontSize: 14,
-  color: "var(--ink)",
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-const backBtnStyle: React.CSSProperties = {
-  background: "transparent",
-  border: "1px solid var(--hair, rgba(232,220,196,0.2))",
-  color: "var(--ink-soft)",
-  padding: "14px 24px",
-  borderRadius: 999,
-  fontFamily: "var(--f-body)",
-  fontSize: 14,
-  cursor: "pointer",
-  transition: "border-color 0.2s, color 0.2s",
-};

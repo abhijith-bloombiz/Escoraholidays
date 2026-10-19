@@ -16,6 +16,7 @@ import JournalDetail from "@/pages/journal-detail";
 import PrivacyPolicy from "@/pages/privacy-policy";
 import Plan from "@/pages/plan";
 import TripPlanner from "@/pages/trip-planner";
+import JourneySelect from "@/pages/journey-select";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import CategoryDetail from "@/pages/category-detail";
@@ -45,6 +46,9 @@ function Router() {
       <Route path="/journal/:id" component={JournalDetail} />
       <Route path="/about" component={About} />
       <Route path="/contact" component={Contact} />
+      <Route path="/plan-a-journey" component={JourneySelect} />
+      <Route path="/choose-journey" component={JourneySelect} />
+      <Route path="/choose-your-journey" component={JourneySelect} />
       <Route path="/plan" component={Plan} />
       <Route path="/trip-planner" component={TripPlanner} />
       <Route path="/ai-planner" component={TripPlanner} />

@@ -29,7 +29,9 @@ export type NotificationType =
   | "itinerary_proposal"
   | "complaint_response"
   | "refund_notice"
-  | "travel_disruption";
+  | "travel_disruption"
+  // Conversion & Audit
+  | "enquiry_conversion";
 
 export type NotificationCategory =
   | "transactional"
@@ -137,12 +139,15 @@ export const Notification = NotificationModel;
 export interface IAutomationSetting {
   id: string; // single document "default"
   enableBookingConfirmation: boolean;
+  enableEnquiryAcknowledgement?: boolean;
+  enableStaffNotifications?: boolean;
   enableItineraryUpdates: boolean;
   enableEnquiryFollowups: boolean;
   enablePostTripFeedback: boolean;
   enablePaymentReceipts: boolean;
   enablePaymentReminders: boolean;
   enablePreTripReminders: boolean;
+  preTripReminderDays?: number;
   enableCancellationNotifications: boolean;
   enableDocumentDelivery: boolean;
   enquiryFollowupDelayHours: number;
@@ -155,12 +160,15 @@ const automationSettingSchema = new Schema<IAutomationSetting>(
   {
     id: { type: String, required: true, unique: true, default: "default" },
     enableBookingConfirmation: { type: Boolean, default: true },
+    enableEnquiryAcknowledgement: { type: Boolean, default: true },
+    enableStaffNotifications: { type: Boolean, default: true },
     enableItineraryUpdates: { type: Boolean, default: true },
     enableEnquiryFollowups: { type: Boolean, default: true },
     enablePostTripFeedback: { type: Boolean, default: true },
     enablePaymentReceipts: { type: Boolean, default: true },
     enablePaymentReminders: { type: Boolean, default: true },
     enablePreTripReminders: { type: Boolean, default: true },
+    preTripReminderDays: { type: Number, default: 3 },
     enableCancellationNotifications: { type: Boolean, default: true },
     enableDocumentDelivery: { type: Boolean, default: true },
     enquiryFollowupDelayHours: { type: Number, default: 24 },

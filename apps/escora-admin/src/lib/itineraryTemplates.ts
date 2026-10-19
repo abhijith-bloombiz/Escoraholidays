@@ -49,10 +49,10 @@ export interface ItineraryTemplate {
 export const itineraryTemplates: ItineraryTemplate[] = [
   {
     id: "explora-trivandrum",
-    label: "Explora Trivandrum (Reference Itinerary)",
-    description: "2N | 3D — Explora Trivandrum (Maria Roy, Quote Q1020)",
-    destination: "Trivandrum, Keralam, India | Kovalam, Keralam, India",
-    title: "Explora Trivandrum",
+    label: "Explora Trivandrum",
+    description: "3 Days · 2 Nights — Trivandrum heritage, royal palaces, Poovar backwaters and Kovalam coast.",
+    destination: "Trivandrum & Kovalam, Kerala",
+    title: "Explora Trivandrum — 3 Days · 2 Nights",
     customerName: "MARIA ROY",
     startDate: "2026-10-29",
     endDate: "2026-10-31",
@@ -157,9 +157,9 @@ export const itineraryTemplates: ItineraryTemplate[] = [
   {
     id: "kerala-classic",
     label: "Kerala Classic",
-    description: "6 Days / 5 Nights — Kochi, Munnar, Thekkady, Alleppey",
+    description: "6 Days · 5 Nights — Kochi, Munnar, Thekkady, Alleppey",
     destination: "Kerala, India",
-    title: "Kerala Classic — 6 Days / 5 Nights",
+    title: "Kerala Classic — 6 Days · 5 Nights",
     days: [
       {
         day: 1,
@@ -236,9 +236,9 @@ export const itineraryTemplates: ItineraryTemplate[] = [
   {
     id: "varkala",
     label: "Varkala Coastal Escape",
-    description: "1 Day — Varkala Cliff & Beach",
+    description: "1 Day · 1 Night — Varkala Cliff & Beach",
     destination: "Varkala, Kerala",
-    title: "Varkala Coastal Escape — 1 Day",
+    title: "Varkala Coastal Escape — 1 Day · 1 Night",
     days: [
       {
         day: 1,
@@ -260,9 +260,9 @@ export const itineraryTemplates: ItineraryTemplate[] = [
   {
     id: "kozhikode-wayanad",
     label: "Kozhikode & Wayanad",
-    description: "4 Days / 3 Nights — Kozhikode (Calicut), Wayanad",
+    description: "4 Days · 3 Nights — Kozhikode (Calicut), Wayanad",
     destination: "Kozhikode & Wayanad, Kerala",
-    title: "Kozhikode & Wayanad — 4 Days / 3 Nights",
+    title: "Kozhikode & Wayanad — 4 Days · 3 Nights",
     days: [
       {
         day: 1,
@@ -323,10 +323,10 @@ export const itineraryTemplates: ItineraryTemplate[] = [
   },
   {
     id: "kerala-group-quote",
-    label: "Kerala Group Quote",
-    description: "8 Nights / 9 Days — Kochi, Munnar, Thekkady, Alleppey, Kovalam, Kanyakumari",
-    destination: "Kerala, India",
-    title: "Kerala Group Tour — 8 Nights / 9 Days",
+    label: "Kerala Group Tour",
+    description: "9 Days · 8 Nights — Kochi, Munnar, Thekkady, Alleppey, Kovalam, Kanyakumari",
+    destination: "Kerala & Kanyakumari, India",
+    title: "Kerala Group Tour — 9 Days · 8 Nights",
     days: [
       {
         day: 1,
@@ -458,9 +458,9 @@ export const itineraryTemplates: ItineraryTemplate[] = [
   {
     id: "jammu-kashmir",
     label: "Jammu & Kashmir",
-    description: "4 Nights / 5 Days — Srinagar, Gulmarg, Pahalgam",
+    description: "5 Days · 4 Nights — Srinagar, Gulmarg, Pahalgam",
     destination: "Jammu and Kashmir, India",
-    title: "Jammu & Kashmir — 4 Nights / 5 Days",
+    title: "Jammu & Kashmir — 5 Days · 4 Nights",
     days: [
       {
         day: 1,
@@ -514,10 +514,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
       notes: "Per adult, with bed, breakfast plan. Cost per child and without-bed rates available on request.",
     },
     inclusions: [
-      "Break down each planning task (research, booking, packing) into smaller, manageable steps with specific deadlines",
-      "Use a calendar or planner to schedule these tasks",
-      "Visualizing each outcome can motivate you to push through the planning phase",
-      "I confirm that I have read and accept the terms and conditions and privacy policy",
+      "Houseboat stay on Dal Lake with breakfast",
+      "Hotel accommodations in Gulmarg and Pahalgam with breakfast",
+      "Private vehicle for airport transfers, sightseeing, and intercity travel",
+      "Evening Shikara ride on Dal Lake",
+      "All applicable toll, parking, and driver allowances",
     ],
     exclusions: [
       "Any international or domestic flights not listed in the itinerary",
@@ -529,9 +530,9 @@ export const itineraryTemplates: ItineraryTemplate[] = [
   {
     id: "thailand",
     label: "Thailand",
-    description: "7 Nights / 8 Days — Bangkok, Ayutthaya, Chiang Mai",
+    description: "8 Days · 7 Nights — Bangkok, Ayutthaya, Chiang Mai",
     destination: "Thailand",
-    title: "Thailand — 7 Nights / 8 Days",
+    title: "Thailand — 8 Days · 7 Nights",
     days: [
       {
         day: 1,
@@ -572,7 +573,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         day: 6,
         title: "Chiang Mai Cooking Class & Night Bazaar",
         description:
-          "Participate in a hands-on Thai cooking class, learning to prepare some of the country's most popular dishes. Enjoy feeding and bathing them. In the evening, explore the Chiang Mai Night Bazaar, a vibrant market filled with handicrafts, clothing and street food. Enjoy a final dinner exploring the dishes in Chiang Mai.",
+          "Participate in a hands-on Thai cooking class, learning to prepare some of the country's most popular dishes. In the evening, explore the Chiang Mai Night Bazaar, a vibrant market filled with handicrafts, clothing and street food. Enjoy a final dinner exploring the dishes in Chiang Mai.",
         activities: [{ title: "Thai cooking class" }, { title: "Chiang Mai Night Bazaar" }],
       },
       {
@@ -602,10 +603,13 @@ export const itineraryTemplates: ItineraryTemplate[] = [
       notes: "Per adult, with bed. Cost per child and without-bed rates available on request.",
     },
     inclusions: [
-      "Break down each planning task (research, booking, packing) into smaller, manageable steps with specific deadlines",
-      "Use a calendar or planner to schedule these tasks",
-      "Visualizing each outcome can motivate you to push through the planning phase",
-      "I confirm that I have read and accept the terms and conditions and privacy policy",
+      "Hotel accommodation in Bangkok (3 Nights) with daily breakfast",
+      "Hotel accommodation in Chiang Mai (4 Nights) with daily breakfast",
+      "All airport transfers and intercity flights as specified",
+      "Chao Phraya River boat tour, Grand Palace, and Wat Pho entrance",
+      "Ayutthaya Historical Park full-day guided excursion",
+      "Ethical elephant sanctuary interactive experience in Chiang Mai",
+      "Hands-on authentic Thai cooking class",
     ],
     exclusions: [
       "Any international or domestic flights not listed in the itinerary",
@@ -615,3 +619,40 @@ export const itineraryTemplates: ItineraryTemplate[] = [
     ],
   },
 ];
+
+/**
+ * Format consistent duration string from actual template data: e.g. "6 Days · 5 Nights"
+ */
+export function getTemplateDuration(template: ItineraryTemplate): string {
+  let nights = 0;
+  if (template.stays && template.stays.length > 0) {
+    nights = template.stays.reduce((sum, s) => sum + (s.nights || 0), 0);
+  }
+
+  let days = template.days?.length || 0;
+  if (template.id === "kozhikode-wayanad") {
+    days = 4; // Core itinerary days (Day 5 contains optional extensions note)
+  }
+
+  if (days > 0 && nights > 0) {
+    return `${days} ${days === 1 ? "Day" : "Days"} · ${nights} ${nights === 1 ? "Night" : "Nights"}`;
+  }
+  if (days > 0) {
+    return `${days} ${days === 1 ? "Day" : "Days"}`;
+  }
+  if (nights > 0) {
+    return `${nights} ${nights === 1 ? "Night" : "Nights"}`;
+  }
+  return "Flexible Duration";
+}
+
+/**
+ * Clean route / destination display without overflowing card badges
+ */
+export function getTemplateRoute(template: ItineraryTemplate): string {
+  if (template.destination) {
+    return template.destination.replace(/,\s*India/gi, "").replace(/,\s*Keralam/gi, "").trim();
+  }
+  return "Kerala";
+}
+

@@ -25,6 +25,7 @@ import {
   triggerFinalItineraryDelivery,
   queueApprovalRequiredNotification,
 } from "../services/notification-service";
+import { triggerWhatsAppItineraryUpdate } from "../services/whatsapp";
 
 const router: IRouter = Router();
 
@@ -48,6 +49,9 @@ router.get("/itineraries", async (req, res, next): Promise<void> => {
   const filter: Record<string, any> = {};
   if (query.data.status !== undefined) {
     filter.status = query.data.status;
+  }
+  if (query.data.enquiryId !== undefined) {
+    filter.enquiryId = query.data.enquiryId;
   }
 
   try {
@@ -215,6 +219,12 @@ router.patch("/itineraries/:id", async (req, res, next): Promise<void> => {
           logger.error(
             { err: err?.message, itineraryId: itinerary.id },
             "[ItineraryRoute] Failed to dispatch itinerary update notification"
+          );
+        });
+        triggerWhatsAppItineraryUpdate(itinerary, existingItinerary).catch((err) => {
+          logger.error(
+            { err: err?.message, itineraryId: itinerary.id },
+            "[ItineraryRoute] Failed to dispatch WhatsApp itinerary update notification"
           );
         });
       }

@@ -10,20 +10,21 @@
     radial-gradient(ellipse at 50% 12%, #FFFEFC 0%, #FAF6EE 75%),
     radial-gradient(circle at 100% 0%, rgba(20, 51, 35, 0.04) 0%, transparent 50%),
     radial-gradient(circle at 0% 100%, rgba(20, 51, 35, 0.035) 0%, transparent 50%);
-  height: 100vh;
-  height: 100dvh;
   min-height: 100vh;
   min-height: 100dvh;
-  max-height: 100vh;
+  min-height: 100svh;
+  height: auto;
+  max-height: none;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  padding: clamp(50px, 6vh, 62px) 0 clamp(8px, 1.2vh, 14px);
-  overflow: hidden;
+  justify-content: center;
+  padding: clamp(28px, 3.6vh, 46px) 0 clamp(20px, 2.6vh, 32px);
+  overflow: visible;
   color: #102B1D;
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   border-top: 1px solid rgba(197, 160, 105, 0.22);
-  scroll-margin-top: 80px;
+  scroll-snap-align: none;
+  scroll-snap-stop: normal;
   box-sizing: border-box;
 }
 
@@ -34,12 +35,10 @@
   right: -80px;
   width: clamp(300px, 36vw, 540px);
   height: clamp(300px, 36vw, 540px);
-  background: radial-gradient(
-    ellipse at center,
-    rgba(16, 43, 29, 0.07) 0%,
-    rgba(16, 43, 29, 0.025) 45%,
-    transparent 72%
-  );
+  background: radial-gradient(ellipse at center,
+      rgba(16, 43, 29, 0.07) 0%,
+      rgba(16, 43, 29, 0.025) 45%,
+      transparent 72%);
   filter: blur(32px);
   pointer-events: none;
   z-index: 0;
@@ -51,12 +50,10 @@
   left: -80px;
   width: clamp(280px, 32vw, 480px);
   height: clamp(280px, 32vw, 480px);
-  background: radial-gradient(
-    ellipse at center,
-    rgba(16, 43, 29, 0.06) 0%,
-    rgba(16, 43, 29, 0.02) 45%,
-    transparent 72%
-  );
+  background: radial-gradient(ellipse at center,
+      rgba(16, 43, 29, 0.06) 0%,
+      rgba(16, 43, 29, 0.02) 45%,
+      transparent 72%);
   filter: blur(28px);
   pointer-events: none;
   z-index: 0;
@@ -69,19 +66,23 @@
   margin: 0 auto;
   padding: 0 var(--gutter, clamp(16px, 2.5vw, 40px));
   box-sizing: border-box;
-  height: 100%;
+  width: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 /* ─── Header: Matching Travel by Type editorial specifications ─── */
 .how-header {
+  position: relative;
+  top: -22px;
+  z-index: 2;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: 0;
-  padding-bottom: clamp(2px, 0.3vh, 4px);
+  margin-bottom: clamp(8px, 1.2vh, 16px);
+  padding-bottom: clamp(8px, 1.1vh, 14px);
   border-bottom: 1px solid rgba(228, 222, 210, 0.7);
   gap: 24px;
   width: 100%;
@@ -145,7 +146,7 @@
 
 /* ─── Continuous Sculptural Journey Stage ─── */
 .how-journey-stage {
-  --panel-gap: clamp(20px, 2.6vh, 32px);
+  --panel-gap: clamp(18px, 2.4vh, 28px);
   --cards-gap: clamp(6px, 0.65vw, 10px);
   --total-cols: 6;
   --stride: calc((100% + var(--cards-gap)) / var(--total-cols));
@@ -155,20 +156,38 @@
   --panel-border-left-w: max(0px, calc(var(--card-l) - var(--panel-gap)));
   --panel-border-right-w: max(0px, calc(100% - var(--card-r) - var(--panel-gap)));
   position: relative;
+  top: -4px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  margin-top: clamp(-14px, -1.4vh, -8px);
-  margin-bottom: clamp(6px, 1vh, 14px);
+  margin-top: 0;
+  margin-bottom: clamp(10px, 1.4vh, 18px);
   min-height: 0;
 }
 
-.how-journey-stage.active-is-0 { --active-step: 0; }
-.how-journey-stage.active-is-1 { --active-step: 1; }
-.how-journey-stage.active-is-2 { --active-step: 2; }
-.how-journey-stage.active-is-3 { --active-step: 3; }
-.how-journey-stage.active-is-4 { --active-step: 4; }
-.how-journey-stage.active-is-5 { --active-step: 5; }
+.how-journey-stage.active-is-0 {
+  --active-step: 0;
+}
+
+.how-journey-stage.active-is-1 {
+  --active-step: 1;
+}
+
+.how-journey-stage.active-is-2 {
+  --active-step: 2;
+}
+
+.how-journey-stage.active-is-3 {
+  --active-step: 3;
+}
+
+.how-journey-stage.active-is-4 {
+  --active-step: 4;
+}
+
+.how-journey-stage.active-is-5 {
+  --active-step: 5;
+}
 
 /* Subtle connecting wave spline across cards */
 .how-spline-bg {
@@ -192,7 +211,7 @@
   gap: var(--cards-gap, clamp(6px, 0.65vw, 10px));
   align-items: stretch;
   width: 100%;
-  min-height: clamp(284px, 32vh, 316px);
+  min-height: clamp(250px, 28vh, 305px);
   margin-bottom: 0;
 }
 
@@ -480,11 +499,9 @@
   right: 0;
   width: 44%;
   height: 100%;
-  background: radial-gradient(
-    ellipse at 88% 50%,
-    rgba(197, 160, 105, 0.08) 0%,
-    rgba(14, 41, 28, 0) 72%
-  );
+  background: radial-gradient(ellipse at 88% 50%,
+      rgba(197, 160, 105, 0.08) 0%,
+      rgba(14, 41, 28, 0) 72%);
   pointer-events: none;
   z-index: 0;
 }
@@ -619,8 +636,8 @@
   white-space: nowrap;
   box-shadow: 0 6px 18px rgba(222, 196, 156, 0.25);
   transition: background-color 0.25s ease,
-              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.25s ease;
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.25s ease;
 }
 
 .how-cta-btn:hover {
@@ -652,11 +669,13 @@
 
 /* ─── Footer caption bar ─── */
 .how-footer-bar {
+  position: relative;
+  top: 10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 0;
-  padding-top: clamp(6px, 0.8vh, 10px);
+  padding-top: clamp(8px, 1vh, 12px);
   border-top: 1px solid rgba(197, 160, 105, 0.15);
   font-size: 9.5px;
   font-weight: 600;
@@ -717,62 +736,83 @@
     max-height: none;
     padding: clamp(48px, 6vh, 64px) 0;
   }
+
   .how-container {
     height: auto;
     display: block;
   }
+
+  .how-header {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+  }
+
   .how-journey-stage {
     display: block;
-    margin-top: 18px;
+    top: 0;
+    margin-top: 0;
     margin-bottom: 24px;
   }
+
   .how-cards-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 14px;
     min-height: auto;
   }
+
   .how-footer-bar {
+    top: 0;
     margin-top: 18px;
   }
+
   .how-card {
     margin: 0 auto;
     padding: 0;
     min-height: auto;
   }
+
   .how-card.is-active {
     border-radius: 999px 999px 18px 18px;
     border-bottom: 1.2px solid rgba(197, 160, 105, 0.55);
     padding: clamp(5px, 0.45vw, 6.5px) clamp(5px, 0.45vw, 6.5px) clamp(10px, 1.2vh, 14px) clamp(5px, 0.45vw, 6.5px);
     margin-bottom: 0;
   }
+
   .how-card.is-active::after {
     display: none;
   }
+
   .how-info-panel {
     margin-top: 18px;
     border-radius: 24px !important;
     border-top: 1.2px solid rgba(197, 160, 105, 0.55);
   }
+
   .how-info-panel::before,
   .how-info-panel::after {
     display: none;
   }
+
   .how-panel-body {
     grid-template-columns: 1fr;
     gap: 20px;
   }
+
   .how-panel-features {
     border-left: none;
     border-top: 1px solid rgba(197, 160, 105, 0.24);
     padding-left: 0;
     padding-top: 16px;
   }
+
   .how-panel-action {
     justify-content: flex-start;
   }
+
   .how-fillet {
     display: none;
   }
+
   .how-spline-bg {
     display: none;
   }
@@ -783,13 +823,15 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     padding-bottom: 14px;
   }
+
   .how-intro {
     text-align: left !important;
     max-width: 100% !important;
   }
+
   .how-cards-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
@@ -800,18 +842,22 @@
   .how-it-works-section {
     padding: 44px 0 36px;
   }
+
   .how-cards-grid {
     grid-template-columns: 1fr;
     gap: 14px;
   }
+
   .how-cta-btn {
     width: 100%;
     justify-content: space-between;
   }
+
   .how-panel-features {
     grid-template-columns: 1fr;
     gap: 12px;
   }
+
   .how-footer-bar {
     flex-direction: column;
     align-items: flex-start;
@@ -820,6 +866,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .how-card,
   .how-card-img,
   .how-cta-btn,

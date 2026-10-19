@@ -8,6 +8,10 @@ export interface IEnquiry {
   phone?: string | null;
   message: string;
   status: string;
+  bookingId?: number | null;
+  bookingReference?: string | null;
+  convertedAt?: Date | null;
+  convertedBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,9 +29,13 @@ const enquirySchema = new Schema<IEnquiry>(
       type: String,
       required: true,
       default: "new",
-      enum: ["new", "read", "replied"],
+      enum: ["new", "read", "replied", "converted"],
       index: true,
     },
+    bookingId: { type: Number, default: null, index: true },
+    bookingReference: { type: String, default: null },
+    convertedAt: { type: Date, default: null },
+    convertedBy: { type: String, default: null },
     createdAt: { type: Date, required: true, default: Date.now, index: true },
     updatedAt: { type: Date, required: true, default: Date.now },
   },
@@ -50,6 +58,10 @@ export const insertEnquirySchema = z.object({
   phone: z.string().optional().nullable(),
   message: z.string(),
   status: z.string().optional().default("new"),
+  bookingId: z.number().optional().nullable(),
+  bookingReference: z.string().optional().nullable(),
+  convertedAt: z.date().optional().nullable(),
+  convertedBy: z.string().optional().nullable(),
 });
 
 export type InsertEnquiry = z.infer<typeof insertEnquirySchema>;

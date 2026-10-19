@@ -35,4 +35,5 @@ export interface ItineraryUpdate {
   hotelTerms?: string;
   paymentTerms?: string;
   importantInfo?: string;
+  enquiryId?: number;
 }

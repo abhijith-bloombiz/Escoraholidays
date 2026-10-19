@@ -55,7 +55,6 @@ import {
   Pencil,
   Trash2,
   Globe,
-  Star,
   Eye,
   Info,
   Search,
@@ -206,7 +205,6 @@ export default function PackagesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [filterFeatured, setFilterFeatured] = useState("all");
   const [sortBy, setSortBy] = useState("name-asc");
 
   // Dynamic list of categories from database
@@ -247,12 +245,6 @@ export default function PackagesPage() {
       result = result.filter((p) => p.published === isPub);
     }
 
-    // Featured filter
-    if (filterFeatured !== "all") {
-      const isFeat = filterFeatured === "featured";
-      result = result.filter((p) => p.featured === isFeat);
-    }
-
     // Sort
     result.sort((a, b) => {
       if (sortBy === "name-asc") return a.name.localeCompare(b.name);
@@ -266,19 +258,17 @@ export default function PackagesPage() {
     });
 
     return result;
-  }, [packages, searchQuery, filterCategory, filterStatus, filterFeatured, sortBy]);
+  }, [packages, searchQuery, filterCategory, filterStatus, sortBy]);
 
   const hasActiveFilters =
     searchQuery.trim() !== "" ||
     filterCategory !== "all" ||
-    filterStatus !== "all" ||
-    filterFeatured !== "all";
+    filterStatus !== "all";
 
   function resetFilters() {
     setSearchQuery("");
     setFilterCategory("all");
     setFilterStatus("all");
-    setFilterFeatured("all");
     setSortBy("name-asc");
   }
 
@@ -648,36 +638,22 @@ export default function PackagesPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-foreground">Journeys</h1>
+          <h1 className="text-3xl font-serif font-semibold text-foreground">Journeys</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Curate private luxury itineraries, multi-day routes, and signature experiences
+            Manage multi-day travel routes, itineraries, and packages.
           </p>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
+            <Info className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
+            <span>
+              <strong className="font-medium text-foreground/80">Where published journeys appear:</strong>{" "}
+              Public Journeys directory and journey detail pages.
+            </span>
+          </div>
         </div>
         <Button onClick={openCreate} data-testid="button-add-package" className="shrink-0">
           <Plus className="h-4 w-4 mr-2" /> Add Journey
         </Button>
       </div>
-
-      {/* Integration & Public Usage Guide Banner */}
-      <Alert className="border-primary/20 bg-primary/5">
-        <Info className="h-4 w-4 text-primary" />
-        <AlertTitle className="font-serif text-base font-medium">
-          Journey Management &amp; Public Integration
-        </AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground mt-1.5 space-y-1">
-          <p>
-            Published journeys appear in the <strong>Immaculate Journeys</strong> directory (
-            <code className="text-foreground">/journeys</code>) and dedicated detail pages (
-            <code className="text-foreground">/journeys/:id</code>).
-          </p>
-          <p>
-            Prospective guests can submit booking requests directly from any journey detail page, which flow directly into the <strong>Orders</strong> management queue.
-          </p>
-          <p className="text-[11px] text-muted-foreground/80 italic">
-            Note on Homepage: The homepage currently presents curated travel categories rather than dynamic packages. The &quot;Featured&quot; toggle is stored in the database but does not change the live homepage layout.
-          </p>
-        </AlertDescription>
-      </Alert>
 
       {/* Search & Filter Toolbar */}
       <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between bg-card p-4 rounded-lg border border-border">
@@ -730,18 +706,6 @@ export default function PackagesPage() {
             </SelectContent>
           </Select>
 
-          {/* Featured Filter */}
-          <Select value={filterFeatured} onValueChange={setFilterFeatured}>
-            <SelectTrigger className="h-9 w-[140px] text-xs">
-              <SelectValue placeholder="Featured" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Journeys</SelectItem>
-              <SelectItem value="featured">Featured Only</SelectItem>
-              <SelectItem value="standard">Standard Only</SelectItem>
-            </SelectContent>
-          </Select>
-
           {/* Sorting */}
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="h-9 w-[140px] text-xs">
@@ -790,7 +754,6 @@ export default function PackagesPage() {
               <TableHead>Duration</TableHead>
               <TableHead className="min-w-[200px]">Travel Route</TableHead>
               <TableHead>Starting Price</TableHead>
-              <TableHead>Featured</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="w-28 text-right">Actions</TableHead>
             </TableRow>
@@ -822,16 +785,13 @@ export default function PackagesPage() {
                     <Skeleton className="h-5 w-16" />
                   </TableCell>
                   <TableCell>
-                    <Skeleton className="h-5 w-16" />
-                  </TableCell>
-                  <TableCell>
                     <Skeleton className="h-8 w-20 ml-auto" />
                   </TableCell>
                 </TableRow>
               ))
             ) : filteredPackages.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-40 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-40 text-center text-muted-foreground">
                   {hasActiveFilters ? (
                     <div className="space-y-2">
                       <p>No journeys match your search and filter criteria.</p>
@@ -910,20 +870,6 @@ export default function PackagesPage() {
                       <span>₹{p.priceFrom.toLocaleString("en-IN")}</span>
                     ) : (
                       <span className="text-xs text-muted-foreground font-normal">Upon Request</span>
-                    )}
-                  </TableCell>
-
-                  {/* Featured */}
-                  <TableCell className="py-2.5">
-                    {p.featured ? (
-                      <Badge
-                        variant="outline"
-                        className="text-xs gap-1 border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10"
-                      >
-                        <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Featured
-                      </Badge>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
 
@@ -1039,7 +985,7 @@ export default function PackagesPage() {
                     {parseItinerary(viewing.itinerary).map((d, i) => (
                       <div key={i} className="p-2.5 rounded bg-muted/20 border border-border text-xs space-y-1">
                         <div className="font-semibold text-foreground flex items-center gap-1.5">
-                          <span className="text-primary font-mono">Day {d.day}:</span> {d.title}
+                          <span className="text-primary font-medium">Day {d.day}:</span> {d.title}
                         </div>
                         {d.description && (
                           <p className="text-muted-foreground leading-relaxed">{d.description}</p>
@@ -1087,14 +1033,6 @@ export default function PackagesPage() {
 
               <div className="flex items-center justify-between pt-3 border-t border-border">
                 <div className="flex items-center gap-2">
-                  {viewing.featured && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs gap-1 border-amber-500/40 text-amber-600 bg-amber-500/10"
-                    >
-                      <Star className="h-3 w-3 fill-amber-500 text-amber-500" /> Featured
-                    </Badge>
-                  )}
                   <Badge
                     variant={viewing.published ? "default" : "secondary"}
                     className={`text-xs ${
@@ -1168,9 +1106,6 @@ export default function PackagesPage() {
                   {validationErrors.name && (
                     <p className="text-xs text-destructive">{validationErrors.name}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">
-                    Title displayed on /journeys cards and /journeys/:id headers.
-                  </p>
                 </div>
 
                 {/* Page URL / Slug */}
@@ -1206,7 +1141,7 @@ export default function PackagesPage() {
                       required
                       disabled={slugLocked}
                       data-testid="input-package-slug"
-                      className={`font-mono text-xs ${
+                      className={`text-xs ${
                         validationErrors.slug ? "border-destructive" : ""
                       } ${slugLocked ? "bg-muted/40 cursor-not-allowed" : ""}`}
                     />
@@ -1214,14 +1149,6 @@ export default function PackagesPage() {
                   {validationErrors.slug && (
                     <p className="text-xs text-destructive">{validationErrors.slug}</p>
                   )}
-
-                  {/* Live URL Preview */}
-                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/20 px-2 py-1 rounded border border-border/40">
-                    <span className="font-mono text-muted-foreground/70">Public link:</span>
-                    <span className="font-mono text-foreground truncate">
-                      https://www.escoraholidays.com/journeys/{form.slug || "url-slug"}
-                    </span>
-                  </div>
 
                   {editing && !slugLocked && (
                     <div className="flex items-start gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-500/10 p-2 rounded border border-amber-500/20">
@@ -1263,9 +1190,6 @@ export default function PackagesPage() {
                   {validationErrors.category && (
                     <p className="text-xs text-destructive">{validationErrors.category}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">
-                    Filter category badge on /journeys.
-                  </p>
                 </div>
 
                 {/* Duration (Nights) */}
@@ -1290,9 +1214,6 @@ export default function PackagesPage() {
                   {validationErrors.durationNights && (
                     <p className="text-xs text-destructive">{validationErrors.durationNights}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">
-                    Total nights of the itinerary.
-                  </p>
                 </div>
 
                 {/* Travel Route */}
@@ -1306,9 +1227,6 @@ export default function PackagesPage() {
                     onChange={(e) => setForm((f) => ({ ...f, route: e.target.value }))}
                     placeholder="e.g. Kochi · Munnar · Alleppey"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Sequence of destinations shown on cards and matched by filters.
-                  </p>
                 </div>
               </div>
             </div>
@@ -1329,7 +1247,6 @@ export default function PackagesPage() {
                   onChange={(url) => setForm((f) => ({ ...f, heroImageUrl: url }))}
                   label="Hero Image"
                   size="wide"
-                  helperText="Primary photograph for the journey header on /journeys/:id and catalog cards on /journeys."
                 />
               </div>
 
@@ -1344,9 +1261,6 @@ export default function PackagesPage() {
                   onChange={(e) => setForm((f) => ({ ...f, shortDesc: e.target.value }))}
                   placeholder="e.g. A private five-night journey through Kerala's most iconic backwaters and highland estates."
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Two-line overview shown on /journeys cards and search summaries.
-                </p>
               </div>
 
               {/* Journey Overview */}
@@ -1361,9 +1275,6 @@ export default function PackagesPage() {
                   rows={4}
                   placeholder="Detailed narrative describing the journey theme, experience, and atmosphere…"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Rendered under &apos;The Experience&apos; narrative on the journey detail page.
-                </p>
               </div>
             </div>
 
@@ -1394,10 +1305,6 @@ export default function PackagesPage() {
                 </div>
               </div>
 
-              <p className="text-[11px] text-muted-foreground -mt-1">
-                Rendered as the interactive &apos;Journey Unfolds&apos; timeline schedule on /journeys/:id.
-              </p>
-
               {itineraryBulkMode ? (
                 <div className="space-y-1.5">
                   <Textarea
@@ -1407,9 +1314,6 @@ export default function PackagesPage() {
                     className="font-mono text-xs"
                     placeholder='[{"day":1,"title":"Arrival in Kochi","description":"..."}]'
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Edit raw JSON array of day objects. Click &quot;Visual Day Cards&quot; to apply.
-                  </p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -1428,7 +1332,7 @@ export default function PackagesPage() {
                       >
                         <div className="flex items-center justify-between border-b border-border/50 pb-2">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-xs font-mono bg-primary/5 border-primary/30 text-primary">
+                            <Badge variant="outline" className="text-xs font-semibold bg-primary/5 border-primary/30 text-primary">
                               Day {item.day}
                             </Badge>
                             <span className="text-xs font-medium text-foreground truncate max-w-xs sm:max-w-md">
@@ -1481,7 +1385,7 @@ export default function PackagesPage() {
                               onChange={(e) =>
                                 updateDay(idx, "day", Number(e.target.value) || idx + 1)
                               }
-                              className="h-8 text-xs font-mono"
+                              className="h-8 text-xs"
                             />
                           </div>
                           <div className="sm:col-span-3 space-y-1">
@@ -1541,9 +1445,6 @@ export default function PackagesPage() {
                       <Label className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
                         Inclusions
                       </Label>
-                      <p className="text-[11px] text-muted-foreground">
-                        Services, stays, and items covered.
-                      </p>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Button
@@ -1575,7 +1476,7 @@ export default function PackagesPage() {
                       onChange={(e) => setInclusionsBulkText(e.target.value)}
                       rows={6}
                       placeholder={"Airport chauffeur transfers\nDaily curated breakfast\nHouseboat private cruise"}
-                      className="text-xs font-mono"
+                      className="text-xs"
                     />
                   ) : (
                     <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
@@ -1616,9 +1517,6 @@ export default function PackagesPage() {
                       <Label className="text-xs font-medium text-muted-foreground">
                         Exclusions
                       </Label>
-                      <p className="text-[11px] text-muted-foreground">
-                        Items not covered in package.
-                      </p>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Button
@@ -1650,7 +1548,7 @@ export default function PackagesPage() {
                       onChange={(e) => setExclusionsBulkText(e.target.value)}
                       rows={6}
                       placeholder={"International & domestic flights\nPersonal gratuities\nTravel insurance"}
-                      className="text-xs font-mono"
+                      className="text-xs"
                     />
                   ) : (
                     <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
@@ -1714,9 +1612,6 @@ export default function PackagesPage() {
                     }
                     placeholder="e.g. 150000"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Internal benchmark price in INR. (Stored in database; not rendered in public layout).
-                  </p>
                 </div>
 
                 {/* Ideal For */}
@@ -1730,9 +1625,6 @@ export default function PackagesPage() {
                     onChange={(e) => setForm((f) => ({ ...f, bestFor: e.target.value }))}
                     placeholder="e.g. Couples, Honeymooners, Slow Travellers"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Target traveller profile (stored in database).
-                  </p>
                 </div>
 
                 {/* Best Time to Visit */}
@@ -1746,37 +1638,10 @@ export default function PackagesPage() {
                     onChange={(e) => setForm((f) => ({ ...f, season: e.target.value }))}
                     placeholder="e.g. September – April"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Best season tag rendered in the trip facts bar on /journeys/:id.
-                  </p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                {/* Featured Switch */}
-                <div className="flex items-start justify-between p-3.5 bg-muted/20 rounded-md border border-border">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Star className="h-4 w-4 text-amber-500" />
-                      <Label
-                        htmlFor="pkg-featured"
-                        className="font-medium text-sm cursor-pointer"
-                      >
-                        Featured Journey
-                      </Label>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      Stored in database. (Note: Public homepage currently features travel categories rather than dynamic packages).
-                    </p>
-                  </div>
-                  <Switch
-                    id="pkg-featured"
-                    checked={form.featured}
-                    onCheckedChange={(val) => setForm((f) => ({ ...f, featured: val }))}
-                    data-testid="switch-package-featured"
-                  />
-                </div>
-
+              <div className="pt-2">
                 {/* Publish Switch */}
                 <div className="flex items-start justify-between p-3.5 bg-muted/20 rounded-md border border-border">
                   <div className="space-y-1">
@@ -1799,9 +1664,6 @@ export default function PackagesPage() {
                         {form.published ? "Live" : "Draft"}
                       </Badge>
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      When published, visible on /journeys. When off, direct unauthenticated access returns 404.
-                    </p>
                   </div>
                   <Switch
                     id="pkg-published"

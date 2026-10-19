@@ -13,6 +13,8 @@ import itinerariesRouter from "./itineraries";
 import invoicesRouter from "./invoices";
 import campaignsRouter from "./campaigns";
 import notificationsRouter from "./notifications";
+import whatsappRouter from "./whatsapp";
+import whatsappWebhookRouter from "./whatsapp-webhook";
 import aiRouter from "./ai";
 import { requireAuth } from "../middleware/auth";
 import { notFoundHandler } from "../middleware/not-found";
@@ -26,6 +28,7 @@ router.use(aiRouter);
 router.get("/campaigns/unsubscribe", campaignsRouter);
 router.post("/campaigns/unsubscribe", campaignsRouter);
 router.post("/campaigns/webhooks/resend", campaignsRouter);
+router.use(whatsappWebhookRouter);
 
 
 // Public GETs, protected writes — destinations, packages, journal
@@ -62,9 +65,11 @@ router.delete("/orders/:id", requireAuth, ordersRouter);
 router.post("/enquiries", enquiriesRouter);
 router.get("/enquiries", requireAuth, enquiriesRouter);
 router.get("/enquiries/:id", requireAuth, enquiriesRouter);
+router.get("/enquiries/:id/proposals", requireAuth, enquiriesRouter);
 router.patch("/enquiries/:id", requireAuth, enquiriesRouter);
 router.delete("/enquiries/:id", requireAuth, enquiriesRouter);
 router.post("/enquiries/:id/ai-assist", requireAuth, enquiriesRouter);
+router.post("/enquiries/:id/convert", requireAuth, enquiriesRouter);
 
 // Itineraries: share-by-token lookup is public, everything else admin only
 router.get("/itineraries/share/:token", itinerariesRouter);
@@ -101,6 +106,9 @@ router.use(requireAuth, campaignsRouter);
 
 // Notifications & Delivery Audit: Admin only
 router.use(requireAuth, notificationsRouter);
+
+// WhatsApp Automation & Delivery Audit: Admin only
+router.use(requireAuth, whatsappRouter);
 
 // Admin dashboard stats
 router.use("/dashboard", requireAuth, dashboardRouter);

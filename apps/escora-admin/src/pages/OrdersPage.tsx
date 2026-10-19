@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   useListOrders,
   useUpdateOrder,
@@ -75,6 +75,7 @@ import {
   RefreshCw,
   FileSpreadsheet,
   AlertTriangle,
+  ShoppingBag,
 } from "lucide-react";
 import type { Order } from "@workspace/api-client-react";
 
@@ -117,6 +118,37 @@ const STATUS_DESCRIPTIONS: Record<string, string> = {
   cancelled: "Trip was cancelled, declined, or not realized.",
 };
 
+// Payment status badge
+function renderPaymentStatusBadge(status?: string | null) {
+  switch (status) {
+    case "paid":
+      return (
+        <Badge className="bg-emerald-600/10 text-emerald-700 border-emerald-300 dark:border-emerald-800 text-[10px] font-semibold capitalize">
+          Paid
+        </Badge>
+      );
+    case "partially_paid":
+      return (
+        <Badge className="bg-blue-600/10 text-blue-700 border-blue-300 dark:border-blue-800 text-[10px] font-semibold capitalize">
+          Partially Paid
+        </Badge>
+      );
+    case "refunded":
+      return (
+        <Badge variant="destructive" className="text-[10px] font-semibold capitalize">
+          Refunded
+        </Badge>
+      );
+    case "unpaid":
+    default:
+      return (
+        <Badge variant="outline" className="text-amber-700 border-amber-300 bg-amber-500/10 text-[10px] font-semibold capitalize">
+          Unpaid
+        </Badge>
+      );
+  }
+}
+
 function InfoField({
   label,
   value,
@@ -131,7 +163,7 @@ function InfoField({
   if (value === null || value === undefined || value === "") return null;
   return (
     <div className="space-y-1">
-      <p className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
         {Icon && <Icon className="h-3 w-3 text-primary/70" />}
         {label}
       </p>
@@ -160,6 +192,19 @@ export default function OrdersPage() {
   const [editing, setEditing] = useState<Order | null>(null);
   const [viewing, setViewing] = useState<Order | null>(null);
   const [showTechDetails, setShowTechDetails] = useState(false);
+
+  // Handle deep-linking to an order from Enquiry inbox (?id=...)
+  useEffect(() => {
+    if (typeof window === "undefined" || !orders || orders.length === 0) return;
+    const sp = new URLSearchParams(window.location.search);
+    const orderId = sp.get("id");
+    if (orderId) {
+      const found = orders.find((o) => String(o.id) === orderId);
+      if (found && (!viewing || viewing.id !== found.id)) {
+        setViewing(found);
+      }
+    }
+  }, [orders]);
 
   // Query notifications for viewing order
   const { data: orderNotifications = [] } = useQuery<any[]>({
@@ -410,7 +455,7 @@ export default function OrdersPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-foreground">Bookings &amp; Inquiries</h1>
+          <h1 className="text-3xl font-serif font-semibold text-foreground">Bookings &amp; Inquiries</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Inbound trip planner requests, journey booking submissions, and customer status tracking.
           </p>
@@ -428,23 +473,6 @@ export default function OrdersPage() {
         </div>
       </div>
 
-      {/* Integration & Public Usage Guide */}
-      <Alert className="border-primary/20 bg-primary/5">
-        <Info className="h-4 w-4 text-primary" />
-        <AlertTitle className="font-serif text-base font-medium">Bespoke Planner Requests &amp; Journey Bookings</AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground mt-1.5 space-y-1">
-          <p>
-            This pipeline manages inbound trip inquiries submitted through the interactive planner (<code className="text-foreground">/plan</code>) and journey booking forms (<code className="text-foreground">/journeys/:id</code>).
-          </p>
-          <p>
-            <strong>Internal booking pipeline only:</strong> Records here are private customer orders and do not publish content to the public website. You can update booking statuses, log agreed total amounts, record private staff notes, and export full reports to CSV.
-          </p>
-          <p className="text-[11px] text-muted-foreground/80 italic">
-            Privacy safeguard: Customer phone numbers, emails, and staff notes are strictly confidential and omitted from public pages and CSV exports.
-          </p>
-        </AlertDescription>
-      </Alert>
-
       {/* Summary Metric Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {/* Enquiries Card */}
@@ -457,7 +485,7 @@ export default function OrdersPage() {
         >
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Inquiries</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Inquiries</span>
               <p className="text-2xl font-serif font-bold text-amber-700 dark:text-amber-400">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : summaryCounts.enquiry}
               </p>
@@ -479,7 +507,7 @@ export default function OrdersPage() {
         >
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Confirmed</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Confirmed</span>
               <p className="text-2xl font-serif font-bold text-emerald-700 dark:text-emerald-400">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : summaryCounts.confirmed}
               </p>
@@ -501,7 +529,7 @@ export default function OrdersPage() {
         >
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Completed</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Completed</span>
               <p className="text-2xl font-serif font-bold text-blue-700 dark:text-blue-400">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : summaryCounts.completed}
               </p>
@@ -523,7 +551,7 @@ export default function OrdersPage() {
         >
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Cancelled</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cancelled</span>
               <p className="text-2xl font-serif font-bold text-destructive">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : summaryCounts.cancelled}
               </p>
@@ -674,7 +702,7 @@ export default function OrdersPage() {
                     <div>
                       <h3 className="font-serif text-lg font-medium text-foreground">No Booking Inquiries Yet</h3>
                       <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1">
-                        Inquiries submitted through the public bespoke trip planner (<code className="text-xs">/plan</code>) and journey booking forms will automatically land here.
+                        Inquiries submitted through the trip planner (<code className="text-xs">/plan</code>) and booking forms will automatically land here.
                       </p>
                     </div>
                   </div>
@@ -711,9 +739,24 @@ export default function OrdersPage() {
                 <TableRow key={o.id} data-testid={`row-order-${o.id}`} className="hover:bg-muted/30">
                   {/* Guest Information */}
                   <TableCell className="align-top py-3.5">
-                    <div className="font-medium text-foreground text-sm flex items-center gap-1.5">
+                    <div className="font-medium text-foreground text-sm flex items-center gap-1.5 flex-wrap">
                       <span>{o.guestName}</span>
-                      <span className="text-[10px] text-muted-foreground font-mono">#{o.id}</span>
+                      {o.bookingReference ? (
+                        <Badge variant="outline" className="text-[10px] font-mono bg-purple-500/10 text-purple-700 border-purple-300">
+                          {o.bookingReference}
+                        </Badge>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground font-mono">#{o.id}</span>
+                      )}
+                      {o.enquiryId && (
+                        <a
+                          href={`/enquiries?viewEnquiry=${o.enquiryId}`}
+                          className="hover:underline flex items-center gap-1 text-[10px] text-purple-600 font-medium"
+                          title={`Created from Inbox Enquiry #${o.enquiryId}`}
+                        >
+                          <ShoppingBag className="h-2.5 w-2.5" /> Inbox #{o.enquiryId}
+                        </a>
+                      )}
                     </div>
                     <div className="flex flex-col gap-0.5 mt-1 text-xs text-muted-foreground">
                       <a
@@ -788,12 +831,13 @@ export default function OrdersPage() {
                   </TableCell>
 
                   {/* Status */}
-                  <TableCell className="align-top py-3.5">
-                    {renderStatusBadge(o.status)}
+                  <TableCell className="align-top py-3.5 space-y-1">
+                    <div>{renderStatusBadge(o.status)}</div>
+                    <div>{renderPaymentStatusBadge(o.paymentStatus)}</div>
                   </TableCell>
 
                   {/* Amount */}
-                  <TableCell className="align-top py-3.5 text-right font-mono text-xs">
+                  <TableCell className="align-top py-3.5 text-right text-xs tabular-nums">
                     {o.totalAmount ? (
                       <span className="font-semibold text-foreground">
                         ₹{o.totalAmount.toLocaleString("en-IN")}
@@ -857,7 +901,7 @@ export default function OrdersPage() {
       {filtered?.some((o) => o.specialRequests) && (
         <Card className="border-border bg-card">
           <CardContent className="p-4 space-y-2">
-            <h3 className="text-xs font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Compass className="h-3.5 w-3.5 text-primary" />
               Recent Special Requests &amp; Customizations
             </h3>
@@ -891,27 +935,55 @@ export default function OrdersPage() {
               <div>
                 <DialogTitle className="font-serif text-xl flex items-center gap-2">
                   <Eye className="h-5 w-5 text-primary" />
-                  Booking Inquiry #{viewing?.id}
+                  Booking {viewing?.bookingReference || `#${viewing?.id}`}
                 </DialogTitle>
                 <DialogDescription className="text-xs mt-0.5">
                   Submitted {viewing ? new Date(viewing.createdAt).toLocaleString("en-IN", { dateStyle: "long", timeStyle: "short" }) : ""}
                 </DialogDescription>
               </div>
-              {viewing && renderStatusBadge(viewing.status)}
+              <div className="flex items-center gap-2 flex-wrap">
+                {viewing && renderStatusBadge(viewing.status)}
+                {viewing && renderPaymentStatusBadge(viewing.paymentStatus)}
+              </div>
             </div>
           </DialogHeader>
 
           {viewing && (
             <div className="p-6 space-y-6">
+              {/* Linked Inbox Enquiry Banner */}
+              {viewing.enquiryId && (
+                <div className="p-3.5 rounded-lg border border-purple-500/30 bg-purple-500/5 flex items-center justify-between gap-3 text-xs">
+                  <div className="flex items-center gap-2">
+                    <ShoppingBag className="h-4 w-4 text-purple-600 shrink-0" />
+                    <div>
+                      <span className="font-semibold text-foreground">Converted from Inbox Enquiry #{viewing.enquiryId}</span>
+                      <p className="text-[11px] text-muted-foreground">
+                        {viewing.convertedBy ? `Converted by ${viewing.convertedBy}` : "Manual conversion from admin inbox"}
+                        {viewing.convertedAt ? ` on ${new Date(viewing.convertedAt).toLocaleString("en-IN")}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-xs h-7 border-purple-500/30 text-purple-700 hover:bg-purple-100 dark:hover:bg-purple-950/30 gap-1 shrink-0 cursor-pointer"
+                    onClick={() => {
+                      window.location.href = `/enquiries?viewEnquiry=${viewing.enquiryId}`;
+                    }}
+                  >
+                    <ExternalLink className="h-3 w-3" /> View Inbox Enquiry
+                  </Button>
+                </div>
+              )}
               {/* Group 1: Guest Information */}
               <div className="space-y-3">
-                <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
                   <Users className="h-3.5 w-3.5 text-primary" />
                   Guest Information
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-muted/10 p-3.5 rounded-lg border">
                   <div>
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">Guest Name</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">Guest Name</span>
                     <span className="text-base font-semibold text-foreground block mt-0.5">{viewing.guestName}</span>
                     {(viewing.geoCountry || viewing.geoCity) && (
                       <span className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
@@ -923,7 +995,7 @@ export default function OrdersPage() {
 
                   <div className="space-y-2 text-xs">
                     <div>
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">Email Address</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">Email Address</span>
                       <div className="flex items-center gap-2 mt-0.5">
                         <a href={`mailto:${viewing.guestEmail}`} className="font-medium text-foreground hover:underline flex items-center gap-1">
                           <Mail className="h-3 w-3 text-primary" /> {viewing.guestEmail}
@@ -943,7 +1015,7 @@ export default function OrdersPage() {
                     </div>
 
                     <div>
-                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">Phone Number</span>
+                      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">Phone Number</span>
                       <div className="flex items-center gap-2 mt-0.5">
                         <a href={`tel:${viewing.guestPhone}`} className="font-medium text-foreground hover:underline flex items-center gap-1">
                           <Phone className="h-3 w-3 text-primary" /> {viewing.guestPhone}
@@ -967,7 +1039,7 @@ export default function OrdersPage() {
 
               {/* Group 2: Travel Preferences & Destinations */}
               <div className="space-y-3">
-                <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
                   <Compass className="h-3.5 w-3.5 text-primary" />
                   Travel Preferences
                 </h4>
@@ -985,7 +1057,7 @@ export default function OrdersPage() {
 
                 {viewing.specialRequests && (
                   <div className="space-y-1 mt-2">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground block">
+                    <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground block">
                       Special Requests &amp; Notes
                     </span>
                     <div className="p-3 rounded-md bg-muted/20 border text-xs text-foreground leading-relaxed whitespace-pre-wrap">
@@ -997,7 +1069,7 @@ export default function OrdersPage() {
 
               {/* Group 3: Travel Dates & Guest Count */}
               <div className="space-y-3">
-                <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
                   <Calendar className="h-3.5 w-3.5 text-primary" />
                   Dates &amp; Party Size
                 </h4>
@@ -1023,26 +1095,32 @@ export default function OrdersPage() {
 
               {/* Group 4: Booking Status, Financials & Internal Notes */}
               <div className="space-y-3">
-                <h4 className="text-xs font-mono uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b pb-1.5 flex items-center gap-1.5">
                   <DollarSign className="h-3.5 w-3.5 text-primary" />
                   Financials &amp; Internal Pipeline
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="p-3 rounded-lg border bg-primary/5 space-y-1">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
                       Agreed Total Amount
                     </span>
-                    <p className="text-xl font-mono font-bold text-foreground">
-                      {viewing.totalAmount ? `₹${viewing.totalAmount.toLocaleString("en-IN")}` : "Unset"}
+                    <p className="text-xl font-bold text-foreground tabular-nums">
+                      {viewing.totalAmount ? `${viewing.currency || "₹"}${typeof viewing.currency === "string" && viewing.currency.length > 1 ? " " : ""}${viewing.totalAmount.toLocaleString("en-IN")}` : "Unset"}
                     </p>
-                    <span className="text-[11px] text-muted-foreground block">
-                      Recorded in Indian Rupees (INR)
-                    </span>
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="text-[11px] text-muted-foreground">Payment:</span>
+                      {renderPaymentStatusBadge(viewing.paymentStatus)}
+                    </div>
+                    {viewing.paymentTerms && (
+                      <p className="text-[11px] text-muted-foreground pt-0.5">
+                        Terms: {viewing.paymentTerms}
+                      </p>
+                    )}
                   </div>
 
                   <div className="p-3 rounded-lg border bg-muted/10 space-y-1">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
-                      Pipeline Stage
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
+                      Inquiry Status
                     </span>
                     <div className="flex items-center gap-2 pt-0.5">
                       {renderStatusBadge(viewing.status)}
@@ -1056,7 +1134,7 @@ export default function OrdersPage() {
                 {viewing.notes && (
                   <div className="space-y-1 mt-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1">
                         <ShieldAlert className="h-3 w-3 text-amber-600" />
                         Confidential Staff Notes
                       </span>
@@ -1074,7 +1152,7 @@ export default function OrdersPage() {
               {/* Automated Customer Notifications Section */}
               <div className="border rounded-lg p-4 bg-muted/10 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
                     <Mail className="h-3.5 w-3.5 text-primary" />
                     Automated Customer Notifications
                   </span>
@@ -1098,8 +1176,12 @@ export default function OrdersPage() {
                           <div className="font-medium text-foreground capitalize">
                             {notif.type.replace(/_/g, " ")}
                           </div>
-                          <div className="text-[11px] text-muted-foreground font-mono">
-                            {notif.messageId ? `Message ID: ${notif.messageId}` : notif.scheduledFor ? `Scheduled: ${new Date(notif.scheduledFor).toLocaleString()}` : ""}
+                          <div className="text-[11px] text-muted-foreground">
+                            {notif.messageId ? (
+                              <span className="font-mono">Message ID: {notif.messageId}</span>
+                            ) : notif.scheduledFor ? (
+                              <span className="tabular-nums">Scheduled: {new Date(notif.scheduledFor).toLocaleString()}</span>
+                            ) : ""}
                           </div>
                         </div>
                         <Badge
@@ -1127,7 +1209,7 @@ export default function OrdersPage() {
                   onClick={() => setShowTechDetails((prev) => !prev)}
                   className="w-full p-3.5 flex items-center justify-between text-left hover:bg-muted/20 transition-colors select-none"
                 >
-                  <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 font-semibold">
+                  <span className="text-xs uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 font-semibold">
                     <Info className="h-3.5 w-3.5 text-primary" />
                     Technical Details &amp; Attribution
                   </span>
@@ -1165,7 +1247,7 @@ export default function OrdersPage() {
 
                     {viewing.userAgent && (
                       <div className="space-y-1 pt-1">
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
                           User Agent
                         </span>
                         <code className="text-[11px] text-muted-foreground block bg-muted/40 p-2 rounded border break-all font-mono">
@@ -1207,9 +1289,6 @@ export default function OrdersPage() {
             <DialogTitle className="font-serif text-lg">
               Update Booking #{editing?.id} — {editing?.guestName}
             </DialogTitle>
-            <DialogDescription className="text-xs">
-              Update internal status, agreed booking amount, and private coordinator notes.
-            </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-4 pt-2">
@@ -1229,9 +1308,6 @@ export default function OrdersPage() {
                   <SelectItem value="cancelled">Cancelled (Declined or closed)</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-[11px] text-muted-foreground">
-                {STATUS_DESCRIPTIONS[form.status] ?? "Internal status only."}
-              </p>
             </div>
 
             {/* Travel Date & Guests */}
@@ -1268,7 +1344,7 @@ export default function OrdersPage() {
                 Agreed Total Booking Amount (₹)
               </Label>
               <div className="relative">
-                <span className="absolute left-3 top-2.5 text-xs text-muted-foreground font-mono">₹</span>
+                <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">₹</span>
                 <Input
                   id="orderAmount"
                   type="number"
@@ -1276,14 +1352,11 @@ export default function OrdersPage() {
                   step="1"
                   value={form.totalAmount}
                   onChange={(e) => setForm((f) => ({ ...f, totalAmount: Number(e.target.value) || 0 }))}
-                  className="pl-7 font-mono"
+                  className="pl-7"
                   placeholder="0"
                   data-testid="input-order-amount"
                 />
               </div>
-              <p className="text-[11px] text-muted-foreground">
-                Agreed tour package total in INR. Included in business revenue metrics and CSV exports.
-              </p>
             </div>
 
             {/* Internal Staff Notes */}
@@ -1300,9 +1373,6 @@ export default function OrdersPage() {
                 placeholder="Private booking notes, payment milestones, dietary preferences, or flight numbers..."
                 data-testid="input-order-notes"
               />
-              <p className="text-[11px] text-muted-foreground">
-                Staff notes are confidential and never visible to the customer or on public links.
-              </p>
             </div>
 
             <DialogFooter className="gap-2 pt-2">

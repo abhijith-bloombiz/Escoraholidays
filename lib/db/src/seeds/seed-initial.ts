@@ -199,7 +199,7 @@ export async function seedInitial(): Promise<boolean> {
       bestFor: "Culture lovers, Slow travellers, History enthusiasts",
       season: "October – March",
       priceFrom: 220000,
-      heroImageUrl: "https://images.unsplash.com/photo-1556470478-98bd74cfc940?auto=format&fit=crop&w=2000&q=80",
+      heroImageUrl: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=2000&q=80",
       itinerary: JSON.stringify([
         { day: 1, title: "Fort Kochi: Arrival", description: "Arrival and orientation walk. Visit the 400-year-old Paradesi Synagogue and the Dutch Palace murals. Sunset at the Chinese fishing nets. Kerala prawn curry dinner." },
         { day: 2, title: "Fort Kochi: Spice Markets", description: "Morning in Mattancherry's working spice markets with an Escora historian-guide. Understand the economic forces that brought Europeans to these shores. Afternoon: contemporary art trail (Kerala is home to Asia's largest contemporary art festival). Kathakali evening." },
@@ -242,7 +242,7 @@ export async function seedInitial(): Promise<boolean> {
       bestFor: "Nature lovers, Adventure travellers, Cultural explorers",
       season: "October – May",
       priceFrom: 90000,
-      heroImageUrl: "https://images.unsplash.com/photo-1623864703759-4509539ab8ee?auto=format&fit=crop&w=2000&q=80",
+      heroImageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=2000&q=80",
       itinerary: JSON.stringify([
         { day: 1, title: "Arrival in Wayanad", description: "Transfer from Calicut Airport through the Thamarassery Pass (1.5 hrs). Check in to your forest lodge. Afternoon orientation walk with the naturalist. Sunset from the coffee-estate viewpoint. Welcome dinner of tribal-recipe wild-forest greens." },
         { day: 2, title: "Waterfall Trek & Tribal Village", description: "Early morning 4-hour jungle trek to a private waterfall. Swim. Return via a Kurichiyar tribal village — the community hosts a guided walk through their traditional knowledge of the forest. Afternoon rest. Evening campfire dinner." },

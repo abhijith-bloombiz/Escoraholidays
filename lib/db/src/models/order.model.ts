@@ -18,6 +18,17 @@ export interface IOrder {
   status: string;
   totalAmount?: number | null;
   notes?: string | null;
+  bookingReference?: string | null;
+  enquiryId?: number | null;
+  itineraryId?: number | null;
+  itineraryTitle?: string | null;
+  currency?: string | null;
+  paymentStatus?: string | null;
+  paymentTerms?: string | null;
+  pricingDetails?: string | null;
+  itinerarySnapshot?: string | null;
+  convertedBy?: string | null;
+  convertedAt?: Date | null;
   ipAddress?: string | null;
   userAgent?: string | null;
   referrerUrl?: string | null;
@@ -61,6 +72,22 @@ const orderSchema = new Schema<IOrder>(
     },
     totalAmount: { type: Number, default: null, min: 0 },
     notes: { type: String, default: null },
+    bookingReference: { type: String, default: null, index: true },
+    enquiryId: { type: Number, default: null, index: true },
+    itineraryId: { type: Number, default: null, index: true },
+    itineraryTitle: { type: String, default: null },
+    currency: { type: String, default: "INR" },
+    paymentStatus: {
+      type: String,
+      default: "unpaid",
+      enum: ["unpaid", "partially_paid", "paid", "refunded"],
+      index: true,
+    },
+    paymentTerms: { type: String, default: null },
+    pricingDetails: { type: String, default: null },
+    itinerarySnapshot: { type: String, default: null },
+    convertedBy: { type: String, default: null },
+    convertedAt: { type: Date, default: null },
     ipAddress: { type: String, default: null },
     userAgent: { type: String, default: null },
     referrerUrl: { type: String, default: null },
@@ -106,6 +133,17 @@ export const insertOrderSchema = z.object({
   status: z.string().optional().default("enquiry"),
   totalAmount: z.number().optional().nullable(),
   notes: z.string().optional().nullable(),
+  bookingReference: z.string().optional().nullable(),
+  enquiryId: z.number().optional().nullable(),
+  itineraryId: z.number().optional().nullable(),
+  itineraryTitle: z.string().optional().nullable(),
+  currency: z.string().optional().default("INR"),
+  paymentStatus: z.string().optional().default("unpaid"),
+  paymentTerms: z.string().optional().nullable(),
+  pricingDetails: z.string().optional().nullable(),
+  itinerarySnapshot: z.string().optional().nullable(),
+  convertedBy: z.string().optional().nullable(),
+  convertedAt: z.date().optional().nullable(),
   ipAddress: z.string().optional().nullable(),
   userAgent: z.string().optional().nullable(),
   referrerUrl: z.string().optional().nullable(),

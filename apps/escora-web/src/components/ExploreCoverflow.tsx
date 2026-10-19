@@ -250,26 +250,24 @@ export const ExploreCoverflow: React.FC<ExploreCoverflowProps> = ({
 
   /* Scroll detection: do not auto-scroll cards while the user is actively scrolling (uses ref to avoid re-renders) */
   useEffect(() => {
+    let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
     const onScroll = () => {
       isScrollingRef.current = true;
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
       }
-      scrollTimeoutRef.current = setTimeout(() => {
+      scrollTimeout = setTimeout(() => {
         isScrollingRef.current = false;
-      }, 1000);
+        scrollTimeout = null;
+      }, 800);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("wheel", onScroll, { passive: true });
-    window.addEventListener("touchmove", onScroll, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("wheel", onScroll);
-      window.removeEventListener("touchmove", onScroll);
-      if (scrollTimeoutRef.current) {
-        clearTimeout(scrollTimeoutRef.current);
+      if (scrollTimeout) {
+        clearTimeout(scrollTimeout);
       }
     };
   }, []);

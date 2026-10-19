@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Mail,
@@ -27,6 +27,16 @@ import {
   SlidersHorizontal,
   Check,
   AlertTriangle,
+  Zap,
+  Copy,
+  ChevronRight,
+  Filter,
+  Search,
+  LayoutGrid,
+  List,
+  Sliders,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,20 +53,123 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import CampaignVisualBuilderModal from "@/components/campaign/CampaignVisualBuilderModal";
+import ManageAudiencesModal from "@/components/campaign/ManageAudiencesModal";
+import AutomationConfigModal, { AutomationFormData } from "@/components/campaign/AutomationConfigModal";
 
 export interface AutomationSettingsData {
   id?: string;
   enableBookingConfirmation: boolean;
+  enableEnquiryAcknowledgement?: boolean;
+  enableStaffNotifications?: boolean;
   enableItineraryUpdates: boolean;
   enableEnquiryFollowups: boolean;
   enablePostTripFeedback: boolean;
   enablePaymentReceipts: boolean;
   enablePaymentReminders: boolean;
   enablePreTripReminders: boolean;
+  preTripReminderDays?: number;
   enableCancellationNotifications: boolean;
   enableDocumentDelivery: boolean;
   enquiryFollowupDelayHours: number;
   postTripFeedbackDelayHours: number;
+}
+
+export interface AutomationItem {
+  id: string;
+  name: string;
+  category: "transactional" | "scheduled" | "operational";
+  trigger: string;
+  triggerDescription?: string;
+  template?: string;
+  templateId?: string;
+  templateName?: string;
+  recipientLogic: string;
+  timing?: string;
+  timingType?: "immediate" | "delay" | "scheduled_offset";
+  delayKey?: string;
+  delayValue?: number;
+  delayUnit?: "minutes" | "hours" | "days" | string;
+  requiresApproval: boolean;
+  enabled: boolean;
+  conditions?: Record<string, any>;
+  lastExecutedAt?: string | null;
+  lastExecutionStatus?: "success" | "failed" | "skipped" | null;
+  lastExecutionError?: string | null;
+  nextScheduledAt?: string | null;
+  stats: {
+    sent: number;
+    failed: number;
+    skipped: number;
+    pending: number;
+    lastExecutedAt: string | null;
+    lastExecutionStatus?: string | null;
+    lastExecutionError?: string | null;
+    nextScheduledAt: string | null;
+  };
+}
+
+export const TRIGGER_MAP_TO_NOTIF_TYPE: Record<string, string> = {
+  enquiry_submitted: "enquiry_acknowledgement",
+  booking_confirmed: "booking_confirmation",
+  payment_succeeded: "payment_receipt",
+  payment_reminder_due: "payment_deadline_reminder",
+  pre_trip_departure: "pre_trip_reminder",
+  travel_documents_ready: "travel_document_delivery",
+  enquiry_unconverted: "enquiry_followup",
+  trip_completed: "post_trip_feedback",
+  itinerary_amended: "itinerary_update",
+  operational_alert: "exceptional_notice",
+};
+
+export const AUTOMATION_PLAIN_DESCRIPTIONS: Record<string, string> = {
+  enquiry_submitted: "Sent immediately when a customer submits a travel enquiry, confirming their request has been received.",
+  booking_confirmed: "Sent when an itinerary proposal is accepted and booked, providing the official confirmation and package summary.",
+  payment_succeeded: "Sent automatically upon receipt of payment, containing the payment receipt and billing acknowledgment.",
+  payment_reminder_due: "Sent prior to the invoice payment deadline to gently remind the customer of pending balance.",
+  pre_trip_departure: "Sent shortly before departure with destination guidelines, Kerala travel advice, and what to pack.",
+  travel_documents_ready: "Sent when final tour vouchers, airline/train tickets, and chauffeur contact details are ready.",
+  enquiry_unconverted: "Sent as an unhurried, helpful follow-up if an enquiry has had no activity for several days.",
+  trip_completed: "Sent after the holiday concludes to thank the guest and invite feedback and reviews.",
+  itinerary_amended: "Sent whenever our travel planners make updates or improvements to an existing itinerary proposal.",
+  operational_alert: "Sent for special travel notices, exceptional flight/weather updates, or urgent alerts.",
+};
+
+export function getPlainTiming(auto: AutomationItem): string {
+  if (auto.timingType === "immediate" || (!auto.delayValue && !auto.delayKey)) {
+    return "Sent immediately upon trigger";
+  }
+  if (auto.delayValue) {
+    const unit = auto.delayUnit || "hours";
+    return `Delivered ${auto.delayValue} ${unit} after trigger`;
+  }
+  return auto.timing || "Scheduled delivery";
+}
+
+export function getSimpleCampaignStatus(status: string): { label: string; badgeClass: string } {
+  switch (status) {
+    case "draft":
+      return { label: "Draft", badgeClass: "bg-stone-100 text-stone-700 border-stone-200" };
+    case "pending_approval":
+      return { label: "Awaiting Approval", badgeClass: "bg-amber-50 text-amber-800 border-amber-200" };
+    case "approved":
+      return { label: "Approved", badgeClass: "bg-blue-50 text-blue-700 border-blue-200" };
+    case "scheduled":
+      return { label: "Scheduled", badgeClass: "bg-purple-50 text-purple-700 border-purple-200" };
+    case "sending":
+      return { label: "Sending...", badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-300 animate-pulse" };
+    case "sent":
+    case "completed":
+      return { label: "Sent", badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200" };
+    case "failed":
+      return { label: "Failed", badgeClass: "bg-red-50 text-red-700 border-red-200" };
+    case "rejected":
+      return { label: "Needs Review", badgeClass: "bg-red-50 text-red-700 border-red-200" };
+    case "cancelled":
+      return { label: "Cancelled", badgeClass: "bg-stone-100 text-stone-600 border-stone-200" };
+    default:
+      return { label: status, badgeClass: "bg-stone-100 text-stone-700 border-stone-200" };
+  }
 }
 
 interface CampaignItem {
@@ -66,14 +179,28 @@ interface CampaignItem {
   previewText?: string | null;
   contentHtml: string;
   targetAudience: {
-    type: "all_contacts" | "enquiries_only" | "confirmed_guests" | "custom_segment";
+    type: "all_contacts" | "enquiries_only" | "confirmed_guests" | "custom_segment" | "audience_group";
     destinations?: string[];
     travelStyle?: string | null;
+    groupId?: string;
+    groupIds?: string[];
   };
-  status: "draft" | "approved" | "scheduled" | "sending" | "sent" | "cancelled" | "failed";
+  status:
+    | "draft"
+    | "pending_approval"
+    | "approved"
+    | "rejected"
+    | "scheduled"
+    | "sending"
+    | "sent"
+    | "completed"
+    | "cancelled"
+    | "failed";
   scheduledAt?: string | null;
   approvedBy?: string | null;
   approvedAt?: string | null;
+  rejectionReason?: string | null;
+  submittedForApprovalAt?: string | null;
   sentAt?: string | null;
   stats: {
     totalRecipients: number;
@@ -84,7 +211,15 @@ interface CampaignItem {
   deliveries?: Array<{
     recipientEmail: string;
     recipientName: string;
-    status: "sent" | "simulated" | "accepted" | "delivered" | "bounced" | "failed" | "skipped_unsubscribed" | "complained";
+    status:
+      | "sent"
+      | "simulated"
+      | "accepted"
+      | "delivered"
+      | "bounced"
+      | "failed"
+      | "skipped_unsubscribed"
+      | "complained";
     deliveryStatus?: string | null;
     sentAt?: string;
     messageId?: string | null;
@@ -141,73 +276,30 @@ interface AudiencePreviewData {
   }>;
 }
 
-const TEMPLATE_PRESETS = [
-  {
-    name: "Monsoon Sanctuary & Ayurvedic Restoration",
-    subject: "The Monsoon Sanctuary: Slow Days and Ayurvedic Rejuvenation in Kerala",
-    previewText: "Embrace misty Western Ghats mornings and ancient restorative treatments.",
-    html: `<div style="font-family: Georgia, serif; max-width: 620px; margin: 0 auto; color: #1a1410; background: #faf9f7; padding: 44px 36px; border-radius: 8px;">
-  <div style="font-family: monospace; font-size: 11px; letter-spacing: 0.25em; color: #cbab6e; text-transform: uppercase; margin-bottom: 28px;">Escora Holidays · Slow Sanctuaries</div>
-  <h1 style="font-weight: 300; font-size: 28px; line-height: 1.3; color: #1a1410; margin: 0 0 16px 0;">Greetings, {{name}}.</h1>
-  <p style="font-size: 16px; line-height: 1.7; color: #4a3d30; margin-bottom: 24px;">
-    As the south-west monsoon envelops Kerala in deep emerald and rain-scented breezes, the land enters its traditional season of renewal. In Ayurvedic philosophy, monsoon air opens the pores, creating the most receptive conditions of the year for curative panchakarma and restorative herbal oils.
-  </p>
-  <div style="background: #f0ece4; border-left: 3px solid #cbab6e; padding: 20px 24px; margin-bottom: 28px;">
-    <p style="font-style: italic; font-size: 15px; line-height: 1.6; color: #3a2e22; margin: 0;">
-      "Slow travel is not an absence of movement, but an elevation of presence."
-    </p>
-  </div>
-  <p style="font-size: 15px; line-height: 1.7; color: #4a3d30; margin-bottom: 32px;">
-    Our private journey designers are curating seven-to-ten day monsoon stays across our heritage sanctuaries in Munnar and Kumarakom, paired with dedicated Ayurvedic consultations and private lakeside dining.
-  </p>
-  <div style="text-align: center; margin: 36px 0;">
-    <a href="https://www.escoraholidays.com/plan" style="background: #1b2e21; color: #f5f2eb; padding: 14px 28px; text-decoration: none; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; border-radius: 4px; display: inline-block; font-weight: 500;">Inquire with a Concierge</a>
-  </div>
-</div>`,
-  },
-  {
-    name: "Winter Tea Harvest & Cardamom Hills Invitation",
-    subject: "Winter in the High Ranges: An Exclusive Invitation to the Cardamom Hills",
-    previewText: "Crisp mountain air, handpicked teas, and crackling estate hearths.",
-    html: `<div style="font-family: Georgia, serif; max-width: 620px; margin: 0 auto; color: #1a1410; background: #faf9f7; padding: 44px 36px; border-radius: 8px;">
-  <div style="font-family: monospace; font-size: 11px; letter-spacing: 0.25em; color: #cbab6e; text-transform: uppercase; margin-bottom: 28px;">Escora Holidays · Mountain Retreats</div>
-  <h1 style="font-weight: 300; font-size: 28px; line-height: 1.3; color: #1a1410; margin: 0 0 16px 0;">Dear {{name}},</h1>
-  <p style="font-size: 16px; line-height: 1.7; color: #4a3d30; margin-bottom: 24px;">
-    Winter in Munnar brings dawn mists that gently peel back to reveal sunlit tea valleys, crisp highland breezes, and evenings gathered around heritage fireplaces. We invite you to experience the winter harvest at our private estate partner, Windermere Estate.
-  </p>
-  <p style="font-size: 15px; line-height: 1.7; color: #4a3d30; margin-bottom: 32px;">
-    Enjoy private naturalist-led birding excursions, tea tastings paired with single-estate artisanal batches, and bespoke dining overlooking the valleys of {{destination}}.
-  </p>
-  <div style="text-align: center; margin: 36px 0;">
-    <a href="https://www.escoraholidays.com/packages" style="background: #1b2e21; color: #f5f2eb; padding: 14px 28px; text-decoration: none; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; border-radius: 4px; display: inline-block;">Discover Signature Journeys</a>
-  </div>
-</div>`,
-  },
-  {
-    name: "Backwater Houseboat & Heritage Gastronomy",
-    subject: "Glide Along Still Waters: Handcrafted Houseboat Journeys in Alleppey",
-    previewText: "Private chef dining, starlit canals, and untamed Vembanad tranquility.",
-    html: `<div style="font-family: Georgia, serif; max-width: 620px; margin: 0 auto; color: #1a1410; background: #faf9f7; padding: 44px 36px; border-radius: 8px;">
-  <div style="font-family: monospace; font-size: 11px; letter-spacing: 0.25em; color: #cbab6e; text-transform: uppercase; margin-bottom: 28px;">Escora Holidays · Waterway Sanctuaries</div>
-  <h1 style="font-weight: 300; font-size: 28px; line-height: 1.3; color: #1a1410; margin: 0 0 16px 0;">Warm greetings, {{name}}.</h1>
-  <p style="font-size: 16px; line-height: 1.7; color: #4a3d30; margin-bottom: 24px;">
-    The gentle rhythm of a private kettuvallam gliding through palm-fringed backwaters remains one of the world's most meditative travel experiences. On board Escora's private luxury houseboats, every meal is prepared by your personal chef using heritage coastal recipes.
-  </p>
-  <p style="font-size: 15px; line-height: 1.7; color: #4a3d30; margin-bottom: 32px;">
-    From tranquil canoe explorations through narrow village canals to candlelit starlit dinners on deck, let us design an unhurried escape tailored just for you.
-  </p>
-  <div style="text-align: center; margin: 36px 0;">
-    <a href="https://www.escoraholidays.com/itineraries" style="background: #1b2e21; color: #f5f2eb; padding: 14px 28px; text-decoration: none; font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase; border-radius: 4px; display: inline-block;">Explore Sample Itineraries</a>
-  </div>
-</div>`,
-  },
-];
+interface DashboardStats {
+  campaignsSent: number;
+  scheduledCampaigns: number;
+  pendingApprovals: number;
+  draftCampaigns: number;
+  rejectedCampaigns: number;
+  emailsSentOrDelivered: number;
+  failedEmails: number;
+  activeAutomations: number;
+  totalAudienceGroups: number;
+  activeSubscribers: number;
+}
 
 export default function CampaignsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<"campaigns" | "subscribers" | "notifications">("campaigns");
+  // Task-based view state: "overview" (clean default) | "campaigns" | "automations" | "audiences" | "history"
+  const [activeView, setActiveView] = useState<"overview" | "campaigns" | "automations" | "audiences" | "history">("overview");
+  const [expandedAutomationId, setExpandedAutomationId] = useState<string | null>(null);
+  const [customerGroupsSubTab, setCustomerGroupsSubTab] = useState<"groups" | "registry">("groups");
+  const [activeTab, setActiveTab] = useState<"campaigns" | "automations" | "subscribers" | "delivery_audit">("campaigns");
+
+  // Dialog states for campaigns
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingCampaign, setEditingCampaign] = useState<CampaignItem | null>(null);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -218,18 +310,48 @@ export default function CampaignsPage() {
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [selectedCampaignForSend, setSelectedCampaignForSend] = useState<CampaignItem | null>(null);
   const [sendMockMode, setSendMockMode] = useState(true);
-  const [liveHtmlPreview, setLiveHtmlPreview] = useState(false);
 
-  // Notification tab filters & inspection state
-  const [notifTypeFilter, setNotifTypeFilter] = useState("all");
-  const [notifStatusFilter, setNotifStatusFilter] = useState("all");
+  // Audience Groups modal state
+  const [audienceModalOpen, setAudienceModalOpen] = useState(false);
+
+  // Campaign Rejection dialog
+  const [rejectCampaignDialogOpen, setRejectCampaignDialogOpen] = useState(false);
+  const [selectedCampaignForReject, setSelectedCampaignForReject] = useState<CampaignItem | null>(null);
+  const [campaignRejectReason, setCampaignRejectReason] = useState("");
+
+  // Automation delay configuration dialog
+  const [delayConfigDialogOpen, setDelayConfigDialogOpen] = useState(false);
+  const [selectedAutomationForDelay, setSelectedAutomationForDelay] = useState<AutomationItem | null>(null);
+  const [automationDelayValueInput, setAutomationDelayValueInput] = useState<number>(24);
+
+  // Automation rule management states
+  const [automationModalOpen, setAutomationModalOpen] = useState(false);
+  const [editingAutomation, setEditingAutomation] = useState<AutomationItem | null>(null);
+  const [automationViewMode, setAutomationViewMode] = useState<"cards" | "table">("cards");
+  const [automationCategoryFilter, setAutomationCategoryFilter] = useState<string>("all");
+  const [automationStatusFilter, setAutomationStatusFilter] = useState<string>("all");
+  const [automationSearchQuery, setAutomationSearchQuery] = useState("");
+  const [deleteConfirmAutomation, setDeleteConfirmAutomation] = useState<AutomationItem | null>(null);
+
+  // Delivery log inspection & filters
+  const [auditWorkflowFilter, setAuditWorkflowFilter] = useState<"all" | "manual" | "automation">("all");
+  const [auditStatusFilter, setAuditStatusFilter] = useState<string>("all");
+  const [auditTypeFilter, setAuditTypeFilter] = useState<string>("all");
+  const [auditSearchQuery, setAuditSearchQuery] = useState("");
   const [selectedNotifDetails, setSelectedNotifDetails] = useState<NotificationItem | null>(null);
+  const [previewNotificationId, setPreviewNotificationId] = useState<number | null>(null);
 
-  // Stage 2: Automation Controls state
+  // Campaign filters
+  const [campaignStatusFilter, setCampaignStatusFilter] = useState<string>("all");
+  const [campaignSearchQuery, setCampaignSearchQuery] = useState("");
+
+  // Subscriber filters
+  const [subStatusFilter, setSubStatusFilter] = useState<"all" | "subscribed" | "opted_out">("all");
+  const [subSearchQuery, setSubSearchQuery] = useState("");
+
+  // Automation settings dialog & manual compose email
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
   const [settingsDraft, setSettingsDraft] = useState<AutomationSettingsData | null>(null);
-
-  // Stage 2: Manual Compose Email state
   const [composeDialogOpen, setComposeDialogOpen] = useState(false);
   const [composeFormData, setComposeFormData] = useState({
     type: "custom_enquiry_response",
@@ -244,7 +366,7 @@ export default function CampaignsPage() {
     queueApproval: false,
   });
 
-  // Stage 2: Edit Notification state
+  // Notification edit & confirm dialogs
   const [editingNotification, setEditingNotification] = useState<NotificationItem | null>(null);
   const [editFormData, setEditFormData] = useState({
     subject: "",
@@ -253,23 +375,90 @@ export default function CampaignsPage() {
     bodyHtml: "",
     notes: "",
   });
-
-  // Stage 2: Email Preview state
-  const [previewNotificationId, setPreviewNotificationId] = useState<number | null>(null);
-
-  // Stage 2: Sensitive Action Confirmation states
   const [confirmApproveNotificationId, setConfirmApproveNotificationId] = useState<number | null>(null);
   const [confirmRejectNotificationId, setConfirmRejectNotificationId] = useState<number | null>(null);
   const [rejectReasonInput, setRejectReasonInput] = useState("");
   const [confirmCancelNotificationId, setConfirmCancelNotificationId] = useState<number | null>(null);
   const [cancelReasonInput, setCancelReasonInput] = useState("");
 
-  // Query automation settings
+  // -------------------------------------------------------------------------
+  // QUERIES
+  // -------------------------------------------------------------------------
+
+  // 1. Dashboard summary metrics (Section 7)
+  const { data: dashboardStats, refetch: refetchStats } = useQuery<DashboardStats>({
+    queryKey: ["admin", "campaigns-stats"],
+    queryFn: async () => {
+      const res = await fetch("/api/campaigns/stats", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load dashboard metrics");
+      return res.json();
+    },
+    refetchInterval: 30000,
+  });
+
+  // 2. Campaigns list (Section 1)
   const {
-    data: automationSettings,
-    isLoading: settingsLoading,
-    refetch: refetchSettings,
-  } = useQuery<AutomationSettingsData>({
+    data: campaigns = [],
+    isLoading: campaignsLoading,
+    refetch: refetchCampaigns,
+  } = useQuery<CampaignItem[]>({
+    queryKey: ["admin", "campaigns"],
+    queryFn: async () => {
+      const res = await fetch("/api/campaigns", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load campaigns");
+      return res.json();
+    },
+  });
+
+  // 3. Automations list (Section 2)
+  const {
+    data: automations = [],
+    isLoading: automationsLoading,
+    isError: automationsError,
+    error: automationsErrorObj,
+    refetch: refetchAutomations,
+  } = useQuery<AutomationItem[]>({
+    queryKey: ["admin", "automations"],
+    queryFn: async () => {
+      const res = await fetch("/api/notifications/automations", { credentials: "include" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || `Failed to load automations (${res.status})`);
+      }
+      return res.json();
+    },
+  });
+
+  // 4. Subscriber consent registry (Section 3)
+  const {
+    data: subscribers = [],
+    isLoading: subscribersLoading,
+    refetch: refetchSubscribers,
+  } = useQuery<SubscriberItem[]>({
+    queryKey: ["admin", "subscribers"],
+    queryFn: async () => {
+      const res = await fetch("/api/campaigns/subscribers", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load subscriber consent registry");
+      return res.json();
+    },
+  });
+
+  // 5. Notifications audit logs (Section 4)
+  const {
+    data: notifications = [],
+    isLoading: notifsLoading,
+    refetch: refetchNotifications,
+  } = useQuery<NotificationItem[]>({
+    queryKey: ["admin", "notifications"],
+    queryFn: async () => {
+      const res = await fetch("/api/notifications?limit=250", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load notification audit records");
+      return res.json();
+    },
+  });
+
+  // 6. Automation settings
+  const { data: automationSettings, refetch: refetchSettings } = useQuery<AutomationSettingsData>({
     queryKey: ["admin", "automation-settings"],
     queryFn: async () => {
       const res = await fetch("/api/notifications/settings", { credentials: "include" });
@@ -278,11 +467,23 @@ export default function CampaignsPage() {
     },
   });
 
-  // Query notification preview
-  const {
-    data: previewData,
-    isLoading: notifPreviewLoading,
-  } = useQuery<{
+  // 7. Audience preview
+  const { data: audiencePreview, isLoading: previewLoading } = useQuery<AudiencePreviewData>({
+    queryKey: ["admin", "campaigns", selectedCampaignForPreview?.id, "preview"],
+    queryFn: async () => {
+      if (!selectedCampaignForPreview) return null as any;
+      const res = await fetch(`/api/campaigns/${selectedCampaignForPreview.id}/audience-preview`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Failed to load audience preview");
+      return res.json();
+    },
+    enabled: Boolean(selectedCampaignForPreview && previewModalOpen),
+  });
+
+  // 8. Notification HTML preview
+  const { data: previewData, isLoading: notifPreviewLoading } = useQuery<{
     id: number;
     subject: string;
     recipientEmail: string;
@@ -301,260 +502,27 @@ export default function CampaignsPage() {
     enabled: Boolean(previewNotificationId),
   });
 
-  // Mutations for Stage 2
-  const updateSettingsMutation = useMutation({
-    mutationFn: async (updated: Partial<AutomationSettingsData>) => {
-      const res = await fetch("/api/notifications/settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updated),
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to update settings");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "automation-settings"] });
-      setSettingsDialogOpen(false);
-      toast({ title: "Settings Saved", description: "Automation rules and scheduling delays updated." });
-    },
-    onError: (err: any) => {
-      toast({ title: "Update Failed", description: err.message, variant: "destructive" });
-    },
-  });
-
-  const sendManualNotificationMutation = useMutation({
-    mutationFn: async (payload: any) => {
-      const res = await fetch("/api/notifications/manual", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to dispatch manual email");
-      }
-      return res.json();
-    },
-    onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "notifications"] });
-      setComposeDialogOpen(false);
-      setComposeFormData({
-        type: "custom_enquiry_response",
-        recipientEmail: "",
-        recipientName: "",
-        relatedType: "enquiry",
-        relatedId: "1",
-        title: "",
-        bodyHtml: "",
-        ctaLabel: "",
-        ctaUrl: "",
-        queueApproval: false,
-      });
-      toast({
-        title: vars.queueApproval ? "Queued for Approval" : "Email Dispatched",
-        description: vars.queueApproval
-          ? "Correspondence queued in pending_approval status for staff review."
-          : "Manual correspondence dispatched with complete delivery tracking.",
-      });
-    },
-    onError: (err: any) => {
-      toast({ title: "Send Failed", description: err.message, variant: "destructive" });
-    },
-  });
-
-  const editNotificationMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: number; updates: any }) => {
-      const res = await fetch(`/api/notifications/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to update notification");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "notifications"] });
-      setEditingNotification(null);
-      toast({ title: "Notification Updated", description: "Changes saved to the pending record." });
-    },
-    onError: (err: any) => {
-      toast({ title: "Edit Failed", description: err.message, variant: "destructive" });
-    },
-  });
-
-  const cancelNotificationMutation = useMutation({
-    mutationFn: async ({ id, reason }: { id: number; reason?: string }) => {
-      const res = await fetch(`/api/notifications/${id}/cancel`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason }),
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to cancel notification");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "notifications"] });
-      setConfirmCancelNotificationId(null);
-      setCancelReasonInput("");
-      toast({ title: "Notification Cancelled", description: "Successfully cancelled scheduled notification." });
-    },
-    onError: (err: any) => {
-      toast({ title: "Cancellation Failed", description: err.message, variant: "destructive" });
-    },
-  });
-
-  // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    subject: "",
-    previewText: "",
-    audienceType: "all_contacts" as CampaignItem["targetAudience"]["type"],
-    contentHtml: TEMPLATE_PRESETS[0].html,
-  });
-
-  // Query campaigns
-  const {
-    data: campaigns = [],
-    isLoading: campaignsLoading,
-    refetch: refetchCampaigns,
-  } = useQuery<CampaignItem[]>({
-    queryKey: ["admin", "campaigns"],
+  // 9. Audience groups query
+  const { data: audienceGroups = [], refetch: refetchAudienceGroups } = useQuery<any[]>({
+    queryKey: ["campaigns", "audiences"],
     queryFn: async () => {
-      const res = await fetch("/api/campaigns", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to load campaigns");
+      const res = await fetch("/api/campaigns/audiences", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load audience groups");
       return res.json();
     },
   });
 
-  // Query subscribers
-  const {
-    data: subscribers = [],
-    isLoading: subscribersLoading,
-    refetch: refetchSubscribers,
-  } = useQuery<SubscriberItem[]>({
-    queryKey: ["admin", "subscribers"],
-    queryFn: async () => {
-      const res = await fetch("/api/campaigns/subscribers", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to load subscribers");
-      return res.json();
-    },
-  });
+  // -------------------------------------------------------------------------
+  // MUTATIONS
+  // -------------------------------------------------------------------------
 
-  // Query transactional and automated notifications
-  const {
-    data: notifications = [],
-    isLoading: notificationsLoading,
-    refetch: refetchNotifications,
-  } = useQuery<NotificationItem[]>({
-    queryKey: ["admin", "notifications"],
-    queryFn: async () => {
-      const res = await fetch("/api/notifications", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to load notifications");
-      return res.json();
-    },
-  });
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+    queryClient.invalidateQueries({ queryKey: ["admin", "campaigns-stats"] });
+    queryClient.invalidateQueries({ queryKey: ["admin", "automations"] });
+    queryClient.invalidateQueries({ queryKey: ["admin", "notifications"] });
+  };
 
-  const retryNotificationMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await fetch(`/api/notifications/${id}/retry`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to retry notification");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "notifications"] });
-      toast({ title: "Notification Re-queued", description: "Scheduled for retry dispatch." });
-    },
-    onError: (err: any) => {
-      toast({ title: "Retry Failed", description: err.message, variant: "destructive" });
-    },
-  });
-
-  const approveNotificationMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await fetch(`/api/notifications/${id}/approve`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to approve notification");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "notifications"] });
-      setConfirmApproveNotificationId(null);
-      toast({ title: "Notification Approved", description: "Queued for automated dispatch." });
-    },
-    onError: (err: any) => {
-      toast({ title: "Approval Failed", description: err.message, variant: "destructive" });
-    },
-  });
-
-  const rejectNotificationMutation = useMutation({
-    mutationFn: async ({ id, reason }: { id: number; reason?: string }) => {
-      const res = await fetch(`/api/notifications/${id}/reject`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reason }),
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to reject notification");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "notifications"] });
-      setConfirmRejectNotificationId(null);
-      setRejectReasonInput("");
-      toast({ title: "Notification Rejected", description: "Marked as cancelled." });
-    },
-    onError: (err: any) => {
-      toast({ title: "Action Failed", description: err.message, variant: "destructive" });
-    },
-  });
-
-  // Query audience preview for selected campaign
-  const {
-    data: audiencePreview,
-    isLoading: previewLoading,
-  } = useQuery<AudiencePreviewData>({
-    queryKey: ["admin", "campaigns", selectedCampaignForPreview?.id, "preview"],
-    queryFn: async () => {
-      if (!selectedCampaignForPreview) return null as any;
-      const res = await fetch(`/api/campaigns/${selectedCampaignForPreview.id}/audience-preview`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to load audience preview");
-      return res.json();
-    },
-    enabled: !!selectedCampaignForPreview && previewModalOpen,
-  });
-
-  // Mutations
   const createMutation = useMutation({
     mutationFn: async (payload: any) => {
       const res = await fetch("/api/campaigns", {
@@ -566,7 +534,11 @@ export default function CampaignsPage() {
           subject: payload.subject,
           previewText: payload.previewText,
           contentHtml: payload.contentHtml,
-          targetAudience: { type: payload.audienceType },
+          targetAudience: {
+            type: payload.audienceType,
+            groupId: payload.groupId,
+            groupIds: payload.groupIds,
+          },
         }),
       });
       if (!res.ok) {
@@ -576,7 +548,7 @@ export default function CampaignsPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+      invalidateAll();
       setCreateDialogOpen(false);
       toast({ title: "Campaign Created", description: "Draft campaign saved successfully." });
     },
@@ -596,7 +568,11 @@ export default function CampaignsPage() {
           subject: payload.subject,
           previewText: payload.previewText,
           contentHtml: payload.contentHtml,
-          targetAudience: { type: payload.audienceType },
+          targetAudience: {
+            type: payload.audienceType,
+            groupId: payload.groupId,
+            groupIds: payload.groupIds,
+          },
         }),
       });
       if (!res.ok) {
@@ -606,7 +582,7 @@ export default function CampaignsPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+      invalidateAll();
       setCreateDialogOpen(false);
       setEditingCampaign(null);
       toast({ title: "Campaign Updated", description: "Campaign changes saved." });
@@ -618,21 +594,43 @@ export default function CampaignsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`/api/campaigns/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
+      const res = await fetch(`/api/campaigns/${id}`, { method: "DELETE", credentials: "include" });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || "Failed to delete campaign");
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+      invalidateAll();
       toast({ title: "Campaign Deleted", description: "Campaign removed." });
     },
     onError: (err: any) => {
       toast({ title: "Delete Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  // Approval Workflow Mutations
+  const submitCampaignApprovalMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/campaigns/${id}/submit-approval`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to submit for approval");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast({
+        title: "Submitted for Approval",
+        description: "Campaign is now awaiting administrator review.",
+      });
+    },
+    onError: (err: any) => {
+      toast({ title: "Submission Failed", description: err.message, variant: "destructive" });
     },
   });
 
@@ -649,14 +647,67 @@ export default function CampaignsPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+      invalidateAll();
       toast({
-        title: "Staff Approved",
-        description: "Campaign marked as approved. Ready for scheduling or delivery.",
+        title: "Campaign Approved",
+        description: "Campaign marked as approved. Ready for scheduling or immediate send.",
       });
     },
     onError: (err: any) => {
       toast({ title: "Approval Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const rejectCampaignMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      const res = await fetch(`/api/campaigns/${id}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ reason }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to reject campaign");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setRejectCampaignDialogOpen(false);
+      setSelectedCampaignForReject(null);
+      setCampaignRejectReason("");
+      toast({
+        title: "Campaign Rejected",
+        description: "Campaign marked as rejected. Staff can revise and re-submit.",
+      });
+    },
+    onError: (err: any) => {
+      toast({ title: "Rejection Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const duplicateCampaignMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/campaigns/${id}/duplicate`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to duplicate campaign");
+      }
+      return res.json();
+    },
+    onSuccess: (newDraft) => {
+      invalidateAll();
+      toast({
+        title: "Campaign Duplicated",
+        description: `New draft copy #${newDraft.id} created successfully.`,
+      });
+    },
+    onError: (err: any) => {
+      toast({ title: "Duplication Failed", description: err.message, variant: "destructive" });
     },
   });
 
@@ -675,9 +726,9 @@ export default function CampaignsPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+      invalidateAll();
       setScheduleDialogOpen(false);
-      toast({ title: "Campaign Scheduled", description: "Campaign successfully queued." });
+      toast({ title: "Campaign Scheduled", description: "Campaign successfully queued for automatic dispatch." });
     },
     onError: (err: any) => {
       toast({ title: "Scheduling Failed", description: err.message, variant: "destructive" });
@@ -699,10 +750,10 @@ export default function CampaignsPage() {
       return res.json();
     },
     onSuccess: (data: CampaignItem) => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
+      invalidateAll();
       setSendDialogOpen(false);
       toast({
-        title: "Dispatch Executed",
+        title: "Dispatch Completed",
         description: `Delivered to ${data.stats.sentCount} recipients (${data.stats.skippedCount} unsubscribed contacts safely skipped).`,
       });
     },
@@ -713,10 +764,7 @@ export default function CampaignsPage() {
 
   const cancelMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`/api/campaigns/${id}/cancel`, {
-        method: "POST",
-        credentials: "include",
-      });
+      const res = await fetch(`/api/campaigns/${id}/cancel`, { method: "POST", credentials: "include" });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || "Failed to cancel campaign");
@@ -724,1308 +772,1803 @@ export default function CampaignsPage() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "campaigns"] });
-      toast({ title: "Campaign Cancelled", description: "Scheduled dispatch stopped." });
+      invalidateAll();
+      toast({ title: "Campaign Cancelled", description: "Scheduled dispatch safely stopped." });
     },
     onError: (err: any) => {
       toast({ title: "Cancellation Failed", description: err.message, variant: "destructive" });
     },
   });
 
+  // Automation mutations
+  const toggleAutomationMutation = useMutation({
+    mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
+      const res = await fetch(`/api/notifications/automations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ enabled }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to toggle automation");
+      }
+      return res.json();
+    },
+    onSuccess: (_, vars) => {
+      invalidateAll();
+      toast({
+        title: vars.enabled ? "Automation Activated" : "Automation Deactivated",
+        description: `Automation rule is now ${vars.enabled ? "live and active" : "paused"}.`,
+      });
+    },
+    onError: (err: any) => {
+      toast({ title: "Update Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const updateAutomationDelayMutation = useMutation({
+    mutationFn: async ({ id, delayValue }: { id: string; delayValue: number }) => {
+      const res = await fetch(`/api/notifications/automations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ delayValue }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update delay");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setDelayConfigDialogOpen(false);
+      setSelectedAutomationForDelay(null);
+      toast({ title: "Timing Updated", description: "Automation execution delay adjusted." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Update Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const createAutomationMutation = useMutation({
+    mutationFn: async (payload: AutomationFormData) => {
+      const res = await fetch("/api/notifications/automations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || `Failed to create automation rule (${res.status})`);
+      }
+      return res.json();
+    },
+    onSuccess: (saved) => {
+      invalidateAll();
+      setAutomationModalOpen(false);
+      setEditingAutomation(null);
+      toast({
+        title: "Automation Created",
+        description: `Automation rule "${saved?.name || "New Rule"}" has been saved and activated.`,
+      });
+    },
+    onError: (err: any) => {
+      toast({ title: "Creation Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const updateAutomationMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: AutomationFormData }) => {
+      const res = await fetch(`/api/notifications/automations/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || `Failed to update automation (${res.status})`);
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setAutomationModalOpen(false);
+      setEditingAutomation(null);
+      toast({
+        title: "Automation Updated",
+        description: "Automation configuration changes persisted successfully.",
+      });
+    },
+    onError: (err: any) => {
+      toast({ title: "Update Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const deleteAutomationMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/notifications/automations/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || `Failed to delete automation (${res.status})`);
+      }
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setDeleteConfirmAutomation(null);
+      toast({
+        title: "Automation Deleted",
+        description: "The automation rule has been removed from database.",
+      });
+    },
+    onError: (err: any) => {
+      toast({ title: "Delete Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  // Notification Retry & Approval
+  const retryNotificationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/notifications/${id}/retry`, { method: "POST", credentials: "include" });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to retry delivery");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      toast({ title: "Retry Queued", description: "Notification has been re-enqueued for dispatch." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Retry Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const approveNotificationMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await fetch(`/api/notifications/${id}/approve`, { method: "POST", credentials: "include" });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to approve notification");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setConfirmApproveNotificationId(null);
+      toast({ title: "Approved & Dispatched", description: "Notification approved for immediate dispatch." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Action Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const rejectNotificationMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      const res = await fetch(`/api/notifications/${id}/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ reason }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to reject notification");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setConfirmRejectNotificationId(null);
+      setRejectReasonInput("");
+      toast({ title: "Notification Rejected", description: "Marked as cancelled." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Action Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (updated: Partial<AutomationSettingsData>) => {
+      const res = await fetch("/api/notifications/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updated),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update settings");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setSettingsDialogOpen(false);
+      toast({ title: "Settings Saved", description: "Global automation rules and scheduling delays updated." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Update Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const sendManualNotificationMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await fetch("/api/notifications/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to dispatch manual email");
+      }
+      return res.json();
+    },
+    onSuccess: (_, vars) => {
+      invalidateAll();
+      setComposeDialogOpen(false);
+      toast({
+        title: vars.queueApproval ? "Queued for Approval" : "Email Dispatched",
+        description: vars.queueApproval
+          ? "Correspondence queued in pending_approval status for review."
+          : "Manual correspondence dispatched with delivery tracking.",
+      });
+    },
+    onError: (err: any) => {
+      toast({ title: "Dispatch Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const editNotificationMutation = useMutation({
+    mutationFn: async ({ id, updates }: { id: number; updates: any }) => {
+      const res = await fetch(`/api/notifications/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to update notification");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setEditingNotification(null);
+      toast({ title: "Notification Updated", description: "Changes saved to draft notification." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Update Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const cancelNotificationMutation = useMutation({
+    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      const res = await fetch(`/api/notifications/${id}/cancel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason }),
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Failed to cancel notification");
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      invalidateAll();
+      setConfirmCancelNotificationId(null);
+      setCancelReasonInput("");
+      toast({ title: "Notification Cancelled", description: "Scheduled dispatch stopped." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Action Failed", description: err.message, variant: "destructive" });
+    },
+  });
+
+  // -------------------------------------------------------------------------
+  // FILTERED DATA
+  // -------------------------------------------------------------------------
+
+  const filteredCampaigns = useMemo(() => {
+    return campaigns.filter((c) => {
+      if (campaignStatusFilter !== "all" && c.status !== campaignStatusFilter) return false;
+      if (campaignSearchQuery.trim()) {
+        const q = campaignSearchQuery.toLowerCase();
+        return (
+          c.name.toLowerCase().includes(q) ||
+          c.subject.toLowerCase().includes(q) ||
+          String(c.id).includes(q)
+        );
+      }
+      return true;
+    });
+  }, [campaigns, campaignStatusFilter, campaignSearchQuery]);
+
+  const filteredSubscribers = useMemo(() => {
+    return subscribers.filter((s) => {
+      if (subStatusFilter === "subscribed" && !s.subscribed) return false;
+      if (subStatusFilter === "opted_out" && s.subscribed) return false;
+      if (subSearchQuery.trim()) {
+        const q = subSearchQuery.toLowerCase();
+        return s.email.toLowerCase().includes(q) || (s.name && s.name.toLowerCase().includes(q));
+      }
+      return true;
+    });
+  }, [subscribers, subStatusFilter, subSearchQuery]);
+
+  // Filtered automations memo
+  const filteredAutomations = useMemo(() => {
+    return automations.filter((auto) => {
+      if (automationCategoryFilter !== "all" && auto.category !== automationCategoryFilter) return false;
+      if (automationStatusFilter === "enabled" && !auto.enabled) return false;
+      if (automationStatusFilter === "paused" && auto.enabled) return false;
+      if (automationSearchQuery.trim()) {
+        const q = automationSearchQuery.toLowerCase();
+        return (
+          auto.name.toLowerCase().includes(q) ||
+          auto.trigger.toLowerCase().includes(q) ||
+          (auto.triggerDescription && auto.triggerDescription.toLowerCase().includes(q)) ||
+          (auto.template && auto.template.toLowerCase().includes(q)) ||
+          (auto.templateName && auto.templateName.toLowerCase().includes(q)) ||
+          auto.recipientLogic.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [automations, automationCategoryFilter, automationStatusFilter, automationSearchQuery]);
+
+  // Unified delivery logs for Section 4
+  const unifiedLogs = useMemo(() => {
+    const list: Array<{
+      id: string;
+      source: "manual" | "automation";
+      type: string;
+      sourceName: string;
+      recipientEmail: string;
+      recipientName: string;
+      subject: string;
+      status: string;
+      messageId?: string | null;
+      timestamp: string;
+      error?: string | null;
+      notificationId?: number;
+      campaignId?: number;
+      rawItem?: any;
+    }> = [];
+
+    // Add automation notifications
+    for (const n of notifications) {
+      list.push({
+        id: `notif-${n.id}`,
+        source: "automation",
+        type: n.type,
+        sourceName: n.category === "manual" ? "Manual Admin" : "System Automation",
+        recipientEmail: n.recipientEmail,
+        recipientName: n.recipientName,
+        subject: n.subject,
+        status: n.status,
+        messageId: n.messageId,
+        timestamp: n.sentAt || n.scheduledFor || n.createdAt,
+        error: n.error,
+        notificationId: n.id,
+        rawItem: n,
+      });
+    }
+
+    // Add campaign deliveries
+    for (const c of campaigns) {
+      if (c.deliveries && c.deliveries.length > 0) {
+        for (let i = 0; i < c.deliveries.length; i++) {
+          const d = c.deliveries[i];
+          list.push({
+            id: `camp-${c.id}-d-${i}`,
+            source: "manual",
+            type: "campaign_delivery",
+            sourceName: `Campaign #${c.id}: ${c.name}`,
+            recipientEmail: d.recipientEmail,
+            recipientName: d.recipientName,
+            subject: c.subject,
+            status: d.status,
+            messageId: d.messageId,
+            timestamp: d.sentAt || c.sentAt || c.createdAt,
+            error: d.error,
+            campaignId: c.id,
+            rawItem: d,
+          });
+        }
+      }
+    }
+
+    return list.filter((item) => {
+      if (auditWorkflowFilter !== "all" && item.source !== auditWorkflowFilter) return false;
+      if (auditStatusFilter !== "all" && item.status !== auditStatusFilter) return false;
+      if (
+        auditTypeFilter !== "all" &&
+        item.type !== auditTypeFilter &&
+        item.type !== TRIGGER_MAP_TO_NOTIF_TYPE[auditTypeFilter]
+      ) {
+        return false;
+      }
+      if (auditSearchQuery.trim()) {
+        const q = auditSearchQuery.toLowerCase();
+        return (
+          item.recipientEmail.toLowerCase().includes(q) ||
+          item.recipientName.toLowerCase().includes(q) ||
+          item.subject.toLowerCase().includes(q) ||
+          (item.messageId && item.messageId.toLowerCase().includes(q))
+        );
+      }
+      return true;
+    });
+  }, [notifications, campaigns, auditWorkflowFilter, auditStatusFilter, auditTypeFilter, auditSearchQuery]);
+
   const openCreateDialog = () => {
     setEditingCampaign(null);
-    setFormData({
-      name: "",
-      subject: TEMPLATE_PRESETS[0].subject,
-      previewText: TEMPLATE_PRESETS[0].previewText,
-      audienceType: "all_contacts",
-      contentHtml: TEMPLATE_PRESETS[0].html,
-    });
-    setLiveHtmlPreview(false);
     setCreateDialogOpen(true);
   };
 
   const openEditDialog = (campaign: CampaignItem) => {
     setEditingCampaign(campaign);
-    setFormData({
-      name: campaign.name,
-      subject: campaign.subject,
-      previewText: campaign.previewText || "",
-      audienceType: campaign.targetAudience.type,
-      contentHtml: campaign.contentHtml,
-    });
-    setLiveHtmlPreview(false);
     setCreateDialogOpen(true);
   };
 
-  const insertTag = (tag: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      contentHtml: prev.contentHtml + ` ${tag} `,
-    }));
-  };
-
-  const selectPreset = (preset: (typeof TEMPLATE_PRESETS)[0]) => {
-    setFormData((prev) => ({
-      ...prev,
-      subject: preset.subject,
-      previewText: preset.previewText,
-      contentHtml: preset.html,
-    }));
-  };
-
-  const getStatusBadge = (camp: CampaignItem) => {
+  const getCampaignStatusBadge = (camp: CampaignItem) => {
     switch (camp.status) {
       case "draft":
-        return <Badge variant="outline" className="border-amber-500/30 text-amber-400 bg-amber-500/10">Draft</Badge>;
+        return <Badge variant="outline" className="border-zinc-400 text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 text-[11px]">Draft</Badge>;
+      case "pending_approval":
+        return (
+          <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 gap-1 text-[11px] font-semibold">
+            <Clock className="h-3 w-3" /> Pending Approval
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge variant="outline" className="border-red-500/50 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 gap-1 text-[11px]">
+            <XCircle className="h-3 w-3" /> Rejected
+          </Badge>
+        );
       case "approved":
-        return <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10">Staff Approved</Badge>;
+        return (
+          <Badge variant="outline" className="border-emerald-500/40 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 gap-1 text-[11px]">
+            <CheckCircle2 className="h-3 w-3" /> Approved
+          </Badge>
+        );
       case "scheduled":
-        return <Badge variant="outline" className="border-purple-500/30 text-purple-400 bg-purple-500/10">Scheduled</Badge>;
+        return (
+          <Badge variant="outline" className="border-purple-500/40 text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 gap-1 text-[11px]">
+            <Calendar className="h-3 w-3" /> Scheduled
+          </Badge>
+        );
       case "sending":
-        return <Badge variant="outline" className="border-amber-400/50 text-amber-300 animate-pulse">Dispatching</Badge>;
-      case "sent": {
+        return (
+          <Badge variant="outline" className="border-blue-400 text-blue-600 dark:text-blue-400 animate-pulse text-[11px]">
+            Sending
+          </Badge>
+        );
+      case "sent":
+      case "completed": {
         const isSimulated =
           camp.deliveryMode === "simulated" ||
-          camp.deliveries?.some(
-            (d) => d.deliveryStatus === "simulated" || d.messageId?.startsWith("mock_")
-          );
-        if (isSimulated) {
-          return (
-            <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 bg-cyan-500/10">
-              Simulated (Mock)
-            </Badge>
-          );
-        }
+          camp.deliveries?.some((d) => d.deliveryStatus === "simulated" || d.messageId?.startsWith("mock_"));
         return (
-          <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
-            Sent (Live)
+          <Badge
+            variant="outline"
+            className={`text-[11px] ${
+              isSimulated
+                ? "border-cyan-500/40 text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-950/30"
+                : "border-emerald-600/40 text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/30"
+            }`}
+          >
+            {isSimulated ? "Delivered (Simulated)" : "Delivered (Live)"}
           </Badge>
         );
       }
       case "cancelled":
-        return <Badge variant="outline" className="border-zinc-500/30 text-zinc-400">Cancelled</Badge>;
+        return <Badge variant="outline" className="border-zinc-400 text-zinc-500 text-[11px]">Cancelled</Badge>;
       default:
-        return <Badge variant="outline">{camp.status}</Badge>;
+        return <Badge variant="outline" className="text-[11px]">{camp.status}</Badge>;
     }
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-6">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-serif text-foreground tracking-tight">Campaign Automation</h1>
-            <Badge variant="outline" className="border-primary/40 text-primary font-mono text-xs">
-              Phase 4
-            </Badge>
+    <div className="p-8 max-w-7xl mx-auto space-y-8 font-sans">
+      {/* ============================================================
+          VIEW 1: TASK-BASED MAIN LANDING PAGE (Clean & Simplified)
+      ============================================================ */}
+      {activeView === "overview" && (
+        <div className="space-y-8">
+          {/* Main Page Heading */}
+          <div className="border-b border-[#E5DDD0] pb-6">
+            <h1 className="text-3xl font-serif font-semibold text-foreground tracking-tight">
+              Campaigns & Emails
+            </h1>
+            <p className="text-sm text-muted-foreground mt-1 font-sans">
+              Manage marketing emails and automatic customer messages.
+            </p>
           </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Personalized slow-luxury email journeys with consent safeguards, approval gates, and delivery tracking.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              refetchCampaigns();
-              refetchSubscribers();
-              refetchNotifications();
-            }}
-            className="gap-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            Refresh
-          </Button>
-          <Button onClick={openCreateDialog} className="gap-2 bg-primary text-primary-foreground">
-            <Plus className="h-4 w-4" />
-            New Campaign
-          </Button>
-        </div>
-      </div>
 
-      {/* Main Tabs */}
-      <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="space-y-6">
-        <TabsList className="bg-card/60 border border-border">
-          <TabsTrigger value="campaigns" className="gap-2">
-            <Mail className="h-4 w-4" />
-            Email Campaigns ({campaigns.length})
-          </TabsTrigger>
-          <TabsTrigger value="subscribers" className="gap-2">
-            <Users className="h-4 w-4" />
-            Consent & Unsubscribe Registry ({subscribers.length})
-          </TabsTrigger>
-          <TabsTrigger value="notifications" className="gap-2">
-            <Bell className="h-4 w-4" />
-            Automations & Audit ({notifications.length})
-          </TabsTrigger>
-        </TabsList>
+          {/* Two Prominent Primary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 1. Marketing Emails */}
+            <div className="p-7 rounded-2xl border border-[#E5DDD0] bg-white dark:bg-card shadow-xs hover:border-[#24543D]/50 hover:shadow-md transition-all flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <div className="h-12 w-12 rounded-xl bg-[#24543D]/10 text-[#24543D] flex items-center justify-center font-bold">
+                  <Mail className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-serif font-semibold text-foreground">
+                      Marketing Emails
+                    </h2>
+                    <span className="text-xs font-sans text-muted-foreground bg-[#FAF7F1] px-2.5 py-1 rounded-full border border-[#E5DDD0]">
+                      {campaigns.length} campaigns
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2 font-sans leading-relaxed">
+                    Create and send offers, promotions, and travel newsletters to customers.
+                  </p>
+                </div>
+              </div>
 
-        {/* Tab 1: Campaigns */}
-        <TabsContent value="campaigns" className="space-y-6">
-          {campaignsLoading ? (
-            <div className="p-12 text-center text-muted-foreground font-mono text-sm">
-              Loading campaigns...
+              <div>
+                <Button
+                  onClick={() => setActiveView("campaigns")}
+                  className="w-full bg-[#24543D] hover:bg-[#1b3f2e] text-white h-11 text-sm font-medium rounded-xl shadow-sm gap-2 cursor-pointer"
+                >
+                  Manage Campaigns
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          ) : campaigns.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-border rounded-xl bg-card/30">
-              <Mail className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-60" />
-              <h3 className="text-lg font-medium text-foreground">No Campaigns Created Yet</h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1 mb-5">
-                Create a campaign draft to begin reaching prospective travelers with slow-luxury invitations.
+
+            {/* 2. Automatic Emails */}
+            <div className="p-7 rounded-2xl border border-[#E5DDD0] bg-white dark:bg-card shadow-xs hover:border-[#24543D]/50 hover:shadow-md transition-all flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <div className="h-12 w-12 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center font-bold">
+                  <Zap className="h-6 w-6" />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-serif font-semibold text-foreground">
+                      Automatic Emails
+                    </h2>
+                    <span className="text-xs font-sans text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                      {automations.filter((a) => a.enabled).length} of {automations.length} active
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2 font-sans leading-relaxed">
+                    Manage emails sent automatically when customers make enquiries, confirm bookings, or reach other supported milestones.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <Button
+                  onClick={() => setActiveView("automations")}
+                  className="w-full bg-[#24543D] hover:bg-[#1b3f2e] text-white h-11 text-sm font-medium rounded-xl shadow-sm gap-2 cursor-pointer"
+                >
+                  Manage Automatic Emails
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Two Simple Secondary Links / Compact Rows */}
+          <div className="pt-2 border-t border-[#E5DDD0]/80">
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 font-sans">
+              Secondary Management
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Customer Groups Link */}
+              <button
+                type="button"
+                onClick={() => setActiveView("audiences")}
+                className="p-4 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card hover:bg-[#FAF8F3] hover:border-[#24543D]/40 transition-all flex items-center justify-between group cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="h-9 w-9 rounded-lg bg-[#FAF7F1] border border-[#E5DDD0] text-muted-foreground group-hover:text-[#24543D] flex items-center justify-center shrink-0">
+                    <Users className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-foreground group-hover:text-[#24543D] transition-colors">
+                      Customer Groups
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      Organize customers for targeted marketing emails.
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-[#24543D] group-hover:translate-x-0.5 transition-all shrink-0 ml-3" />
+              </button>
+
+              {/* Email History Link */}
+              <button
+                type="button"
+                onClick={() => setActiveView("history")}
+                className="p-4 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card hover:bg-[#FAF8F3] hover:border-[#24543D]/40 transition-all flex items-center justify-between group cursor-pointer text-left"
+              >
+                <div className="flex items-center gap-3.5">
+                  <div className="h-9 w-9 rounded-lg bg-[#FAF7F1] border border-[#E5DDD0] text-muted-foreground group-hover:text-[#24543D] flex items-center justify-center shrink-0">
+                    <FileText className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-foreground group-hover:text-[#24543D] transition-colors">
+                      Email History
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      View sent emails, delivery results, and failures.
+                    </div>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-[#24543D] group-hover:translate-x-0.5 transition-all shrink-0 ml-3" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================
+          VIEW 2: MARKETING EMAILS (Manage Campaigns)
+      ============================================================ */}
+      {activeView === "campaigns" && (
+        <div className="space-y-6">
+          {/* Breadcrumb & Navigation */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setActiveView("overview")}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#24543D] hover:underline mb-3 cursor-pointer"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to Campaigns & Emails
+            </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5DDD0] pb-5">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-foreground tracking-tight">
+                  Marketing Emails
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 font-sans">
+                  Create and send offers, promotions, and travel newsletters to customers.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setActiveView("audiences")}
+                  className="text-xs h-9 border-[#E5DDD0] text-foreground hover:bg-[#FAF7F1] gap-1.5"
+                >
+                  <Users className="h-3.5 w-3.5 text-[#24543D]" />
+                  Customer Groups
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchCampaigns()}
+                  className="text-xs h-9 border-[#E5DDD0]"
+                  title="Refresh campaigns"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  onClick={openCreateDialog}
+                  className="bg-[#24543D] hover:bg-[#1b3f2e] text-white text-xs h-9 px-4 shadow-sm gap-1.5 cursor-pointer font-medium"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Campaign
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Search & Status Filters */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative w-64">
+                <Search className="h-3.5 w-3.5 absolute left-3 top-2.5 text-muted-foreground" />
+                <Input
+                  placeholder="Search campaigns..."
+                  value={campaignSearchQuery}
+                  onChange={(e) => setCampaignSearchQuery(e.target.value)}
+                  className="h-8 pl-8 text-xs border-[#E5DDD0]"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">Status:</span>
+                <select
+                  value={campaignStatusFilter}
+                  onChange={(e) => setCampaignStatusFilter(e.target.value)}
+                  className="h-8 px-2.5 rounded-md bg-white dark:bg-background border border-[#E5DDD0] text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-[#24543D]"
+                >
+                  <option value="all">All Campaigns ({campaigns.length})</option>
+                  <option value="draft">Drafts</option>
+                  <option value="pending_approval">Awaiting Approval</option>
+                  <option value="approved">Approved</option>
+                  <option value="scheduled">Scheduled</option>
+                  <option value="sent">Sent / Delivered</option>
+                  <option value="rejected">Needs Review</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="text-xs text-muted-foreground">
+              Showing {filteredCampaigns.length} of {campaigns.length} campaigns
+            </div>
+          </div>
+
+          {/* Campaigns List */}
+          {campaignsLoading ? (
+            <div className="p-12 text-center text-muted-foreground text-sm">Loading marketing campaigns...</div>
+          ) : filteredCampaigns.length === 0 ? (
+            <div className="p-12 text-center border border-dashed border-[#E5DDD0] rounded-xl bg-[#FFFDF9] dark:bg-card/40">
+              <Mail className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+              <h3 className="text-base font-serif font-medium text-foreground">No Marketing Campaigns Found</h3>
+              <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1 mb-4">
+                Create promotional newsletters, seasonal packages, or destination highlights to reach subscribed guests.
               </p>
-              <Button onClick={openCreateDialog} className="gap-2">
-                <Plus className="h-4 w-4" />
+              <Button onClick={openCreateDialog} className="bg-[#24543D] text-white text-xs h-8">
+                <Plus className="h-3.5 w-3.5 mr-1" />
                 Create First Campaign
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
-              {campaigns.map((camp) => (
-                <div
-                  key={camp.id}
-                  className="p-6 rounded-xl border border-border bg-card/50 hover:border-border/80 transition-colors space-y-4"
-                >
-                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-3">
-                        <span className="font-mono text-xs text-muted-foreground">#{camp.id}</span>
-                        <h3 className="text-lg font-semibold text-foreground">{camp.name}</h3>
-                        {getStatusBadge(camp)}
+            <div className="grid grid-cols-1 gap-3.5">
+              {filteredCampaigns.map((camp) => {
+                const statusMeta = getSimpleCampaignStatus(camp.status);
+                return (
+                  <div
+                    key={camp.id}
+                    className="p-5 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card shadow-xs hover:border-[#24543D]/40 transition-colors space-y-3"
+                  >
+                    {/* Rejection Alert Banner if rejected */}
+                    {camp.status === "rejected" && (
+                      <div className="p-3 rounded-lg border border-red-200 bg-red-50/70 dark:bg-red-950/20 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
+                        <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-semibold block">Campaign Needs Review:</span>
+                          <span>{camp.rejectionReason || "Please review message copy and audience criteria."}</span>
+                        </div>
                       </div>
-                      <p className="text-sm text-muted-foreground font-serif italic">
-                        Subject: "{camp.subject}"
-                      </p>
-                    </div>
+                    )}
 
-                    {/* Action buttons */}
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedCampaignForPreview(camp);
-                          setPreviewModalOpen(true);
-                        }}
-                        className="gap-1.5 text-xs"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        Audience Preview
-                      </Button>
+                    {/* Pending Approval Notice if pending */}
+                    {camp.status === "pending_approval" && (
+                      <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
+                        <Clock className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-semibold block">Awaiting Administrator Approval:</span>
+                          <span>
+                            Submitted {camp.submittedForApprovalAt ? new Date(camp.submittedForApprovalAt).toLocaleDateString() : "recently"}.
+                            Authorized staff must review content before scheduling or delivery.
+                          </span>
+                        </div>
+                      </div>
+                    )}
 
-                      {camp.status === "draft" && (
-                        <>
+                    {/* Main Row */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2.5">
+                          <h3 className="text-base font-serif font-semibold text-foreground truncate">
+                            {camp.name}
+                          </h3>
+                          <Badge variant="outline" className={`text-[11px] font-sans font-medium ${statusMeta.badgeClass}`}>
+                            {statusMeta.label}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground font-sans truncate">
+                          <span className="font-medium text-foreground/80">Subject:</span> "{camp.subject}"
+                        </p>
+                        <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-sans pt-0.5">
+                          {camp.sentAt ? (
+                            <span>Sent on {new Date(camp.sentAt).toLocaleDateString()}</span>
+                          ) : camp.scheduledAt ? (
+                            <span className="text-purple-700 dark:text-purple-300 font-medium">
+                              Scheduled for {new Date(camp.scheduledAt).toLocaleDateString()}
+                            </span>
+                          ) : (
+                            <span>Created {new Date(camp.createdAt).toLocaleDateString()}</span>
+                          )}
+                          <span>·</span>
+                          <span>Audience: {camp.targetAudience?.type?.replace(/_/g, " ") || "All contacts"}</span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedCampaignForPreview(camp);
+                            setPreviewModalOpen(true);
+                          }}
+                          className="text-xs h-8 border-[#E5DDD0] text-foreground hover:bg-[#FAF7F1] gap-1"
+                        >
+                          <Eye className="h-3 w-3" />
+                          Preview
+                        </Button>
+
+                        {(camp.status === "draft" || camp.status === "rejected") && (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => openEditDialog(camp)}
-                            className="gap-1.5 text-xs"
+                            className="text-xs h-8 border-[#E5DDD0] text-foreground hover:bg-[#FAF7F1] gap-1"
                           >
-                            <Edit className="h-3.5 w-3.5" />
+                            <Edit className="h-3 w-3" />
                             Edit
                           </Button>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => approveMutation.mutate(camp.id)}
-                            disabled={approveMutation.isPending}
-                            className="gap-1.5 text-xs bg-emerald-700 hover:bg-emerald-800 text-white"
-                          >
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                            Approve Campaign
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              if (confirm(`Delete draft campaign #${camp.id}?`)) {
-                                deleteMutation.mutate(camp.id);
-                              }
-                            }}
-                            className="text-destructive hover:bg-destructive/10"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </>
-                      )}
+                        )}
 
-                      {camp.status === "approved" && (
-                        <>
+                        {camp.status === "draft" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => submitCampaignApprovalMutation.mutate(camp.id)}
+                            className="text-xs h-8 border-amber-300 text-amber-800 bg-amber-50/50 hover:bg-amber-100"
+                          >
+                            Request Approval
+                          </Button>
+                        )}
+
+                        {(camp.status === "approved" || camp.status === "draft") && (
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => {
                               setSelectedCampaignForSchedule(camp);
-                              setScheduleDateTime(
-                                new Date(Date.now() + 86400000).toISOString().slice(0, 16)
-                              );
                               setScheduleDialogOpen(true);
                             }}
-                            className="gap-1.5 text-xs"
+                            className="text-xs h-8 border-[#E5DDD0] text-foreground hover:bg-[#FAF7F1] gap-1"
                           >
-                            <Calendar className="h-3.5 w-3.5" />
+                            <Calendar className="h-3 w-3 text-purple-600" />
                             Schedule
                           </Button>
+                        )}
+
+                        {(camp.status === "approved" || camp.status === "draft") && (
                           <Button
-                            variant="default"
                             size="sm"
                             onClick={() => {
                               setSelectedCampaignForSend(camp);
-                              setSendMockMode(true);
                               setSendDialogOpen(true);
                             }}
-                            className="gap-1.5 text-xs bg-primary text-primary-foreground"
+                            className="text-xs h-8 bg-[#24543D] hover:bg-[#1b3f2e] text-white gap-1"
                           >
-                            <Send className="h-3.5 w-3.5" />
+                            <Send className="h-3 w-3" />
                             Send Now
                           </Button>
-                        </>
-                      )}
+                        )}
 
-                      {camp.status === "scheduled" && (
-                        <>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedCampaignForSend(camp);
-                              setSendMockMode(true);
-                              setSendDialogOpen(true);
-                            }}
-                            className="gap-1.5 text-xs bg-primary text-primary-foreground"
-                          >
-                            <Send className="h-3.5 w-3.5" />
-                            Send Now
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => cancelMutation.mutate(camp.id)}
-                            className="gap-1.5 text-xs text-amber-500 border-amber-500/30"
-                          >
-                            <Ban className="h-3.5 w-3.5" />
-                            Cancel Schedule
-                          </Button>
-                        </>
-                      )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => duplicateCampaignMutation.mutate(camp.id)}
+                          className="text-xs h-8 text-muted-foreground hover:text-foreground px-2"
+                          title="Duplicate Campaign"
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (confirm(`Delete campaign "${camp.name}"?`)) {
+                              deleteMutation.mutate(camp.id);
+                            }
+                          }}
+                          className="text-xs h-8 text-muted-foreground hover:text-red-600 px-2"
+                          title="Delete Campaign"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Metadata and statistics bar */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 rounded-lg bg-background/60 border border-border/40 text-xs">
-                    <div>
-                      <span className="text-muted-foreground block mb-0.5">Audience Segment</span>
-                      <span className="font-medium text-foreground capitalize">
-                        {camp.targetAudience.type.replace("_", " ")}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground block mb-0.5">Staff Approval</span>
-                      <span className="font-medium text-foreground">
-                        {camp.approvedBy ? (
-                          <span className="text-emerald-400">Approved by {camp.approvedBy}</span>
-                        ) : (
-                          <span className="text-amber-400/80">Pending Staff Review</span>
-                        )}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground block mb-0.5">Delivery Stats</span>
-                      <span className="font-mono text-foreground">
-                        {camp.status === "sent" ? (
-                          <>
-                            {camp.deliveryMode === "simulated" ||
-                            camp.deliveries?.some(
-                              (d) => d.deliveryStatus === "simulated" || d.messageId?.startsWith("mock_")
-                            ) ? (
-                              <span className="text-cyan-400">{camp.stats.sentCount} simulated (mock)</span>
-                            ) : (
-                              <span className="text-emerald-400">{camp.stats.sentCount} sent (live)</span>
-                            )}{" "}
-                            · <span className="text-amber-400">{camp.stats.skippedCount} opted out</span>
-                          </>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-muted-foreground block mb-0.5">Timestamp</span>
-                      <span className="font-mono text-muted-foreground">
-                        {camp.sentAt
-                          ? `Sent: ${new Date(camp.sentAt).toLocaleDateString()}`
-                          : camp.scheduledAt
-                            ? `Scheduled: ${new Date(camp.scheduledAt).toLocaleString()}`
-                            : `Created: ${new Date(camp.createdAt).toLocaleDateString()}`}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
-        </TabsContent>
+        </div>
+      )}
 
-        {/* Tab 2: Subscribers & Consent Registry */}
-        <TabsContent value="subscribers" className="space-y-6">
-          <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-950/20 flex items-start gap-3">
-            <ShieldCheck className="h-5 w-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-            <div className="text-xs text-emerald-200/90 space-y-1">
-              <p className="font-semibold text-emerald-300">
-                Automated Consent Verification & One-Click Unsubscribe Registry
-              </p>
-              <p>
-                Every outbound journey email automatically embeds an encrypted one-click unsubscribe token. If a guest opts out, their consent record is immediately marked inactive, and all future campaign dispatches are automatically prevented from contacting their address.
-              </p>
-            </div>
-          </div>
-
-          {subscribersLoading ? (
-            <div className="p-12 text-center text-muted-foreground font-mono text-sm">
-              Loading subscriber consent registry...
-            </div>
-          ) : subscribers.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-border rounded-xl">
-              <Users className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-60" />
-              <p className="text-sm text-muted-foreground">
-                No subscriber consent records yet. Contacts from enquiries and bookings will populate here automatically.
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-border overflow-hidden bg-card/40">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-muted/40 border-b border-border text-muted-foreground uppercase tracking-wider font-mono">
-                  <tr>
-                    <th className="py-3 px-4">Contact</th>
-                    <th className="py-3 px-4">Email</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Source</th>
-                    <th className="py-3 px-4">Token</th>
-                    <th className="py-3 px-4">Recorded</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {subscribers.map((sub) => (
-                    <tr key={sub.email} className="hover:bg-muted/20">
-                      <td className="py-3 px-4 font-medium text-foreground">{sub.name || "—"}</td>
-                      <td className="py-3 px-4 font-mono text-muted-foreground">{sub.email}</td>
-                      <td className="py-3 px-4">
-                        {sub.subscribed ? (
-                          <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 gap-1 bg-emerald-500/10">
-                            <UserCheck className="h-3 w-3" /> Subscribed
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-destructive/30 text-destructive gap-1 bg-destructive/10">
-                            <UserX className="h-3 w-3" /> Opted Out ({new Date(sub.unsubscribedAt!).toLocaleDateString()})
-                          </Badge>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 capitalize text-muted-foreground">{sub.source}</td>
-                      <td className="py-3 px-4 font-mono text-muted-foreground text-[10px] truncate max-w-[120px]">
-                        {sub.token.slice(0, 12)}...
-                      </td>
-                      <td className="py-3 px-4 font-mono text-muted-foreground">
-                        {new Date(sub.createdAt).toLocaleDateString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Tab 3: Transactional & Automated Notifications Audit */}
-        <TabsContent value="notifications" className="space-y-6">
-          {/* Top Action & Control Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-4 rounded-xl border border-border bg-card/60">
-            <div>
-              <h2 className="text-base font-serif font-semibold text-foreground flex items-center gap-2">
-                <Bell className="h-4 w-4 text-primary" />
-                Email Automations & Approval Workflows
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Inspect triggered automations, manage approval queues, configure timing rules, and send manual luxury correspondence.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  if (automationSettings) {
-                    setSettingsDraft({ ...automationSettings });
-                  }
-                  setSettingsDialogOpen(true);
-                }}
-                className="gap-1.5 text-xs h-8 border-border hover:bg-muted/30"
-              >
-                <SlidersHorizontal className="h-3.5 w-3.5 text-primary" />
-                Automation Controls
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => setComposeDialogOpen(true)}
-                className="gap-1.5 text-xs h-8 bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                <Mail className="h-3.5 w-3.5" />
-                Compose Admin Email
-              </Button>
-            </div>
-          </div>
-
-          {/* Pending Approval Alert Banner */}
-          {notifications.filter((n) => n.status === "pending_approval").length > 0 && (
-            <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-amber-200">
-                    {notifications.filter((n) => n.status === "pending_approval").length} Communication(s) Awaiting Administrator Approval
-                  </p>
-                  <p className="text-xs text-amber-300/80">
-                    High-impact customer notices, personalized proposals, and major changes must be reviewed and approved before delivery.
-                  </p>
-                </div>
+      {/* ============================================================
+          VIEW 3: AUTOMATIC EMAILS (Manage Automations)
+      ============================================================ */}
+      {activeView === "automations" && (
+        <div className="space-y-6">
+          {/* Breadcrumb & Navigation */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setActiveView("overview")}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#24543D] hover:underline mb-3 cursor-pointer"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to Campaigns & Emails
+            </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5DDD0] pb-5">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-foreground tracking-tight">
+                  Automatic Emails
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 font-sans">
+                  Manage emails sent automatically when customers make enquiries, confirm bookings, or reach other supported milestones.
+                </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setNotifStatusFilter("pending_approval")}
-                className="text-xs h-7 border-amber-500/50 text-amber-300 hover:bg-amber-500/20 whitespace-nowrap"
-              >
-                View Pending Queue
-              </Button>
-            </div>
-          )}
 
-          {/* Summary Metric Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <div className="p-4 rounded-xl border border-border bg-card/60 space-y-1">
-              <span className="text-[11px] uppercase font-mono tracking-wider text-muted-foreground">Total Logged</span>
-              <p className="text-2xl font-bold font-serif text-foreground">{notifications.length}</p>
-              <span className="text-[10px] text-muted-foreground">All tracked emails</span>
-            </div>
-            <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 space-y-1">
-              <span className="text-[11px] uppercase font-mono tracking-wider text-amber-400">Needs Approval</span>
-              <p className="text-2xl font-bold font-serif text-amber-400">
-                {notifications.filter((n) => n.status === "pending_approval").length}
-              </p>
-              <span className="text-[10px] text-amber-400/70">Awaiting admin review</span>
-            </div>
-            <div className="p-4 rounded-xl border border-border bg-card/60 space-y-1">
-              <span className="text-[11px] uppercase font-mono tracking-wider text-emerald-400">Delivered</span>
-              <p className="text-2xl font-bold font-serif text-emerald-400">
-                {notifications.filter((n) => n.status === "sent").length}
-              </p>
-              <span className="text-[10px] text-muted-foreground">Successful dispatches</span>
-            </div>
-            <div className="p-4 rounded-xl border border-border bg-card/60 space-y-1">
-              <span className="text-[11px] uppercase font-mono tracking-wider text-blue-400">Scheduled</span>
-              <p className="text-2xl font-bold font-serif text-blue-400">
-                {notifications.filter((n) => n.status === "pending" || n.status === "sending").length}
-              </p>
-              <span className="text-[10px] text-muted-foreground">Pending worker tick</span>
-            </div>
-            <div className="p-4 rounded-xl border border-border bg-card/60 space-y-1">
-              <span className="text-[11px] uppercase font-mono tracking-wider text-destructive">Failed / Retrying</span>
-              <p className="text-2xl font-bold font-serif text-destructive">
-                {notifications.filter((n) => n.status === "failed").length}
-              </p>
-              <span className="text-[10px] text-muted-foreground">Safe retry available</span>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (automationSettings) {
+                      setSettingsDraft({ ...automationSettings });
+                    }
+                    setSettingsDialogOpen(true);
+                  }}
+                  className="text-xs h-9 border-[#E5DDD0] text-foreground hover:bg-[#FAF7F1] gap-1.5"
+                >
+                  <SlidersHorizontal className="h-3.5 w-3.5 text-[#24543D]" />
+                  Global Delay Settings
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchAutomations()}
+                  className="text-xs h-9 border-[#E5DDD0]"
+                  title="Refresh automations"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  onClick={() => {
+                    setEditingAutomation(null);
+                    setAutomationModalOpen(true);
+                  }}
+                  className="bg-[#24543D] hover:bg-[#1b3f2e] text-white text-xs h-9 px-4 shadow-sm gap-1.5 cursor-pointer font-medium"
+                >
+                  <Plus className="h-4 w-4" />
+                  New Automation
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Filters Bar */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-card/40">
+          {/* Simple Filter & Search Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">Automation Type:</span>
-                <select
-                  value={notifTypeFilter}
-                  onChange={(e) => setNotifTypeFilter(e.target.value)}
-                  className="h-8 px-2.5 rounded-md bg-background border border-input text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="all">All Types</option>
-                  <option value="booking_confirmation">Booking Confirmation</option>
-                  <option value="payment_receipt">Payment Receipt</option>
-                  <option value="itinerary_update">Itinerary Update</option>
-                  <option value="final_itinerary_delivery">Final Itinerary Delivery</option>
-                  <option value="enquiry_followup">Enquiry Follow-Up</option>
-                  <option value="post_trip_feedback">Post-Trip Feedback</option>
-                  <option value="pre_trip_reminder">Pre-Trip Reminder</option>
-                  <option value="payment_deadline_reminder">Payment Deadline Reminder</option>
-                  <option value="overdue_payment_followup">Overdue Payment Follow-Up</option>
-                  <option value="booking_cancellation">Booking Cancellation</option>
-                  <option value="travel_document_delivery">Travel Documents</option>
-                  <option value="outstanding_document_reminder">Outstanding Docs Reminder</option>
-                  <option value="birthday_anniversary_greeting">Celebration Greeting</option>
-                  <option value="major_itinerary_update">Major Itinerary Change</option>
-                  <option value="personalized_offer">Personalized Customer Offer</option>
-                  <option value="ai_marketing_email">AI Marketing Email (Draft)</option>
-                  <option value="exceptional_notice">Exceptional Customer Notice</option>
-                  <option value="custom_enquiry_response">Custom Enquiry Reply</option>
-                  <option value="quotation_proposal">Quotation & Proposal</option>
-                  <option value="custom_itinerary_proposal">Custom Itinerary Proposal</option>
-                  <option value="complaint_dispute_response">Complaint / Dispute</option>
-                  <option value="refund_compensation_notice">Refund & Compensation</option>
-                  <option value="travel_disruption_notice">Travel Disruption Notification</option>
-                </select>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-muted-foreground">Delivery Status:</span>
-                <select
-                  value={notifStatusFilter}
-                  onChange={(e) => setNotifStatusFilter(e.target.value)}
-                  className="h-8 px-2.5 rounded-md bg-background border border-input text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="all">All Statuses</option>
-                  <option value="pending_approval">Pending Approval</option>
-                  <option value="sent">Delivered (Sent)</option>
-                  <option value="pending">Scheduled (Pending)</option>
-                  <option value="sending">Dispatching</option>
-                  <option value="failed">Failed</option>
-                  <option value="cancelled">Cancelled</option>
-                  <option value="skipped">Skipped (Opt-Out)</option>
-                </select>
-              </div>
-            </div>
-
-            <span className="text-xs text-muted-foreground font-mono">
-              Showing {
-                notifications.filter((n) => {
-                  if (notifTypeFilter !== "all" && n.type !== notifTypeFilter) return false;
-                  if (notifStatusFilter !== "all" && n.status !== notifStatusFilter) return false;
-                  return true;
-                }).length
-              } of {notifications.length} records
-            </span>
-          </div>
-
-          {/* Notifications Table */}
-          {notificationsLoading ? (
-            <div className="p-12 text-center text-muted-foreground font-mono text-sm">
-              Loading notification audit logs...
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="p-12 text-center border border-dashed border-border rounded-xl bg-card/30">
-              <Bell className="h-10 w-10 text-muted-foreground mx-auto mb-3 opacity-60" />
-              <h3 className="text-lg font-medium text-foreground">No Automated Notifications Yet</h3>
-              <p className="text-sm text-muted-foreground max-w-md mx-auto mt-1">
-                Transactional automations trigger automatically when bookings are confirmed, itineraries are updated, or trip feedback is due.
-              </p>
-            </div>
-          ) : (
-            <div className="border border-border rounded-xl overflow-hidden bg-card/40">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-muted/40 border-b border-border text-xs uppercase font-mono text-muted-foreground">
-                  <tr>
-                    <th className="py-3 px-4">Type</th>
-                    <th className="py-3 px-4">Recipient</th>
-                    <th className="py-3 px-4">Related Entity</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Provider Message ID</th>
-                    <th className="py-3 px-4">Scheduled / Sent</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/60">
-                  {notifications
-                    .filter((n) => {
-                      if (notifTypeFilter !== "all" && n.type !== notifTypeFilter) return false;
-                      if (notifStatusFilter !== "all" && n.status !== notifStatusFilter) return false;
-                      return true;
-                    })
-                    .map((item) => {
-                      const renderTypeBadge = () => {
-                        switch (item.type) {
-                          case "booking_confirmation":
-                            return (
-                              <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 gap-1 text-[11px]">
-                                <CheckCircle2 className="h-3 w-3" /> Booking Confirmed
-                              </Badge>
-                            );
-                          case "payment_receipt":
-                            return (
-                              <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 gap-1 text-[11px]">
-                                <CreditCard className="h-3 w-3" /> Payment Receipt
-                              </Badge>
-                            );
-                          case "itinerary_update":
-                            return (
-                              <Badge variant="outline" className="border-blue-500/40 text-blue-400 bg-blue-500/10 gap-1 text-[11px]">
-                                <RefreshCw className="h-3 w-3" /> Itinerary Update
-                              </Badge>
-                            );
-                          case "final_itinerary_delivery":
-                            return (
-                              <Badge variant="outline" className="border-cyan-500/40 text-cyan-400 bg-cyan-500/10 gap-1 text-[11px]">
-                                <FileText className="h-3 w-3" /> Final Itinerary
-                              </Badge>
-                            );
-                          case "enquiry_followup":
-                            return (
-                              <Badge variant="outline" className="border-amber-500/40 text-amber-400 bg-amber-500/10 gap-1 text-[11px]">
-                                <Mail className="h-3 w-3" /> Enquiry Follow-Up
-                              </Badge>
-                            );
-                          case "post_trip_feedback":
-                            return (
-                              <Badge variant="outline" className="border-purple-500/40 text-purple-400 bg-purple-500/10 gap-1 text-[11px]">
-                                <Sparkles className="h-3 w-3" /> Post-Trip Feedback
-                              </Badge>
-                            );
-                          case "pre_trip_reminder":
-                            return (
-                              <Badge variant="outline" className="border-blue-500/40 text-blue-400 bg-blue-500/10 gap-1 text-[11px]">
-                                <Clock className="h-3 w-3" /> Pre-Trip Reminder
-                              </Badge>
-                            );
-                          case "payment_deadline_reminder":
-                          case "overdue_payment_followup":
-                            return (
-                              <Badge variant="outline" className="border-rose-500/40 text-rose-400 bg-rose-500/10 gap-1 text-[11px]">
-                                <AlertCircle className="h-3 w-3" /> Payment Notice
-                              </Badge>
-                            );
-                          case "booking_cancellation":
-                            return (
-                              <Badge variant="outline" className="border-zinc-500/40 text-zinc-400 bg-zinc-500/10 gap-1 text-[11px]">
-                                <Ban className="h-3 w-3" /> Booking Cancelled
-                              </Badge>
-                            );
-                          case "travel_document_delivery":
-                          case "outstanding_document_reminder":
-                            return (
-                              <Badge variant="outline" className="border-amber-500/40 text-amber-400 bg-amber-500/10 gap-1 text-[11px]">
-                                <FileText className="h-3 w-3" /> Travel Docs
-                              </Badge>
-                            );
-                          case "major_itinerary_update":
-                          case "personalized_offer":
-                            return (
-                              <Badge variant="outline" className="border-purple-500/40 text-purple-400 bg-purple-500/10 gap-1 text-[11px]">
-                                <ShieldCheck className="h-3 w-3" /> Approval Required
-                              </Badge>
-                            );
-                          case "ai_marketing_email":
-                            return (
-                              <Badge variant="outline" className="border-violet-500/40 text-violet-400 bg-violet-500/10 gap-1 text-[11px]">
-                                <Sparkles className="h-3 w-3" /> AI Marketing Draft
-                              </Badge>
-                            );
-                          case "exceptional_notice":
-                            return (
-                              <Badge variant="outline" className="border-rose-500/40 text-rose-400 bg-rose-500/10 gap-1 text-[11px]">
-                                <AlertTriangle className="h-3 w-3" /> Exceptional Notice
-                              </Badge>
-                            );
-                          case "custom_enquiry_response":
-                            return (
-                              <Badge variant="outline" className="border-blue-500/40 text-blue-400 bg-blue-500/10 gap-1 text-[11px]">
-                                <Mail className="h-3 w-3" /> Enquiry Reply
-                              </Badge>
-                            );
-                          case "quotation_proposal":
-                            return (
-                              <Badge variant="outline" className="border-emerald-500/40 text-emerald-400 bg-emerald-500/10 gap-1 text-[11px]">
-                                <FileText className="h-3 w-3" /> Quotation Proposal
-                              </Badge>
-                            );
-                          case "custom_itinerary_proposal":
-                            return (
-                              <Badge variant="outline" className="border-cyan-500/40 text-cyan-400 bg-cyan-500/10 gap-1 text-[11px]">
-                                <FileText className="h-3 w-3" /> Itinerary Proposal
-                              </Badge>
-                            );
-                          case "complaint_dispute_response":
-                            return (
-                              <Badge variant="outline" className="border-amber-500/40 text-amber-400 bg-amber-500/10 gap-1 text-[11px]">
-                                <ShieldCheck className="h-3 w-3" /> Dispute Resolution
-                              </Badge>
-                            );
-                          case "refund_compensation_notice":
-                            return (
-                              <Badge variant="outline" className="border-indigo-500/40 text-indigo-400 bg-indigo-500/10 gap-1 text-[11px]">
-                                <CreditCard className="h-3 w-3" /> Refund & Compensation
-                              </Badge>
-                            );
-                          case "travel_disruption_notice":
-                            return (
-                              <Badge variant="outline" className="border-rose-500/40 text-rose-400 bg-rose-500/10 gap-1 text-[11px]">
-                                <AlertTriangle className="h-3 w-3" /> Disruption Notice
-                              </Badge>
-                            );
-                          default:
-                            return (
-                              <Badge variant="outline" className="border-primary/30 text-primary bg-primary/10 text-[11px] capitalize">
-                                {item.type.replace(/_/g, " ")}
-                              </Badge>
-                            );
-                        }
-                      };
-
-                      const renderStatusBadge = () => {
-                        switch (item.status) {
-                          case "pending_approval":
-                            return (
-                              <Badge variant="outline" className="border-amber-500/50 text-amber-400 bg-amber-500/10 text-[11px] gap-1 font-semibold">
-                                <AlertCircle className="h-3 w-3 text-amber-400" /> Pending Approval
-                              </Badge>
-                            );
-                          case "sent":
-                            return (
-                              <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 bg-emerald-500/10 text-[11px]">
-                                Delivered
-                              </Badge>
-                            );
-                          case "pending":
-                            return (
-                              <Badge variant="outline" className="border-amber-500/30 text-amber-400 bg-amber-500/10 text-[11px]">
-                                Scheduled
-                              </Badge>
-                            );
-                          case "sending":
-                            return (
-                              <Badge variant="outline" className="border-blue-500/30 text-blue-400 bg-blue-500/10 text-[11px]">
-                                Dispatching
-                              </Badge>
-                            );
-                          case "failed":
-                            return (
-                              <Badge variant="outline" className="border-destructive/30 text-destructive bg-destructive/10 text-[11px]">
-                                Failed
-                              </Badge>
-                            );
-                          case "cancelled":
-                            return (
-                              <Badge variant="outline" className="border-zinc-500/30 text-zinc-400 text-[11px]">
-                                Cancelled
-                              </Badge>
-                            );
-                          case "skipped":
-                            return (
-                              <Badge variant="outline" className="border-zinc-500/30 text-zinc-400 text-[11px]">
-                                Skipped (Opt-out)
-                              </Badge>
-                            );
-                          default:
-                            return <Badge variant="outline">{item.status}</Badge>;
-                        }
-                      };
-
-                      return (
-                        <tr key={item.id} className="hover:bg-muted/10 transition-colors">
-                          <td className="py-3.5 px-4">{renderTypeBadge()}</td>
-                          <td className="py-3.5 px-4">
-                            <div className="font-medium text-foreground">{item.recipientName}</div>
-                            <div className="text-xs font-mono text-muted-foreground">{item.recipientEmail}</div>
-                          </td>
-                          <td className="py-3.5 px-4 font-mono text-xs">
-                            <span className="capitalize text-muted-foreground">{item.relatedType}</span> #{item.relatedId}
-                          </td>
-                          <td className="py-3.5 px-4">{renderStatusBadge()}</td>
-                          <td className="py-3.5 px-4 font-mono text-xs text-muted-foreground max-w-[140px] truncate">
-                            {item.messageId || "—"}
-                          </td>
-                          <td className="py-3.5 px-4 text-xs font-mono text-muted-foreground">
-                            {item.sentAt
-                              ? new Date(item.sentAt).toLocaleString()
-                              : item.scheduledFor
-                              ? `Due: ${new Date(item.scheduledFor).toLocaleString()}`
-                              : new Date(item.createdAt).toLocaleString()}
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              {/* Preview Button for all */}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setPreviewNotificationId(item.id)}
-                                className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground"
-                                title="Preview Email Content"
-                              >
-                                <Eye className="h-3 w-3" />
-                                Preview
-                              </Button>
-
-                              {item.status === "pending_approval" && (
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setEditingNotification(item);
-                                      setEditFormData({
-                                        subject: item.subject,
-                                        recipientName: item.recipientName,
-                                        recipientEmail: item.recipientEmail,
-                                        bodyHtml: (item.metadata as any)?.bodyHtml || "",
-                                        notes: (item.metadata as any)?.notes || "",
-                                      });
-                                    }}
-                                    className="h-7 text-xs gap-1 border-blue-500/40 text-blue-400 hover:bg-blue-500/10"
-                                    title="Edit Draft Before Approval"
-                                  >
-                                    <Edit className="h-3 w-3" />
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setConfirmApproveNotificationId(item.id)}
-                                    disabled={approveNotificationMutation.isPending}
-                                    className="h-7 text-xs gap-1 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/10"
-                                  >
-                                    <CheckCircle2 className="h-3 w-3" />
-                                    Approve
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setConfirmRejectNotificationId(item.id);
-                                      setRejectReasonInput("");
-                                    }}
-                                    disabled={rejectNotificationMutation.isPending}
-                                    className="h-7 text-xs gap-1 border-destructive/40 text-destructive hover:bg-destructive/10"
-                                  >
-                                    <XCircle className="h-3 w-3" />
-                                    Reject
-                                  </Button>
-                                </div>
-                              )}
-
-                              {item.status === "pending" && (
-                                <div className="flex items-center gap-1">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setEditingNotification(item);
-                                      setEditFormData({
-                                        subject: item.subject,
-                                        recipientName: item.recipientName,
-                                        recipientEmail: item.recipientEmail,
-                                        bodyHtml: (item.metadata as any)?.bodyHtml || "",
-                                        notes: (item.metadata as any)?.notes || "",
-                                      });
-                                    }}
-                                    className="h-7 text-xs gap-1 border-blue-500/40 text-blue-400 hover:bg-blue-500/10"
-                                    title="Edit Scheduled Notification"
-                                  >
-                                    <Edit className="h-3 w-3" />
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => {
-                                      setConfirmCancelNotificationId(item.id);
-                                      setCancelReasonInput("");
-                                    }}
-                                    disabled={cancelNotificationMutation.isPending}
-                                    className="h-7 text-xs gap-1 border-zinc-500/40 text-zinc-400 hover:bg-zinc-500/10"
-                                  >
-                                    <Ban className="h-3 w-3" />
-                                    Cancel
-                                  </Button>
-                                </div>
-                              )}
-
-                              {item.status === "failed" && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => retryNotificationMutation.mutate(item.id)}
-                                  disabled={retryNotificationMutation.isPending}
-                                  className="h-7 text-xs gap-1 border-destructive/40 text-destructive hover:bg-destructive/10"
-                                >
-                                  <RotateCcw className="h-3 w-3" />
-                                  Retry
-                                </Button>
-                              )}
-
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setSelectedNotifDetails(item)}
-                                className="h-7 text-xs gap-1 text-muted-foreground hover:text-foreground"
-                                title="Delivery Audit Record"
-                              >
-                                <FileText className="h-3 w-3" />
-                                Audit
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {/* Dialog: Inspect Notification Details */}
-      <Dialog
-        open={Boolean(selectedNotifDetails)}
-        onOpenChange={(open) => {
-          if (!open) setSelectedNotifDetails(null);
-        }}
-      >
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              Notification Audit #{selectedNotifDetails?.id}
-            </DialogTitle>
-            <DialogDescription>
-              Full delivery metadata and idempotency safeguards.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedNotifDetails && (
-            <div className="space-y-4 py-3 text-xs">
-              <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-card/60 border border-border">
-                <div>
-                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Type</span>
-                  <span className="font-medium text-foreground capitalize">
-                    {selectedNotifDetails.type.replace(/_/g, " ")}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Status</span>
-                  <span className="font-medium text-foreground uppercase">{selectedNotifDetails.status}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Recipient</span>
-                  <span className="font-medium text-foreground">
-                    {selectedNotifDetails.recipientName} &lt;{selectedNotifDetails.recipientEmail}&gt;
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Related Record</span>
-                  <span className="font-mono text-foreground capitalize">
-                    {selectedNotifDetails.relatedType} #{selectedNotifDetails.relatedId}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-mono text-muted-foreground block">Subject Line</span>
-                <div className="p-2.5 rounded bg-muted/20 border font-serif text-foreground">
-                  {selectedNotifDetails.subject}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-[10px] uppercase font-mono text-muted-foreground block">Idempotency Key</span>
-                <div className="p-2 rounded bg-muted/20 border font-mono text-[11px] text-muted-foreground break-all">
-                  {selectedNotifDetails.idempotencyKey}
-                </div>
-              </div>
-
-              {selectedNotifDetails.messageId && (
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Provider Message ID</span>
-                  <div className="p-2 rounded bg-muted/20 border font-mono text-[11px] text-emerald-400 break-all">
-                    {selectedNotifDetails.messageId}
-                  </div>
-                </div>
-              )}
-
-              {selectedNotifDetails.error && (
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-mono text-destructive block">Failure / Reason</span>
-                  <div className="p-2.5 rounded bg-destructive/10 border border-destructive/30 text-destructive text-xs">
-                    {selectedNotifDetails.error}
-                  </div>
-                </div>
-              )}
-
-              {selectedNotifDetails.metadata && Object.keys(selectedNotifDetails.metadata).length > 0 && (
-                <div className="space-y-1">
-                  <span className="text-[10px] uppercase font-mono text-muted-foreground block">Payload Metadata</span>
-                  <pre className="p-2.5 rounded bg-muted/30 border font-mono text-[11px] text-muted-foreground overflow-x-auto max-h-36">
-                    {JSON.stringify(selectedNotifDetails.metadata, null, 2)}
-                  </pre>
-                </div>
-              )}
-            </div>
-          )}
-
-          <DialogFooter className="gap-2">
-            {selectedNotifDetails?.status === "failed" && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  retryNotificationMutation.mutate(selectedNotifDetails.id);
-                  setSelectedNotifDetails(null);
-                }}
-              >
-                <RotateCcw className="h-3.5 w-3.5 mr-1" /> Retry Delivery
-              </Button>
-            )}
-            <Button variant="outline" size="sm" onClick={() => setSelectedNotifDetails(null)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog: Create or Edit Campaign */}
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-2xl">
-              {editingCampaign ? `Edit Campaign #${editingCampaign.id}` : "Create Campaign Draft"}
-            </DialogTitle>
-            <DialogDescription>
-              Design an artisanal email journey. All campaigns require explicit staff approval before dispatch.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-5 py-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Campaign Internal Name
-                </label>
+              <div className="relative w-64">
+                <Search className="h-3.5 w-3.5 absolute left-3 top-2.5 text-muted-foreground" />
                 <Input
-                  placeholder="e.g., Monsoon Sanctuary Invitation 2026"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Search automatic rules..."
+                  value={automationSearchQuery}
+                  onChange={(e) => setAutomationSearchQuery(e.target.value)}
+                  className="h-8 pl-8 text-xs border-[#E5DDD0]"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Audience Segment
-                </label>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-muted-foreground">Status:</span>
                 <select
-                  value={formData.audienceType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, audienceType: e.target.value as any })
-                  }
-                  className="w-full h-10 px-3 rounded-md bg-background border border-input text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  value={automationStatusFilter}
+                  onChange={(e) => setAutomationStatusFilter(e.target.value)}
+                  className="h-8 px-2.5 rounded-md bg-white dark:bg-background border border-[#E5DDD0] text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-[#24543D]"
                 >
-                  <option value="all_contacts">All Contacts (Enquiries + Bookings)</option>
-                  <option value="enquiries_only">Inquiries Prospects Only</option>
-                  <option value="confirmed_guests">Confirmed Journey Guests Only</option>
+                  <option value="all">All Rules ({automations.length})</option>
+                  <option value="enabled">Active (On) Only</option>
+                  <option value="paused">Paused (Off) Only</option>
                 </select>
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                Email Subject Line
-              </label>
-              <Input
-                placeholder="The Monsoon Sanctuary: Slow Days and Ayurvedic Rejuvenation in Kerala"
-                value={formData.subject}
-                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-              />
+            <div className="text-xs text-muted-foreground">
+              {filteredAutomations.filter((a) => a.enabled).length} active of {filteredAutomations.length} displayed
             </div>
+          </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                Preview Text / Preheader
-              </label>
-              <Input
-                placeholder="Brief summary appearing in inbox preview..."
-                value={formData.previewText}
-                onChange={(e) => setFormData({ ...formData, previewText: e.target.value })}
-              />
+          {/* Automations Cards List */}
+          {automationsLoading ? (
+            <div className="p-12 text-center text-muted-foreground text-sm">Loading automatic rules...</div>
+          ) : automationsError ? (
+            <div className="p-8 text-center rounded-xl border border-red-200 bg-red-50/50 flex flex-col items-center justify-center gap-3">
+              <AlertCircle className="h-8 w-8 text-red-600" />
+              <p className="text-sm font-semibold text-red-900">Failed to load automation rules</p>
+              <Button size="sm" variant="outline" onClick={() => refetchAutomations()} className="text-xs border-red-300">
+                Retry Loading
+              </Button>
             </div>
+          ) : filteredAutomations.length === 0 ? (
+            <div className="p-12 text-center border border-dashed border-[#E5DDD0] rounded-xl bg-white">
+              <p className="text-xs text-muted-foreground">No automatic email rules match your search.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3.5">
+              {filteredAutomations.map((auto) => {
+                const isEnabled = auto.enabled;
+                const isExpanded = expandedAutomationId === auto.id;
+                const plainDesc =
+                  AUTOMATION_PLAIN_DESCRIPTIONS[auto.trigger] ||
+                  auto.triggerDescription ||
+                  "Automatic customer email triggered by milestones.";
+                const plainTiming = getPlainTiming(auto);
 
-            {/* Template Presets Picker */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center justify-between">
-                <span>Starter Slow-Luxury Templates</span>
-                <span className="text-[11px] text-muted-foreground font-normal">Click to apply preset</span>
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {TEMPLATE_PRESETS.map((t) => (
-                  <Button
-                    key={t.name}
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => selectPreset(t)}
-                    className="text-xs gap-1.5 h-8"
+                return (
+                  <div
+                    key={auto.id}
+                    className="p-5 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card shadow-xs hover:border-[#24543D]/40 transition-all space-y-4"
                   >
-                    <Sparkles className="h-3 w-3 text-primary" />
-                    {t.name}
-                  </Button>
-                ))}
-              </div>
-            </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      {/* Left: Status & Plain Details */}
+                      <div className="flex items-start gap-3.5 min-w-0">
+                        <div
+                          className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
+                            isEnabled
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                              : "bg-stone-100 text-stone-500 border border-stone-200"
+                          }`}
+                        >
+                          <Zap className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="text-base font-serif font-semibold text-foreground truncate">
+                              {auto.name}
+                            </h3>
+                            <Badge
+                              variant="outline"
+                              className={
+                                isEnabled
+                                  ? "bg-emerald-50 text-emerald-800 border-emerald-200 text-[11px] font-sans font-medium"
+                                  : "bg-stone-100 text-stone-600 border-stone-200 text-[11px] font-sans font-medium"
+                              }
+                            >
+                              {isEnabled ? "On" : "Off"}
+                            </Badge>
+                            {auto.requiresApproval && (
+                              <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 text-[10px] font-sans">
+                                Requires Staff Approval
+                              </Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                            {plainDesc}
+                          </p>
+                          <div className="flex items-center gap-2 mt-2 text-[11px] text-stone-600 dark:text-stone-300 font-sans">
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <span>{plainTiming}</span>
+                            <span className="text-muted-foreground/40">·</span>
+                            <span>Recipient: {auto.recipientLogic}</span>
+                          </div>
+                        </div>
+                      </div>
 
-            {/* Merge Tags Quick Insert */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center justify-between">
-                <span>Personalization Merge Tags</span>
-                <span className="text-[11px] text-muted-foreground font-normal">Inserts into email HTML</span>
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {["{{name}}", "{{email}}", "{{destination}}", "{{year}}", "{{unsubscribeUrl}}"].map(
-                  (tag) => (
-                    <Button
-                      key={tag}
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => insertTag(tag)}
-                      className="font-mono text-xs h-7 px-2"
-                    >
-                      {tag}
-                    </Button>
-                  )
-                )}
-              </div>
-            </div>
+                      {/* Right: Toggle Switch & Edit & Details Toggle */}
+                      <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+                        {/* Turn On / Turn Off Switch */}
+                        <div className="flex items-center gap-2 bg-[#FAF7F1] px-3 py-1.5 rounded-lg border border-[#E5DDD0]">
+                          <span className="text-xs font-medium text-foreground select-none">
+                            {isEnabled ? "On" : "Off"}
+                          </span>
+                          <Switch
+                            checked={isEnabled}
+                            disabled={toggleAutomationMutation.isPending}
+                            onCheckedChange={() =>
+                              toggleAutomationMutation.mutate({ id: auto.id, enabled: !isEnabled })
+                            }
+                            aria-label={`Toggle ${auto.name}`}
+                          />
+                        </div>
 
-            {/* HTML Editor vs Preview */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Email Content (HTML)
-                </label>
+                        {/* Edit Action */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingAutomation(auto);
+                            setAutomationModalOpen(true);
+                          }}
+                          className="text-xs h-8 border-[#E5DDD0] text-foreground hover:bg-[#FAF7F1] gap-1"
+                        >
+                          <Edit className="h-3 w-3" />
+                          Edit
+                        </Button>
+
+                        {/* Details Toggle */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setExpandedAutomationId(isExpanded ? null : auto.id)}
+                          className="text-xs h-8 text-muted-foreground hover:text-foreground px-2"
+                          title="Advanced Details & History"
+                        >
+                          {isExpanded ? "Hide Details" : "Details"}
+                          <ChevronRight
+                            className={`h-3.5 w-3.5 ml-1 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                          />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Expandable Advanced Settings & History Drawer */}
+                    {isExpanded && (
+                      <div className="pt-3 border-t border-[#E5DDD0] space-y-3 bg-[#FAF7F1]/60 -mx-5 -mb-5 p-4 rounded-b-xl text-xs font-sans">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <span className="text-[10px] uppercase font-semibold text-muted-foreground block tracking-wider">
+                              System Trigger
+                            </span>
+                            <span className="font-mono text-xs text-foreground font-semibold">{auto.trigger}</span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase font-semibold text-muted-foreground block tracking-wider">
+                              Email Template
+                            </span>
+                            <span className="text-xs text-foreground">
+                              {auto.templateName || auto.templateId || "Standard Template"}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-[10px] uppercase font-semibold text-muted-foreground block tracking-wider">
+                              Rule ID
+                            </span>
+                            <span className="font-mono text-[11px] text-muted-foreground">{auto.id}</span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-[#E5DDD0]/60 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+                            <span>Sent: <strong className="text-foreground">{auto.stats.sent}</strong></span>
+                            <span>Failed: <strong className="text-foreground">{auto.stats.failed}</strong></span>
+                            <span>
+                              Last Executed:{" "}
+                              <strong className="text-foreground">
+                                {auto.stats.lastExecutedAt
+                                  ? new Date(auto.stats.lastExecutedAt).toLocaleDateString()
+                                  : "Never"}
+                              </strong>
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setActiveView("history");
+                                setAuditWorkflowFilter("automation");
+                                setAuditTypeFilter(TRIGGER_MAP_TO_NOTIF_TYPE[auto.trigger] || "all");
+                              }}
+                              className="text-[11px] h-7 text-[#24543D] hover:bg-[#24543D]/10 px-2"
+                            >
+                              <Eye className="h-3 w-3 mr-1" /> View Sent History
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setDeleteConfirmAutomation(auto)}
+                              className="text-[11px] h-7 text-muted-foreground hover:text-red-600 px-2"
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" /> Delete Rule
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============================================================
+          VIEW 4: CUSTOMER GROUPS & CONSENT REGISTRY
+      ============================================================ */}
+      {activeView === "audiences" && (
+        <div className="space-y-6">
+          {/* Breadcrumb & Navigation */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setActiveView("overview")}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#24543D] hover:underline mb-3 cursor-pointer"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to Campaigns & Emails
+            </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5DDD0] pb-5">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-foreground tracking-tight">
+                  Customer Groups & Consent
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 font-sans">
+                  Organize customers for targeted marketing emails. Consent and unsubscribe rules apply automatically.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2.5">
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLiveHtmlPreview(!liveHtmlPreview)}
-                  className="text-xs gap-1.5 h-7"
+                  onClick={() => setAudienceModalOpen(true)}
+                  className="bg-[#24543D] hover:bg-[#1b3f2e] text-white text-xs h-9 px-4 shadow-sm gap-1.5 cursor-pointer font-medium"
                 >
-                  <Eye className="h-3.5 w-3.5" />
-                  {liveHtmlPreview ? "Show Code" : "Live Preview"}
+                  <Plus className="h-4 w-4" />
+                  Create Customer Group
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Automatic Consent Safeguard Banner */}
+          <div className="p-4 rounded-xl border border-emerald-500/25 bg-emerald-50/50 dark:bg-emerald-950/20 flex items-start gap-3">
+            <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="text-xs text-emerald-900 dark:text-emerald-200 space-y-1">
+              <p className="font-semibold text-emerald-800 dark:text-emerald-300">
+                Automated Marketing Consent Enforcement
+              </p>
+              <p>
+                Every outbound marketing email automatically includes an official one-click unsubscribe link.
+                When a customer opts out, they are immediately excluded from all future campaigns, regardless of group membership.
+              </p>
+            </div>
+          </div>
+
+          {/* Sub-tabs for Groups vs Consent Registry */}
+          <div className="flex items-center gap-2 border-b border-[#E5DDD0] pb-2">
+            <button
+              type="button"
+              onClick={() => setCustomerGroupsSubTab("groups")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                customerGroupsSubTab === "groups"
+                  ? "bg-[#24543D] text-white"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Customer Groups ({audienceGroups.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setCustomerGroupsSubTab("registry")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                customerGroupsSubTab === "registry"
+                  ? "bg-[#24543D] text-white"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Consent & Unsubscribe Registry ({subscribers.length})
+            </button>
+          </div>
+
+          {/* Tab 1: Customer Groups */}
+          {customerGroupsSubTab === "groups" && (
+            <div className="space-y-4">
+              {audienceGroups.length === 0 ? (
+                <div className="p-12 text-center border border-dashed border-[#E5DDD0] rounded-xl bg-white">
+                  <Users className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-foreground">No customer groups created yet.</p>
+                  <p className="text-xs text-muted-foreground max-w-sm mx-auto mt-1 mb-4">
+                    Create groups to send tailored travel recommendations based on customer interests.
+                  </p>
+                  <Button
+                    onClick={() => setAudienceModalOpen(true)}
+                    className="bg-[#24543D] text-white text-xs h-8"
+                  >
+                    Create First Group
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {audienceGroups.map((group: any) => (
+                    <div
+                      key={group.id}
+                      className="p-5 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card shadow-xs hover:border-[#24543D]/40 transition-all flex flex-col justify-between space-y-4"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-base font-serif font-semibold text-foreground truncate">
+                            {group.name}
+                          </h3>
+                          <Badge variant="outline" className="text-[11px] bg-[#FAF7F1] border-[#E5DDD0]">
+                            {group.type === "dynamic" ? "Smart Rules" : "Manual List"}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground line-clamp-2">
+                          {group.description || "Reusable customer audience group for marketing broadcasts."}
+                        </p>
+                        <div className="pt-2 text-xs font-medium text-foreground">
+                          {group.memberCount ?? group.members?.length ?? 0} Contacts Eligible
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-[#E5DDD0]/60 flex items-center justify-end">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setAudienceModalOpen(true)}
+                          className="text-xs h-8 border-[#E5DDD0] text-foreground hover:bg-[#FAF7F1]"
+                        >
+                          Manage Group
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Tab 2: Consent Registry */}
+          {customerGroupsSubTab === "registry" && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card">
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="relative w-64">
+                    <Search className="h-3.5 w-3.5 absolute left-3 top-2.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Search email or name..."
+                      value={subSearchQuery}
+                      onChange={(e) => setSubSearchQuery(e.target.value)}
+                      className="h-8 pl-8 text-xs border-[#E5DDD0]"
+                    />
+                  </div>
+
+                  <select
+                    value={subStatusFilter}
+                    onChange={(e) => setSubStatusFilter(e.target.value as any)}
+                    className="h-8 px-2.5 text-xs rounded-md border border-[#E5DDD0] bg-white text-foreground"
+                  >
+                    <option value="all">All Contacts ({subscribers.length})</option>
+                    <option value="subscribed">Subscribed Only</option>
+                    <option value="opted_out">Opted Out (Unsubscribed)</option>
+                  </select>
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchSubscribers()}
+                  className="text-xs h-8 border-[#E5DDD0]"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" /> Refresh Registry
                 </Button>
               </div>
 
-              {liveHtmlPreview ? (
-                <div
-                  className="p-6 rounded-lg border border-border bg-white text-zinc-900 max-h-96 overflow-y-auto"
-                  dangerouslySetInnerHTML={{
-                    __html: formData.contentHtml
-                      .replace(/\{\{\s*name\s*\}\}/gi, "Lady Eleanor")
-                      .replace(/\{\{\s*destination\s*\}\}/gi, "Munnar & Alleppey")
-                      .replace(/\{\{\s*unsubscribeUrl\s*\}\}/gi, "#"),
-                  }}
-                />
+              {subscribersLoading ? (
+                <div className="p-12 text-center text-muted-foreground text-sm">Loading consent registry...</div>
+              ) : filteredSubscribers.length === 0 ? (
+                <div className="p-12 text-center border border-dashed border-[#E5DDD0] rounded-xl bg-white">
+                  <p className="text-xs text-muted-foreground">No subscriber records match your filters.</p>
+                </div>
               ) : (
-                <Textarea
-                  rows={12}
-                  className="font-mono text-xs leading-relaxed"
-                  value={formData.contentHtml}
-                  onChange={(e) => setFormData({ ...formData, contentHtml: e.target.value })}
-                />
+                <div className="rounded-xl border border-[#E5DDD0] overflow-hidden bg-white shadow-xs">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#FAF7F1] border-b border-[#E5DDD0] text-muted-foreground uppercase tracking-wider font-semibold">
+                      <tr>
+                        <th className="py-3 px-4">Contact Name</th>
+                        <th className="py-3 px-4">Email Address</th>
+                        <th className="py-3 px-4">Consent Status</th>
+                        <th className="py-3 px-4">Source</th>
+                        <th className="py-3 px-4">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#E5DDD0]">
+                      {filteredSubscribers.map((sub) => (
+                        <tr key={sub.email} className="hover:bg-muted/10">
+                          <td className="py-3 px-4 font-medium text-foreground">{sub.name || "—"}</td>
+                          <td className="py-3 px-4 font-mono text-[11px] text-foreground">{sub.email}</td>
+                          <td className="py-3 px-4">
+                            {sub.subscribed ? (
+                              <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200 text-[11px]">
+                                Subscribed
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-[11px]">
+                                Opted Out ({sub.unsubscribedAt ? new Date(sub.unsubscribedAt).toLocaleDateString() : "Active"})
+                              </Badge>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 capitalize text-muted-foreground">{sub.source}</td>
+                          <td className="py-3 px-4 text-muted-foreground">{new Date(sub.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============================================================
+          VIEW 5: EMAIL HISTORY & DELIVERY RESULTS
+      ============================================================ */}
+      {activeView === "history" && (
+        <div className="space-y-6">
+          {/* Breadcrumb & Navigation */}
+          <div>
+            <button
+              type="button"
+              onClick={() => setActiveView("overview")}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#24543D] hover:underline mb-3 cursor-pointer"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to Campaigns & Emails
+            </button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E5DDD0] pb-5">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-serif font-semibold text-foreground tracking-tight">
+                  Email History
+                </h1>
+                <p className="text-xs sm:text-sm text-muted-foreground mt-1 font-sans">
+                  View sent emails, delivery results, and failures.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetchNotifications()}
+                  className="text-xs h-9 border-[#E5DDD0] gap-1.5"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  Refresh History
+                </Button>
+              </div>
             </div>
           </div>
 
+          {/* Filter Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3.5 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative w-64">
+                <Search className="h-3.5 w-3.5 absolute left-3 top-2.5 text-muted-foreground" />
+                <Input
+                  placeholder="Search recipient or subject..."
+                  value={auditSearchQuery}
+                  onChange={(e) => setAuditSearchQuery(e.target.value)}
+                  className="h-8 pl-8 text-xs border-[#E5DDD0]"
+                />
+              </div>
+
+              <select
+                value={auditWorkflowFilter}
+                onChange={(e) => setAuditWorkflowFilter(e.target.value as any)}
+                className="h-8 px-2.5 text-xs rounded-md border border-[#E5DDD0] bg-white text-foreground"
+              >
+                <option value="all">All Email Types</option>
+                <option value="manual">Marketing Campaigns Only</option>
+                <option value="automation">Automatic Emails Only</option>
+              </select>
+
+              <select
+                value={auditStatusFilter}
+                onChange={(e) => setAuditStatusFilter(e.target.value)}
+                className="h-8 px-2.5 text-xs rounded-md border border-[#E5DDD0] bg-white text-foreground"
+              >
+                <option value="all">All Delivery Results</option>
+                <option value="sent">Delivered / Sent</option>
+                <option value="pending">Queued / Scheduled</option>
+                <option value="pending_approval">Pending Approval</option>
+                <option value="failed">Failed / Undelivered</option>
+              </select>
+            </div>
+
+            <div className="text-xs text-muted-foreground">
+              {unifiedLogs.length} records found
+            </div>
+          </div>
+
+          {/* Delivery History Table */}
+          {notifsLoading ? (
+            <div className="p-12 text-center text-muted-foreground text-sm">Loading delivery records...</div>
+          ) : unifiedLogs.length === 0 ? (
+            <div className="p-12 text-center border border-dashed border-[#E5DDD0] rounded-xl bg-white">
+              <p className="text-xs text-muted-foreground">No email delivery records match your filter criteria.</p>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-[#E5DDD0] overflow-hidden bg-white shadow-xs">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#FAF7F1] border-b border-[#E5DDD0] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <tr>
+                    <th className="py-3 px-4">Recipient</th>
+                    <th className="py-3 px-4">Subject</th>
+                    <th className="py-3 px-4">Type / Source</th>
+                    <th className="py-3 px-4">Delivery Result</th>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E5DDD0]">
+                  {unifiedLogs.map((log) => {
+                    const isDelivered = log.status === "sent" || log.status === "delivered";
+                    const isFailed = log.status === "failed";
+                    const isPending = log.status === "pending_approval" || log.status === "pending";
+
+                    return (
+                      <tr key={log.id} className="hover:bg-muted/10">
+                        <td className="py-3 px-4">
+                          <div className="font-medium text-foreground">{log.recipientName || "Customer"}</div>
+                          <div className="font-mono text-[11px] text-muted-foreground">{log.recipientEmail}</div>
+                        </td>
+
+                        <td className="py-3 px-4 max-w-xs truncate text-foreground" title={log.subject}>
+                          {log.subject || "No subject"}
+                        </td>
+
+                        <td className="py-3 px-4 capitalize text-muted-foreground">
+                          {log.sourceName || log.type.replace(/_/g, " ")}
+                        </td>
+
+                        <td className="py-3 px-4">
+                          {isDelivered && (
+                            <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200 text-[11px]">
+                              Delivered
+                            </Badge>
+                          )}
+                          {isFailed && (
+                            <div className="space-y-1">
+                              <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-[11px]">
+                                Failed
+                              </Badge>
+                              {log.error && (
+                                <div className="text-[10px] text-red-600 truncate max-w-xs" title={log.error}>
+                                  {log.error}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {isPending && (
+                            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 text-[11px]">
+                              {log.status === "pending_approval" ? "Awaiting Approval" : "Queued"}
+                            </Badge>
+                          )}
+                        </td>
+
+                        <td className="py-3 px-4 text-muted-foreground">
+                          {new Date(log.timestamp).toLocaleDateString()}
+                        </td>
+
+                        <td className="py-3 px-4 text-right space-x-1.5">
+                          {isFailed && log.notificationId && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => retryNotificationMutation.mutate(log.notificationId!)}
+                              disabled={retryNotificationMutation.isPending}
+                              className="text-[11px] h-7 border-amber-300 text-amber-800 hover:bg-amber-50 px-2"
+                              title="Retry Delivery"
+                            >
+                              <RotateCcw className="h-3 w-3 mr-1" /> Retry
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              if (log.rawItem) {
+                                setSelectedNotifDetails(log.rawItem);
+                              }
+                            }}
+                            className="text-[11px] h-7 text-muted-foreground hover:text-foreground px-2"
+                            title="View Technical Details"
+                          >
+                            Details
+                          </Button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============================================================
+          MODALS & DIALOGS
+      ============================================================ */}
+
+      {/* 1. Manage Audiences Modal */}
+      <ManageAudiencesModal isOpen={audienceModalOpen} onClose={() => setAudienceModalOpen(false)} />
+
+      {/* 2. Visual Email Builder Modal */}
+      <CampaignVisualBuilderModal
+        isOpen={createDialogOpen}
+        onClose={() => {
+          setCreateDialogOpen(false);
+          setEditingCampaign(null);
+        }}
+        initialCampaign={editingCampaign}
+        isSaving={createMutation.isPending || updateMutation.isPending}
+        onSave={(payload) => {
+          if (editingCampaign) {
+            updateMutation.mutate({ id: editingCampaign.id, payload });
+          } else {
+            createMutation.mutate(payload);
+          }
+        }}
+      />
+
+      {/* 3. Campaign Rejection Reason Dialog */}
+      <Dialog open={rejectCampaignDialogOpen} onOpenChange={setRejectCampaignDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-lg text-red-600 flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600" />
+              Reject Campaign #{selectedCampaignForReject?.id}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Provide feedback for the campaign author explaining what changes are needed before resubmission.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            <label className="text-xs font-semibold uppercase tracking-wider block">
+              Rejection Reason <span className="text-red-500">*</span>
+            </label>
+            <Textarea
+              placeholder="e.g. Please update discount terms and verify image licensing..."
+              value={campaignRejectReason}
+              onChange={(e) => setCampaignRejectReason(e.target.value)}
+              className="text-xs h-24 border-[#E5DDD0] resize-none"
+            />
+          </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+            <Button variant="outline" size="sm" onClick={() => setRejectCampaignDialogOpen(false)}>
               Cancel
             </Button>
             <Button
+              size="sm"
+              variant="destructive"
+              disabled={rejectCampaignMutation.isPending || !campaignRejectReason.trim()}
               onClick={() => {
-                if (!formData.name.trim() || !formData.subject.trim()) {
-                  toast({
-                    title: "Validation Error",
-                    description: "Campaign name and subject line are required.",
-                    variant: "destructive",
-                  });
-                  return;
-                }
-                if (editingCampaign) {
-                  updateMutation.mutate({ id: editingCampaign.id, payload: formData });
-                } else {
-                  createMutation.mutate(formData);
-                }
+                if (!selectedCampaignForReject) return;
+                rejectCampaignMutation.mutate({
+                  id: selectedCampaignForReject.id,
+                  reason: campaignRejectReason.trim(),
+                });
               }}
-              disabled={createMutation.isPending || updateMutation.isPending}
             >
-              {editingCampaign ? "Save Changes" : "Save as Draft"}
+              Confirm Rejection
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Audience Preview */}
-      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
-        <DialogContent className="max-w-2xl">
+      {/* 4. Automation Delay Configuration Dialog */}
+      <Dialog open={delayConfigDialogOpen} onOpenChange={setDelayConfigDialogOpen}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-serif text-2xl flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Audience Preview: {selectedCampaignForPreview?.name}
+            <DialogTitle className="font-serif text-lg text-foreground flex items-center gap-2">
+              <SlidersHorizontal className="h-5 w-5 text-[#24543D]" />
+              Configure {selectedAutomationForDelay?.name} Timing
             </DialogTitle>
-            <DialogDescription>
-              Verified breakdown of eligible recipients and automated opt-out exclusions.
+            <DialogDescription className="text-xs">
+              Adjust execution delay window for this automated workflow.
             </DialogDescription>
           </DialogHeader>
 
+          <div className="space-y-3 py-3">
+            <label className="text-xs font-semibold uppercase tracking-wider block">
+              Delay Window ({selectedAutomationForDelay?.delayUnit || "hours"})
+            </label>
+            <Input
+              type="number"
+              min={1}
+              max={720}
+              value={automationDelayValueInput}
+              onChange={(e) => setAutomationDelayValueInput(Number(e.target.value) || 1)}
+              className="h-9 text-xs border-[#E5DDD0]"
+            />
+            <span className="text-[11px] text-muted-foreground block">
+              Trigger timing will apply to all subsequent events.
+            </span>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setDelayConfigDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              disabled={updateAutomationDelayMutation.isPending}
+              onClick={() => {
+                if (!selectedAutomationForDelay) return;
+                updateAutomationDelayMutation.mutate({
+                  id: selectedAutomationForDelay.id,
+                  delayValue: automationDelayValueInput,
+                });
+              }}
+              className="bg-[#24543D] hover:bg-[#1b3f2e] text-white"
+            >
+              Save Timing
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 5. Audience Reach Preview Dialog */}
+      <Dialog open={previewModalOpen} onOpenChange={setPreviewModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl flex items-center gap-2">
+              <Users className="h-5 w-5 text-[#24543D]" />
+              Audience Reach: {selectedCampaignForPreview?.name}
+            </DialogTitle>
+          </DialogHeader>
+
           {previewLoading ? (
-            <div className="p-8 text-center text-muted-foreground font-mono text-sm">
-              Calculating audience...
-            </div>
+            <div className="p-8 text-center text-muted-foreground text-xs">Calculating reach...</div>
           ) : audiencePreview ? (
-            <div className="space-y-6 py-2">
+            <div className="space-y-5 py-2 text-xs">
               <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="p-4 rounded-lg bg-card border border-border">
-                  <span className="text-2xl font-bold font-mono text-foreground block">
+                <div className="p-3.5 rounded-lg bg-[#FAF7F1] border border-[#E5DDD0]">
+                  <span className="text-2xl font-bold font-serif text-foreground block tabular-nums">
                     {audiencePreview.eligibleRecipients}
                   </span>
-                  <span className="text-xs text-muted-foreground uppercase tracking-wider">
-                    Total In Scope
+                  <span className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                    Eligible Recipients
                   </span>
                 </div>
-                <div className="p-4 rounded-lg bg-emerald-950/20 border border-emerald-500/30">
-                  <span className="text-2xl font-bold font-mono text-emerald-400 block">
+                <div className="p-3.5 rounded-lg bg-emerald-50 border border-emerald-200">
+                  <span className="text-2xl font-bold font-serif text-emerald-800 block tabular-nums">
                     {audiencePreview.activeSubscribers}
                   </span>
-                  <span className="text-xs text-emerald-300 uppercase tracking-wider">
-                    Active Opt-In
-                  </span>
+                  <span className="text-[11px] text-emerald-700 uppercase tracking-wider">Active Opt-In</span>
                 </div>
-                <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/30">
-                  <span className="text-2xl font-bold font-mono text-destructive block">
+                <div className="p-3.5 rounded-lg bg-red-50 border border-red-200">
+                  <span className="text-2xl font-bold font-serif text-red-700 block tabular-nums">
                     {audiencePreview.unsubscribedCount}
                   </span>
-                  <span className="text-xs text-destructive uppercase tracking-wider">
-                    Excluded (Opt-Out)
-                  </span>
+                  <span className="text-[11px] text-red-600 uppercase tracking-wider">Opted-Out Excluded</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Sample In-Scope Recipients
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block">
+                  Sample Eligible Contacts
                 </span>
-                <div className="rounded-lg border border-border overflow-hidden divide-y divide-border/60 text-xs font-mono">
+                <div className="rounded-lg border border-[#E5DDD0] overflow-hidden divide-y divide-[#E5DDD0]">
                   {audiencePreview.sampleRecipients.map((r, i) => (
-                    <div key={i} className="p-2.5 flex items-center justify-between bg-card/40">
+                    <div key={i} className="p-2.5 flex items-center justify-between bg-white dark:bg-card">
                       <div>
-                        <span className="text-foreground font-medium">{r.name}</span>{" "}
-                        <span className="text-muted-foreground">({r.email})</span>
+                        <span className="font-semibold text-foreground">{r.name}</span>{" "}
+                        <span className="text-muted-foreground font-mono text-[11px]">({r.email})</span>
                       </div>
-                      <div>
-                        {r.isSubscribed ? (
-                          <Badge variant="outline" className="border-emerald-500/30 text-emerald-400 text-[10px]">
-                            Eligible
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-destructive/30 text-destructive text-[10px]">
-                            Excluded
-                          </Badge>
-                        )}
-                      </div>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] ${
+                          r.isSubscribed
+                            ? "border-emerald-300 text-emerald-700 bg-emerald-50"
+                            : "border-red-300 text-red-700 bg-red-50"
+                        }`}
+                      >
+                        {r.isSubscribed ? "Eligible" : "Excluded"}
+                      </Badge>
                     </div>
                   ))}
                 </div>
@@ -2034,42 +2577,39 @@ export default function CampaignsPage() {
           ) : null}
 
           <DialogFooter>
-            <Button onClick={() => setPreviewModalOpen(false)}>Close Preview</Button>
+            <Button size="sm" onClick={() => setPreviewModalOpen(false)}>
+              Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Schedule Campaign */}
+      {/* 6. Schedule Campaign Dialog */}
       <Dialog open={scheduleDialogOpen} onOpenChange={setScheduleDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
+            <DialogTitle className="font-serif text-lg flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-[#24543D]" />
               Schedule Campaign #{selectedCampaignForSchedule?.id}
             </DialogTitle>
-            <DialogDescription>
-              Select target date and time for automated campaign dispatch.
-            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                Target Date & Time
-              </label>
-              <Input
-                type="datetime-local"
-                value={scheduleDateTime}
-                onChange={(e) => setScheduleDateTime(e.target.value)}
-              />
-            </div>
+          <div className="space-y-3 py-3">
+            <label className="text-xs font-semibold uppercase tracking-wider block">Target Date & Time</label>
+            <Input
+              type="datetime-local"
+              value={scheduleDateTime}
+              onChange={(e) => setScheduleDateTime(e.target.value)}
+              className="h-9 text-xs border-[#E5DDD0]"
+            />
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setScheduleDialogOpen(false)}>
+            <Button variant="outline" size="sm" onClick={() => setScheduleDialogOpen(false)}>
               Cancel
             </Button>
             <Button
+              size="sm"
               onClick={() => {
                 if (!selectedCampaignForSchedule || !scheduleDateTime) return;
                 scheduleMutation.mutate({
@@ -2078,6 +2618,7 @@ export default function CampaignsPage() {
                 });
               }}
               disabled={scheduleMutation.isPending}
+              className="bg-[#24543D] hover:bg-[#1b3f2e] text-white"
             >
               Confirm Schedule
             </Button>
@@ -2085,32 +2626,29 @@ export default function CampaignsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Send Campaign Execution */}
+      {/* 7. Dispatch Campaign Execution Dialog */}
       <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
-              <Send className="h-5 w-5 text-primary" />
+            <DialogTitle className="font-serif text-lg flex items-center gap-2">
+              <Send className="h-5 w-5 text-[#24543D]" />
               Dispatch Campaign #{selectedCampaignForSend?.id}
             </DialogTitle>
-            <DialogDescription>
-              Confirm delivery dispatch for "{selectedCampaignForSend?.name}".
-            </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 text-xs text-foreground/80 space-y-1">
-              <p className="font-semibold text-primary">Enforced Safeguards</p>
+          <div className="space-y-4 py-3 text-xs">
+            <div className="p-3 rounded-lg border border-[#24543D]/25 bg-[#24543D]/5 space-y-1">
+              <p className="font-semibold text-[#24543D]">Enforced Safeguards</p>
               <ul className="list-disc pl-4 space-y-0.5 text-muted-foreground">
-                <li>Strict consent verification: unsubscribed guests are automatically skipped.</li>
-                <li>One-click unsubscribe links are automatically generated per recipient.</li>
-                <li>Delivery records and message IDs will be logged for tracking.</li>
+                <li>Strict consent verification: opted-out contacts are skipped.</li>
+                <li>Personalized one-click unsubscribe links automatically attached.</li>
+                <li>Delivery records and provider message IDs recorded.</li>
               </ul>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg border border-border bg-card">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-[#E5DDD0]">
               <div>
-                <span className="text-xs font-medium text-foreground block">Simulation / Mock Mode</span>
+                <span className="font-semibold text-foreground block">Simulation Mode</span>
                 <span className="text-[11px] text-muted-foreground block">
                   Simulates complete delivery without external email provider calls.
                 </span>
@@ -2119,16 +2657,17 @@ export default function CampaignsPage() {
                 type="checkbox"
                 checked={sendMockMode}
                 onChange={(e) => setSendMockMode(e.target.checked)}
-                className="h-4 w-4 accent-primary"
+                className="h-4 w-4 accent-[#24543D]"
               />
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSendDialogOpen(false)}>
+            <Button variant="outline" size="sm" onClick={() => setSendDialogOpen(false)}>
               Cancel
             </Button>
             <Button
+              size="sm"
               onClick={() => {
                 if (!selectedCampaignForSend) return;
                 sendMutation.mutate({
@@ -2137,7 +2676,7 @@ export default function CampaignsPage() {
                 });
               }}
               disabled={sendMutation.isPending}
-              className="bg-primary text-primary-foreground"
+              className="bg-[#24543D] hover:bg-[#1b3f2e] text-white"
             >
               Confirm Dispatch
             </Button>
@@ -2145,687 +2684,188 @@ export default function CampaignsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Automation Settings & Timers */}
-      <Dialog open={settingsDialogOpen} onOpenChange={setSettingsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
-              <SlidersHorizontal className="h-5 w-5 text-primary" />
-              Automation Rules & Timing Controls
-            </DialogTitle>
-            <DialogDescription>
-              Toggle transactional customer triggers and customize follow-up delay windows across the platform.
-            </DialogDescription>
-          </DialogHeader>
-
-          {settingsDraft && (
-            <div className="space-y-6 py-4">
-              <div className="space-y-3">
-                <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Automated Trigger Toggles
-                </h4>
-                <div className="space-y-2.5">
-                  {[
-                    {
-                      key: "enableBookingConfirmation" as const,
-                      label: "Booking Confirmation Email",
-                      desc: "Dispatched upon journey confirmation with booking details and itinerary overview.",
-                    },
-                    {
-                      key: "enablePaymentReceipts" as const,
-                      label: "Payment Receipt Email",
-                      desc: "Sent automatically when an invoice is marked as paid.",
-                    },
-                    {
-                      key: "enableItineraryUpdates" as const,
-                      label: "Itinerary Update & Delivery",
-                      desc: "Triggered whenever itinerary days or signature activities are updated.",
-                    },
-                    {
-                      key: "enableEnquiryFollowups" as const,
-                      label: "Unanswered Enquiry Follow-Up",
-                      desc: "Scheduled for prospective travelers with pending inquiries.",
-                    },
-                    {
-                      key: "enablePostTripFeedback" as const,
-                      label: "Post-Trip Feedback Request",
-                      desc: "Sent following journey completion to gather guest reviews.",
-                    },
-                    {
-                      key: "enablePaymentReminders" as const,
-                      label: "Payment Deadline & Overdue Follow-ups",
-                      desc: "Sends gentle advance reminders and overdue payment follow-ups.",
-                    },
-                    {
-                      key: "enablePreTripReminders" as const,
-                      label: "Pre-Trip Packing & Sanctuary Reminders",
-                      desc: "Dispatched 7 days prior to journey commencement.",
-                    },
-                    {
-                      key: "enableCancellationNotifications" as const,
-                      label: "Booking Cancellation Notifications",
-                      desc: "Sends formal cancellation summaries and refund tracking.",
-                    },
-                    {
-                      key: "enableDocumentDelivery" as const,
-                      label: "Travel Document Delivery",
-                      desc: "Delivers flight passes, vouchers, and sanctuary permits to guests.",
-                    },
-                  ].map((rule) => (
-                    <div
-                      key={rule.key}
-                      className="flex items-center justify-between p-3 rounded-lg border border-border bg-card/40"
-                    >
-                      <div className="pr-4">
-                        <span className="text-sm font-medium text-foreground block">{rule.label}</span>
-                        <span className="text-xs text-muted-foreground block">{rule.desc}</span>
-                      </div>
-                      <Switch
-                        checked={Boolean(settingsDraft[rule.key])}
-                        onCheckedChange={(checked) =>
-                          setSettingsDraft({ ...settingsDraft, [rule.key]: checked })
-                        }
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3 border-t border-border pt-4">
-                <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Scheduling Windows & Delays
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5 p-3 rounded-lg border border-border bg-card/40">
-                    <label className="text-xs font-medium text-foreground block">
-                      Enquiry Follow-Up Delay (Hours)
-                    </label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={168}
-                      value={settingsDraft.enquiryFollowupDelayHours}
-                      onChange={(e) =>
-                        setSettingsDraft({
-                          ...settingsDraft,
-                          enquiryFollowupDelayHours: Number(e.target.value) || 24,
-                        })
-                      }
-                    />
-                    <span className="text-[11px] text-muted-foreground">Default: 24 hours (1 day)</span>
-                  </div>
-
-                  <div className="space-y-1.5 p-3 rounded-lg border border-border bg-card/40">
-                    <label className="text-xs font-medium text-foreground block">
-                      Post-Trip Feedback Delay (Hours)
-                    </label>
-                    <Input
-                      type="number"
-                      min={1}
-                      max={720}
-                      value={settingsDraft.postTripFeedbackDelayHours}
-                      onChange={(e) =>
-                        setSettingsDraft({
-                          ...settingsDraft,
-                          postTripFeedbackDelayHours: Number(e.target.value) || 48,
-                        })
-                      }
-                    />
-                    <span className="text-[11px] text-muted-foreground">Default: 48 hours (2 days)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSettingsDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (settingsDraft) {
-                  updateSettingsMutation.mutate(settingsDraft);
-                }
-              }}
-              disabled={updateSettingsMutation.isPending}
-              className="bg-primary text-primary-foreground"
-            >
-              Save Configuration
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog: Compose Manual Admin Email */}
-      <Dialog open={composeDialogOpen} onOpenChange={setComposeDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
-              <Mail className="h-5 w-5 text-primary" />
-              Compose Administrator Correspondence
-            </DialogTitle>
-            <DialogDescription>
-              Dispatch bespoke official communications to travelers with complete delivery logging.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                Communication Category
-              </label>
-              <select
-                value={composeFormData.type}
-                onChange={(e) => setComposeFormData({ ...composeFormData, type: e.target.value })}
-                className="w-full h-9 px-3 rounded-md bg-background border border-input text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="custom_enquiry_response">Custom Concierge Enquiry Reply</option>
-                <option value="quotation_proposal">Formal Quotation & Package Proposal</option>
-                <option value="custom_itinerary_proposal">Tailored Itinerary Proposal</option>
-                <option value="complaint_dispute_response">Complaint & Dispute Resolution</option>
-                <option value="refund_compensation_notice">Refund & Compensation Communication</option>
-                <option value="travel_disruption_notice">Travel Disruption & Weather Advisory</option>
-                <option value="personalized_offer">Bespoke Guest Offer</option>
-                <option value="exceptional_notice">Exceptional Customer Notification</option>
-              </select>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Guest Name
-                </label>
-                <Input
-                  placeholder="e.g., Lady Eleanor Vance"
-                  value={composeFormData.recipientName}
-                  onChange={(e) =>
-                    setComposeFormData({ ...composeFormData, recipientName: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Recipient Email Address
-                </label>
-                <Input
-                  type="email"
-                  placeholder="guest@example.com"
-                  value={composeFormData.recipientEmail}
-                  onChange={(e) =>
-                    setComposeFormData({ ...composeFormData, recipientEmail: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Associated Record Type
-                </label>
-                <select
-                  value={composeFormData.relatedType}
-                  onChange={(e) =>
-                    setComposeFormData({ ...composeFormData, relatedType: e.target.value })
-                  }
-                  className="w-full h-9 px-3 rounded-md bg-background border border-input text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="enquiry">Enquiry</option>
-                  <option value="booking">Booking</option>
-                  <option value="itinerary">Itinerary</option>
-                  <option value="customer">Customer / Guest</option>
-                  <option value="general">General</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Associated Record ID / Reference
-                </label>
-                <Input
-                  placeholder="e.g., 104"
-                  value={composeFormData.relatedId}
-                  onChange={(e) =>
-                    setComposeFormData({ ...composeFormData, relatedId: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                Email Subject Line
-              </label>
-              <Input
-                placeholder="Regarding Your Escora Holidays Experience..."
-                value={composeFormData.title}
-                onChange={(e) => setComposeFormData({ ...composeFormData, title: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                Message Body
-              </label>
-              <Textarea
-                rows={6}
-                placeholder="Enter correspondence message. Formatting and line breaks are preserved with slow-luxury typography..."
-                value={composeFormData.bodyHtml}
-                onChange={(e) =>
-                  setComposeFormData({ ...composeFormData, bodyHtml: e.target.value })
-                }
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Call-to-Action Label (Optional)
-                </label>
-                <Input
-                  placeholder="e.g., Review Updated Itinerary"
-                  value={composeFormData.ctaLabel}
-                  onChange={(e) =>
-                    setComposeFormData({ ...composeFormData, ctaLabel: e.target.value })
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Call-to-Action Link URL (Optional)
-                </label>
-                <Input
-                  placeholder="https://www.escoraholidays.com/itinerary/..."
-                  value={composeFormData.ctaUrl}
-                  onChange={(e) =>
-                    setComposeFormData({ ...composeFormData, ctaUrl: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-3.5 rounded-lg border border-amber-500/30 bg-amber-500/5">
-              <div>
-                <span className="text-xs font-medium text-foreground block">
-                  Require Staff Approval Before Dispatch
-                </span>
-                <span className="text-[11px] text-muted-foreground block">
-                  Queues message in Pending Approval status for administrative second-review rather than dispatching right away.
-                </span>
-              </div>
-              <Switch
-                checked={composeFormData.queueApproval}
-                onCheckedChange={(checked) =>
-                  setComposeFormData({ ...composeFormData, queueApproval: checked })
-                }
-              />
-            </div>
-
-            <div className="p-3 rounded-lg border border-border bg-muted/20 text-xs text-muted-foreground space-y-1">
-              <p className="font-semibold text-foreground">Audit & Integrity Assurance</p>
-              <p>
-                All communications record sender username, recipient details, timestamps, and delivery IDs. Real transmissions adhere to safe environment controls.
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setComposeDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (
-                  !composeFormData.recipientEmail ||
-                  !composeFormData.title ||
-                  !composeFormData.bodyHtml
-                ) {
-                  toast({
-                    title: "Missing Fields",
-                    description: "Please provide a recipient email, subject, and message body.",
-                    variant: "destructive",
-                  });
-                  return;
-                }
-                sendManualNotificationMutation.mutate(composeFormData);
-              }}
-              disabled={sendManualNotificationMutation.isPending}
-              className="bg-primary text-primary-foreground"
-            >
-              {composeFormData.queueApproval ? "Queue for Approval" : "Dispatch Email"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog: Edit Pending Notification */}
-      <Dialog
-        open={Boolean(editingNotification)}
-        onOpenChange={(open) => {
-          if (!open) setEditingNotification(null);
-        }}
-      >
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2">
-              <Edit className="h-5 w-5 text-primary" />
-              Edit Notification #{editingNotification?.id}
-            </DialogTitle>
-            <DialogDescription>
-              Refine message content and recipient details before administrative approval or scheduled dispatch.
-            </DialogDescription>
-          </DialogHeader>
-
-          {editingNotification && (
-            <div className="space-y-4 py-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                    Recipient Name
-                  </label>
-                  <Input
-                    value={editFormData.recipientName}
-                    onChange={(e) =>
-                      setEditFormData({ ...editFormData, recipientName: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                    Recipient Email
-                  </label>
-                  <Input
-                    type="email"
-                    value={editFormData.recipientEmail}
-                    onChange={(e) =>
-                      setEditFormData({ ...editFormData, recipientEmail: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Subject Line
-                </label>
-                <Input
-                  value={editFormData.subject}
-                  onChange={(e) =>
-                    setEditFormData({ ...editFormData, subject: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Message Content / Body HTML
-                </label>
-                <Textarea
-                  rows={6}
-                  value={editFormData.bodyHtml}
-                  onChange={(e) =>
-                    setEditFormData({ ...editFormData, bodyHtml: e.target.value })
-                  }
-                  placeholder="Custom email content..."
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-                  Staff Notes / Internal Reference
-                </label>
-                <Input
-                  placeholder="Optional staff notes..."
-                  value={editFormData.notes}
-                  onChange={(e) =>
-                    setEditFormData({ ...editFormData, notes: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingNotification(null)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (!editingNotification) return;
-                editNotificationMutation.mutate({
-                  id: editingNotification.id,
-                  updates: editFormData,
-                });
-              }}
-              disabled={editNotificationMutation.isPending}
-              className="bg-primary text-primary-foreground"
-            >
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog: Slow-Luxury Email HTML Preview */}
-      <Dialog
-        open={Boolean(previewNotificationId)}
-        onOpenChange={(open) => {
-          if (!open) setPreviewNotificationId(null);
-        }}
-      >
+      {/* 8. Notification HTML Preview Dialog */}
+      <Dialog open={Boolean(previewNotificationId)} onOpenChange={(open) => !open && setPreviewNotificationId(null)}>
         <DialogContent className="max-w-4xl max-h-[92vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center justify-between">
+            <DialogTitle className="font-serif text-lg flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <Eye className="h-5 w-5 text-primary" />
-                Email Preview #{previewNotificationId}
+                <Eye className="h-5 w-5 text-[#24543D]" />
+                Email Rendered Preview #{previewNotificationId}
               </span>
               {previewData?.status && (
-                <Badge variant="outline" className="text-xs uppercase font-mono">
+                <Badge variant="outline" className="text-xs uppercase font-medium">
                   {previewData.status}
                 </Badge>
               )}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs">
               {previewData ? (
                 <span>
                   Subject: <strong className="text-foreground">{previewData.subject}</strong> · Recipient:{" "}
                   <strong className="text-foreground">{previewData.recipientName}</strong> &lt;{previewData.recipientEmail}&gt;
                 </span>
               ) : (
-                "Loading luxury preview..."
+                "Loading preview..."
               )}
             </DialogDescription>
           </DialogHeader>
 
           <div className="py-2">
             {notifPreviewLoading ? (
-              <div className="p-16 text-center text-muted-foreground font-mono text-sm">
-                Rendering slow-luxury email preview...
-              </div>
+              <div className="p-16 text-center text-muted-foreground text-xs">Rendering preview...</div>
             ) : previewData?.html ? (
-              <div className="rounded-lg border border-border overflow-hidden bg-white shadow-inner">
+              <div className="rounded-lg border border-[#E5DDD0] overflow-hidden bg-white shadow-inner">
                 <iframe
                   srcDoc={previewData.html}
-                  className="w-full h-[540px] border-none"
-                  title="Slow-Luxury Email Preview"
+                  className="w-full h-[520px] border-none"
+                  title="Email Preview"
                   sandbox="allow-same-origin"
                 />
               </div>
             ) : (
-              <div className="p-12 text-center text-muted-foreground">
-                Unable to render email preview.
-              </div>
+              <div className="p-12 text-center text-muted-foreground text-xs">Unable to render email preview.</div>
             )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setPreviewNotificationId(null)}>
+            <Button size="sm" variant="outline" onClick={() => setPreviewNotificationId(null)}>
               Close Preview
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Confirm Approve Notification */}
-      <Dialog
-        open={Boolean(confirmApproveNotificationId)}
-        onOpenChange={(open) => {
-          if (!open) setConfirmApproveNotificationId(null);
-        }}
-      >
-        <DialogContent className="max-w-md">
+      {/* 9. Notification Full Details Modal */}
+      <Dialog open={Boolean(selectedNotifDetails)} onOpenChange={(open) => !open && setSelectedNotifDetails(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2 text-emerald-400">
-              <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-              Approve Communication #{confirmApproveNotificationId}
+            <DialogTitle className="font-serif text-lg flex items-center gap-2">
+              <FileText className="h-5 w-5 text-[#24543D]" />
+              Audit Record #{selectedNotifDetails?.id}
             </DialogTitle>
-            <DialogDescription>
-              Are you sure you want to approve this communication? It will be released from approval hold and scheduled for delivery.
-            </DialogDescription>
           </DialogHeader>
 
-          <div className="p-3.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 text-xs text-foreground space-y-1 my-3">
-            <p className="font-semibold text-emerald-400">Administrative Sign-Off</p>
-            <p className="text-muted-foreground">
-              Your staff credentials will be recorded as the authorizing administrator. Outbound dispatch respects transactional safety flags.
-            </p>
-          </div>
+          {selectedNotifDetails && (
+            <div className="space-y-4 py-2 text-xs">
+              <div className="grid grid-cols-2 gap-3 p-3 rounded-lg border border-[#E5DDD0] bg-[#FAF7F1]">
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">Type:</span>
+                  <span className="font-semibold text-foreground font-mono">{selectedNotifDetails.type}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">Status:</span>
+                  <span className="font-semibold text-foreground capitalize">{selectedNotifDetails.status}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">Recipient:</span>
+                  <span className="font-mono text-foreground">{selectedNotifDetails.recipientEmail}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[11px]">Message ID:</span>
+                  <span className="font-mono text-foreground">{selectedNotifDetails.messageId || "None"}</span>
+                </div>
+              </div>
+
+              {selectedNotifDetails.error && (
+                <div className="p-3 rounded-lg border border-red-200 bg-red-50 text-red-700">
+                  <span className="font-semibold block mb-0.5">Failure Reason:</span>
+                  <span className="font-mono text-[11px]">{selectedNotifDetails.error}</span>
+                </div>
+              )}
+
+              {selectedNotifDetails.metadata && Object.keys(selectedNotifDetails.metadata).length > 0 && (
+                <div className="space-y-1">
+                  <span className="font-semibold uppercase tracking-wider text-muted-foreground text-[11px] block">
+                    Payload Metadata
+                  </span>
+                  <pre className="p-3 rounded bg-muted/20 border font-mono text-[11px] overflow-x-auto max-h-40">
+                    {JSON.stringify(selectedNotifDetails.metadata, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmApproveNotificationId(null)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (confirmApproveNotificationId) {
-                  approveNotificationMutation.mutate(confirmApproveNotificationId);
-                }
-              }}
-              disabled={approveNotificationMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
-            >
-              Approve & Release
+            {selectedNotifDetails?.status === "failed" && (
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => {
+                  retryNotificationMutation.mutate(selectedNotifDetails.id);
+                  setSelectedNotifDetails(null);
+                }}
+              >
+                <RotateCcw className="h-3.5 w-3.5 mr-1" /> Retry Delivery
+              </Button>
+            )}
+            <Button size="sm" variant="outline" onClick={() => setSelectedNotifDetails(null)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Confirm Reject Notification */}
-      <Dialog
-        open={Boolean(confirmRejectNotificationId)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setConfirmRejectNotificationId(null);
-            setRejectReasonInput("");
+      {/* 10. Automation Configuration Modal (Create & Edit) */}
+      <AutomationConfigModal
+        open={automationModalOpen}
+        onOpenChange={(isOpen) => {
+          setAutomationModalOpen(isOpen);
+          if (!isOpen) setEditingAutomation(null);
+        }}
+        automation={editingAutomation}
+        onSave={async (formData) => {
+          if (editingAutomation?.id) {
+            await updateAutomationMutation.mutateAsync({ id: editingAutomation.id, data: formData });
+          } else {
+            await createAutomationMutation.mutateAsync(formData);
           }
         }}
-      >
+        isSaving={createAutomationMutation.isPending || updateAutomationMutation.isPending}
+      />
+
+      {/* 11. Delete Automation Confirmation Dialog */}
+      <Dialog open={Boolean(deleteConfirmAutomation)} onOpenChange={(open) => !open && setDeleteConfirmAutomation(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2 text-destructive">
-              <XCircle className="h-5 w-5 text-destructive" />
-              Reject Notification #{confirmRejectNotificationId}
+            <DialogTitle className="font-serif text-lg text-foreground flex items-center gap-2 text-red-600">
+              <Trash2 className="h-5 w-5" />
+              Delete Automation Rule
             </DialogTitle>
-            <DialogDescription>
-              This notification will be permanently rejected and marked as cancelled. It will never be dispatched.
+            <DialogDescription className="text-xs text-muted-foreground">
+              Are you sure you want to permanently delete the automation rule{" "}
+              <strong className="text-foreground">"{deleteConfirmAutomation?.name}"</strong>?
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-2 py-3">
-            <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-              Rejection Reason (Audit Log)
-            </label>
-            <Input
-              placeholder="e.g., Superseded by new guest itinerary version"
-              value={rejectReasonInput}
-              onChange={(e) => setRejectReasonInput(e.target.value)}
-            />
+          <div className="py-2 text-xs text-muted-foreground bg-red-50/50 p-3 rounded-lg border border-red-200">
+            This will remove the event trigger configuration from the database. Automatic emails associated with trigger{" "}
+            <span className="font-mono text-foreground font-semibold">{deleteConfirmAutomation?.trigger}</span> will cease to fire.
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => {
-                setConfirmRejectNotificationId(null);
-                setRejectReasonInput("");
-              }}
+              size="sm"
+              onClick={() => setDeleteConfirmAutomation(null)}
+              disabled={deleteAutomationMutation.isPending}
+              className="text-xs border-[#E5DDD0]"
             >
               Cancel
             </Button>
             <Button
+              size="sm"
               variant="destructive"
+              disabled={deleteAutomationMutation.isPending}
               onClick={() => {
-                if (confirmRejectNotificationId) {
-                  rejectNotificationMutation.mutate({
-                    id: confirmRejectNotificationId,
-                    reason: rejectReasonInput || "Rejected by administrator",
-                  });
+                if (deleteConfirmAutomation?.id) {
+                  deleteAutomationMutation.mutate(deleteConfirmAutomation.id);
                 }
               }}
-              disabled={rejectNotificationMutation.isPending}
+              className="text-xs"
             >
-              Confirm Rejection
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog: Confirm Cancel Scheduled Notification */}
-      <Dialog
-        open={Boolean(confirmCancelNotificationId)}
-        onOpenChange={(open) => {
-          if (!open) {
-            setConfirmCancelNotificationId(null);
-            setCancelReasonInput("");
-          }
-        }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-xl flex items-center gap-2 text-amber-400">
-              <Ban className="h-5 w-5 text-amber-400" />
-              Cancel Scheduled Notification #{confirmCancelNotificationId}
-            </DialogTitle>
-            <DialogDescription>
-              Prevent this scheduled notification from being processed by background dispatch workers.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-2 py-3">
-            <label className="text-xs font-semibold text-foreground uppercase tracking-wider">
-              Cancellation Reason (Audit Log)
-            </label>
-            <Input
-              placeholder="e.g., Guest requested date change"
-              value={cancelReasonInput}
-              onChange={(e) => setCancelReasonInput(e.target.value)}
-            />
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setConfirmCancelNotificationId(null);
-                setCancelReasonInput("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (confirmCancelNotificationId) {
-                  cancelNotificationMutation.mutate({
-                    id: confirmCancelNotificationId,
-                    reason: cancelReasonInput || "Cancelled by administrator",
-                  });
-                }
-              }}
-              disabled={cancelNotificationMutation.isPending}
-            >
-              Confirm Cancellation
+              {deleteAutomationMutation.isPending ? "Deleting..." : "Confirm Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2833,3 +2873,4 @@ export default function CampaignsPage() {
     </div>
   );
 }
+

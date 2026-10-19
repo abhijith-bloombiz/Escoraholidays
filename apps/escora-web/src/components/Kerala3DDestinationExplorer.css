@@ -6,9 +6,16 @@
 .kerala-3d-explorer-section {
   position: relative;
   width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   background-color: #FAF8F5;
   padding: clamp(24px, 3vh, 36px) 0 clamp(42px, 5vh, 62px) 0;
-  scroll-margin-top: 100px;
+  scroll-snap-align: none;
+  scroll-snap-stop: normal;
   overflow: hidden;
   box-sizing: border-box;
   border-top: 1px solid rgba(228, 222, 210, 0.6);
@@ -398,7 +405,9 @@
     padding: 0 16px;
   }
   .kerala-3d-explorer-section {
+    min-height: auto;
     padding: 24px 0 clamp(40px, 5vh, 52px) 0;
+    scroll-snap-align: none;
   }
   .kerala-3d-bg-image {
     background-position: 40% top;

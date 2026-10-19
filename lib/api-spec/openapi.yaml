@@ -477,6 +477,10 @@ paths:
           name: status
           schema:
             type: string
+        - in: query
+          name: enquiryId
+          schema:
+            type: integer
       responses:
         "200":
           description: OK
@@ -979,6 +983,57 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "503":
           description: AI Service unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /enquiries/{id}/convert:
+    post:
+      operationId: convertEnquiry
+      summary: Convert contact enquiry to booking
+      tags:
+        - Enquiries
+        - Orders
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConvertEnquiryInput"
+      responses:
+        "201":
+          description: Successfully converted enquiry to booking
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConvertEnquiryResponse"
+        "400":
+          description: Invalid request parameters or missing required fields
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Enquiry not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Enquiry has already been converted to a booking
           content:
             application/json:
               schema:
@@ -2114,6 +2169,8 @@ components:
           type: ["string", "null"]
         importantInfo:
           type: ["string", "null"]
+        enquiryId:
+          type: ["integer", "null"]
         createdAt:
           type: string
         updatedAt:
@@ -2181,6 +2238,8 @@ components:
           type: string
         importantInfo:
           type: string
+        enquiryId:
+          type: integer
 
     ItineraryUpdate:
       type: object
@@ -2243,6 +2302,8 @@ components:
           type: string
         importantInfo:
           type: string
+        enquiryId:
+          type: integer
 
     # ── AI Itinerary Assistant (Phase 3B) ────────────────────────
     ItineraryAiActivity:
@@ -2654,6 +2715,28 @@ components:
           type: ["string", "null"]
         geoCity:
           type: ["string", "null"]
+        bookingReference:
+          type: ["string", "null"]
+        enquiryId:
+          type: ["integer", "null"]
+        itineraryId:
+          type: ["integer", "null"]
+        itineraryTitle:
+          type: ["string", "null"]
+        currency:
+          type: ["string", "null"]
+        paymentStatus:
+          type: ["string", "null"]
+        paymentTerms:
+          type: ["string", "null"]
+        pricingDetails:
+          type: ["string", "null"]
+        itinerarySnapshot:
+          type: ["string", "null"]
+        convertedBy:
+          type: ["string", "null"]
+        convertedAt:
+          type: ["string", "null"]
         createdAt:
           type: string
         updatedAt:
@@ -2745,6 +2828,14 @@ components:
           type: string
         status:
           type: string
+        bookingId:
+          type: ["integer", "null"]
+        bookingReference:
+          type: ["string", "null"]
+        convertedAt:
+          type: ["string", "null"]
+        convertedBy:
+          type: ["string", "null"]
         createdAt:
           type: string
         updatedAt:
@@ -2768,6 +2859,57 @@ components:
       properties:
         status:
           type: string
+
+    ConvertEnquiryInput:
+      type: object
+      properties:
+        itineraryId:
+          type: integer
+        guestName:
+          type: string
+        guestEmail:
+          type: string
+        guestPhone:
+          type: string
+        travelStyle:
+          type: string
+        destinations:
+          type: string
+        travelDate:
+          type: string
+        departureDate:
+          type: string
+        guestCount:
+          type: integer
+        totalAmount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+        paymentStatus:
+          type: string
+        paymentTerms:
+          type: string
+        specialRequests:
+          type: string
+        notes:
+          type: string
+        customerAccepted:
+          type: boolean
+        availabilityConfirmed:
+          type: boolean
+
+    ConvertEnquiryResponse:
+      type: object
+      required: [success, booking, enquiry]
+      properties:
+        success:
+          type: boolean
+        booking:
+          $ref: "#/components/schemas/Order"
+        enquiry:
+          $ref: "#/components/schemas/Enquiry"
 
     EnquiryAiAssistInput:
       type: object

@@ -18,15 +18,19 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     // 60FPS high-performance smooth inertia scroll instance
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: prefersReducedMotion ? 0 : 1.15,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
-      smoothWheel: true,
+      smoothWheel: !prefersReducedMotion,
       wheelMultiplier: 1.0,
-      touchMultiplier: 1.5,
+      touchMultiplier: 1.4,
       infinite: false,
     });
 
@@ -41,9 +45,13 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
     }
     rafId = requestAnimationFrame(raf);
 
-    // Watch DOM resizes to recalculate scroll bounds smoothly
+    // Watch DOM resizes to recalculate scroll bounds smoothly (debounced to avoid layout thrashing)
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
     const ro = new ResizeObserver(() => {
-      lenis.resize();
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        lenis.resize();
+      }, 150);
     });
     ro.observe(document.body);
 
@@ -64,7 +72,7 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
           if (elem) {
             e.preventDefault();
             lenis.scrollTo(elem as HTMLElement, {
-              offset: -85,
+              offset: 0,
               duration: 1.25,
               easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
             });
@@ -78,6 +86,7 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
     return () => {
       cancelAnimationFrame(rafId);
       ro.disconnect();
+      if (resizeTimer) clearTimeout(resizeTimer);
       document.removeEventListener("click", handleAnchorClick, { capture: true });
       lenis.destroy();
       lenisRef.current = null;

@@ -29,6 +29,8 @@ export * from './campaignStatus';
 export * from './campaignTargetAudience';
 export * from './campaignUnsubscribeInput';
 export * from './campaignUpdate';
+export * from './convertEnquiryInput';
+export * from './convertEnquiryResponse';
 export * from './dashboardStats';
 export * from './destination';
 export * from './destinationInput';

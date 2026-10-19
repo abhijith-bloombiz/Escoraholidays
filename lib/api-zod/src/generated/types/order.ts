@@ -59,6 +59,28 @@ export interface Order {
   geoRegion?: string | null;
   /** @nullable */
   geoCity?: string | null;
+  /** @nullable */
+  bookingReference?: string | null;
+  /** @nullable */
+  enquiryId?: number | null;
+  /** @nullable */
+  itineraryId?: number | null;
+  /** @nullable */
+  itineraryTitle?: string | null;
+  /** @nullable */
+  currency?: string | null;
+  /** @nullable */
+  paymentStatus?: string | null;
+  /** @nullable */
+  paymentTerms?: string | null;
+  /** @nullable */
+  pricingDetails?: string | null;
+  /** @nullable */
+  itinerarySnapshot?: string | null;
+  /** @nullable */
+  convertedBy?: string | null;
+  /** @nullable */
+  convertedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

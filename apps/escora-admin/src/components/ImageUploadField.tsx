@@ -176,7 +176,7 @@ export default function ImageUploadField({
               value={urlDraft}
               onChange={(e) => setUrlDraft(e.target.value)}
               placeholder="https://images.unsplash.com/... or /api/media/files/..."
-              className="text-xs font-mono h-8"
+              className="text-xs h-8"
               autoFocus
             />
             <Button type="button" size="sm" onClick={handleApplyUrl} className="h-8 text-xs">
@@ -215,14 +215,13 @@ export default function ImageUploadField({
               value={urlDraft}
               onChange={(e) => setUrlDraft(e.target.value)}
               placeholder="https://images.unsplash.com/... or /api/media/files/..."
-              className="text-xs font-mono"
+              className="text-xs"
               autoFocus
             />
             <Button type="button" size="sm" onClick={handleApplyUrl}>
               Apply URL
             </Button>
           </div>
-          <p className="text-[11px] text-muted-foreground">Accepts HTTPS image links or paths from the Escora media library.</p>
         </div>
       ) : (
         <div>
@@ -276,8 +275,7 @@ export default function ImageUploadField({
             onChange={handleFileChange}
             data-testid="input-file-cover-image"
           />
-          <div className="flex items-center justify-between mt-2">
-            <span className="text-[11px] text-muted-foreground">Standard 2D cover image for cards and headers.</span>
+          <div className="flex items-center justify-end mt-2">
             <button
               type="button"
               onClick={() => setShowUrlInput(true)}

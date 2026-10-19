@@ -59,6 +59,8 @@ export interface Itinerary {
   paymentTerms?: string | null;
   /** @nullable */
   importantInfo?: string | null;
+  /** @nullable */
+  enquiryId?: number | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -14,7 +14,13 @@
     "db:init": "pnpm --filter @workspace/db run push",
     "db:seed": "pnpm --filter @workspace/db run seed:all",
     "test:api": "pnpm --filter @workspace/db exec tsx ../../scripts/test-api.ts",
-    "test:email": "pnpm --filter scripts exec tsx --env-file=../.env test-email.ts"
+    "test:email": "pnpm --filter scripts exec tsx --env-file=../.env test-email.ts",
+    "test:whatsapp": "pnpm --filter scripts exec tsx --env-file=../.env verify-whatsapp-foundation.ts",
+    "test:whatsapp:stage2": "pnpm --filter scripts exec tsx --env-file=../.env verify-whatsapp-stage2.ts",
+    "test:whatsapp:stage3": "pnpm --filter scripts exec tsx --env-file=../.env verify-whatsapp-stage3.ts",
+    "test:whatsapp:stage4": "pnpm --filter scripts exec tsx --env-file=../.env verify-whatsapp-stage4.ts",
+    "test:whatsapp:stage5": "pnpm --filter scripts exec tsx --env-file=../.env verify-whatsapp-stage5.ts",
+    "test:revenue": "pnpm --filter scripts exec tsx --env-file=../.env test-dashboard-revenue.ts"
   },
   "private": true,
   "devDependencies": {

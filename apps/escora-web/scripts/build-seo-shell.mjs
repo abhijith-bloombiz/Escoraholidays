@@ -521,6 +521,22 @@ const ROUTES = [
       ],
     },
   },
+  {
+    route: "/plan-a-journey",
+    file: "plan-a-journey/index.html",
+    title: "Choose Your Journey — Plan Your Kerala Holiday | Escora",
+    description: "Two ways to plan your bespoke Kerala holiday with Escora. Build a personalized itinerary instantly with AI, or handcraft your journey details step-by-step.",
+    body: `<main>
+<h1>Choose Your Journey — Plan Your Kerala Holiday</h1>
+<p>Two ways to plan. One unforgettable Kerala experience.</p>
+<h2>Option 1: AI Trip Planner</h2>
+<p>Build a personalized Kerala itinerary with AI in under 60 seconds. Get instant route recommendations, curated stays, and daily pacing tailored to your preferences.</p>
+<p><a href="/trip-planner">Launch AI Trip Planner</a></p>
+<h2>Option 2: Custom Trip Planner</h2>
+<p>Choose your trip details and build your journey yourself. Handcraft your dates, party size, travel style and destination preferences in five guided steps.</p>
+<p><a href="/plan">Start Custom Trip Planner</a></p>
+</main>`,
+  },
 ];
 
 // ---------------------------------------------------------------------------

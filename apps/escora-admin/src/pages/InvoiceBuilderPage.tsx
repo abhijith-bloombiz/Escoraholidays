@@ -83,7 +83,7 @@ const defaultFormValues: InvoiceFormValues = {
   customerPhone: "",
   customerAddress: "",
   customerGstin: "",
-  title: "Bespoke Kerala Luxury Journey",
+  title: "Kerala Tour Package",
   destination: "Kerala, India",
   travelDates: "",
   guestCount: 2,
@@ -93,14 +93,14 @@ const defaultFormValues: InvoiceFormValues = {
   currency: "INR",
   items: [
     {
-      description: "Curated Luxury Resort Stay & Experiential Villa Accommodation",
+      description: "Resort Stay & Villa Accommodation",
       hsnSac: "998555",
       quantity: 1,
       rate: 95000,
       amount: 95000,
     },
     {
-      description: "Private Chauffeur-Driven Luxury Vehicle Transfer with Airport Concierge",
+      description: "Private Vehicle Transfer with Airport Pickup",
       hsnSac: "996411",
       quantity: 1,
       rate: 24000,
@@ -205,7 +205,7 @@ export default function InvoiceBuilderPage() {
     customerPhone: watchedValues.customerPhone,
     customerAddress: watchedValues.customerAddress,
     customerGstin: watchedValues.customerGstin,
-    title: watchedValues.title || "Luxury Escape",
+    title: watchedValues.title || "Tour Package",
     destination: watchedValues.destination,
     travelDates: watchedValues.travelDates,
     guestCount: watchedValues.guestCount,
@@ -273,7 +273,7 @@ export default function InvoiceBuilderPage() {
     if (it.customerEmail) setValue("customerEmail", it.customerEmail);
     if (it.customerPhone) setValue("customerPhone", it.customerPhone);
     if (it.destination) setValue("destination", it.destination);
-    setValue("title", it.title || "Custom Bespoke Itinerary");
+    setValue("title", it.title || "Custom Itinerary");
     if (it.startDate || it.endDate) {
       setValue("travelDates", `${it.startDate || ""} – ${it.endDate || ""}`);
     }
@@ -402,12 +402,9 @@ export default function InvoiceBuilderPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-serif font-bold text-foreground">
+            <h1 className="text-2xl font-serif font-semibold text-foreground">
               {isEdit ? `Edit Invoice (${existing?.invoiceNumber})` : "Create Tax Invoice"}
             </h1>
-            <p className="text-xs text-muted-foreground">
-              Prepare a luxury tax invoice voucher for client billing and accounts.
-            </p>
           </div>
         </div>
 
@@ -455,7 +452,7 @@ export default function InvoiceBuilderPage() {
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
         <TabsList className="grid grid-cols-2 w-64 mb-4">
           <TabsTrigger value="edit">Invoice Editor</TabsTrigger>
-          <TabsTrigger value="preview">Luxury Preview</TabsTrigger>
+          <TabsTrigger value="preview">Invoice Preview</TabsTrigger>
         </TabsList>
 
         {/* Tab 1: Form Editor */}
@@ -464,13 +461,10 @@ export default function InvoiceBuilderPage() {
           {!isEdit && (
             <Card className="border-border/80 bg-muted/20">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-mono tracking-wider uppercase text-foreground font-semibold flex items-center gap-2">
+                <CardTitle className="text-sm uppercase tracking-wider text-foreground font-semibold flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-primary" />
                   Quick Autofill &amp; Import
                 </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground">
-                  Quickly populate client contact and tour data from an existing enquiry booking or itinerary.
-                </CardDescription>
               </CardHeader>
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-0">
                 {orders && orders.length > 0 && (
@@ -516,7 +510,7 @@ export default function InvoiceBuilderPage() {
             {/* Card 1: Invoice Meta */}
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-mono uppercase tracking-wider text-foreground font-semibold flex items-center gap-2">
+                <CardTitle className="text-sm uppercase tracking-wider text-foreground font-semibold flex items-center gap-2">
                   <Receipt className="h-4 w-4 text-primary" />
                   Voucher &amp; Invoice Metadata
                 </CardTitle>
@@ -527,7 +521,7 @@ export default function InvoiceBuilderPage() {
                   <Input
                     id="invoiceNumber"
                     {...register("invoiceNumber", { required: true })}
-                    className="font-mono text-sm"
+                    className="text-sm"
                     placeholder="ESC-INV-2026-0001"
                   />
                 </div>
@@ -580,7 +574,7 @@ export default function InvoiceBuilderPage() {
             {/* Card 2: Client & Billed To */}
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-mono uppercase tracking-wider text-foreground font-semibold flex items-center gap-2">
+                <CardTitle className="text-sm uppercase tracking-wider text-foreground font-semibold flex items-center gap-2">
                   <User className="h-4 w-4 text-primary" />
                   Billed To (Client Details)
                 </CardTitle>
@@ -630,7 +624,7 @@ export default function InvoiceBuilderPage() {
                     id="customerGstin"
                     {...register("customerGstin")}
                     placeholder="e.g. 32AABCE1234F1Z5"
-                    className="font-mono text-xs uppercase"
+                    className="text-xs uppercase"
                   />
                 </div>
               </CardContent>
@@ -639,7 +633,7 @@ export default function InvoiceBuilderPage() {
             {/* Card 3: Journey Reference */}
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-mono uppercase tracking-wider text-foreground font-semibold flex items-center gap-2">
+                <CardTitle className="text-sm uppercase tracking-wider text-foreground font-semibold flex items-center gap-2">
                   <Compass className="h-4 w-4 text-primary" />
                   Journey &amp; Experience Reference
                 </CardTitle>
@@ -650,7 +644,7 @@ export default function InvoiceBuilderPage() {
                   <Input
                     id="title"
                     {...register("title", { required: true })}
-                    placeholder="e.g. Bespoke Wayanad & Munnar Luxury Escape (5N/6D)"
+                    placeholder="e.g. Wayanad & Munnar Tour (5N/6D)"
                   />
                 </div>
 
@@ -710,12 +704,9 @@ export default function InvoiceBuilderPage() {
             <Card className="border-border/60">
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <div>
-                  <CardTitle className="text-sm font-mono uppercase tracking-wider text-foreground font-semibold">
+                  <CardTitle className="text-sm uppercase tracking-wider text-foreground font-semibold">
                     Itemized Services &amp; Tariffs
                   </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground mt-0.5">
-                    Break down accommodations, luxury chauffeur transfers, activities, and concierge fees.
-                  </CardDescription>
                 </div>
                 <Button
                   type="button"
@@ -723,7 +714,7 @@ export default function InvoiceBuilderPage() {
                   variant="outline"
                   onClick={() =>
                     append({
-                      description: "Bespoke Experiential Service Component",
+                      description: "Tour Service Component",
                       hsnSac: "998555",
                       quantity: 1,
                       rate: 15000,
@@ -749,7 +740,7 @@ export default function InvoiceBuilderPage() {
                         className="p-3.5 rounded-lg border border-border/70 bg-muted/20 space-y-3"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <span className="font-mono text-xs text-muted-foreground font-bold mt-1">
+                          <span className="text-xs font-semibold text-muted-foreground mt-1 tabular-nums">
                             #{idx + 1}
                           </span>
                           <div className="flex-1 space-y-1.5">
@@ -757,7 +748,7 @@ export default function InvoiceBuilderPage() {
                             <Textarea
                               {...register(`items.${idx}.description` as const, { required: true })}
                               rows={2}
-                              placeholder="e.g. 5 Nights Luxury Villa Stay with Private Pool..."
+                              placeholder="e.g. 5 Nights Resort Stay with Breakfast..."
                               className="text-sm bg-background"
                             />
                           </div>
@@ -779,7 +770,7 @@ export default function InvoiceBuilderPage() {
                             <Input
                               {...register(`items.${idx}.hsnSac` as const)}
                               placeholder="998555"
-                              className="h-8 text-xs font-mono bg-background"
+                              className="h-8 text-xs bg-background"
                             />
                           </div>
 
@@ -794,7 +785,7 @@ export default function InvoiceBuilderPage() {
                                   setValue(`items.${idx}.amount` as const, rowQty * rowRate);
                                 },
                               })}
-                              className="h-8 text-xs font-mono bg-background"
+                              className="h-8 text-xs bg-background"
                             />
                           </div>
 
@@ -809,13 +800,13 @@ export default function InvoiceBuilderPage() {
                                   setValue(`items.${idx}.amount` as const, rowQty * rowRate);
                                 },
                               })}
-                              className="h-8 text-xs font-mono bg-background"
+                              className="h-8 text-xs bg-background"
                             />
                           </div>
 
                           <div className="space-y-1">
                             <Label className="text-[11px] text-muted-foreground">Row Total</Label>
-                            <div className="h-8 px-3 rounded-md border border-border/50 bg-muted/40 flex items-center font-mono text-xs font-semibold text-foreground">
+                            <div className="h-8 px-3 rounded-md border border-border/50 bg-muted/40 flex items-center text-xs font-semibold text-foreground tabular-nums">
                               {formatMoney(rowTotal, watchedValues.currency)}
                             </div>
                           </div>
@@ -835,7 +826,7 @@ export default function InvoiceBuilderPage() {
                           type="number"
                           min={0}
                           {...register("discount", { valueAsNumber: true })}
-                          className="h-8 text-xs font-mono w-24"
+                          className="h-8 text-xs w-24"
                         />
                         <Controller
                           control={control}
@@ -885,14 +876,14 @@ export default function InvoiceBuilderPage() {
                         type="number"
                         min={0}
                         {...register("paidAmount", { valueAsNumber: true })}
-                        className="h-8 text-xs font-mono"
+                        className="h-8 text-xs"
                         placeholder="0"
                       />
                     </div>
                   </div>
 
                   {/* Summary Breakdown */}
-                  <div className="w-full md:w-64 space-y-1.5 text-xs font-mono">
+                  <div className="w-full md:w-64 space-y-1.5 text-xs tabular-nums">
                     <div className="flex justify-between text-muted-foreground">
                       <span>Subtotal:</span>
                       <span>{formatMoney(calculated.subtotal, watchedValues.currency)}</span>
@@ -925,7 +916,7 @@ export default function InvoiceBuilderPage() {
             {/* Card 5: Bank Details & Payment Instructions */}
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-mono uppercase tracking-wider text-foreground font-semibold flex items-center gap-2">
+                <CardTitle className="text-sm uppercase tracking-wider text-foreground font-semibold flex items-center gap-2">
                   <Building className="h-4 w-4 text-primary" />
                   Bank Wire Details &amp; Payment Settlement
                 </CardTitle>
@@ -954,7 +945,7 @@ export default function InvoiceBuilderPage() {
                   <Input
                     id="accountNumber"
                     {...register("bankDetails.accountNumber")}
-                    className="font-mono text-sm"
+                    className="text-sm"
                     placeholder="50200088992211"
                   />
                 </div>
@@ -964,7 +955,7 @@ export default function InvoiceBuilderPage() {
                   <Input
                     id="ifsc"
                     {...register("bankDetails.ifsc")}
-                    className="font-mono text-xs uppercase"
+                    className="text-xs uppercase"
                     placeholder="HDFC0000123"
                   />
                 </div>
@@ -984,7 +975,7 @@ export default function InvoiceBuilderPage() {
                     id="upiId"
                     {...register("bankDetails.upiId")}
                     placeholder="escoraholidays@okhdfcbank"
-                    className="font-mono text-xs"
+                    className="text-xs"
                   />
                 </div>
 
@@ -1002,8 +993,8 @@ export default function InvoiceBuilderPage() {
             {/* Card 6: Notes & Terms */}
             <Card className="border-border/60">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-mono uppercase tracking-wider text-foreground font-semibold">
-                  Notes &amp; Luxury Booking Conditions
+                <CardTitle className="text-sm uppercase tracking-wider text-foreground font-semibold">
+                  Notes &amp; Booking Terms
                 </CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1,8 +1,9 @@
 import crypto from "node:crypto";
 import { Router, Request, Response, NextFunction } from "express";
-import { CampaignModel, SubscriberConsentModel } from "@workspace/db";
+import { CampaignModel, SubscriberConsentModel, NotificationModel, AudienceGroupModel } from "@workspace/db";
 import { config } from "../config/env";
 import { logger } from "../lib/logger";
+import { getAutomationSettings } from "../services/notification-service";
 import {
   CreateCampaignBody,
   UpdateCampaignBody,
@@ -14,13 +15,25 @@ import {
   createCampaign,
   updateCampaign,
   deleteCampaign,
+  resolveAudience,
   previewCampaignAudience,
+  submitCampaignForApproval,
+  rejectCampaign,
+  duplicateCampaign,
   approveCampaign,
   scheduleCampaign,
   cancelCampaign,
   sendCampaign,
   handleUnsubscribe,
   listSubscribers,
+  listAudienceGroups,
+  createAudienceGroup,
+  getAudienceGroup,
+  updateAudienceGroup,
+  deleteAudienceGroup,
+  addAudienceGroupMember,
+  removeAudienceGroupMember,
+  previewAudienceGroup,
   CampaignError,
 } from "../services/campaign-service";
 
@@ -38,6 +51,93 @@ function normalizeCampaignDeliveryMode(c: any) {
   }
   return c;
 }
+
+/**
+ * GET /api/campaigns/stats
+ * Dashboard summary metrics computed from real database records. Admin only.
+ */
+router.get(
+  "/campaigns/stats",
+  async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const [campaignStats, notificationStats, audienceGroupCount, activeSubscribers, settings] = await Promise.all([
+        CampaignModel.aggregate([
+          {
+            $group: {
+              _id: "$status",
+              count: { $sum: 1 },
+              totalDelivered: { $sum: "$deliveredCount" },
+              totalSent: { $sum: "$sentCount" },
+              totalFailed: { $sum: "$failedCount" },
+            },
+          },
+        ]),
+        NotificationModel.aggregate([
+          {
+            $group: {
+              _id: "$status",
+              count: { $sum: 1 },
+            },
+          },
+        ]),
+        AudienceGroupModel.countDocuments(),
+        SubscriberConsentModel.countDocuments({ subscribed: true }),
+        getAutomationSettings(),
+      ]);
+
+      const cMap: Record<string, number> = {};
+      let campaignEmailsSent = 0;
+      let campaignEmailsFailed = 0;
+      for (const row of campaignStats) {
+        cMap[row._id] = row.count;
+        campaignEmailsSent += row.totalSent || 0;
+        campaignEmailsFailed += row.totalFailed || 0;
+      }
+
+      const nMap: Record<string, number> = {};
+      for (const row of notificationStats) {
+        nMap[row._id] = row.count;
+      }
+
+      const notifSent = nMap["sent"] || 0;
+      const notifFailed = nMap["failed"] || 0;
+
+      let activeAutomations = 0;
+      const autoKeys = [
+        "enableBookingConfirmation",
+        "enableEnquiryAcknowledgement",
+        "enableStaffNotifications",
+        "enableItineraryUpdates",
+        "enableEnquiryFollowups",
+        "enablePostTripFeedback",
+        "enablePaymentReceipts",
+        "enablePaymentReminders",
+        "enablePreTripReminders",
+        "enableDocumentDelivery",
+      ];
+      for (const k of autoKeys) {
+        if ((settings as any)[k] !== false) {
+          activeAutomations++;
+        }
+      }
+
+      res.json({
+        campaignsSent: (cMap["completed"] || 0) + (cMap["sending"] || 0),
+        scheduledCampaigns: cMap["scheduled"] || 0,
+        pendingApprovals: cMap["pending_approval"] || 0,
+        draftCampaigns: cMap["draft"] || 0,
+        rejectedCampaigns: cMap["rejected"] || 0,
+        emailsSentOrDelivered: campaignEmailsSent + notifSent,
+        failedEmails: campaignEmailsFailed + notifFailed,
+        activeAutomations,
+        totalAudienceGroups: audienceGroupCount,
+        activeSubscribers,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 /**
  * GET /api/campaigns
@@ -302,6 +402,201 @@ router.post(
 );
 
 /**
+ * GET /api/campaigns/audiences
+ * Lists all manual and dynamic audience groups.
+ */
+router.get(
+  "/campaigns/audiences",
+  async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const groups = await listAudienceGroups();
+      res.json(groups);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/audiences
+ * Creates a new manual or dynamic audience group.
+ */
+router.post(
+  "/campaigns/audiences",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const created = await createAudienceGroup(req.body);
+      res.status(201).json(created);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * GET /api/campaigns/audiences/:id
+ * Fetches audience group by ID.
+ */
+router.get(
+  "/campaigns/audiences/:id",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid audience group ID" });
+        return;
+      }
+      const group = await getAudienceGroup(id);
+      res.json(group);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * PUT /api/campaigns/audiences/:id
+ * Updates an audience group.
+ */
+router.put(
+  "/campaigns/audiences/:id",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid audience group ID" });
+        return;
+      }
+      const updated = await updateAudienceGroup(id, req.body);
+      res.json(updated);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * DELETE /api/campaigns/audiences/:id
+ * Deletes or archives an audience group.
+ */
+router.delete(
+  "/campaigns/audiences/:id",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid audience group ID" });
+        return;
+      }
+      await deleteAudienceGroup(id);
+      res.status(204).end();
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/audiences/:id/members
+ * Adds a member to a manual audience group.
+ */
+router.post(
+  "/campaigns/audiences/:id/members",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid audience group ID" });
+        return;
+      }
+      const member = {
+        email: req.body?.email,
+        name: req.body?.name,
+      };
+      if (!member.email) {
+        res.status(400).json({ error: "Email is required" });
+        return;
+      }
+      const updated = await addAudienceGroupMember(id, member);
+      res.json(updated);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * DELETE /api/campaigns/audiences/:id/members/:email
+ * Removes a member from a manual audience group.
+ */
+router.delete(
+  "/campaigns/audiences/:id/members/:email",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid audience group ID" });
+        return;
+      }
+      const email = typeof req.params.email === "string" ? req.params.email : req.params.email[0];
+      const updated = await removeAudienceGroupMember(id, email);
+      res.json(updated);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * GET /api/campaigns/audiences/:id/preview
+ * Calculates eligible recipients for an audience group with opt-out checks.
+ */
+router.get(
+  "/campaigns/audiences/:id/preview",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid audience group ID" });
+        return;
+      }
+      const preview = await previewAudienceGroup(id);
+      res.json(preview);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
  * GET /api/campaigns/:id
  * Retrieves campaign details with stats and delivery logs. Admin only.
  */
@@ -413,6 +708,41 @@ router.post(
 );
 
 /**
+ * POST /api/campaigns/audience-estimate
+ * Estimates target recipients and consent counts for a target audience before saving. Admin only.
+ */
+router.post(
+  "/campaigns/audience-estimate",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const targetAudience = req.body?.targetAudience || {
+        type: req.body?.type || "all_contacts",
+        destinations: req.body?.destinations,
+        travelStyle: req.body?.travelStyle,
+      };
+      const { eligible, activeSubscribers, unsubscribedCount } = await resolveAudience(targetAudience);
+      res.json({
+        eligibleRecipients: eligible.length,
+        activeSubscribers,
+        unsubscribedCount,
+        sampleRecipients: eligible.slice(0, 5).map((r) => ({
+          name: r.name,
+          email: r.email,
+          source: r.source,
+          isSubscribed: r.isSubscribed,
+        })),
+      });
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
  * POST /api/campaigns/:id/approve
  * Explicit staff approval gate. Admin only.
  */
@@ -429,6 +759,86 @@ router.post(
       const staffUsername = (req.session as any)?.user?.username || "Admin Staff";
       const approved = await approveCampaign(id, staffUsername);
       res.json(approved);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/:id/submit-approval
+ * Submits a draft or rejected campaign for approval.
+ */
+router.post(
+  "/campaigns/:id/submit-approval",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid campaign ID" });
+        return;
+      }
+
+      const submitted = await submitCampaignForApproval(id);
+      res.json(submitted);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/:id/reject
+ * Rejects a campaign with a reason. Admin only.
+ */
+router.post(
+  "/campaigns/:id/reject",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid campaign ID" });
+        return;
+      }
+
+      const reason = req.body?.reason || "Campaign rejected by reviewer";
+      const staffUsername = (req.session as any)?.user?.username || "Admin Staff";
+      const rejected = await rejectCampaign(id, staffUsername, reason);
+      res.json(rejected);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/:id/duplicate
+ * Clones a campaign as a new draft.
+ */
+router.post(
+  "/campaigns/:id/duplicate",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid campaign ID" });
+        return;
+      }
+
+      const duplicated = await duplicateCampaign(id);
+      res.status(201).json(duplicated);
     } catch (err: any) {
       if (err instanceof CampaignError) {
         res.status(err.statusCode).json({ error: err.message, code: err.code });

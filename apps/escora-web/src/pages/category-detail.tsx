@@ -16,6 +16,8 @@ import malabarSpiceCoast from "@assets/escora/collections/malabar-spice-coast.jp
 import padmanabhapuramPalace from "@assets/escora/collections/padmanabhapuram-palace.jpg";
 import payyambalamDrivingBeach from "@assets/escora/collections/payyambalam-driving-beach.jpg";
 import fortKochiHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
+import fortKochiSunset from "@assets/escora/destinations/fort-kochi.jpg";
+import whyEscoraBg from "@assets/escora/why-escora-bg.jpeg";
 import wayanadForestStay from "@assets/escora/collections/wayanad-forest-stay.jpeg";
 import munnarTeaEstate from "@assets/escora/collections/munnar-tea-estate.jpeg";
 import kovalamBeach from "@assets/escora/collections/kovalam-beach.jpeg";
@@ -56,7 +58,7 @@ const CATEGORIES: Record<string, CategoryData> = {
     ],
     highlights: [
       { title: "Alleppey Backwaters", desc: "Three days on a private kettuvallam, drifting through rice paddies and palm-fringed canals.", img: alleppeyBackwaters },
-      { title: "Fort Kochi Nights", desc: "Colonial heritage, Portuguese architecture and waterfront dining in Kerala's most storied city.", img: "https://images.unsplash.com/photo-1605955794720-651b9ae7f5e7?auto=format&fit=crop&w=800&q=80" },
+      { title: "Fort Kochi Nights", desc: "Colonial heritage, Portuguese architecture and waterfront dining in Kerala's most storied city.", img: fortKochiSunset },
       { title: "Varkala Cliffs", desc: "Clifftop yoga, black-sand beaches and seafood at sunset — Kerala's most dramatic coastline.", img: varkalaCliffs },
       { title: "Wayanad Forest Stay", desc: "A private forest cottage on a foggy, mist-laced hillside — pure romance under the canopy.", img: wayanadForestStay },
     ],
@@ -243,6 +245,46 @@ const CATEGORIES: Record<string, CategoryData> = {
   },
 };
 
+function parseHighlight(title: string) {
+  // Honeymoon specific exact matches
+  if (title === "Alleppey Backwaters") return { main: "Alleppey", tracker: "BACKWATERS", slug: "alleppey" };
+  if (title === "Fort Kochi Nights") return { main: "Fort Kochi", tracker: "NIGHTS", slug: "fort-kochi" };
+  if (title === "Varkala Cliffs") return { main: "Varkala", tracker: "CLIFFS", slug: "varkala" };
+  if (title === "Wayanad Forest Stay") return { main: "Wayanad", tracker: "FOREST STAY", slug: "wayanad" };
+
+  const lower = title.toLowerCase();
+  let slug: string | null = null;
+  if (lower.includes("alleppey")) slug = "alleppey";
+  else if (lower.includes("fort kochi")) slug = "fort-kochi";
+  else if (lower.includes("varkala")) slug = "varkala";
+  else if (lower.includes("wayanad")) slug = "wayanad";
+  else if (lower.includes("munnar")) slug = "munnar";
+  else if (lower.includes("kovalam")) slug = "kovalam";
+  else if (lower.includes("kumarakom")) slug = "kumarakom";
+  else if (lower.includes("bekal")) slug = "bekal";
+  else if (lower.includes("thekkady") || lower.includes("periyar")) slug = "thekkady";
+  else if (lower.includes("kannur")) slug = "kannur";
+
+  const words = title.split(" ");
+  if (words.length >= 2) {
+    const lastWord = words[words.length - 1];
+    const candidateKeywords = [
+      "Backwaters", "Nights", "Cliffs", "Estuaries", "Lagoons", "Meadows",
+      "Churam", "Hills", "Estuary", "Coast", "Pooram", "Sanctuaries",
+      "Waterfalls", "Estates", "Island", "Beach", "Palace"
+    ];
+    if (candidateKeywords.includes(lastWord)) {
+      return {
+        main: words.slice(0, -1).join(" "),
+        tracker: lastWord.toUpperCase(),
+        slug,
+      };
+    }
+  }
+
+  return { main: title, tracker: "", slug };
+}
+
 export default function CategoryDetail() {
   const { category } = useParams<{ category: string }>();
   const data = category ? CATEGORIES[category] : undefined;
@@ -305,61 +347,100 @@ export default function CategoryDetail() {
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative h-[70dvh] w-full overflow-hidden flex items-end pb-16 pt-24">
+      {/* 1. Hero */}
+      <section className="relative min-h-[520px] md:min-h-[580px] lg:h-[68vh] lg:max-h-[720px] w-full overflow-hidden flex items-end pb-12 sm:pb-16 pt-24 sm:pt-28">
         <div className="absolute inset-0 z-0">
           <img
             src={data.heroImg}
             alt={data.label}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/20" />
+          {/* Subtle multi-layer contrast gradients to preserve sunset glow on right and crisp text on left */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/20" />
         </div>
-        <div className="relative z-10 container mx-auto px-6 md:px-12">
+        <div className="relative z-10 container mx-auto px-6 md:px-12 lg:px-16">
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 font-mono text-[11px] text-white/60 uppercase tracking-[0.2em] hover:text-gold transition-colors mb-8 block"
+            href="/#collections"
+            className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-mono tracking-[0.28em] text-[#E5C388] uppercase hover:text-white transition-colors mb-4 block select-none"
           >
-            ← Collections
+            <span>✦</span> COLLECTIONS
           </Link>
-          <p className="font-mono text-gold text-sm tracking-[0.3em] uppercase mb-4">{data.duration}</p>
-          <h1 className="font-serif text-5xl md:text-7xl text-white leading-[1.05] font-light max-w-3xl">
+          <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] text-white leading-[1.02] font-normal tracking-tight max-w-4xl drop-shadow-sm">
             {data.label}
           </h1>
-          <p className="font-serif text-xl text-white/70 italic mt-4 max-w-xl">{data.tagline}</p>
+          <p className="font-editorial italic text-xl sm:text-2xl md:text-[1.75rem] text-white/95 font-light mt-3 sm:mt-4 max-w-2xl drop-shadow-sm">
+            {data.tagline}
+          </p>
         </div>
       </section>
 
-      {/* Introduction */}
-      <section className="page-section bg-bg">
-        <div className="container mx-auto px-6 md:px-12">
+      {/* 2. Introduction */}
+      <section className="relative bg-[#FAF8F5] py-20 md:py-28 overflow-hidden">
+        {/* Soft botanical palm fronds flanking the sides */}
+        <div className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 sm:-translate-x-6 md:translate-x-0 w-44 sm:w-60 md:w-72 lg:w-80 opacity-30 select-none">
+          <img
+            src="/assets/escora-palm-frond-corner.png"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-auto -scale-x-100 object-contain"
+          />
+        </div>
+        <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 sm:translate-x-6 md:translate-x-0 w-44 sm:w-60 md:w-72 lg:w-80 opacity-30 select-none">
+          <img
+            src="/assets/escora-palm-frond-corner.png"
+            alt=""
+            aria-hidden="true"
+            className="w-full h-auto object-contain"
+          />
+        </div>
+
+        <div className="container relative z-10 mx-auto px-6 md:px-12">
           <div className="max-w-3xl mx-auto text-center">
-            <p className="font-sans text-ink-soft text-lg leading-relaxed">{data.intro}</p>
-            <div className="mt-10">
+            <p className="font-sans text-[#4A554D] text-base md:text-lg lg:text-[1.125rem] leading-[1.8] font-normal tracking-normal">
+              {data.intro}
+            </p>
+            <div className="mt-10 md:mt-12">
               <a
                 href="/contact"
-                className="inline-block font-mono text-xs uppercase tracking-widest bg-gold text-bg px-8 py-4 hover:bg-gold/80 transition-colors"
+                className="inline-flex items-center gap-2 px-9 py-4 rounded-full bg-[#183628] hover:bg-[#224836] text-white text-xs font-semibold uppercase tracking-[0.2em] transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5"
               >
-                Plan this journey
+                PLAN THIS JOURNEY <span className="text-[#E5C388] text-sm">→</span>
               </a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* What's Included */}
-      <section className="page-section bg-bg-2 border-y border-line">
-        <div className="container mx-auto px-6 md:px-12">
+      {/* 3. What's Included */}
+      <section className="relative bg-[#EFF4F0] py-20 md:py-24 border-y border-[#E2EAE4] overflow-hidden">
+        {/* Subtle background landscape watermark */}
+        <div className="pointer-events-none absolute inset-0 opacity-[0.14] select-none mix-blend-multiply">
+          <img
+            src={whyEscoraBg}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-right-bottom"
+          />
+        </div>
+
+        <div className="container relative z-10 mx-auto px-6 md:px-12">
           <div className="max-w-4xl mx-auto">
-            <p className="section-label mb-3"><span className="dot" />Every Journey Includes</p>
-            <h2 className="font-serif text-4xl md:text-5xl text-ink font-light mb-12">
-              What's <em className="italic">Included</em>
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-16 gap-y-5">
+            <div className="text-center mb-12 md:mb-14">
+              <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center justify-center gap-2 mb-3">
+                <span className="text-[#B58D5D]">✦</span> EVERY JOURNEY INCLUDES
+              </p>
+              <h2 className="font-editorial text-4xl sm:text-5xl md:text-[3.25rem] text-[#183628] font-normal tracking-tight">
+                What's <em className="italic font-light">Included</em>
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-14 lg:gap-x-20 gap-y-6">
               {data.inclusions.map((item, i) => (
-                <div key={i} className="flex items-start gap-4">
-                  <span className="mt-1.5 flex-shrink-0 w-5 h-[1px] bg-gold" />
-                  <p className="font-sans text-ink-soft leading-relaxed">{item}</p>
+                <div key={i} className="flex items-start gap-3.5">
+                  <span className="text-[#B58D5D] text-base leading-none select-none mt-1 shrink-0 font-light">—</span>
+                  <p className="font-sans text-[#334237] text-sm sm:text-[15px] leading-relaxed font-normal">
+                    {item}
+                  </p>
                 </div>
               ))}
             </div>
@@ -367,55 +448,108 @@ export default function CategoryDetail() {
         </div>
       </section>
 
-      {/* Highlights */}
-      <section className="page-section bg-bg">
-        <div className="container mx-auto px-6 md:px-12">
-          <p className="section-label mb-3"><span className="dot" />Experiences</p>
-          <h2 className="font-serif text-4xl md:text-5xl text-ink font-light mb-12">
-            Journey <em className="italic">Highlights</em>
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-            {data.highlights.map((h, i) => (
-              <div key={i} className="group portal-card">
-                <div className="aspect-[16/9] overflow-hidden mb-5">
+      {/* 4. Highlights */}
+      <section className="bg-[#FAF8F5] py-20 md:py-24">
+        <div className="container mx-auto px-6 md:px-12 max-w-6xl">
+          <div className="mb-10 md:mb-12">
+            <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center gap-2 mb-2">
+              <span className="text-[#B58D5D]">✦</span> EXPERIENCES
+            </p>
+            <h2 className="font-editorial text-4xl sm:text-5xl md:text-[3.25rem] text-[#183628] font-normal tracking-tight">
+              Journey <em className="italic font-light">Highlights</em>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+            {data.highlights.map((h, i) => {
+              const parsed = parseHighlight(h.title);
+              const cardUrl = parsed.slug ? `/destinations/${parsed.slug}` : "/destinations";
+
+              return (
+                <Link
+                  key={i}
+                  href={cardUrl}
+                  className="group relative block overflow-hidden rounded-2xl border border-black/5 bg-[#183628] shadow-sm hover:shadow-xl transition-all duration-500 aspect-[16/10.5] sm:aspect-[16/10]"
+                >
+                  {/* Edge to edge background image */}
                   <img
                     src={h.img}
                     alt={h.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
-                </div>
-                <h3 className="font-serif text-2xl text-ink mb-2">{h.title}</h3>
-                <p className="font-sans text-ink-soft leading-relaxed">{h.desc}</p>
-              </div>
-            ))}
+
+                  {/* Dark forest green gradient overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#09170F]/95 via-[#09170F]/55 to-transparent transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-transparent opacity-70" />
+
+                  {/* Top-left number indicator (e.g. 01 ——) */}
+                  <div className="absolute top-5 left-6 text-[11px] font-mono tracking-[0.25em] text-[#E5C388]/90 flex items-center gap-2 select-none z-10">
+                    <span>{String(i + 1).padStart(2, "0")}</span>
+                    <span className="w-5 h-[1px] bg-[#E5C388]/60 inline-block" />
+                  </div>
+
+                  {/* Card bottom content */}
+                  <div className="absolute inset-x-0 bottom-0 p-6 sm:p-7 md:p-8 flex flex-col justify-end text-white z-10">
+                    <h3 className="font-editorial text-3xl sm:text-[2.25rem] font-normal tracking-tight leading-none text-white drop-shadow-sm">
+                      {parsed.main}
+                    </h3>
+                    {parsed.tracker && (
+                      <p className="text-[10px] sm:text-[11px] uppercase tracking-[0.25em] font-medium text-white/80 mt-2 mb-2">
+                        {parsed.tracker}
+                      </p>
+                    )}
+                    <p className="text-white/80 text-xs sm:text-sm leading-relaxed max-w-md line-clamp-2 mt-0.5">
+                      {h.desc}
+                    </p>
+                    <div className="mt-4 pt-1">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.2em] text-[#E5C388] group-hover:text-white transition-colors duration-300">
+                        EXPLORE <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="page-section bg-bg-2 border-t border-line">
-        <div className="container mx-auto px-6 md:px-12 text-center">
-          <p className="section-label mb-4"><span className="dot" />Ready to begin?</p>
-          <h2 className="font-serif text-4xl md:text-5xl text-ink font-light mb-6 max-w-2xl mx-auto">
-            Let us compose your<br /><em className="italic">{data.label}</em> journey
+      {/* 5. Ready to Begin? */}
+      <section className="relative bg-[#EFF4F0] py-20 md:py-24 border-t border-[#E2EAE4] overflow-hidden text-center">
+        {/* Subtle background landscape watermark */}
+        <div className="pointer-events-none absolute inset-0 opacity-[0.22] select-none mix-blend-multiply">
+          <img
+            src={whyEscoraBg}
+            alt=""
+            aria-hidden="true"
+            className="w-full h-full object-cover object-bottom"
+          />
+        </div>
+
+        <div className="container relative z-10 mx-auto px-6 md:px-12">
+          <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center justify-center gap-2 mb-3">
+            <span className="text-[#B58D5D]">✦</span> READY TO BEGIN?
+          </p>
+          <h2 className="font-editorial text-4xl sm:text-5xl lg:text-[3.5rem] text-[#183628] font-normal tracking-tight leading-[1.15] max-w-2xl mx-auto mb-5">
+            Let us compose your<br />
+            <em className="italic font-light">{data.label}</em> journey
           </h2>
-          <p className="font-sans text-ink-soft max-w-lg mx-auto mb-10">
+          <p className="font-sans text-[#3F4B41] text-sm sm:text-base max-w-lg mx-auto leading-relaxed mb-9">
             Every Escora journey is built from scratch — your dates, your pace, your companions. Tell us what you're imagining.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
               href="/contact"
-              className="font-mono text-xs uppercase tracking-widest bg-gold text-bg px-8 py-4 hover:bg-gold/80 transition-colors"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-full bg-[#183628] hover:bg-[#224836] text-white text-xs font-semibold uppercase tracking-[0.18em] transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-0.5 text-center"
             >
-              Send an Enquiry
+              SEND AN ENQUIRY
             </a>
             <a
               href={`https://wa.me/918157003344?text=Hello%20Escora%20%E2%80%94%20I'm%20interested%20in%20a%20${encodeURIComponent(data.label)}%20journey%20in%20Kerala.`}
               target="_blank"
               rel="noopener noreferrer"
-              className="font-mono text-xs uppercase tracking-widest border border-line text-ink-soft px-8 py-4 hover:border-gold hover:text-gold transition-colors"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-full border border-[#8FA596] hover:border-[#183628] bg-transparent hover:bg-white/50 text-[#183628] text-xs font-semibold uppercase tracking-[0.18em] transition-all duration-300 text-center"
             >
-              WhatsApp us
+              WHATSAPP US
             </a>
           </div>
         </div>

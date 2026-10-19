@@ -22,11 +22,32 @@ import {
   triggerBookingCancellation,
   triggerTravelDocumentDelivery,
 } from "../services/notification-service";
+import {
+  triggerWhatsAppBookingConfirmation,
+  triggerWhatsAppDocumentDelivery,
+} from "../services/whatsapp";
 
 const router: IRouter = Router();
 
-function serializeDates<T extends { createdAt: Date; updatedAt: Date }>(row: T) {
-  return { ...row, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() };
+function serializeDates<T extends { createdAt: Date; updatedAt: Date; convertedAt?: any; [key: string]: any }>(row: T) {
+  return {
+    ...row,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    convertedAt: row.convertedAt
+      ? (row.convertedAt instanceof Date ? row.convertedAt.toISOString() : String(row.convertedAt))
+      : null,
+    bookingReference: row.bookingReference ?? null,
+    enquiryId: row.enquiryId ?? null,
+    itineraryId: row.itineraryId ?? null,
+    itineraryTitle: row.itineraryTitle ?? null,
+    currency: row.currency ?? null,
+    paymentStatus: row.paymentStatus ?? null,
+    paymentTerms: row.paymentTerms ?? null,
+    pricingDetails: row.pricingDetails ?? null,
+    itinerarySnapshot: row.itinerarySnapshot ?? null,
+    convertedBy: row.convertedBy ?? null,
+  };
 }
 
 async function lookupGeo(ip: string): Promise<{ geoCountry?: string; geoRegion?: string; geoCity?: string }> {
@@ -173,6 +194,9 @@ router.post("/orders", async (req, res, next): Promise<void> => {
       triggerBookingConfirmation(order).catch((err) => {
         logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] Booking confirmation trigger error on create");
       });
+      triggerWhatsAppBookingConfirmation(order).catch((err) => {
+        logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] WhatsApp booking confirmation trigger error on create");
+      });
     }
 
     res.status(201).json(GetOrderResponse.parse(serializeDates(order)));
@@ -259,6 +283,9 @@ router.patch("/orders/:id", async (req, res, next): Promise<void> => {
       triggerBookingConfirmation(order).catch((err) => {
         logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] Booking confirmation trigger error");
       });
+      triggerWhatsAppBookingConfirmation(order).catch((err) => {
+        logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] WhatsApp booking confirmation error");
+      });
       schedulePreTripReminder(order).catch((err) => {
         logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] Pre-trip reminder schedule error");
       });
@@ -308,11 +335,20 @@ router.post("/orders/:id/documents", async (req, res, next): Promise<void> => {
       return;
     }
 
+    if (order.status !== "confirmed" && order.status !== "completed") {
+      res.status(400).json({ error: "Travel documents can only be issued for confirmed or completed bookings" });
+      return;
+    }
+
     const notif = await triggerTravelDocumentDelivery(order, {
       title,
       documentType,
       notes,
       downloadUrl,
+    });
+
+    triggerWhatsAppDocumentDelivery(order, title, downloadUrl).catch((err) => {
+      logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] WhatsApp document delivery trigger error");
     });
 
     res.json({ success: true, notification: notif });

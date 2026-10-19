@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import {
   NotificationModel,
   AutomationSettingModel,
+  EmailAutomationModel,
   SubscriberConsentModel,
   OrderModel,
   EnquiryModel,
@@ -36,6 +37,11 @@ import {
   renderOutstandingDocumentReminderEmail,
   renderManualAdminEmail,
 } from "../lib/transactional-email-templates";
+import {
+  triggerWhatsAppPaymentReminder,
+  triggerWhatsAppPreTripReminder,
+  triggerWhatsAppPostTripFeedback,
+} from "./whatsapp";
 
 export class NotificationError extends Error {
   constructor(
@@ -1513,6 +1519,9 @@ export async function processDueEmailNotifications(): Promise<number> {
 
         await dispatchNotificationEmail(claimed, subject, html);
         processedCount++;
+        await triggerWhatsAppPostTripFeedback(order as IOrder).catch((err) => {
+          logger.warn({ orderId: order.id, err: err?.message }, "[Notification] Failed to trigger WhatsApp post-trip feedback");
+        });
       } else if (claimed.type === "payment_deadline_reminder") {
         const invoice = await InvoiceModel.findOne({ id: claimed.relatedId }).lean();
         if (!invoice || invoice.status === "paid" || invoice.status === "cancelled" || invoice.balanceDue <= 0) {
@@ -1524,6 +1533,9 @@ export async function processDueEmailNotifications(): Promise<number> {
         const { subject, html } = renderPaymentDeadlineReminderEmail(invoice);
         await dispatchNotificationEmail(claimed, subject, html);
         processedCount++;
+        await triggerWhatsAppPaymentReminder(invoice as IInvoice).catch((err) => {
+          logger.warn({ invoiceId: invoice.id, err: err?.message }, "[Notification] Failed to trigger WhatsApp payment reminder");
+        });
       } else if (claimed.type === "overdue_payment_followup") {
         const invoice = await InvoiceModel.findOne({ id: claimed.relatedId }).lean();
         if (!invoice || invoice.status === "paid" || invoice.status === "cancelled" || invoice.balanceDue <= 0) {
@@ -1535,6 +1547,9 @@ export async function processDueEmailNotifications(): Promise<number> {
         const { subject, html } = renderOverduePaymentFollowupEmail(invoice);
         await dispatchNotificationEmail(claimed, subject, html);
         processedCount++;
+        await triggerWhatsAppPaymentReminder(invoice as IInvoice).catch((err) => {
+          logger.warn({ invoiceId: invoice.id, err: err?.message }, "[Notification] Failed to trigger WhatsApp overdue payment reminder");
+        });
       } else if (claimed.type === "pre_trip_reminder") {
         const order = await OrderModel.findOne({ id: claimed.relatedId }).lean();
         if (!order || order.status !== "confirmed") {
@@ -1546,6 +1561,9 @@ export async function processDueEmailNotifications(): Promise<number> {
         const { subject, html } = renderPreTripReminderEmail(order, claimed.metadata);
         await dispatchNotificationEmail(claimed, subject, html);
         processedCount++;
+        await triggerWhatsAppPreTripReminder(order as IOrder).catch((err) => {
+          logger.warn({ orderId: order.id, err: err?.message }, "[Notification] Failed to trigger WhatsApp pre-trip reminder");
+        });
       } else if (claimed.type === "outstanding_document_reminder") {
         const order = await OrderModel.findOne({ id: claimed.relatedId }).lean();
         if (!order || order.status !== "confirmed") {
@@ -1670,6 +1688,33 @@ async function dispatchNotificationEmail(
   claimed.subject = subject;
   claimed.updatedAt = new Date();
   await claimed.save();
+
+  // Persist live execution stats to EmailAutomationModel
+  const notifTypeToTrigger: Record<string, string> = {
+    booking_confirmation: "booking_confirmed",
+    payment_receipt: "payment_succeeded",
+    enquiry_acknowledgement: "enquiry_submitted",
+    payment_deadline_reminder: "payment_reminder_due",
+    pre_trip_reminder: "pre_trip_departure",
+    travel_document_delivery: "travel_documents_ready",
+    enquiry_followup: "enquiry_unconverted",
+    post_trip_feedback: "trip_completed",
+    itinerary_update: "itinerary_amended",
+    exceptional_notice: "operational_alert",
+  };
+  const triggerKey = notifTypeToTrigger[claimed.type];
+  if (triggerKey) {
+    EmailAutomationModel.updateOne(
+      { trigger: triggerKey },
+      {
+        $set: {
+          lastExecutedAt: new Date(),
+          lastExecutionStatus: claimed.status === "sent" ? "success" : "failed",
+          lastExecutionError: claimed.error || null,
+        },
+      }
+    ).catch(() => {});
+  }
 }
 
 /**

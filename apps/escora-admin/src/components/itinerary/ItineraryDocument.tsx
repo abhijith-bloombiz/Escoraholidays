@@ -32,6 +32,7 @@ export interface ItineraryDocumentData {
   curatorName?: string | null;
   curatorPhone?: string | null;
   emergencyContacts?: string | null;
+  createdDate?: string | null;
   adults?: number | null;
   children?: number | null;
   infants?: number | null;
@@ -73,6 +74,7 @@ export default function ItineraryDocument({ data, id }: { data: ItineraryDocumen
     curatorName: data.curatorName,
     curatorPhone: data.curatorPhone,
     emergencyContacts: data.emergencyContacts,
+    createdDate: data.createdDate,
     adults: data.adults,
     children: data.children,
     infants: data.infants,

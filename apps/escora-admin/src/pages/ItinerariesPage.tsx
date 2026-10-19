@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,11 +52,11 @@ import {
   X,
   FileText,
   AlertTriangle,
-  Sparkles,
+  Loader2,
 } from "lucide-react";
 import ItineraryDocument from "@/components/itinerary/ItineraryDocument";
 import ItineraryPrintDocument from "@/components/itinerary/ItineraryPrintDocument";
-import { printElementById } from "@/lib/printElement";
+import { downloadElementAsPdf, formatItineraryPdfFilename } from "@/lib/pdfDownload";
 import {
   parsePricing,
   parseDays,
@@ -143,8 +143,8 @@ function toDocumentData(itinerary: Itinerary) {
 
 function toPrintData(itinerary: Itinerary) {
   return {
-    title: itinerary.title,
-    customerName: itinerary.customerName,
+    title: itinerary.title || "Slow-Luxury Kerala Journey",
+    customerName: itinerary.customerName || "Valued Guest",
     destination: itinerary.destination,
     startDate: itinerary.startDate,
     endDate: itinerary.endDate,
@@ -155,15 +155,16 @@ function toPrintData(itinerary: Itinerary) {
     inclusions: parseStringList(itinerary.inclusions),
     exclusions: parseStringList(itinerary.exclusions),
     pricing: parsePricing(itinerary.pricing),
-    currency: itinerary.currency,
+    currency: itinerary.currency || "INR",
     shareToken: itinerary.shareToken,
     referenceNumber: itinerary.referenceNumber,
     curatorName: itinerary.curatorName,
     curatorPhone: itinerary.curatorPhone,
     emergencyContacts: itinerary.emergencyContacts,
-    adults: itinerary.adults,
-    children: itinerary.children,
-    infants: itinerary.infants,
+    createdDate: itinerary.createdAt ? new Date(itinerary.createdAt).toISOString() : undefined,
+    adults: itinerary.adults ?? 1,
+    children: itinerary.children ?? 0,
+    infants: itinerary.infants ?? 0,
     tripIncludes: parseTripIncludes(itinerary.tripIncludes),
     transportation: parseTransportation(itinerary.transportation),
     hotelTerms: parseStringList(itinerary.hotelTerms),
@@ -189,6 +190,7 @@ export default function ItinerariesPage() {
   const [viewing, setViewing] = useState<Itinerary | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Itinerary | null>(null);
   const [printing, setPrinting] = useState<Itinerary | null>(null);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [draftAlertItinerary, setDraftAlertItinerary] = useState<{ itinerary: Itinerary; mode: "itinerary" | "package" } | null>(null);
 
   function invalidate() {
@@ -262,8 +264,29 @@ export default function ItinerariesPage() {
   }
 
   async function downloadPdf(itinerary: Itinerary) {
-    flushSync(() => setPrinting(itinerary));
-    await printElementById(PRINT_TARGET_ID);
+    const filename = formatItineraryPdfFilename(itinerary.title);
+    try {
+      setDownloadingId(itinerary.id);
+      flushSync(() => setPrinting(itinerary));
+      await downloadElementAsPdf(PRINT_TARGET_ID, filename);
+      toast({
+        title: "Itinerary PDF Downloaded",
+        description: `Saved "${filename}"`,
+      });
+    } catch (err) {
+      console.error("[Itinerary Download] Failed to generate PDF for itinerary ID:", itinerary.id, err);
+      toast({
+        title: "Download Failed",
+        description:
+          err instanceof Error
+            ? `Could not generate PDF: ${err.message}`
+            : "Could not generate the itinerary PDF. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingId(null);
+      setPrinting(null);
+    }
   }
 
   function cloneItinerary(itinerary: Itinerary) {
@@ -350,43 +373,27 @@ export default function ItinerariesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-foreground">Itineraries &amp; Proposals</h1>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-3xl font-serif font-semibold text-foreground">Itineraries &amp; Proposals</h1>
+            <Badge variant="outline" className="text-xs font-medium text-muted-foreground">
+              {counts.total} {counts.total === 1 ? "proposal" : "proposals"}
+            </Badge>
+          </div>
           <p className="text-sm text-muted-foreground mt-1">
-            Bespoke client proposals with interactive web view and printable A4 PDF dossier.
+            Client proposals with interactive web view and printable A4 PDF dossier.
           </p>
         </div>
-        <div className="flex items-center gap-2.5 self-start sm:self-auto">
+        <div className="flex items-center gap-2">
           <Button
-            variant="outline"
-            onClick={() => navigate("/itineraries/new?ai=true")}
-            data-testid="button-ai-itinerary"
-            className="border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1.5"
+            onClick={() => navigate("/itineraries/create")}
+            className="gap-1.5 font-medium shadow-sm"
+            data-testid="button-create-new-itinerary"
           >
-            <Sparkles className="h-4 w-4" /> Design with AI ✨
-          </Button>
-          <Button onClick={() => navigate("/itineraries/new")} data-testid="button-add-itinerary">
-            <Plus className="h-4 w-4 mr-2" /> New Itinerary
+            <Plus className="h-4 w-4" />
+            Create New
           </Button>
         </div>
       </div>
-
-      {/* Integration & Public Usage Guide */}
-      <Alert className="border-primary/20 bg-primary/5">
-        <Info className="h-4 w-4 text-primary" />
-        <AlertTitle className="font-serif text-base font-medium">Itinerary Proposals &amp; Public Client Links</AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground mt-1.5 space-y-1">
-          <p>
-            Itineraries are bespoke journey proposals prepared for individual clients. They are accessible publicly via unique secret tokens at{" "}
-            <code className="text-foreground">/itinerary/:token</code> (client dossier) and <code className="text-foreground">/package/:token</code> (public package preview).
-          </p>
-          <p>
-            <strong>Publishing requirement:</strong> Only itineraries with status set to <strong>Shared</strong> or <strong>Confirmed</strong> are publicly viewable. Itineraries in <strong>Draft</strong> status return a 404 error if opened by the client.
-          </p>
-          <p className="text-[11px] text-muted-foreground/80 italic">
-            Note: Client contact details (email and phone) and internal administrative notes are kept private and never rendered on public share pages.
-          </p>
-        </AlertDescription>
-      </Alert>
 
       {/* Status Counters & Filters Toolbar */}
       <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between bg-card p-4 rounded-lg border border-border">
@@ -511,7 +518,7 @@ export default function ItinerariesPage() {
                         Create personalized travel proposals with day-by-day plans, resort stays, and transparent investment breakdowns.
                       </p>
                     </div>
-                    <Button onClick={() => navigate("/itineraries/new")} className="mt-2">
+                    <Button onClick={() => navigate("/itineraries/create")} className="mt-2">
                       <Plus className="h-4 w-4 mr-2" /> Create First Itinerary
                     </Button>
                   </div>
@@ -593,7 +600,7 @@ export default function ItinerariesPage() {
                     <TableCell className="align-top py-3.5">{statusBadge(it.status)}</TableCell>
 
                     {/* Total */}
-                    <TableCell className="align-top py-3.5 text-right font-mono text-sm">
+                    <TableCell className="align-top py-3.5 text-right text-sm tabular-nums">
                       {pricing.total ? (
                         <span className="font-semibold text-foreground">
                           {it.currency === "INR" ? "₹" : it.currency + " "}
@@ -661,9 +668,14 @@ export default function ItinerariesPage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-foreground"
                           onClick={() => downloadPdf(it)}
+                          disabled={downloadingId === it.id}
                           title="Download PDF dossier"
                         >
-                          <Download className="h-4 w-4" />
+                          {downloadingId === it.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                          ) : (
+                            <Download className="h-4 w-4" />
+                          )}
                         </Button>
 
                         <Button
@@ -743,8 +755,17 @@ export default function ItinerariesPage() {
               </DropdownMenu>
             )}
             {viewing && (
-              <Button variant="outline" onClick={() => downloadPdf(viewing)}>
-                <Download className="h-3.5 w-3.5 mr-1.5" /> Download PDF
+              <Button
+                variant="outline"
+                onClick={() => downloadPdf(viewing)}
+                disabled={downloadingId === viewing.id}
+              >
+                {downloadingId === viewing.id ? (
+                  <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <Download className="h-3.5 w-3.5 mr-1.5" />
+                )}
+                Download PDF
               </Button>
             )}
             {viewing && (
@@ -777,8 +798,8 @@ export default function ItinerariesPage() {
 
       {/* Off-screen print target used by Download PDF */}
       {printing && (
-        <div id={PRINT_TARGET_ID} className="fixed left-0 top-0 -z-10 opacity-0 pointer-events-none print:static print:z-auto print:opacity-100">
-          <ItineraryPrintDocument data={toPrintData(printing)} />
+        <div className="fixed left-0 top-0 -z-50 pointer-events-none opacity-0 overflow-hidden">
+          <ItineraryPrintDocument data={toPrintData(printing)} id={PRINT_TARGET_ID} />
         </div>
       )}
 

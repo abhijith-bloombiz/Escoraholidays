@@ -7,4 +7,5 @@
 
 export type ListItinerariesParams = {
 status?: string;
+enquiryId?: number;
 };

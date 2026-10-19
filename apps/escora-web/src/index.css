@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Cinzel:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Cinzel:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap");
 @import "./fonts/melodrama.css";
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -7,6 +7,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-editorial: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
   --color-background: var(--bg);
   --color-foreground: var(--ink);
   --color-border: var(--line);
@@ -192,21 +193,30 @@
   }
 }
 
-/* ─── Globally Hide Scrollbar Across Website ─── */
-html,
-body,
-* {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+/* ─── Natural Page Scrollbar Styling ─── */
+html, body {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #758B78 #FAF8F5;
 }
 
-html::-webkit-scrollbar,
-body::-webkit-scrollbar,
-*::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FAF8F5;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #758B78;
+  border-radius: 9999px;
+  border: 2px solid #FAF8F5;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: #193F2D;
 }
 
 /* Ensure all headings and display classes use Playfair Display */
@@ -436,6 +446,10 @@ h1, h2, h3, h4, h5, h6,
 /* ============================================================
    LENIS 60FPS SMOOTH SCROLL & PERFORMANCE OPTIMIZATIONS
    ============================================================ */
+html {
+  scroll-snap-type: none !important;
+}
+
 html.lenis, html.lenis body {
   height: auto;
 }
@@ -486,15 +500,22 @@ html.lenis, html.lenis body {
   -webkit-backface-visibility: hidden;
 }
 
-/* Ensure smooth image zoom transforms without stutter */
+/* Ensure smooth image zoom transforms without excessive GPU memory allocation */
 .portal-card img,
 .explore-card img,
 .v3-tile img,
 .why-card img,
 .rcard img {
-  will-change: transform;
   transform: translateZ(0);
   transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.portal-card:hover img,
+.explore-card:hover img,
+.v3-tile:hover img,
+.why-card:hover img,
+.rcard:hover img {
+  will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -525,7 +546,15 @@ html.lenis, html.lenis body {
    ========================================================================== */
 .section-label,
 .eyebrow,
+.escora-way-eyebrow,
 .kerala-3d-eyebrow,
+.dest-360-eyebrow,
+.why-esc-eyebrow,
+.how-eyebrow,
+.retreat-eyebrow,
+.testi-eyebrow,
+.enquiry-eyebrow,
+.enquiry-panel-eyebrow,
 .v3dest-eyebrow,
 .v3-eyebrow,
 .jd-related-eyebrow {
@@ -543,7 +572,16 @@ html.lenis, html.lenis body {
 
 .section-label .dot,
 .eyebrow .dot,
+.escora-way-eyebrow .dot,
 .kerala-3d-eyebrow .dot,
+.dest-360-eyebrow .dot,
+.why-esc-eyebrow .dot,
+.how-eyebrow .dot,
+.retreat-eyebrow .dot,
+.retreat-eyebrow-dot,
+.enquiry-eyebrow .dot,
+.enquiry-eyebrow-dot,
+.enquiry-panel-eyebrow .dot,
 .v3dest-eyebrow .dot,
 .v3-eyebrow .dot,
 .jd-related-eyebrow .jd-dot,
@@ -561,14 +599,30 @@ html.lenis, html.lenis body {
 
 .section-label.text-center,
 .text-center > .section-label,
-.text-center > .eyebrow {
+.text-center > .eyebrow,
+.testi-eyebrow {
   justify-content: center !important;
+}
+
+.testi-eyebrow-line {
+  width: 28px !important;
+  height: 1px !important;
+  background: #B58D5D !important;
+  opacity: 0.7 !important;
 }
 
 @media (max-width: 768px) {
   .section-label,
   .eyebrow,
+  .escora-way-eyebrow,
   .kerala-3d-eyebrow,
+  .dest-360-eyebrow,
+  .why-esc-eyebrow,
+  .how-eyebrow,
+  .retreat-eyebrow,
+  .testi-eyebrow,
+  .enquiry-eyebrow,
+  .enquiry-panel-eyebrow,
   .v3dest-eyebrow,
   .v3-eyebrow,
   .jd-related-eyebrow {
@@ -576,3 +630,45 @@ html.lenis, html.lenis body {
     letter-spacing: 0.18em !important;
   }
 }
+
+.font-editorial {
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+}
+
+/* Escora AI Assistant — Panel & Custom Scrollbar */
+.escora-ai-panel {
+  box-sizing: border-box !important;
+  border: 1px solid #CCD7D2 !important;
+  border-radius: 26px !important;
+  background-color: #F8FAF8 !important;
+}
+
+.escora-ai-messages {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #7A9083 transparent;
+}
+
+.escora-ai-messages::-webkit-scrollbar {
+  width: 5px;
+}
+
+.escora-ai-messages::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 8px 0;
+}
+
+.escora-ai-messages::-webkit-scrollbar-thumb {
+  background-color: #7A9083;
+  border-radius: 9999px;
+}
+
+.escora-ai-messages::-webkit-scrollbar-thumb:hover {
+  background-color: #556B5F;
+}
+

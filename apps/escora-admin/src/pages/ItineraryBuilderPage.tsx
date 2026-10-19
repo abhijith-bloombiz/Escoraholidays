@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { useQueryClient } from "@tanstack/react-query";
@@ -35,6 +35,7 @@ import {
   Plus,
   Trash2,
   ChevronLeft,
+  ChevronRight,
   ChevronDown,
   ChevronUp,
   FileText,
@@ -55,6 +56,11 @@ import {
   MoveUp,
   MoveDown,
   Layers,
+  RefreshCw,
+  CheckCircle2,
+  UserCheck,
+  Phone,
+  User,
 } from "lucide-react";
 import {
   parseDays,
@@ -74,7 +80,6 @@ import {
   type ItineraryStay,
   type ItineraryPricing,
 } from "@/lib/itinerary";
-import { itineraryTemplates, type ItineraryTemplate } from "@/lib/itineraryTemplates";
 import ImageUploadField from "@/components/ImageUploadField";
 import ItineraryDocument from "@/components/itinerary/ItineraryDocument";
 import AiItineraryAssistantModal from "@/components/itinerary/AiItineraryAssistantModal";
@@ -148,20 +153,6 @@ const emptyForm: BuilderForm = {
   exclusions: [],
 };
 
-function templateToFormValues(template: ItineraryTemplate): BuilderForm {
-  return {
-    ...emptyForm,
-    title: template.title,
-    customerName: template.customerName || "",
-    destination: template.destination,
-    days: JSON.parse(JSON.stringify(template.days)),
-    stays: JSON.parse(JSON.stringify(template.stays)),
-    pricing: JSON.parse(JSON.stringify(template.pricing)),
-    inclusions: [...template.inclusions],
-    exclusions: [...template.exclusions],
-  };
-}
-
 export default function ItineraryBuilderPage() {
   const params = useParams();
   const [, navigate] = useLocation();
@@ -183,19 +174,21 @@ export default function ItineraryBuilderPage() {
     reset,
     watch,
     setValue,
+    getValues,
     formState: { isDirty },
   } = useForm<BuilderForm>({
     defaultValues: emptyForm,
   });
 
   const [templateChoice, setTemplateChoice] = useState<"blank" | string | null>(isEdit ? "blank" : null);
-  const [previewTemplate, setPreviewTemplate] = useState<ItineraryTemplate | null>(null);
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
   // AI Assistant modal state (Phase 3B)
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiEnquiryId, setAiEnquiryId] = useState<number | undefined>(undefined);
+  const [fromEnquiryId, setFromEnquiryId] = useState<number | null>(null);
+  const openedFromUrlAi = useRef(false);
 
   // Collapsible days and stays state
   const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
@@ -214,10 +207,15 @@ export default function ItineraryBuilderPage() {
   const watchedStartDate = watch("startDate");
   const watchedEndDate = watch("endDate");
   const watchedStatus = watch("status");
+  const watchedTitle = watch("title");
   const watchedInclusions = watch("inclusions") ?? [];
   const watchedExclusions = watch("exclusions") ?? [];
   const watchedDays = watch("days") ?? [];
   const watchedStays = watch("stays") ?? [];
+  const watchedCustomerName = watch("customerName");
+  const watchedCustomerEmail = watch("customerEmail");
+  const watchedCustomerPhone = watch("customerPhone");
+  const watchedDestination = watch("destination");
 
   // Warn before browser refresh/close if form has unsaved modifications
   useEffect(() => {
@@ -275,32 +273,90 @@ export default function ItineraryBuilderPage() {
     }
   }, [existing, reset]);
 
-  // Handle URL query parameters (e.g. ?ai=true or ?enquiryId=123)
+  // Handle URL query parameters (e.g. ?ai=true or ?enquiryId=123) and pending AI drafts
   useEffect(() => {
     if (typeof window === "undefined") return;
     const searchParams = new URLSearchParams(window.location.search);
     const aiParam = searchParams.get("ai");
-    const enqParam = searchParams.get("enquiryId");
+    const aiDraftParam = searchParams.get("aiDraft");
+    const blankParam = searchParams.get("blank");
+    const enqParam = searchParams.get("fromEnquiry") || searchParams.get("enquiryId");
     const nameParam = searchParams.get("customerName");
     const emailParam = searchParams.get("customerEmail");
     const phoneParam = searchParams.get("customerPhone");
+
+    if (enqParam) {
+      const parsedId = Number(enqParam);
+      if (!Number.isNaN(parsedId)) {
+        setFromEnquiryId(parsedId);
+        setAiEnquiryId(parsedId);
+      }
+    }
+
+    // Check for pending AI draft handed off via sessionStorage
+    const pendingDraftStr = sessionStorage.getItem("escoraholidays_pending_ai_draft");
+    if (pendingDraftStr) {
+      try {
+        const parsed = JSON.parse(pendingDraftStr);
+        sessionStorage.removeItem("escoraholidays_pending_ai_draft");
+        if (parsed?.extra?.enquiryId) {
+          setFromEnquiryId(parsed.extra.enquiryId);
+          setAiEnquiryId(parsed.extra.enquiryId);
+        }
+        if (parsed?.draft) {
+          handleApplyAiDraft(parsed.draft, parsed.extra);
+        } else if (parsed) {
+          handleApplyAiDraft(parsed);
+        }
+        return;
+      } catch (err) {
+        console.error("Failed to parse pending AI draft", err);
+      }
+    }
 
     if (nameParam) setValue("customerName", nameParam, { shouldDirty: true });
     if (emailParam) setValue("customerEmail", emailParam, { shouldDirty: true });
     if (phoneParam) setValue("customerPhone", phoneParam, { shouldDirty: true });
 
+    if (blankParam === "true") {
+      setTemplateChoice("blank");
+    }
+
     if (aiParam === "true" || enqParam) {
+      openedFromUrlAi.current = true;
       if (enqParam) {
         setAiEnquiryId(Number(enqParam));
       }
       setShowAiModal(true);
-      if (!isEdit && templateChoice === null) {
-        setTemplateChoice("blank");
-      }
     }
-  }, [setValue, isEdit, templateChoice]);
 
-  const handleApplyAiDraft = (draft: ItineraryAiAssistResponse) => {
+    if (!isEdit && !aiParam && !aiDraftParam && !blankParam && !enqParam && templateChoice === null) {
+      navigate("/itineraries/create", { replace: true });
+    }
+  }, [setValue, isEdit, templateChoice, navigate]);
+
+  const handleApplyAiDraft = (
+    draft: ItineraryAiAssistResponse,
+    extra?: { customerName?: string; customerEmail?: string; customerPhone?: string; startDate?: string; enquiryId?: number }
+  ) => {
+    openedFromUrlAi.current = false;
+    if (extra?.enquiryId) {
+      setFromEnquiryId(extra.enquiryId);
+      setAiEnquiryId(extra.enquiryId);
+    }
+    if (extra?.customerName && !getValues("customerName")) {
+      setValue("customerName", extra.customerName, { shouldDirty: true });
+    }
+    if (extra?.customerEmail && !getValues("customerEmail")) {
+      setValue("customerEmail", extra.customerEmail, { shouldDirty: true });
+    }
+    if (extra?.customerPhone && !getValues("customerPhone")) {
+      setValue("customerPhone", extra.customerPhone, { shouldDirty: true });
+    }
+    if (extra?.startDate && !getValues("startDate")) {
+      setValue("startDate", extra.startDate, { shouldDirty: true });
+    }
+
     setValue("title", draft.title, { shouldDirty: true });
     setValue("destination", draft.destination, { shouldDirty: true });
     setValue("summary", draft.summary, { shouldDirty: true });
@@ -336,7 +392,7 @@ export default function ItineraryBuilderPage() {
       checkIn: s.checkIn || "",
       checkOut: s.checkOut || "",
       nights: s.nights || 2,
-      roomType: s.roomType || "Signature Heritage Suite",
+      roomType: s.roomType || "Heritage Suite",
       notes: s.notes || "",
     }));
     setValue("stays", formattedStays, { shouldDirty: true });
@@ -351,6 +407,17 @@ export default function ItineraryBuilderPage() {
     setTemplateChoice("ai-draft");
   };
 
+  const handleCloseAiModal = () => {
+    setShowAiModal(false);
+    if (openedFromUrlAi.current && !isEdit && templateChoice !== "ai-draft") {
+      if (fromEnquiryId) {
+        navigate(`/enquiries?viewEnquiry=${fromEnquiryId}`);
+      } else {
+        navigate("/itineraries/create");
+      }
+    }
+  };
+
   function invalidate() {
     qc.invalidateQueries({ queryKey: getListItinerariesQueryKey() });
     if (itineraryId) {
@@ -359,6 +426,8 @@ export default function ItineraryBuilderPage() {
   }
 
   const onSubmit = (form: BuilderForm) => {
+    if (createMutation.isPending || updateMutation.isPending) return;
+
     // Validate required fields
     if (!form.customerName.trim()) {
       toast({ title: "Customer Name is required", variant: "destructive" });
@@ -372,7 +441,7 @@ export default function ItineraryBuilderPage() {
     }
 
     const total = computePricingTotal(form.pricing);
-    const data = {
+    const data: any = {
       customerName: form.customerName.trim(),
       customerEmail: form.customerEmail.trim() || undefined,
       customerPhone: form.customerPhone.trim() || undefined,
@@ -384,11 +453,32 @@ export default function ItineraryBuilderPage() {
       summary: form.summary.trim() || undefined,
       currency: form.currency,
       status: form.status,
+      curatorName: form.curatorName?.trim() || undefined,
+      curatorPhone: form.curatorPhone?.trim() || undefined,
+      emergencyContacts: form.emergencyContacts?.trim() || undefined,
+      adults: form.adults ?? 1,
+      children: form.children ?? 0,
+      infants: form.infants ?? 0,
       days: JSON.stringify(form.days.map((d, i) => ({ ...d, day: i + 1 }))),
       stays: JSON.stringify(form.stays),
       pricing: JSON.stringify({ ...form.pricing, total }),
       inclusions: JSON.stringify((form.inclusions || []).map((s) => s.trim()).filter(Boolean)),
       exclusions: JSON.stringify((form.exclusions || []).map((s) => s.trim()).filter(Boolean)),
+      tripIncludes: JSON.stringify({
+        hotel: form.hotelIncluded,
+        transport: form.transportIncluded,
+        sightseeing: form.sightseeingIncluded,
+        transfer: form.transferIncluded,
+      }),
+      transportation: JSON.stringify({
+        origin: form.transportOrigin,
+        destination: form.transportDestination,
+        vehicleType: form.transportVehicle,
+      }),
+      hotelTerms: (existing as any)?.hotelTerms ?? JSON.stringify(DEFAULT_HOTEL_TERMS),
+      paymentTerms: (existing as any)?.paymentTerms ?? JSON.stringify(DEFAULT_PAYMENT_TERMS),
+      importantInfo: (existing as any)?.importantInfo ?? JSON.stringify(DEFAULT_IMPORTANT_INFO),
+      enquiryId: fromEnquiryId ?? (existing as any)?.enquiryId ?? undefined,
     };
 
     if (isEdit && itineraryId) {
@@ -398,7 +488,11 @@ export default function ItineraryBuilderPage() {
           onSuccess: () => {
             invalidate();
             toast({ title: "Itinerary proposal updated successfully" });
-            navigate("/itineraries");
+            if (fromEnquiryId) {
+              navigate(`/enquiries?viewEnquiry=${fromEnquiryId}`);
+            } else {
+              navigate("/itineraries");
+            }
           },
           onError: () => toast({ title: "Failed to update itinerary", variant: "destructive" }),
         }
@@ -409,8 +503,15 @@ export default function ItineraryBuilderPage() {
         {
           onSuccess: (created) => {
             invalidate();
-            toast({ title: "Itinerary created successfully", description: `Reference: ${created.shareToken.slice(0, 8).toUpperCase()}` });
-            navigate("/itineraries");
+            toast({
+              title: "Proposal created successfully",
+              description: `Reference: ${created.shareToken.slice(0, 8).toUpperCase()}`,
+            });
+            if (fromEnquiryId) {
+              navigate(`/enquiries?viewEnquiry=${fromEnquiryId}&createdProposalId=${created.id}`);
+            } else {
+              navigate("/itineraries");
+            }
           },
           onError: () => toast({ title: "Failed to create itinerary", variant: "destructive" }),
         }
@@ -419,15 +520,81 @@ export default function ItineraryBuilderPage() {
   };
 
   function handleCancel() {
+    const returnTarget = fromEnquiryId ? `/enquiries?viewEnquiry=${fromEnquiryId}` : "/itineraries";
     if (isDirty) {
-      setPendingNavigation("/itineraries");
+      setPendingNavigation(returnTarget);
       setShowDiscardDialog(true);
     } else {
-      navigate("/itineraries");
+      navigate(returnTarget);
     }
   }
 
+  const [activeSection, setActiveSection] = useState<string>("section-details");
+
+  // Track active section as user scrolls through the proposal editor
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const sectionIds = [
+      "section-details",
+      "section-days",
+      "section-stays",
+      "section-terms",
+      "section-pricing",
+      "section-publishing",
+    ];
+
+    const elements = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (elements.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length > 0) {
+          visible.sort(
+            (a, b) =>
+              Math.abs(a.boundingClientRect.top - 80) - Math.abs(b.boundingClientRect.top - 80)
+          );
+          setActiveSection(visible[0].target.id);
+        }
+      },
+      {
+        rootMargin: "-80px 0px -30% 0px",
+        threshold: [0, 0.1, 0.3],
+      }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+
+    // Handle scroll to highlight section 6 when scrolled near bottom of main container
+    const handleScroll = () => {
+      const main = document.querySelector("main");
+      if (main) {
+        const atBottom = main.scrollHeight - main.scrollTop - main.clientHeight < 60;
+        if (atBottom) {
+          setActiveSection("section-publishing");
+        }
+      }
+    };
+
+    const mainEl = document.querySelector("main");
+    if (mainEl) {
+      mainEl.addEventListener("scroll", handleScroll, { passive: true });
+    }
+
+    return () => {
+      observer.disconnect();
+      if (mainEl) {
+        mainEl.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, []);
+
   function scrollToSection(id: string) {
+    setActiveSection(id);
     const el = document.getElementById(id);
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -539,221 +706,118 @@ export default function ItineraryBuilderPage() {
     );
   }
 
+  if (isEdit && !isLoading && !existing) {
+    return (
+      <div className="max-w-4xl mx-auto py-10 px-4 space-y-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => (fromEnquiryId ? navigate(`/enquiries?viewEnquiry=${fromEnquiryId}`) : navigate("/itineraries"))}
+          className="gap-2 cursor-pointer"
+        >
+          <ArrowLeft className="h-4 w-4" /> {fromEnquiryId ? "Back to Inquiry" : "Back to Itineraries"}
+        </Button>
+        <Card className="border-border">
+          <CardContent className="p-8 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mx-auto text-muted-foreground">
+              <AlertTriangle className="h-6 w-6" />
+            </div>
+            <div className="space-y-1">
+              <h2 className="font-serif text-xl font-semibold text-foreground">Itinerary Proposal Not Found</h2>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                Could not retrieve itinerary proposal #{itineraryId} for editing. The record may have been deleted or the identifier is invalid.
+              </p>
+            </div>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => (fromEnquiryId ? navigate(`/enquiries?viewEnquiry=${fromEnquiryId}`) : navigate("/itineraries"))}
+                className="cursor-pointer"
+              >
+                {fromEnquiryId ? "Return to Inquiry" : "Return to Itineraries List"}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const total = computePricingTotal(watchedPricing ?? { items: [], total: 0 });
 
-  // -------------------------------------------------------------
-  // TEMPLATE SELECTION SCREEN (When creating new itinerary)
-  // -------------------------------------------------------------
+  const calculatedDuration = (() => {
+    if (!watchedStartDate || !watchedEndDate) {
+      return watchedDays.length > 0 ? `${watchedDays.length} Days` : null;
+    }
+    const start = new Date(watchedStartDate);
+    const end = new Date(watchedEndDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return watchedDays.length > 0 ? `${watchedDays.length} Days` : null;
+    }
+    const diffTime = end.getTime() - start.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    if (diffDays <= 0) return watchedDays.length > 0 ? `${watchedDays.length} Days` : null;
+    const nights = Math.max(0, diffDays - 1);
+    return `${diffDays} Days · ${nights} Nights`;
+  })();
+
+  const verificationChecks = [
+    {
+      label: "Customer & Lead Info",
+      passed: Boolean(watchedCustomerName && watchedCustomerName.trim().length > 0),
+      hint: watchedCustomerName?.trim() ? watchedCustomerName : "Customer name is required",
+    },
+    {
+      label: "Proposal Title",
+      passed: Boolean(watchedTitle && watchedTitle.trim().length > 0),
+      hint: watchedTitle?.trim() ? watchedTitle : "Itinerary title is required",
+    },
+    {
+      label: "Day-by-Day Plans",
+      passed: watchedDays.length > 0,
+      hint: watchedDays.length > 0 ? `${watchedDays.length} day(s) configured` : "No day plans added yet",
+    },
+    {
+      label: "Accommodations",
+      passed: watchedStays.length > 0,
+      hint: watchedStays.length > 0 ? `${watchedStays.length} stay(s) scheduled` : "No stays added (optional)",
+      optional: true,
+    },
+    {
+      label: "Pricing & Investment",
+      passed: total > 0,
+      hint: total > 0 ? `${watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}${total.toLocaleString("en-IN")}` : "Total is ₹0",
+    },
+  ];
+
   if (!isEdit && templateChoice === null) {
     return (
-      <div data-testid="itinerary-builder-page" className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/itineraries")}>
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-serif text-foreground">Choose Itinerary Template</h1>
-            <p className="text-sm text-muted-foreground mt-1">
-              Start with a battle-tested signature route or begin with an empty blank proposal.
-            </p>
-          </div>
-        </div>
-
-        {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {/* AI Itinerary Assistant Card */}
-          <Card
-            className="group relative border-2 border-emerald-600/40 hover:border-emerald-600 transition-all flex flex-col justify-between cursor-pointer bg-gradient-to-b from-emerald-500/10 to-card hover:shadow-lg"
-            onClick={() => {
-              setTemplateChoice("blank");
-              setShowAiModal(true);
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-64" />
+        <Skeleton className="h-64 w-full" />
+        {showAiModal && (
+          <AiItineraryAssistantModal
+            isOpen={showAiModal}
+            onClose={handleCloseAiModal}
+            onApplyDraft={handleApplyAiDraft}
+            initialEnquiryId={aiEnquiryId}
+            currentFormData={{
+              customerName: watch("customerName"),
+              customerEmail: watch("customerEmail"),
+              customerPhone: watch("customerPhone"),
+              destination: watch("destination"),
+              startDate: watch("startDate"),
+              endDate: watch("endDate"),
+              title: watch("title"),
+              summary: watch("summary"),
+              days: watchedDays,
+              stays: watchedStays,
+              inclusions: watchedInclusions,
+              exclusions: watchedExclusions,
             }}
-            data-testid="template-card-ai"
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between mb-2">
-                <div className="w-10 h-10 rounded-lg bg-emerald-600/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center border border-emerald-600/20">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30">
-                  Slow-Luxury AI
-                </Badge>
-              </div>
-              <CardTitle className="text-lg font-serif group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
-                Design with AI Assistant
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Generate a bespoke, day-by-day Kerala itinerary proposal from customer dates, wishes, or an existing inquiry.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Button type="button" className="w-full mt-4 bg-emerald-700 hover:bg-emerald-800 text-white gap-1.5">
-                <Sparkles className="h-4 w-4" /> Launch Assistant ✨
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Start Blank Card */}
-          <Card
-            className="group relative border-2 border-dashed border-border hover:border-primary/60 transition-all flex flex-col justify-between cursor-pointer bg-card/60 hover:bg-card hover:shadow-md"
-            onClick={() => setTemplateChoice("blank")}
-          >
-            <CardHeader className="pb-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-2">
-                <FileText className="h-5 w-5" />
-              </div>
-              <CardTitle className="text-lg font-serif">Start Blank</CardTitle>
-              <CardDescription className="text-xs">
-                Build a tailored custom itinerary from scratch with empty day cards, accommodation stays, and pricing.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <Button type="button" variant="outline" className="w-full mt-4 group-hover:border-primary group-hover:bg-primary/5">
-                Start From Scratch
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Curated Templates */}
-          {itineraryTemplates.map((template) => {
-            const dayCount = template.days.length;
-            const stayCount = template.stays.length;
-            return (
-              <Card
-                key={template.id}
-                className="group relative border border-border hover:border-primary/60 transition-all flex flex-col justify-between bg-card hover:shadow-md"
-                data-testid={`template-card-${template.id}`}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider bg-primary/5 text-primary border-primary/20">
-                      {template.destination}
-                    </Badge>
-                    <span className="text-xs font-mono text-muted-foreground">
-                      {dayCount} {dayCount === 1 ? "Day" : "Days"} · {stayCount} {stayCount === 1 ? "Stay" : "Stays"}
-                    </span>
-                  </div>
-                  <CardTitle className="text-lg font-serif group-hover:text-primary transition-colors">{template.label}</CardTitle>
-                  <CardDescription className="text-xs line-clamp-2 mt-1">{template.description}</CardDescription>
-                </CardHeader>
-
-                <CardContent className="pt-2 space-y-3">
-                  <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 border-t border-border/60 pt-2.5">
-                    <Sparkles className="h-3 w-3 text-primary flex-shrink-0" />
-                    <span className="truncate">Includes {template.days[0]?.title}</span>
-                  </div>
-                  <div className="flex items-center gap-2 pt-1">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="flex-1 text-xs"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setPreviewTemplate(template);
-                      }}
-                    >
-                      <Eye className="h-3.5 w-3.5 mr-1" /> Preview
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      className="flex-1 text-xs"
-                      onClick={() => {
-                        reset(templateToFormValues(template));
-                        setTemplateChoice(template.id);
-                      }}
-                    >
-                      Use Template
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Template Preview Dialog */}
-        <Dialog open={previewTemplate !== null} onOpenChange={(open) => !open && setPreviewTemplate(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-            <DialogHeader className="p-6 pb-2 border-b bg-muted/20">
-              <div className="flex items-center justify-between">
-                <div>
-                  <DialogTitle className="font-serif text-xl flex items-center gap-2">
-                    <Eye className="h-5 w-5 text-primary" />
-                    {previewTemplate?.label}
-                  </DialogTitle>
-                  <DialogDescription className="text-xs mt-0.5">{previewTemplate?.description}</DialogDescription>
-                </div>
-                {previewTemplate && (
-                  <Badge variant="outline" className="font-mono text-xs">
-                    {previewTemplate.destination}
-                  </Badge>
-                )}
-              </div>
-            </DialogHeader>
-
-            {previewTemplate && (
-              <div className="p-6">
-                <ItineraryDocument
-                  data={{
-                    title: previewTemplate.title,
-                    customerName: "Preview Guest",
-                    destination: previewTemplate.destination,
-                    days: previewTemplate.days,
-                    stays: previewTemplate.stays,
-                    inclusions: previewTemplate.inclusions,
-                    exclusions: previewTemplate.exclusions,
-                    pricing: previewTemplate.pricing,
-                    currency: "INR",
-                  }}
-                />
-              </div>
-            )}
-
-            <DialogFooter className="p-4 border-t bg-muted/10 gap-2">
-              <Button variant="outline" onClick={() => setPreviewTemplate(null)}>
-                Close Preview
-              </Button>
-              {previewTemplate && (
-                <Button
-                  onClick={() => {
-                    const t = previewTemplate;
-                    setPreviewTemplate(null);
-                    reset(templateToFormValues(t));
-                    setTemplateChoice(t.id);
-                  }}
-                >
-                  <Check className="h-4 w-4 mr-1.5" /> Use This Template
-                </Button>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Phase 3B: AI Itinerary Assistant Modal (Accessible from template screen) */}
-        <AiItineraryAssistantModal
-          isOpen={showAiModal}
-          onClose={() => setShowAiModal(false)}
-          onApplyDraft={handleApplyAiDraft}
-          initialEnquiryId={aiEnquiryId}
-          currentFormData={{
-            customerName: watch("customerName"),
-            customerEmail: watch("customerEmail"),
-            customerPhone: watch("customerPhone"),
-            destination: watch("destination"),
-            startDate: watch("startDate"),
-            endDate: watch("endDate"),
-            title: watch("title"),
-            summary: watch("summary"),
-            days: watchedDays,
-            stays: watchedStays,
-            inclusions: watchedInclusions,
-            exclusions: watchedExclusions,
-          }}
-          isEdit={isEdit}
-        />
+            isEdit={isEdit}
+          />
+        )}
       </div>
     );
   }
@@ -762,7 +826,7 @@ export default function ItineraryBuilderPage() {
   // BUILDER FORM SCREEN (6 Visual Sections + Sticky Navigator)
   // -------------------------------------------------------------
   return (
-    <div data-testid="itinerary-builder-page" className="space-y-6 pb-24">
+    <div data-testid="itinerary-builder-page" className="space-y-6 pb-12">
       {/* Top Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -770,7 +834,7 @@ export default function ItineraryBuilderPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-serif text-foreground">{isEdit ? "Edit Itinerary Proposal" : "New Itinerary Proposal"}</h1>
+            <h1 className="text-3xl font-serif font-semibold text-foreground">{isEdit ? "Edit Itinerary Proposal" : "New Itinerary Proposal"}</h1>
             <p className="text-sm text-muted-foreground mt-0.5">
               Structured proposal editor with day plans, resort stays, transparent pricing, and public share links.
             </p>
@@ -798,114 +862,124 @@ export default function ItineraryBuilderPage() {
         )}
       </div>
 
-      {/* Integration & Public Usage Guide */}
-      <Alert className="border-primary/20 bg-primary/5">
-        <Info className="h-4 w-4 text-primary" />
-        <AlertTitle className="font-serif text-base font-medium">Itinerary Proposal Builder</AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground mt-1.5 space-y-1">
-          <p>
-            This proposal is shared with clients via <code className="text-foreground">/itinerary/:token</code> and in package mode at{" "}
-            <code className="text-foreground">/package/:token</code>.
-          </p>
-          <p>
-            <strong>Publishing requirement:</strong> Ensure status is set to <strong>Shared</strong> or <strong>Confirmed</strong> for the public link to resolve. <strong>Draft</strong> proposals return 404 to guests.
-          </p>
-          <p className="text-[11px] text-muted-foreground/80 italic">
-            Customer email and phone are internal booking records and never displayed on public share pages.
-          </p>
-        </AlertDescription>
-      </Alert>
-
       {/* Sticky Section Navigator & Action Bar */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur border-b border-border py-2.5 px-4 rounded-lg shadow-sm flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-1 overflow-x-auto text-xs font-medium py-1">
-          <button
-            type="button"
-            onClick={() => scrollToSection("section-details")}
-            className="px-2.5 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-          >
-            1. Trip Details
-          </button>
-          <span className="text-muted-foreground/40">›</span>
-          <button
-            type="button"
-            onClick={() => scrollToSection("section-days")}
-            className="px-2.5 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-          >
-            2. Days ({daysArray.fields.length})
-          </button>
-          <span className="text-muted-foreground/40">›</span>
-          <button
-            type="button"
-            onClick={() => scrollToSection("section-stays")}
-            className="px-2.5 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-          >
-            3. Stays ({staysArray.fields.length})
-          </button>
-          <span className="text-muted-foreground/40">›</span>
-          <button
-            type="button"
-            onClick={() => scrollToSection("section-terms")}
-            className="px-2.5 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-          >
-            4. Inclusions ({watchedInclusions.length})
-          </button>
-          <span className="text-muted-foreground/40">›</span>
-          <button
-            type="button"
-            onClick={() => scrollToSection("section-pricing")}
-            className="px-2.5 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-          >
-            5. Pricing ({priceItemsArray.fields.length})
-          </button>
-          <span className="text-muted-foreground/40">›</span>
-          <button
-            type="button"
-            onClick={() => scrollToSection("section-publishing")}
-            className="px-2.5 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors whitespace-nowrap"
-          >
-            6. Status &amp; Save
-          </button>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden sm:block">
-            <span className="text-[10px] text-muted-foreground uppercase font-mono tracking-wider block">Investment</span>
-            <span className="font-mono text-sm font-bold text-foreground">
-              {watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
-              {total.toLocaleString("en-IN")}
+      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border border-border/80 p-2 sm:px-4 rounded-lg shadow-xs flex flex-col gap-2 transition-all">
+        {/* Row 1: Proposal Title (Left) & Actions (Right) */}
+        <div className="flex items-center justify-between gap-3 w-full">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-serif text-sm font-semibold text-foreground tracking-tight truncate">
+              {watchedTitle ? watchedTitle : isEdit ? "Edit Proposal" : "New Itinerary Proposal"}
             </span>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setShowAiModal(true)}
-            className="border-emerald-600/40 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 gap-1.5"
-            data-testid="button-ai-assistant"
-          >
-            <Sparkles className="h-3.5 w-3.5" />
-            AI Assistant ✨
-          </Button>
+          <div className="flex items-center justify-end gap-2 shrink-0">
+            {/* AI Assistant Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAiModal(true)}
+              className="h-8 text-xs font-medium border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 gap-1.5 shrink-0"
+              data-testid="button-ai-assistant"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span className="hidden sm:inline">AI Assistant ✨</span>
+              <span className="sm:hidden">AI ✨</span>
+            </Button>
 
-          <Button type="button" variant="outline" size="sm" onClick={handleCancel}>
-            Cancel
-          </Button>
+            {/* Cancel Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleCancel}
+              className="h-8 text-xs font-medium text-muted-foreground hover:text-foreground shrink-0"
+              data-testid="button-cancel-itinerary"
+            >
+              Cancel
+            </Button>
 
-          <Button
-            type="button"
-            size="sm"
-            onClick={handleSubmit(onSubmit)}
-            disabled={createMutation.isPending || updateMutation.isPending}
-            data-testid="button-submit-itinerary"
+            {/* Create Proposal / Save Changes Primary Button */}
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleSubmit(onSubmit)}
+              disabled={createMutation.isPending || updateMutation.isPending}
+              className="h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs shrink-0 gap-1.5"
+              data-testid="button-submit-itinerary"
+            >
+              {createMutation.isPending || updateMutation.isPending ? (
+                <>
+                  <RefreshCw className="h-3 w-3 animate-spin" />
+                  Saving...
+                </>
+              ) : isEdit ? (
+                "Save Changes"
+              ) : (
+                "Create Proposal"
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Row 2: Six Workflow Steps */}
+        <div className="pt-1.5 border-t border-border/50 w-full overflow-x-auto no-scrollbar">
+          <nav
+            aria-label="Itinerary proposal sections"
+            className="flex items-center gap-1 sm:gap-1.5 min-w-max scroll-smooth"
           >
-            {createMutation.isPending || updateMutation.isPending
-              ? "Saving..."
-              : isEdit
-              ? "Save Changes"
-              : "Create Proposal"}
-          </Button>
+            {[
+              { id: "section-details", num: 1, label: "Trip Details" },
+              { id: "section-days", num: 2, label: "Days", count: daysArray.fields.length },
+              { id: "section-stays", num: 3, label: "Stays", count: staysArray.fields.length },
+              { id: "section-terms", num: 4, label: "Inclusions", count: watchedInclusions.length },
+              { id: "section-pricing", num: 5, label: "Pricing", count: priceItemsArray.fields.length },
+              { id: "section-publishing", num: 6, label: "Status & Save" },
+            ].map((step, idx, arr) => {
+              const isActive = activeSection === step.id;
+              return (
+                <div key={step.id} className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection(step.id)}
+                    aria-current={isActive ? "step" : undefined}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs transition-all shrink-0 whitespace-nowrap cursor-pointer ${
+                      isActive
+                        ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/70 font-medium"
+                    }`}
+                    data-testid={`step-nav-${step.id}`}
+                  >
+                    <span
+                      className={`flex items-center justify-center w-4 h-4 rounded-full text-[10px] font-bold shrink-0 ${
+                        isActive
+                          ? "bg-primary-foreground/20 text-primary-foreground"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {step.num}
+                    </span>
+                    <span>{step.label}</span>
+                    {step.count !== undefined && (
+                      <span
+                        className={`text-[11px] font-normal tabular-nums ${
+                          isActive ? "text-primary-foreground/80" : "text-muted-foreground/70"
+                        }`}
+                      >
+                        ({step.count})
+                      </span>
+                    )}
+                  </button>
+                  {idx < arr.length - 1 && (
+                    <ChevronRight
+                      className="h-3 w-3 text-muted-foreground/30 shrink-0 select-none"
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </nav>
         </div>
       </div>
 
@@ -920,9 +994,6 @@ export default function ItineraryBuilderPage() {
                 <FileText className="h-5 w-5 text-primary" />
                 1. Trip &amp; Customer Details
               </CardTitle>
-              <CardDescription className="text-xs">
-                Client identity, proposal heading, travel dates and executive trip summary.
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 pt-6">
               {/* Row 1: Customer details */}
@@ -937,9 +1008,6 @@ export default function ItineraryBuilderPage() {
                     placeholder="e.g. Mr. & Mrs. Iyer"
                     data-testid="input-customer-name"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Rendered as &ldquo;Prepared exclusively for [Name]&rdquo; in web proposal header.
-                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -952,9 +1020,6 @@ export default function ItineraryBuilderPage() {
                     {...register("customerEmail")}
                     placeholder="client@example.com"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Internal CRM record. Never shown on public share link or PDF dossier.
-                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -966,9 +1031,6 @@ export default function ItineraryBuilderPage() {
                     {...register("customerPhone")}
                     placeholder="+91 98765 43210"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Internal CRM record. Kept confidential.
-                  </p>
                 </div>
               </div>
 
@@ -984,9 +1046,6 @@ export default function ItineraryBuilderPage() {
                     placeholder="e.g. 7 Nights Kerala — The Spice & Backwaters Escape"
                     data-testid="input-title"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Main heading featured in client hero section, WhatsApp links, and PDF dossier title page.
-                  </p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -998,9 +1057,6 @@ export default function ItineraryBuilderPage() {
                     {...register("destination")}
                     placeholder="e.g. Kerala, India"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Displayed in the proposal summary tag and PDF cover badge.
-                  </p>
                 </div>
               </div>
 
@@ -1011,7 +1067,6 @@ export default function ItineraryBuilderPage() {
                     Start Date
                   </Label>
                   <Input id="startDate" type="date" {...register("startDate")} />
-                  <p className="text-[11px] text-muted-foreground">Proposal start / arrival date.</p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -1019,7 +1074,6 @@ export default function ItineraryBuilderPage() {
                     End Date
                   </Label>
                   <Input id="endDate" type="date" {...register("endDate")} />
-                  <p className="text-[11px] text-muted-foreground">Proposal departure date.</p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -1044,7 +1098,6 @@ export default function ItineraryBuilderPage() {
                       </Select>
                     )}
                   />
-                  <p className="text-[11px] text-muted-foreground">Applied across all pricing line items.</p>
                 </div>
               </div>
 
@@ -1060,7 +1113,6 @@ export default function ItineraryBuilderPage() {
                       onChange={field.onChange}
                       label="Cover photo"
                       size="wide"
-                      helperText="High-resolution hero banner for the online proposal and PDF dossier cover page."
                     />
                   )}
                 />
@@ -1075,11 +1127,8 @@ export default function ItineraryBuilderPage() {
                   id="summary"
                   {...register("summary")}
                   rows={3}
-                  placeholder="A bespoke luxury escape through Kochi's colonial alleys, mist-clad Munnar tea hills, and a private backwater cruise in Alleppey."
+                  placeholder="A route through Kochi's historic quarters, Munnar tea hills, and a backwater cruise in Alleppey."
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Executive summary displayed beneath the title on web proposals and printable dossier.
-                </p>
               </div>
             </CardContent>
           </Card>
@@ -1096,9 +1145,6 @@ export default function ItineraryBuilderPage() {
                   <Calendar className="h-5 w-5 text-primary" />
                   2. Day-by-Day Plan ({daysArray.fields.length} {daysArray.fields.length === 1 ? "Day" : "Days"})
                 </CardTitle>
-                <CardDescription className="text-xs">
-                  Chronological day schedule with day titles, photos, descriptions, and itemized timed activities.
-                </CardDescription>
               </div>
 
               <div className="flex flex-wrap items-center gap-2">
@@ -1210,7 +1256,7 @@ export default function ItineraryBuilderPage() {
                             {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
                           </button>
 
-                          <Badge variant="outline" className="font-mono text-xs font-semibold bg-background">
+                          <Badge variant="outline" className="text-xs font-semibold bg-background">
                             Day {dayIndex + 1}
                           </Badge>
 
@@ -1295,9 +1341,6 @@ export default function ItineraryBuilderPage() {
                   <Building className="h-5 w-5 text-primary" />
                   3. Accommodation Stays ({staysArray.fields.length})
                 </CardTitle>
-                <CardDescription className="text-xs">
-                  Resorts, heritage hotels, and houseboats selected for the client&apos;s itinerary.
-                </CardDescription>
               </div>
 
               <div className="flex items-center gap-2">
@@ -1387,7 +1430,7 @@ export default function ItineraryBuilderPage() {
                             {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
                           </button>
 
-                          <Badge variant="outline" className="font-mono text-xs font-semibold bg-background">
+                          <Badge variant="outline" className="text-xs font-semibold bg-background">
                             Stay {i + 1}
                           </Badge>
 
@@ -1472,9 +1515,6 @@ export default function ItineraryBuilderPage() {
                 <Layers className="h-5 w-5 text-primary" />
                 4. Inclusions &amp; Exclusions
               </CardTitle>
-              <CardDescription className="text-xs">
-                Line-by-line inclusions and exclusions rendered with distinctive icons on public proposals and PDF dossiers.
-              </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
               {/* Inclusions */}
@@ -1654,14 +1694,15 @@ export default function ItineraryBuilderPage() {
         <section id="section-pricing" className="scroll-mt-24">
           <Card>
             <CardHeader className="border-b bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
+              <div className="flex flex-wrap items-center gap-3">
                 <CardTitle className="text-lg font-serif flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-primary" />
                   5. Investment &amp; Pricing
                 </CardTitle>
-                <CardDescription className="text-xs">
-                  Line items breakdown, applicable taxes, discounts, and terms displayed to the client.
-                </CardDescription>
+                <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary tabular-nums">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total:</span>
+                  <span>{watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}{total.toLocaleString("en-IN")}</span>
+                </div>
               </div>
 
               <Button
@@ -1679,7 +1720,7 @@ export default function ItineraryBuilderPage() {
             <CardContent className="space-y-6 pt-6">
               {/* Line items list */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs font-mono uppercase text-muted-foreground px-1">
+                <div className="flex items-center justify-between text-xs font-semibold uppercase text-muted-foreground px-1">
                   <span>Component / Item Label</span>
                   <span className="w-48 text-right">Amount ({watchedCurrency})</span>
                 </div>
@@ -1715,7 +1756,7 @@ export default function ItineraryBuilderPage() {
                           step="1"
                           {...register(`pricing.items.${i}.amount` as const, { valueAsNumber: true })}
                           placeholder="0"
-                          className="pl-8 text-right font-mono"
+                          className="pl-8 text-right"
                         />
                       </div>
                       <Button
@@ -1772,10 +1813,9 @@ export default function ItineraryBuilderPage() {
                       step="1"
                       {...register("pricing.discount", { valueAsNumber: true })}
                       placeholder="0"
-                      className="pl-8 font-mono"
+                      className="pl-8"
                     />
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Deducted from line items subtotal.</p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -1793,10 +1833,9 @@ export default function ItineraryBuilderPage() {
                       step="1"
                       {...register("pricing.taxes", { valueAsNumber: true })}
                       placeholder="0"
-                      className="pl-8 font-mono"
+                      className="pl-8"
                     />
                   </div>
-                  <p className="text-[11px] text-muted-foreground">Added to net investment (e.g. 5% GST).</p>
                 </div>
               </div>
 
@@ -1810,16 +1849,13 @@ export default function ItineraryBuilderPage() {
                   {...register("pricing.notes")}
                   placeholder="e.g. Price valid for travel completed before March 31, 2027. 5% GST included."
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Displays beneath the total investment card on web proposals and PDF dossiers.
-                </p>
               </div>
 
               {/* Summary Calculation Box */}
               <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>Line Items Subtotal:</span>
-                  <span className="font-mono">
+                  <span className="font-medium text-foreground tabular-nums">
                     {watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
                     {(
                       (watchedPricing?.items || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
@@ -1829,7 +1865,7 @@ export default function ItineraryBuilderPage() {
                 {!!watchedPricing?.discount && (
                   <div className="flex justify-between text-xs text-emerald-600 dark:text-emerald-400">
                     <span>Discount:</span>
-                    <span className="font-mono">
+                    <span className="font-medium tabular-nums">
                       -{watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
                       {Number(watchedPricing.discount).toLocaleString("en-IN")}
                     </span>
@@ -1838,7 +1874,7 @@ export default function ItineraryBuilderPage() {
                 {!!watchedPricing?.taxes && (
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Taxes &amp; Fees:</span>
-                    <span className="font-mono">
+                    <span className="font-medium text-foreground tabular-nums">
                       +{watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
                       {Number(watchedPricing.taxes).toLocaleString("en-IN")}
                     </span>
@@ -1846,7 +1882,7 @@ export default function ItineraryBuilderPage() {
                 )}
                 <div className="flex justify-between items-baseline pt-2 border-t border-primary/20 font-serif">
                   <span className="text-base font-semibold text-foreground">Total Proposal Investment:</span>
-                  <span className="text-2xl font-mono font-bold text-primary">
+                  <span className="text-2xl font-bold text-primary tabular-nums">
                     {watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
                     {total.toLocaleString("en-IN")}
                   </span>
@@ -1860,182 +1896,411 @@ export default function ItineraryBuilderPage() {
             SECTION 6: STATUS, PUBLISHING & SHARING
         ============================================================ */}
         <section id="section-publishing" className="scroll-mt-24">
-          <Card>
+          <Card className="border border-border shadow-xs">
             <CardHeader className="border-b bg-muted/20">
-              <CardTitle className="text-lg font-serif flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-primary" />
-                6. Status, Publishing &amp; Client Access
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Control proposal visibility and access client share links.
+              <div className="flex items-center justify-between gap-2">
+                <CardTitle className="text-lg font-serif flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-primary" />
+                  6. Status, Publishing &amp; Client Access
+                </CardTitle>
+                <span className="text-xs font-sans font-medium text-muted-foreground hidden sm:inline">
+                  Step 6 of 6 · Proposal Finalization
+                </span>
+              </div>
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                Configure proposal visibility, client sharing access, dedicated journey curator contacts, and perform pre-flight verification before publishing.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 pt-6">
-              {/* Status Selector */}
-              <div className="space-y-2">
-                <Label className="font-medium text-xs">Proposal Status</Label>
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full sm:w-80">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-muted-foreground" />
-                            <span>Draft (Internal — Inaccessible to guests)</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="shared">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-blue-500" />
-                            <span>Shared (Active — Viewable via client link)</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="confirmed">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                            <span>Confirmed (Accepted &amp; Confirmed booking)</span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Left Column: Status, Client Access, and Curator & Concierge */}
+                <div className="lg:col-span-7 space-y-6">
+                  {/* Proposal Status Selection */}
+                  <div className="space-y-3">
+                    <Label className="font-medium text-xs">Proposal Status</Label>
+                    <Controller
+                      control={control}
+                      name="status"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="draft">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-muted-foreground" />
+                                <span>Draft (Internal — Inaccessible to guests)</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="shared">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-blue-500" />
+                                <span>Shared (Active — Viewable via client link)</span>
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="confirmed">
+                              <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                                <span>Confirmed (Accepted &amp; Confirmed booking)</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
 
-                <div className="text-xs text-muted-foreground space-y-1 mt-1">
-                  {watchedStatus === "draft" && (
-                    <p className="text-amber-600 dark:text-amber-400 flex items-center gap-1.5 font-medium">
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                      Status is Draft: Client links return a 404 error until status is changed to &apos;Shared&apos; or &apos;Confirmed&apos;.
-                    </p>
-                  )}
-                  {watchedStatus === "shared" && (
-                    <p className="text-blue-600 dark:text-blue-400 flex items-center gap-1.5 font-medium">
-                      <Check className="h-3.5 w-3.5" />
-                      Status is Shared: The proposal is active and clients can view it online or proceed to payment via WhatsApp.
-                    </p>
-                  )}
-                  {watchedStatus === "confirmed" && (
-                    <p className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-medium">
-                      <Check className="h-3.5 w-3.5" />
-                      Status is Confirmed: Booking is officially locked.
-                    </p>
-                  )}
-                </div>
-              </div>
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      {watchedStatus === "draft" && (
+                        <div className="rounded-md bg-amber-500/10 border border-amber-500/20 p-3 text-amber-700 dark:text-amber-400 flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+                          <div>
+                            <span className="font-semibold block">Draft Mode (Private)</span>
+                            <span className="text-[11px] leading-relaxed block text-amber-700/90 dark:text-amber-400/90">
+                              Client public links return a 404 error until status is changed to &apos;Shared&apos; or &apos;Confirmed&apos;. Only authenticated admin staff can preview this itinerary proposal.
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      {watchedStatus === "shared" && (
+                        <div className="rounded-md bg-blue-500/10 border border-blue-500/20 p-3 text-blue-700 dark:text-blue-400 flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-blue-600" />
+                          <div>
+                            <span className="font-semibold block">Shared Mode (Active Link)</span>
+                            <span className="text-[11px] leading-relaxed block text-blue-700/90 dark:text-blue-400/90">
+                              The proposal is published. Guests can view the responsive presentation online, inspect day-by-day plans and resort stays, and proceed to booking/payment via WhatsApp.
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      {watchedStatus === "confirmed" && (
+                        <div className="rounded-md bg-emerald-500/10 border border-emerald-500/20 p-3 text-emerald-700 dark:text-emerald-400 flex items-start gap-2">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-600" />
+                          <div>
+                            <span className="font-semibold block">Confirmed Booking</span>
+                            <span className="text-[11px] leading-relaxed block text-emerald-700/90 dark:text-emerald-400/90">
+                              Proposal has been confirmed and accepted. The itinerary serves as the official client trip dossier and booking reference.
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Share links display (when editing existing) */}
-              {isEdit && existing && (
-                <div className="border rounded-lg p-4 bg-muted/20 space-y-3">
-                  <h4 className="font-serif text-sm font-semibold flex items-center gap-2">
-                    <ExternalLink className="h-4 w-4 text-primary" />
-                    Public Share URLs
-                  </h4>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                    {/* Itinerary Link */}
-                    <div className="border rounded-md p-3 bg-background space-y-1.5">
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground block">
-                        Client Dossier URL
-                      </span>
-                      <code className="text-[11px] block truncate text-foreground">
-                        {SHARE_BASE_URL}/itinerary/{existing.shareToken}
-                      </code>
-                      <div className="flex items-center gap-2 pt-1">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs flex-1"
-                          onClick={() => {
-                            const url = `${SHARE_BASE_URL}/itinerary/${existing.shareToken}`;
-                            navigator.clipboard.writeText(url);
-                            toast({ title: "Copied Client Itinerary URL" });
-                          }}
-                        >
-                          <Copy className="h-3 w-3 mr-1" /> Copy
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs"
-                          onClick={() => {
-                            const isLocal =
-                              typeof window !== "undefined" &&
-                              (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-                            const base = isLocal ? "http://localhost:3000" : SHARE_BASE_URL;
-                            window.open(`${base}/itinerary/${existing.shareToken}`, "_blank");
-                          }}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" /> Open
-                        </Button>
-                      </div>
+                  {/* Client Access & Sharing URLs */}
+                  <div className="border rounded-lg p-4 bg-muted/20 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="font-serif text-sm font-semibold flex items-center gap-2 text-foreground">
+                        <ExternalLink className="h-4 w-4 text-primary" />
+                        Client Sharing &amp; Access URLs
+                      </h4>
+                      {isEdit && existing ? (
+                        <span className="text-[11px] text-muted-foreground font-mono">
+                          Ref: {existing.shareToken.slice(0, 8).toUpperCase()}
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-primary bg-primary/10 px-2 py-0.5 rounded-full font-medium">
+                          Token generated on save
+                        </span>
+                      )}
                     </div>
 
-                    {/* Package Link */}
-                    <div className="border rounded-md p-3 bg-background space-y-1.5">
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground block">
-                        Package Mode URL
-                      </span>
-                      <code className="text-[11px] block truncate text-foreground">
-                        {SHARE_BASE_URL}/package/{existing.shareToken}
-                      </code>
-                      <div className="flex items-center gap-2 pt-1">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs flex-1"
-                          onClick={() => {
-                            const url = `${SHARE_BASE_URL}/package/${existing.shareToken}`;
-                            navigator.clipboard.writeText(url);
-                            toast({ title: "Copied Package URL" });
-                          }}
-                        >
-                          <Copy className="h-3 w-3 mr-1" /> Copy
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 text-xs"
-                          onClick={() => {
-                            const isLocal =
-                              typeof window !== "undefined" &&
-                              (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-                            const base = isLocal ? "http://localhost:3000" : SHARE_BASE_URL;
-                            window.open(`${base}/package/${existing.shareToken}`, "_blank");
-                          }}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" /> Open
-                        </Button>
+                    {isEdit && existing ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        {/* Itinerary Link */}
+                        <div className="border rounded-md p-3 bg-background space-y-1.5 shadow-2xs">
+                          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
+                            Client Dossier URL
+                          </span>
+                          <code className="text-[11px] block truncate text-foreground font-mono bg-muted/40 px-1.5 py-0.5 rounded">
+                            {SHARE_BASE_URL}/itinerary/{existing.shareToken}
+                          </code>
+                          <div className="flex items-center gap-2 pt-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs flex-1"
+                              onClick={() => {
+                                const url = `${SHARE_BASE_URL}/itinerary/${existing.shareToken}`;
+                                navigator.clipboard.writeText(url);
+                                toast({ title: "Copied Client Itinerary URL" });
+                              }}
+                            >
+                              <Copy className="h-3 w-3 mr-1" /> Copy
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={() => {
+                                const isLocal =
+                                  typeof window !== "undefined" &&
+                                  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+                                const base = isLocal ? "http://localhost:3000" : SHARE_BASE_URL;
+                                window.open(`${base}/itinerary/${existing.shareToken}`, "_blank");
+                              }}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" /> Open
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Package Link */}
+                        <div className="border rounded-md p-3 bg-background space-y-1.5 shadow-2xs">
+                          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
+                            Package Mode URL
+                          </span>
+                          <code className="text-[11px] block truncate text-foreground font-mono bg-muted/40 px-1.5 py-0.5 rounded">
+                            {SHARE_BASE_URL}/package/{existing.shareToken}
+                          </code>
+                          <div className="flex items-center gap-2 pt-1">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs flex-1"
+                              onClick={() => {
+                                const url = `${SHARE_BASE_URL}/package/${existing.shareToken}`;
+                                navigator.clipboard.writeText(url);
+                                toast({ title: "Copied Package URL" });
+                              }}
+                            >
+                              <Copy className="h-3 w-3 mr-1" /> Copy
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 text-xs"
+                              onClick={() => {
+                                const isLocal =
+                                  typeof window !== "undefined" &&
+                                  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+                                const base = isLocal ? "http://localhost:3000" : SHARE_BASE_URL;
+                                window.open(`${base}/package/${existing.shareToken}`, "_blank");
+                              }}
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" /> Open
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="rounded-md border border-dashed border-primary/20 bg-primary/5 p-3.5 text-xs text-muted-foreground space-y-2">
+                        <div className="flex items-center gap-2 text-foreground font-medium">
+                          <Sparkles className="h-4 w-4 text-primary" />
+                          <span>Instant Client Portal &amp; WhatsApp Integration</span>
+                        </div>
+                        <p className="text-[11px] leading-relaxed text-muted-foreground">
+                          When you save this proposal, Escora automatically generates a cryptographically secure, permanent guest token. You will receive direct links for both the interactive luxury web dossier and the streamlined package summary, ready for WhatsApp and email dispatch.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Journey Curator & 24/7 Concierge Contacts */}
+                  <div className="border rounded-lg p-4 bg-muted/20 space-y-4">
+                    <div>
+                      <h4 className="font-serif text-sm font-semibold flex items-center gap-2 text-foreground">
+                        <UserCheck className="h-4 w-4 text-primary" />
+                        Dedicated Journey Curator &amp; 24/7 Concierge
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        These contacts appear on client web itineraries, downloadable PDFs, and confirmation emails.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="curatorName" className="font-medium text-xs flex items-center gap-1.5">
+                          <User className="h-3 w-3 text-muted-foreground" />
+                          Curator Name
+                        </Label>
+                        <Input
+                          id="curatorName"
+                          {...register("curatorName")}
+                          placeholder="e.g. Midhilaj Chelakkal"
+                          className="bg-background text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label htmlFor="curatorPhone" className="font-medium text-xs flex items-center gap-1.5">
+                          <Phone className="h-3 w-3 text-muted-foreground" />
+                          Curator Phone / WhatsApp
+                        </Label>
+                        <Input
+                          id="curatorPhone"
+                          {...register("curatorPhone")}
+                          placeholder="e.g. +91 75929 98800"
+                          className="bg-background text-xs"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5 sm:col-span-2">
+                        <Label htmlFor="emergencyContacts" className="font-medium text-xs flex items-center gap-1.5">
+                          <ShieldCheck className="h-3 w-3 text-muted-foreground" />
+                          24/7 Escora Guest Concierge &amp; Helpline
+                        </Label>
+                        <Input
+                          id="emergencyContacts"
+                          {...register("emergencyContacts")}
+                          placeholder="e.g. 24/7 Escora Guest Concierge: +91 75929 98800"
+                          className="bg-background text-xs"
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
 
-              {/* Bottom Actions */}
-              <div className="flex justify-end items-center gap-3 pt-4 border-t border-border">
-                <Button type="button" variant="outline" onClick={handleCancel}>
-                  <ChevronLeft className="h-4 w-4 mr-1" /> Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending || updateMutation.isPending}
-                  data-testid="button-submit-itinerary-bottom"
-                >
-                  {createMutation.isPending || updateMutation.isPending
-                    ? "Saving Proposal..."
-                    : isEdit
-                    ? "Save Changes"
-                    : "Create Proposal"}
-                </Button>
+                {/* Right Column: Pre-Flight Summary & Verification */}
+                <div className="lg:col-span-5 space-y-5 flex flex-col justify-between">
+                  <div className="space-y-5">
+                    {/* Pre-Flight Proposal Summary Card */}
+                    <div className="rounded-lg border border-border bg-card p-4 space-y-3.5 shadow-xs">
+                      <div className="flex items-center justify-between pb-2 border-b border-border">
+                        <span className="font-serif text-sm font-semibold text-foreground flex items-center gap-1.5">
+                          <FileText className="h-4 w-4 text-primary" />
+                          Proposal Overview
+                        </span>
+                        <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider">
+                          {watchedStatus}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-muted-foreground shrink-0">Client:</span>
+                          <span className="font-medium text-foreground text-right truncate">
+                            {watchedCustomerName || "—"}
+                          </span>
+                        </div>
+                        {(watchedCustomerPhone || watchedCustomerEmail) && (
+                          <div className="flex justify-between items-center gap-2 text-[11px] text-muted-foreground">
+                            <span>Contact:</span>
+                            <span className="truncate text-right">
+                              {watchedCustomerPhone} {watchedCustomerEmail ? `(${watchedCustomerEmail})` : ""}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-muted-foreground shrink-0">Destination:</span>
+                          <span className="font-medium text-foreground text-right truncate">
+                            {watchedDestination || "Kerala & Beyond"}
+                          </span>
+                        </div>
+                        {calculatedDuration && (
+                          <div className="flex justify-between items-center gap-2">
+                            <span className="text-muted-foreground">Duration:</span>
+                            <span className="font-medium text-foreground">{calculatedDuration}</span>
+                          </div>
+                        )}
+                        <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border/60 text-center">
+                          <div className="rounded bg-muted/40 p-2">
+                            <span className="text-[10px] text-muted-foreground block uppercase font-medium">Days</span>
+                            <span className="font-serif text-sm font-semibold text-foreground">{watchedDays.length}</span>
+                          </div>
+                          <div className="rounded bg-muted/40 p-2">
+                            <span className="text-[10px] text-muted-foreground block uppercase font-medium">Stays</span>
+                            <span className="font-serif text-sm font-semibold text-foreground">{watchedStays.length}</span>
+                          </div>
+                          <div className="rounded bg-muted/40 p-2">
+                            <span className="text-[10px] text-muted-foreground block uppercase font-medium">Inclusions</span>
+                            <span className="font-serif text-sm font-semibold text-foreground">{watchedInclusions.length}</span>
+                          </div>
+                        </div>
+
+                        {/* Total Investment Display */}
+                        <div className="pt-2.5 border-t border-border/80 flex items-baseline justify-between">
+                          <span className="text-xs font-medium text-muted-foreground">Total Investment:</span>
+                          <span className="font-serif text-lg font-bold text-primary tabular-nums">
+                            {watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
+                            {total.toLocaleString("en-IN")}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pre-Save Verification Checklist */}
+                    <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-2.5">
+                      <span className="text-xs font-semibold text-foreground block">
+                        Pre-Save Quality Checklist
+                      </span>
+                      <div className="space-y-1.5">
+                        {verificationChecks.map((chk, i) => (
+                          <div key={i} className="flex items-center justify-between text-xs py-0.5">
+                            <span className="flex items-center gap-1.5 text-muted-foreground">
+                              {chk.passed ? (
+                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                              ) : chk.optional ? (
+                                <Info className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+                              ) : (
+                                <AlertTriangle className="h-3.5 w-3.5 text-amber-500 shrink-0" />
+                              )}
+                              <span>{chk.label}</span>
+                            </span>
+                            <span
+                              className={`text-[11px] truncate max-w-[150px] text-right ${
+                                chk.passed
+                                  ? "text-emerald-700 dark:text-emerald-400 font-medium"
+                                  : chk.optional
+                                  ? "text-muted-foreground"
+                                  : "text-amber-600 dark:text-amber-400 font-medium"
+                              }`}
+                            >
+                              {chk.hint}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Step Navigation & Action Buttons */}
+                  <div className="space-y-2 pt-2">
+                    <Button
+                      type="submit"
+                      disabled={createMutation.isPending || updateMutation.isPending}
+                      className="w-full h-10 text-xs font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm gap-2"
+                      data-testid="button-submit-itinerary-bottom"
+                    >
+                      {createMutation.isPending || updateMutation.isPending ? (
+                        <>
+                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                          <span>Saving Proposal...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="h-4 w-4" />
+                          <span>{isEdit ? "Save Changes" : "Create Proposal ✨"}</span>
+                        </>
+                      )}
+                    </Button>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => scrollToSection("section-pricing")}
+                        className="flex-1 h-8 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back to Pricing
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleCancel}
+                        className="h-8 text-xs text-muted-foreground hover:text-destructive"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -2078,9 +2343,6 @@ export default function ItineraryBuilderPage() {
             <DialogTitle className="font-serif text-lg capitalize">
               Paste or Edit {bulkTermsModal}
             </DialogTitle>
-            <DialogDescription className="text-xs">
-              Enter one item per line. Useful when pasting from client emails or proposal notes.
-            </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <Textarea
@@ -2103,7 +2365,7 @@ export default function ItineraryBuilderPage() {
       {/* Phase 3B: AI Itinerary Assistant Modal */}
       <AiItineraryAssistantModal
         isOpen={showAiModal}
-        onClose={() => setShowAiModal(false)}
+        onClose={handleCloseAiModal}
         onApplyDraft={handleApplyAiDraft}
         initialEnquiryId={aiEnquiryId}
         currentFormData={{
@@ -2220,7 +2482,7 @@ function DayCardBody({
                 <Input
                   {...register(`days.${dayIndex}.activities.${actIndex}.time` as const)}
                   placeholder="e.g. 09:30"
-                  className="w-24 text-xs font-mono h-8"
+                  className="w-24 text-xs h-8"
                 />
                 <Input
                   {...register(`days.${dayIndex}.activities.${actIndex}.title` as const, { required: true })}

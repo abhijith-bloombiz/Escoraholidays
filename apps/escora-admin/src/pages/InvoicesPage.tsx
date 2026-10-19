@@ -62,17 +62,17 @@ const PRINT_TARGET_ID = "invoice-print-target";
 function statusBadge(status: string) {
   switch (status) {
     case "paid":
-      return <Badge className="bg-emerald-800 hover:bg-emerald-900 text-white font-mono text-[11px] uppercase tracking-wider">Paid</Badge>;
+      return <Badge className="bg-emerald-800 hover:bg-emerald-900 text-white text-[11px] font-medium uppercase tracking-wide">Paid</Badge>;
     case "partially_paid":
-      return <Badge className="bg-stone-700 hover:bg-stone-800 text-white font-mono text-[11px] uppercase tracking-wider">Partial</Badge>;
+      return <Badge className="bg-stone-700 hover:bg-stone-800 text-white text-[11px] font-medium uppercase tracking-wide">Partial</Badge>;
     case "overdue":
-      return <Badge variant="destructive" className="font-mono text-[11px] uppercase tracking-wider">Overdue</Badge>;
+      return <Badge variant="destructive" className="text-[11px] font-medium uppercase tracking-wide">Overdue</Badge>;
     case "cancelled":
-      return <Badge variant="outline" className="text-muted-foreground font-mono text-[11px] uppercase tracking-wider">Cancelled</Badge>;
+      return <Badge variant="outline" className="text-muted-foreground text-[11px] font-medium uppercase tracking-wide">Cancelled</Badge>;
     case "draft":
-      return <Badge variant="secondary" className="font-mono text-[11px] uppercase tracking-wider">Draft</Badge>;
+      return <Badge variant="secondary" className="text-[11px] font-medium uppercase tracking-wide">Draft</Badge>;
     default:
-      return <Badge className="bg-[#183a27] hover:bg-[#122c1e] text-white font-mono text-[11px] uppercase tracking-wider">Issued</Badge>;
+      return <Badge className="bg-[#183a27] hover:bg-[#122c1e] text-white text-[11px] font-medium uppercase tracking-wide">Issued</Badge>;
   }
 }
 
@@ -301,9 +301,9 @@ export default function InvoicesPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-foreground">Invoices &amp; Billing</h1>
+          <h1 className="text-3xl font-serif font-semibold text-foreground">Invoices &amp; Billing</h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Manage client billing, tax vouchers, payment reconciliations, and luxury PDF exports.
+            Manage client billing, tax invoices, payment reconciliations, and PDF exports.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -338,7 +338,7 @@ export default function InvoicesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-border/60 bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground font-semibold">
+            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
               Total Invoiced
             </CardTitle>
             <Receipt className="h-4 w-4 text-muted-foreground" />
@@ -353,7 +353,7 @@ export default function InvoicesPage() {
 
         <Card className="border-border/60 bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground font-semibold">
+            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
               Collected Revenue
             </CardTitle>
             <CheckCircle className="h-4 w-4 text-emerald-600" />
@@ -368,7 +368,7 @@ export default function InvoicesPage() {
 
         <Card className="border-border/60 bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground font-semibold">
+            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
               Outstanding Balance
             </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -383,7 +383,7 @@ export default function InvoicesPage() {
 
         <Card className="border-border/60 bg-card">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-xs font-mono uppercase tracking-wider text-muted-foreground font-semibold">
+            <CardTitle className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
               Overdue Vouchers
             </CardTitle>
             <AlertCircle className="h-4 w-4 text-rose-500" />
@@ -432,13 +432,13 @@ export default function InvoicesPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40">
-              <TableHead className="font-mono text-xs uppercase tracking-wider">Invoice #</TableHead>
-              <TableHead className="font-mono text-xs uppercase tracking-wider">Guest &amp; Contact</TableHead>
-              <TableHead className="font-mono text-xs uppercase tracking-wider">Trip / Reference</TableHead>
-              <TableHead className="font-mono text-xs uppercase tracking-wider">Date &amp; Due</TableHead>
-              <TableHead className="font-mono text-xs uppercase tracking-wider">Status</TableHead>
-              <TableHead className="font-mono text-xs uppercase tracking-wider text-right">Total (INR)</TableHead>
-              <TableHead className="font-mono text-xs uppercase tracking-wider text-right">Balance</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider">Invoice #</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider">Guest &amp; Contact</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider">Trip / Reference</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider">Date &amp; Due</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider">Status</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">Total (INR)</TableHead>
+              <TableHead className="text-xs font-semibold uppercase tracking-wider text-right">Balance</TableHead>
               <TableHead className="w-12 text-center"></TableHead>
             </TableRow>
           </TableHeader>
@@ -462,7 +462,7 @@ export default function InvoicesPage() {
                     <p className="text-xs text-muted-foreground max-w-sm">
                       {searchQuery || filterStatus !== "all"
                         ? "Try clearing your filters or search terms."
-                        : "Create your first luxury invoice voucher or generate a sample."}
+                        : "Create your first invoice or generate a sample."}
                     </p>
                     <div className="flex items-center gap-2 pt-2">
                       <Button size="sm" onClick={() => navigate("/invoices/new")} className="gap-1.5 font-medium">
@@ -513,10 +513,10 @@ export default function InvoicesPage() {
                     </div>
                   </TableCell>
                   <TableCell>{statusBadge(inv.status)}</TableCell>
-                  <TableCell className="text-right font-mono font-medium text-sm text-foreground">
+                  <TableCell className="text-right font-medium text-sm text-foreground tabular-nums">
                     {formatMoney(inv.totalAmount, inv.currency)}
                   </TableCell>
-                  <TableCell className="text-right font-mono text-xs font-semibold text-foreground">
+                  <TableCell className="text-right text-xs font-semibold text-foreground tabular-nums">
                     {formatMoney(inv.balanceDue, inv.currency)}
                   </TableCell>
                   <TableCell className="text-center">

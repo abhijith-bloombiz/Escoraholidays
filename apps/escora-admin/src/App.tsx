@@ -7,6 +7,8 @@ import DashboardPage from "@/pages/DashboardPage";
 import DestinationsPage from "@/pages/DestinationsPage";
 import PackagesPage from "@/pages/PackagesPage";
 import ItinerariesPage from "@/pages/ItinerariesPage";
+import ItineraryDetailPage from "@/pages/ItineraryDetailPage";
+import ItineraryCreatePage from "@/pages/ItineraryCreatePage";
 import ItineraryBuilderPage from "@/pages/ItineraryBuilderPage";
 import InvoicesPage from "@/pages/InvoicesPage";
 import InvoiceBuilderPage from "@/pages/InvoiceBuilderPage";
@@ -15,6 +17,7 @@ import JournalPage from "@/pages/JournalPage";
 import MediaPage from "@/pages/MediaPage";
 import EnquiriesPage from "@/pages/EnquiriesPage";
 import CampaignsPage from "@/pages/CampaignsPage";
+import WhatsAppPage from "@/pages/WhatsAppPage";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/LoginPage";
 import ItineraryPdfPreviewPage from "@/pages/ItineraryPdfPreviewPage";
@@ -39,7 +42,7 @@ function ProtectedRouter() {
         background: "#0f1a12",
       }}>
         <div style={{
-          fontFamily: "'Playfair Display', Georgia, serif",
+          fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           fontSize: "24px",
           fontWeight: 400,
           color: "#cbab6e",
@@ -61,8 +64,14 @@ function ProtectedRouter() {
         <Route path="/" component={DashboardPage} />
         <Route path="/destinations" component={DestinationsPage} />
         <Route path="/packages" component={PackagesPage} />
+        <Route path="/itineraries/create" component={ItineraryCreatePage} />
+        <Route path="/itinerary/create" component={ItineraryBuilderPage} />
         <Route path="/itineraries/new" component={ItineraryBuilderPage} />
+        <Route path="/itinerary/new" component={ItineraryBuilderPage} />
         <Route path="/itineraries/:id/edit" component={ItineraryBuilderPage} />
+        <Route path="/itinerary/:id/edit" component={ItineraryBuilderPage} />
+        <Route path="/itineraries/:id" component={ItineraryDetailPage} />
+        <Route path="/itinerary/:id" component={ItineraryDetailPage} />
         <Route path="/itineraries" component={ItinerariesPage} />
         <Route path="/invoices/new" component={InvoiceBuilderPage} />
         <Route path="/invoices/:id/edit" component={InvoiceBuilderPage} />
@@ -72,6 +81,7 @@ function ProtectedRouter() {
         <Route path="/media" component={MediaPage} />
         <Route path="/enquiries" component={EnquiriesPage} />
         <Route path="/campaigns" component={CampaignsPage} />
+        <Route path="/whatsapp" component={WhatsAppPage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

@@ -32,7 +32,7 @@ export default function InvoicePrintDocument({
           width: PAGE_WIDTH_PX,
           minHeight: 1122.5,
           backgroundColor: PAPER_BG,
-          fontFamily: "'Playfair Display', Georgia, serif",
+          fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           color: "#18201b",
           boxSizing: "border-box",
         }}
@@ -47,7 +47,7 @@ export default function InvoicePrintDocument({
                   alt="Escora"
                   className="h-8 w-auto mb-2 brightness-0 opacity-90"
                 />
-                <p className="text-[10px] font-mono tracking-[0.2em] uppercase font-bold text-[#153925]">
+                <p className="text-[10px] font-sans tracking-[0.2em] uppercase font-bold text-[#153925]">
                   Escora Holidays Private Limited
                 </p>
                 <p className="text-[11px] leading-relaxed text-stone-600 font-sans">
@@ -67,7 +67,7 @@ export default function InvoicePrintDocument({
                   <h1 className="text-2xl font-serif font-bold tracking-widest uppercase text-stone-900">
                     Tax Invoice
                   </h1>
-                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase font-semibold border border-stone-300 bg-stone-100 text-[#153925]">
+                  <span className="inline-block mt-1 px-2.5 py-0.5 rounded text-[10px] font-sans tracking-wider uppercase font-semibold border border-stone-300 bg-stone-100 text-[#153925]">
                     {statusUpper}
                   </span>
                 </div>
@@ -78,7 +78,7 @@ export default function InvoicePrintDocument({
             <div className="grid grid-cols-2 gap-8 my-6 text-sm font-sans">
               {/* Billed To */}
               <div className="bg-stone-50/80 p-4 rounded border border-stone-200">
-                <p className="text-[10px] font-mono uppercase tracking-widest font-bold text-[#153925] mb-2">
+                <p className="text-[10px] font-sans uppercase tracking-widest font-bold text-[#153925] mb-2">
                   Billed To
                 </p>
                 <p className="text-base font-serif font-bold text-stone-900 leading-snug">
@@ -105,7 +105,7 @@ export default function InvoicePrintDocument({
               {/* Invoice Specifics */}
               <div className="bg-stone-50/80 p-4 rounded border border-stone-200 flex flex-col justify-between">
                 <div>
-                  <p className="text-[10px] font-mono uppercase tracking-widest font-bold text-[#153925] mb-2">
+                  <p className="text-[10px] font-sans uppercase tracking-widest font-bold text-[#153925] mb-2">
                     Invoice Details
                   </p>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
@@ -146,8 +146,8 @@ export default function InvoicePrintDocument({
 
             {/* Subject / Journey Title */}
             <div className="mb-6 px-4 py-2.5 rounded bg-stone-50 border-l-2 border-[#153925]">
-              <span className="text-[10px] font-mono tracking-widest uppercase font-semibold text-[#153925] block">
-                Journey / Service Reference
+              <span className="text-[10px] font-sans tracking-widest uppercase font-semibold text-[#153925] block">
+                Package Details
               </span>
               <p className="text-sm font-serif font-bold text-stone-900">{invoice.title}</p>
             </div>
@@ -156,7 +156,7 @@ export default function InvoicePrintDocument({
             <div className="rounded border border-stone-200 overflow-hidden bg-white mb-6">
               <table className="w-full text-left font-sans text-xs">
                 <thead>
-                  <tr className="bg-[#153925] text-white font-mono text-[10px] uppercase tracking-wider">
+                  <tr className="bg-[#153925] text-white font-sans text-[10px] font-bold uppercase tracking-wider">
                     <th className="py-2.5 px-3 w-10 text-center">#</th>
                     <th className="py-2.5 px-4">Service Description</th>
                     <th className="py-2.5 px-3 w-20 text-center">HSN/SAC</th>
@@ -185,10 +185,10 @@ export default function InvoicePrintDocument({
                         <td className="py-3 px-3 text-center font-mono text-stone-700">
                           {item.quantity || 1}
                         </td>
-                        <td className="py-3 px-4 text-right font-mono text-stone-800">
+                        <td className="py-3 px-4 text-right font-sans text-stone-800 tabular-nums">
                           {formatMoney(item.rate, invoice.currency)}
                         </td>
-                        <td className="py-3 px-4 text-right font-mono font-semibold text-stone-900">
+                        <td className="py-3 px-4 text-right font-sans font-semibold text-stone-900 tabular-nums">
                           {formatMoney(item.amount || item.quantity * item.rate, invoice.currency)}
                         </td>
                       </tr>
@@ -202,7 +202,7 @@ export default function InvoicePrintDocument({
                 <div className="flex justify-between items-start">
                   {/* Amount in words */}
                   <div className="max-w-[420px] pr-4 space-y-1">
-                    <span className="text-[10px] font-mono tracking-wider uppercase font-semibold text-[#153925] block">
+                    <span className="text-[10px] font-sans tracking-wider uppercase font-semibold text-[#153925] block">
                       Amount Chargeable (in words):
                     </span>
                     <p className="text-xs font-serif italic text-stone-800 leading-snug font-semibold">
@@ -214,7 +214,7 @@ export default function InvoicePrintDocument({
                   <div className="w-64 space-y-2">
                     <div className="flex justify-between text-stone-600">
                       <span>Subtotal:</span>
-                      <span className="font-mono font-medium">{formatMoney(invoice.subtotal, invoice.currency)}</span>
+                      <span className="font-sans font-medium tabular-nums">{formatMoney(invoice.subtotal, invoice.currency)}</span>
                     </div>
 
                     {invoice.discount > 0 && (
@@ -222,7 +222,7 @@ export default function InvoicePrintDocument({
                         <span>
                           Discount {invoice.discountType === "percentage" ? `(${invoice.discount}%)` : ""}:
                         </span>
-                        <span className="font-mono font-medium">
+                        <span className="font-sans font-medium tabular-nums">
                           -{formatMoney(
                             invoice.discountType === "percentage"
                               ? (invoice.subtotal * invoice.discount) / 100
@@ -236,13 +236,13 @@ export default function InvoicePrintDocument({
                     {invoice.taxRate > 0 && (
                       <div className="flex justify-between text-stone-600">
                         <span>GST ({invoice.taxRate}% Tour Operator):</span>
-                        <span className="font-mono font-medium">{formatMoney(invoice.taxAmount, invoice.currency)}</span>
+                        <span className="font-sans font-medium tabular-nums">{formatMoney(invoice.taxAmount, invoice.currency)}</span>
                       </div>
                     )}
 
                     <div className="flex justify-between text-sm font-bold text-[#153925] pt-2 border-t border-stone-200">
                       <span>Grand Total:</span>
-                      <span className="font-mono text-base font-bold text-[#153925]">
+                      <span className="font-sans text-base font-bold text-[#153925] tabular-nums">
                         {formatMoney(invoice.totalAmount, invoice.currency)}
                       </span>
                     </div>
@@ -250,7 +250,7 @@ export default function InvoicePrintDocument({
                     {invoice.paidAmount > 0 && (
                       <div className="flex justify-between text-stone-600 pt-1 border-t border-stone-200">
                         <span>Paid Amount:</span>
-                        <span className="font-mono text-emerald-800 font-semibold">
+                        <span className="font-sans text-emerald-800 font-semibold tabular-nums">
                           {formatMoney(invoice.paidAmount, invoice.currency)}
                         </span>
                       </div>
@@ -258,7 +258,7 @@ export default function InvoicePrintDocument({
 
                     <div className="flex justify-between text-xs font-bold text-stone-900 pt-1">
                       <span>Balance Due:</span>
-                      <span className="font-mono text-[#153925]">
+                      <span className="font-sans text-[#153925] font-bold tabular-nums">
                         {formatMoney(invoice.balanceDue, invoice.currency)}
                       </span>
                     </div>
@@ -270,7 +270,7 @@ export default function InvoicePrintDocument({
             {/* Bank Transfer Details & Signatory */}
             <div className="grid grid-cols-2 gap-6 my-4 font-sans text-xs">
               <div className="bg-stone-50/80 p-3.5 rounded border border-stone-200 space-y-1.5">
-                <p className="text-[10px] font-mono uppercase tracking-widest font-bold text-[#153925]">
+                <p className="text-[10px] font-sans uppercase tracking-widest font-bold text-[#153925]">
                   Bank Settlement Details
                 </p>
                 <div className="grid grid-cols-2 gap-1 text-[11px] text-stone-700">
@@ -293,7 +293,7 @@ export default function InvoicePrintDocument({
 
               <div className="bg-stone-50/80 p-3.5 rounded border border-stone-200 flex flex-col justify-between items-end text-right">
                 <div>
-                  <p className="text-[10px] font-mono uppercase tracking-widest font-bold text-[#153925]">
+                  <p className="text-[10px] font-sans uppercase tracking-widest font-bold text-[#153925]">
                     For Escora Holidays Pvt Ltd
                   </p>
                   <p className="text-[10px] text-stone-500 mt-0.5">Authorised Signatory</p>
@@ -323,7 +323,7 @@ export default function InvoicePrintDocument({
           </div>
 
           {/* Footer Note */}
-          <div className="pt-4 border-t border-stone-200 text-center font-mono text-[9px] uppercase tracking-widest text-stone-500">
+          <div className="pt-4 border-t border-stone-200 text-center font-sans text-[9px] uppercase tracking-widest text-stone-500 font-medium">
             Escora Holidays Private Limited · Bespoke Curated Travel · Kozhikode, Kerala, India
           </div>
         </div>

@@ -3,14 +3,12 @@ import { Link } from "wouter";
 import { useListPackages, useListDestinations, useCreateEnquiry } from "@workspace/api-client-react";
 import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
-import { ExploreCoverflow } from "@/components/ExploreCoverflow";
 import { TravelTypeCoverflow, TravelTypeItem } from "@/components/TravelTypeCoverflow";
-import { MapPin, Compass, Calendar, Users, Search, ChevronDown, Flower2, SunMedium, Swords, HeartPulse } from "lucide-react";
+import { Flower2, SunMedium, Swords, HeartPulse } from "lucide-react";
 import TheEscoraWay from "@/components/TheEscoraWay";
 import Kerala3DDestinationExplorer from "@/components/Kerala3DDestinationExplorer";
 import Destination360Experience from "@/components/Destination360Experience";
 import FromYourIdeaToKerala from "@/components/FromYourIdeaToKerala";
-import { useSectionSnapAssist } from "@/hooks/useSectionSnapAssist";
 import "./home-v2.css";
 
 const FALLBACK_PACKAGES = [
@@ -384,12 +382,6 @@ export default function Home() {
   const [activeCat, setActiveCat] = useState("all");
   const [enquirySent, setEnquirySent] = useState(false);
   const [enquiryError, setEnquiryError] = useState("");
-  const [selectedDest, setSelectedDest] = useState("");
-  const [selectedType, setSelectedType] = useState("");
-  const [selectedWhen, setSelectedWhen] = useState("");
-  const [selectedPax, setSelectedPax] = useState("");
-  const [openDropdown, setOpenDropdown] = useState<"where" | "type" | "when" | "pax" | null>(null);
-  const searchBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Preload hero background image
@@ -407,19 +399,6 @@ export default function Home() {
   const exploreSectionRef = useRef<HTMLElement>(null);
   const heroSectionRef = useRef<HTMLElement>(null);
 
-  // Fluid scroll-assisted section-to-viewport docking across the homepage
-  useSectionSnapAssist([
-    "hero",
-    "the-escora-way",
-    "categories",
-    "explore-kerala",
-    "dest-360",
-    "why-escora",
-    "how-it-works",
-    "retreat",
-    "testimonials",
-    "contact",
-  ]);
   const [activeRetreatCard, setActiveRetreatCard] = useState<number>(1);
 
   const handleRetreatCardClick = (i: number, e?: React.MouseEvent | React.KeyboardEvent) => {
@@ -454,15 +433,6 @@ export default function Home() {
 
 
 
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (searchBarRef.current && !searchBarRef.current.contains(e.target as Node)) {
-        setOpenDropdown(null);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   useSeo({
     description: "Escora crafts luxury Kerala holiday packages — private honeymoon tours, Ayurveda retreats, backwater houseboat stays, and bespoke itineraries for discerning travellers from UK, Europe & the Gulf.",
@@ -492,28 +462,11 @@ export default function Home() {
   const { data: destinationsData } = useListDestinations({ published: true });
   const exploreDestinations = destinationsData && destinationsData.length > 0 ? destinationsData : FALLBACK_DESTINATIONS;
 
-  /* Bidirectional scroll reveal for .rv, .mr2 and cards (triggers on scroll forward & backward) */
+  /* Initial reveal for elements already in view in hero on load (general reveal managed by Layout's useScrollReveal) */
   useEffect(() => {
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((e) => {
-          if (e.isIntersecting) {
-            e.target.classList.add("in", "card-in-view");
-          } else {
-            // Keep hero elements visible, but toggle other elements bidirectionally
-            if (!e.target.closest(".hero-editorial, .hero2")) {
-              e.target.classList.remove("in", "card-in-view");
-            }
-          }
-        });
-      },
-      { threshold: [0, 0.12], rootMargin: "0px 0px -40px 0px" }
-    );
-    document.querySelectorAll(".rv, .mr2, .stat-cell").forEach((el) => io.observe(el));
-    /* Also reveal elements already in view in hero */
     const heroEls = document.querySelectorAll(".hero-editorial .rv, .hero-editorial .mr2, .hero2 .rv, .hero2 .mr2");
-    const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in", "card-in-view")), 200);
-    return () => { io.disconnect(); clearTimeout(t); };
+    const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in", "card-in-view")), 150);
+    return () => clearTimeout(t);
   }, []);
 
   /* Build pkg cards — fall back to built-in samples when API has no data */
@@ -554,27 +507,6 @@ export default function Home() {
     smoothScrollTo(packagesRef.current, -100);
   }
 
-  function handleHeroSearch() {
-    setOpenDropdown(null);
-    if (selectedType) {
-      const match = CAT_CARDS.find((c) => c.label.toLowerCase() === selectedType.toLowerCase()) ||
-                    CAT_CARDS_ROW2.find((c) => c.label.toLowerCase() === selectedType.toLowerCase()) ||
-                    TYPE_PILLS.find((p) => p.label.toLowerCase() === selectedType.toLowerCase());
-      if (match) {
-        jumpToCategory(match.id);
-        return;
-      }
-    }
-    if (selectedDest) {
-      if (exploreSectionRef.current) {
-        smoothScrollTo(exploreSectionRef.current, -100);
-        return;
-      }
-    }
-    if (categoriesRef.current) {
-      smoothScrollTo(categoriesRef.current, -100);
-    }
-  }
 
   function handleEnquirySubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -619,227 +551,6 @@ export default function Home() {
         {/* Visually hidden H1 for SEO semantics */}
         <h1 className="sr-only">Escora Holidays — Kerala, Luxury Private Travel</h1>
 
-        {/* Floating Bottom Search & Booking Capsule */}
-        <div className="hero-search-wrapper" ref={searchBarRef}>
-          <div className="hero-search-capsule" role="search" aria-label="Search bespoke journeys">
-            {/* 1. Where to */}
-            <div
-              className={`search-col ${openDropdown === "where" ? "is-open" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpenDropdown(openDropdown === "where" ? null : "where");
-              }}
-            >
-              <div className="col-icon">
-                <MapPin size={18} strokeWidth={1.9} />
-              </div>
-              <div className="col-info">
-                <span className="col-title">Where to</span>
-                <span className={`col-subtitle ${selectedDest ? "has-val" : ""}`}>
-                  {selectedDest || "Where in Kerala?"}
-                </span>
-              </div>
-
-              {openDropdown === "where" && (
-                <div className="search-popover where-popover" onClick={(e) => e.stopPropagation()}>
-                  <div className="popover-heading">Popular Destinations</div>
-                  <div className="dest-chips-grid">
-                    {[
-                      { name: "All Kerala", desc: "Signature Journeys" },
-                      { name: "Munnar", desc: "Tea country & misty peaks" },
-                      { name: "Alleppey", desc: "Backwaters & houseboats" },
-                      { name: "Wayanad", desc: "Rainforests & waterfalls" },
-                      { name: "Kochi", desc: "Spice trading & heritage" },
-                      { name: "Thekkady", desc: "Periyar wildlife & spice" },
-                      { name: "Kovalam", desc: "Arabian sea beaches" },
-                      { name: "Kumarakom", desc: "Bird sanctuary & lake" },
-                    ].map((dest) => (
-                      <button
-                        key={dest.name}
-                        type="button"
-                        className={`dest-chip ${selectedDest === dest.name ? "selected" : ""}`}
-                        onClick={() => {
-                          setSelectedDest(dest.name === "All Kerala" ? "" : dest.name);
-                          setOpenDropdown(null);
-                        }}
-                      >
-                        <b>{dest.name}</b>
-                        <small>{dest.desc}</small>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="search-col-sep" />
-
-            {/* 2. Journey type */}
-            <div
-              className={`search-col ${openDropdown === "type" ? "is-open" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpenDropdown(openDropdown === "type" ? null : "type");
-              }}
-            >
-              <div className="col-icon">
-                <Compass size={18} strokeWidth={1.9} />
-              </div>
-              <div className="col-info">
-                <span className="col-title">Journey type</span>
-                <span className={`col-subtitle ${selectedType ? "has-val" : ""}`}>
-                  {selectedType || "Choose an experience"}
-                </span>
-              </div>
-              <div className="col-chevron">
-                <ChevronDown size={14} strokeWidth={2.2} style={{ transform: openDropdown === "type" ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-              </div>
-
-              {openDropdown === "type" && (
-                <div className="search-popover type-popover" onClick={(e) => e.stopPropagation()}>
-                  <div className="popover-heading">Escora Collections</div>
-                  <div className="type-options-list">
-                    {[
-                      { id: "honeymoon", label: "Honeymoon", note: "Candlelit houseboats & intimate shores" },
-                      { id: "health-wellness", label: "Health & Wellness", note: "Ayurveda, panchakarma & yoga" },
-                      { id: "nature-wildlife", label: "Nature & Wildlife", note: "Tiger reserves & elephant corridors" },
-                      { id: "hill-stations", label: "Hill Stations", note: "Tea gardens & planter's bungalows" },
-                      { id: "backwaters", label: "Backwaters", note: "Private lagoons & slow canals" },
-                      { id: "beaches", label: "Beaches", note: "Varkala cliffs & secluded coves" },
-                      { id: "functional-medicine", label: "Functional Medicine", note: "Targeted physician-led rejuvenation" },
-                      { id: "historical-heritage", label: "Historical & Heritage", note: "Ancient Malabar spice trading ports" },
-                    ].map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        className={`type-option ${selectedType === item.label ? "selected" : ""}`}
-                        onClick={() => {
-                          setSelectedType(item.label);
-                          setOpenDropdown(null);
-                        }}
-                      >
-                        <span className="opt-label">{item.label}</span>
-                        <span className="opt-note">{item.note}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="search-col-sep" />
-
-            {/* 3. When */}
-            <div
-              className={`search-col ${openDropdown === "when" ? "is-open" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpenDropdown(openDropdown === "when" ? null : "when");
-              }}
-            >
-              <div className="col-icon">
-                <Calendar size={18} strokeWidth={1.9} />
-              </div>
-              <div className="col-info">
-                <span className="col-title">When</span>
-                <span className={`col-subtitle ${selectedWhen ? "has-val" : ""}`}>
-                  {selectedWhen || "Add dates"}
-                </span>
-              </div>
-
-              {openDropdown === "when" && (
-                <div className="search-popover when-popover" onClick={(e) => e.stopPropagation()}>
-                  <div className="popover-heading">Best Times to Travel</div>
-                  <div className="when-options-list">
-                    {[
-                      { season: "Oct – Mar", title: "Peak Winter Season", desc: "Cool pleasant weather across backwaters & hills" },
-                      { season: "Apr – May", title: "Summer Escapes", desc: "Cool highland tea estates of Munnar & Wayanad" },
-                      { season: "Jun – Sep", title: "Monsoon Ayurveda", desc: "Atmosphere ideal for herbs & panchakarma" },
-                      { season: "Flexible", title: "I'm Flexible", desc: "Let Escora recommend based on travel goals" },
-                    ].map((w) => (
-                      <button
-                        key={w.season}
-                        type="button"
-                        className={`when-option ${selectedWhen === w.season ? "selected" : ""}`}
-                        onClick={() => {
-                          setSelectedWhen(w.season);
-                          setOpenDropdown(null);
-                        }}
-                      >
-                        <span className="when-season">{w.season}</span>
-                        <div className="when-details">
-                          <b>{w.title}</b>
-                          <small>{w.desc}</small>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="search-col-sep" />
-
-            {/* 4. Travellers */}
-            <div
-              className={`search-col ${openDropdown === "pax" ? "is-open" : ""}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpenDropdown(openDropdown === "pax" ? null : "pax");
-              }}
-            >
-              <div className="col-icon">
-                <Users size={18} strokeWidth={1.9} />
-              </div>
-              <div className="col-info">
-                <span className="col-title">Travellers</span>
-                <span className={`col-subtitle ${selectedPax ? "has-val" : ""}`}>
-                  {selectedPax || "Add guests"}
-                </span>
-              </div>
-              <div className="col-chevron">
-                <ChevronDown size={14} strokeWidth={2.2} style={{ transform: openDropdown === "pax" ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
-              </div>
-
-              {openDropdown === "pax" && (
-                <div className="search-popover pax-popover" onClick={(e) => e.stopPropagation()}>
-                  <div className="popover-heading">Who is Travelling?</div>
-                  <div className="pax-options-list">
-                    {[
-                      { label: "2 Adults (Couple)", desc: "Honeymoon or romantic retreat" },
-                      { label: "1 Adult (Solo)", desc: "Wellness & slow exploration" },
-                      { label: "Family (3–4 Guests)", desc: "Private vehicle & paced stops" },
-                      { label: "Small Group (5+ Guests)", desc: "Private estate villa & cruising" },
-                    ].map((p) => (
-                      <button
-                        key={p.label}
-                        type="button"
-                        className={`pax-option ${selectedPax === p.label ? "selected" : ""}`}
-                        onClick={() => {
-                          setSelectedPax(p.label);
-                          setOpenDropdown(null);
-                        }}
-                      >
-                        <b>{p.label}</b>
-                        <small>{p.desc}</small>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 5. Search Action Button */}
-            <button
-              type="button"
-              className="search-go-btn"
-              onClick={handleHeroSearch}
-              aria-label="Search curated journeys"
-            >
-              <Search size={19} strokeWidth={2.4} color="#ffffff" />
-            </button>
-          </div>
-        </div>
       </section>
 
       {/* ═══════════════════════ THE ESCORA WAY ═══════════════════════ */}
@@ -864,7 +575,7 @@ export default function Home() {
             </p>
           </div>
 
-          <ExploreCoverflow items={TRAVEL_TYPE_ITEMS} />
+          <TravelTypeCoverflow items={TRAVEL_TYPE_ITEMS} />
         </div>
       </section>
 
@@ -1063,7 +774,7 @@ export default function Home() {
           <div className="retreat-header">
             <div className="retreat-header-left">
               <div className="retreat-eyebrow rv">
-                <span className="retreat-eyebrow-dot" />
+                <span className="dot" />
                 ESCORA RETREAT
               </div>
               <h2 className="retreat-title rv d1">
@@ -1305,7 +1016,7 @@ export default function Home() {
         </div>
       </section>
       <section className="enquiry-section-v2" id="contact" aria-label="Begin Your Journey">
-        <div className="enquiry-bg-image" style={{ backgroundImage: "url('/assets/enquiry-sunset.jpg')" }} aria-hidden="true" />
+        <div className="enquiry-bg-image" style={{ backgroundImage: "url('assets/enquiry-backdrop-munnar.jpg')" }} aria-hidden="true" />
         <div className="enquiry-bg-gradient" aria-hidden="true" />
 
         <div className="enquiry-container">
@@ -1313,7 +1024,7 @@ export default function Home() {
             {/* Left Column: Heading, description & contact info */}
             <div className="enquiry-left">
               <div className="enquiry-eyebrow rv">
-                <span className="enquiry-eyebrow-dot" />
+                <span className="dot" />
                 BEGIN YOUR JOURNEY
               </div>
               <h2 className="enquiry-title rv d1">
@@ -1423,7 +1134,7 @@ export default function Home() {
                   <form onSubmit={handleEnquirySubmit} className="enquiry-form">
                     <div className="enquiry-panel-header">
                       <div className="enquiry-panel-eyebrow">
-                        <span className="enquiry-eyebrow-dot" />
+                        <span className="dot" />
                         SEND AN ENQUIRY
                       </div>
                       <p className="enquiry-panel-subtitle">

@@ -1,7 +1,21 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-export type CampaignStatus = "draft" | "approved" | "scheduled" | "sending" | "sent" | "cancelled" | "failed";
-export type CampaignAudienceType = "all_contacts" | "enquiries_only" | "confirmed_guests" | "custom_segment";
+export type CampaignStatus =
+  | "draft"
+  | "pending_approval"
+  | "approved"
+  | "rejected"
+  | "scheduled"
+  | "sending"
+  | "sent"
+  | "cancelled"
+  | "failed";
+export type CampaignAudienceType =
+  | "all_contacts"
+  | "enquiries_only"
+  | "confirmed_guests"
+  | "custom_segment"
+  | "audience_group";
 
 export type CampaignDeliveryStatus =
   | "sent"
@@ -34,11 +48,17 @@ export interface ICampaign {
     type: CampaignAudienceType;
     destinations?: string[];
     travelStyle?: string | null;
+    groupId?: number | null;
+    groupIds?: number[];
   };
   status: CampaignStatus;
   scheduledAt?: Date | null;
+  submittedForApprovalAt?: Date | null;
   approvedBy?: string | null;
   approvedAt?: Date | null;
+  rejectedBy?: string | null;
+  rejectedAt?: Date | null;
+  rejectionReason?: string | null;
   sentAt?: Date | null;
   stats: {
     totalRecipients: number;
@@ -93,21 +113,37 @@ const campaignSchema = new Schema<ICampaign>(
         type: String,
         required: true,
         default: "all_contacts",
-        enum: ["all_contacts", "enquiries_only", "confirmed_guests", "custom_segment"],
+        enum: ["all_contacts", "enquiries_only", "confirmed_guests", "custom_segment", "audience_group"],
       },
       destinations: { type: [String], default: [] },
       travelStyle: { type: String, default: null },
+      groupId: { type: Number, default: null },
+      groupIds: { type: [Number], default: [] },
     },
     status: {
       type: String,
       required: true,
       default: "draft",
-      enum: ["draft", "approved", "scheduled", "sending", "sent", "cancelled", "failed"],
+      enum: [
+        "draft",
+        "pending_approval",
+        "approved",
+        "rejected",
+        "scheduled",
+        "sending",
+        "sent",
+        "cancelled",
+        "failed",
+      ],
       index: true,
     },
     scheduledAt: { type: Date, default: null },
+    submittedForApprovalAt: { type: Date, default: null },
     approvedBy: { type: String, default: null },
     approvedAt: { type: Date, default: null },
+    rejectedBy: { type: String, default: null },
+    rejectedAt: { type: Date, default: null },
+    rejectionReason: { type: String, default: null },
     sentAt: { type: Date, default: null },
     stats: {
       totalRecipients: { type: Number, default: 0 },

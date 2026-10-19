@@ -323,134 +323,41 @@ export default function FloatingWaterHero({
   const glideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const resetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Dedicated scroll & gesture interception for the boat forward glide & text emergence
-  useEffect(() => {
-    // If the page was refreshed down-page, set boat and text immediately forward
-    if ((window.scrollY || window.pageYOffset || 0) > 30) {
-      boatStageRef.current = "forward";
-      targetProgressRef.current = 1.0;
-      currentProgressRef.current = 1.0;
-      targetTextProgressRef.current = 1.0;
-      currentTextProgressRef.current = 1.0;
-      letterEmergeValuesRef.current.fill(1.0);
-    }
-
-    function triggerForwardGlide() {
-      if (boatStageRef.current === "docked") {
-        boatStageRef.current = "gliding";
+    // Dedicated non-blocking scroll detection for boat forward glide & text emergence
+    useEffect(() => {
+      // If the page was refreshed down-page, set boat and text immediately forward
+      if ((window.scrollY || window.pageYOffset || 0) > 30) {
+        boatStageRef.current = "forward";
         targetProgressRef.current = 1.0;
-        window.__lenis?.stop();
+        currentProgressRef.current = 1.0;
+        targetTextProgressRef.current = 1.0;
+        currentTextProgressRef.current = 1.0;
+        letterEmergeValuesRef.current.fill(1.0);
+      }
 
+      function handleScroll() {
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        if (scrollY > 15) {
+          if (boatStageRef.current !== "forward") {
+            boatStageRef.current = "forward";
+            targetProgressRef.current = 1.0;
+          }
+        } else if (scrollY <= 5) {
+          if (boatStageRef.current === "forward") {
+            boatStageRef.current = "docked";
+            targetProgressRef.current = 0.0;
+          }
+        }
+      }
+
+      window.addEventListener("scroll", handleScroll, { passive: true });
+
+      return () => {
+        window.removeEventListener("scroll", handleScroll);
         if (glideTimeoutRef.current) clearTimeout(glideTimeoutRef.current);
-        glideTimeoutRef.current = setTimeout(() => {
-          boatStageRef.current = "forward";
-          window.__lenis?.start();
-        }, 2500);
-      }
-    }
-
-    // Intercept wheel in capture phase so Lenis & native scroll do not move to next section
-    function handleWheelCapture(e: WheelEvent) {
-      const scrollY = window.scrollY || window.pageYOffset || 0;
-
-      // When at top of page and boat is not yet forward:
-      if (scrollY <= 8 && boatStageRef.current !== "forward") {
-        if (e.deltaY > 2) {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          window.__lenis?.stop();
-          triggerForwardGlide();
-          return;
-        }
-      }
-
-      // If at top of page, boat is forward, and user scrolls UP: re-dock boat and reverse text smoothly
-      if (scrollY <= 5 && boatStageRef.current === "forward" && e.deltaY < -2) {
-        boatStageRef.current = "docked";
-        targetProgressRef.current = 0.0;
-      }
-    }
-
-    // Touch gesture interception for mobile / tablet
-    let touchStartY = 0;
-    function handleTouchStartCapture(e: TouchEvent) {
-      if (e.touches.length > 0) {
-        touchStartY = e.touches[0].clientY;
-      }
-    }
-
-    function handleTouchMoveCapture(e: TouchEvent) {
-      const scrollY = window.scrollY || window.pageYOffset || 0;
-      if (scrollY <= 8 && boatStageRef.current !== "forward" && e.touches.length > 0) {
-        const deltaY = touchStartY - e.touches[0].clientY;
-        if (deltaY > 6) {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          window.__lenis?.stop();
-          triggerForwardGlide();
-        }
-      } else if (scrollY <= 5 && boatStageRef.current === "forward" && e.touches.length > 0) {
-        const deltaY = touchStartY - e.touches[0].clientY;
-        if (deltaY < -10) {
-          boatStageRef.current = "docked";
-          targetProgressRef.current = 0.0;
-        }
-      }
-    }
-
-    // Keyboard arrow down / space / page down interception at top of page
-    function handleKeyDownCapture(e: KeyboardEvent) {
-      const scrollY = window.scrollY || window.pageYOffset || 0;
-      if (scrollY <= 8 && boatStageRef.current === "docked") {
-        if (["ArrowDown", "PageDown", " ", "Spacebar"].includes(e.key)) {
-          const active = document.activeElement;
-          if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) return;
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          triggerForwardGlide();
-        }
-      } else if (scrollY <= 5 && boatStageRef.current === "forward") {
-        if (["ArrowUp", "PageUp"].includes(e.key)) {
-          const active = document.activeElement;
-          if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) return;
-          boatStageRef.current = "docked";
-          targetProgressRef.current = 0.0;
-        }
-      }
-    }
-
-    // General scroll listener: ensure boat emerges whenever page is scrolled down
-    function handleScroll() {
-      const scrollY = window.scrollY || window.pageYOffset || 0;
-      if (scrollY > 10) {
-        if (boatStageRef.current === "docked") {
-          boatStageRef.current = "forward";
-        }
-        targetProgressRef.current = 1.0;
-        window.__lenis?.start();
-      }
-    }
-
-    window.addEventListener("wheel", handleWheelCapture, { passive: false, capture: true });
-    window.addEventListener("touchstart", handleTouchStartCapture, { passive: true, capture: true });
-    window.addEventListener("touchmove", handleTouchMoveCapture, { passive: false, capture: true });
-    window.addEventListener("keydown", handleKeyDownCapture, { capture: true });
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      window.removeEventListener("wheel", handleWheelCapture, { capture: true } as EventListenerOptions);
-      window.removeEventListener("touchstart", handleTouchStartCapture, { capture: true } as EventListenerOptions);
-      window.removeEventListener("touchmove", handleTouchMoveCapture, { capture: true } as EventListenerOptions);
-      window.removeEventListener("keydown", handleKeyDownCapture, { capture: true } as EventListenerOptions);
-      window.removeEventListener("scroll", handleScroll);
-      if (glideTimeoutRef.current) clearTimeout(glideTimeoutRef.current);
-      if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
-      window.__lenis?.start();
-    };
-  }, []);
+        if (resetTimeoutRef.current) clearTimeout(resetTimeoutRef.current);
+      };
+    }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -676,11 +583,31 @@ export default function FloatingWaterHero({
 
     // Visibility Observer to pause RAF when scrolled off-screen
     const parentContainer = containerRef?.current || canvas.parentElement;
+    let animId: number | null = null;
+
+    function startLoop() {
+      if (animId === null && isVisibleRef.current) {
+        animId = requestAnimationFrame(render);
+      }
+    }
+
+    function stopLoop() {
+      if (animId !== null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+      }
+    }
+
     let observer: IntersectionObserver | null = null;
     if (parentContainer && typeof IntersectionObserver !== "undefined") {
       observer = new IntersectionObserver(
         ([entry]) => {
           isVisibleRef.current = entry.isIntersecting;
+          if (entry.isIntersecting) {
+            startLoop();
+          } else {
+            stopLoop();
+          }
         },
         { threshold: 0.05 }
       );
@@ -732,12 +659,15 @@ export default function FloatingWaterHero({
     });
 
     // Animation Loop
-    let animId: number;
     const startTime = performance.now();
 
     function render() {
+      if (!isVisibleRef.current) {
+        animId = null;
+        return;
+      }
       animId = requestAnimationFrame(render);
-      if (!isVisibleRef.current || !heroLoaded || !maskLoaded || !boatLoaded || !textLoaded || !gl) return;
+      if (!heroLoaded || !maskLoaded || !boatLoaded || !textLoaded || !gl) return;
 
       const now = performance.now() / 1000;
       const elapsed = (performance.now() - startTime) / 1000;
@@ -874,11 +804,11 @@ export default function FloatingWaterHero({
       gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
 
-    animId = requestAnimationFrame(render);
+    startLoop();
 
     // Cleanup on unmount
     return () => {
-      cancelAnimationFrame(animId);
+      stopLoop();
       window.removeEventListener("resize", handleResize);
       eventTarget.removeEventListener("pointermove", handlePointerMove as EventListener);
       if (observer && parentContainer) {

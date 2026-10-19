@@ -4,11 +4,11 @@ export default function WhatsAppFab() {
       href="https://wa.me/918157003344"
       target="_blank"
       rel="noopener noreferrer"
-      className="whatsapp-fab fixed bottom-8 right-8 w-14 h-14 bg-[#25D366] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-50 group"
+      className="whatsapp-fab fixed bottom-6 right-6 w-14 h-14 sm:w-[58px] sm:h-[58px] bg-[#25D366] rounded-full flex items-center justify-center shadow-[0_8px_24px_-4px_rgba(18,140,126,0.36),0_2px_8px_rgba(0,0,0,0.08)] hover:scale-105 hover:shadow-[0_12px_28px_-2px_rgba(18,140,126,0.48),0_0_16px_rgba(37,211,102,0.22)] transition-all duration-300 ease-out z-[520] group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#25D366] focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf6ee]"
       aria-label="Chat on WhatsApp"
     >
       <svg
-        className="w-7 h-7 text-white"
+        className="w-7 h-7 text-white transition-transform duration-300 group-hover:scale-105"
         fill="currentColor"
         viewBox="0 0 24 24"
         xmlns="http://www.w3.org/2000/svg"

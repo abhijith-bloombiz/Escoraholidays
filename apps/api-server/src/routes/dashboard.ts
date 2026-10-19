@@ -5,11 +5,13 @@ import {
   OrderModel,
   JournalPostModel,
   EnquiryModel,
+  InvoiceModel,
   type Destination,
   type Package,
   type Order,
   type JournalPost,
   type Enquiry,
+  type IInvoice,
 } from "@workspace/db";
 import { GetDashboardStatsResponse } from "@workspace/api-zod";
 
@@ -25,14 +27,16 @@ router.get("/stats", async (_req, res): Promise<void> => {
   let orders: Order[] = [];
   let journalPosts: JournalPost[] = [];
   let contactEnquiries: Enquiry[] = [];
+  let invoices: IInvoice[] = [];
 
   try {
-    [destinations, packages, orders, journalPosts, contactEnquiries] = await Promise.all([
+    [destinations, packages, orders, journalPosts, contactEnquiries, invoices] = await Promise.all([
       DestinationModel.find().lean(),
       PackageModel.find().lean(),
       OrderModel.find().lean(),
       JournalPostModel.find().lean(),
       EnquiryModel.find().lean(),
+      InvoiceModel.find({ status: { $nin: ["cancelled", "draft"] } }).lean(),
     ]);
   } catch {
     // DB unavailable — return zeroed stats
@@ -40,7 +44,11 @@ router.get("/stats", async (_req, res): Promise<void> => {
 
   const enquiries = orders.filter((o) => o.status === "enquiry").length;
   const confirmed = orders.filter((o) => o.status === "confirmed").length;
-  const totalRevenue = orders.reduce((sum, o) => sum + (o.totalAmount ?? 0), 0);
+  // Actual collected revenue: Sum of verified paidAmount across non-cancelled, non-draft invoices
+  const totalRevenue = invoices.reduce(
+    (sum, inv) => sum + Math.max(0, Number(inv.paidAmount) || 0),
+    0
+  );
   const newContactEnquiries = contactEnquiries.filter((e) => e.status === "new").length;
 
   const recentOrders = orders

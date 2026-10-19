@@ -15,7 +15,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -532,37 +531,22 @@ export default function DestinationsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-foreground">Destinations</h1>
+          <h1 className="text-3xl font-serif font-semibold text-foreground">Destinations</h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Manage Kerala travel regions, explore cards, and destination guides
           </p>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
+            <Info className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
+            <span>
+              <strong className="font-medium text-foreground/80">Where published destinations appear:</strong>{" "}
+              Explore Kerala, destination pages, trip planner, and homepage explorer.
+            </span>
+          </div>
         </div>
         <Button onClick={openCreate} data-testid="button-add-destination" className="shrink-0">
           <Plus className="h-4 w-4 mr-2" /> Add Destination
         </Button>
       </div>
-
-      {/* Integration & Public Usage Guide Banner */}
-      <Alert className="border-primary/20 bg-primary/5">
-        <Info className="h-4 w-4 text-primary" />
-        <AlertTitle className="font-serif text-base font-medium">
-          Destination Management &amp; Public Integration
-        </AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground mt-1.5 space-y-1">
-          <p>
-            Published destinations appear in the <strong>Explore Kerala</strong> gallery (
-            <code className="text-foreground">/destinations</code>), individual travel guides (
-            <code className="text-foreground">/destinations/:slug</code>), and trip planner (
-            <code className="text-foreground">/plan</code>).
-          </p>
-          <p>
-            Matching published records also dynamically update destination names, categories, descriptions, and cover images on the homepage <strong>3D Destination Explorer</strong> and <strong>360° Experience</strong>.
-          </p>
-          <p className="text-[11px] text-muted-foreground/80 italic">
-            Note: 3D relief map geometry, district polygon highlights, and 360° equirectangular spherical panorama textures remain locally curated. Standard cover images are used for 2D cards and hero headers.
-          </p>
-        </AlertDescription>
-      </Alert>
 
       {/* Search & Filter Toolbar */}
       <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between bg-card p-4 rounded-lg border border-border">
@@ -973,9 +957,6 @@ export default function DestinationsPage() {
                   {validationErrors.name && (
                     <p className="text-xs text-destructive">{validationErrors.name}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">
-                    Displayed as the primary destination title in the public explorer, cards, and guide pages.
-                  </p>
                 </div>
 
                 {/* Page URL / Slug */}
@@ -1011,7 +992,7 @@ export default function DestinationsPage() {
                       required
                       disabled={slugLocked}
                       data-testid="input-destination-slug"
-                      className={`font-mono text-xs ${
+                      className={`text-xs ${
                         validationErrors.slug ? "border-destructive" : ""
                       } ${slugLocked ? "bg-muted/40 cursor-not-allowed" : ""}`}
                     />
@@ -1019,14 +1000,6 @@ export default function DestinationsPage() {
                   {validationErrors.slug && (
                     <p className="text-xs text-destructive">{validationErrors.slug}</p>
                   )}
-
-                  {/* Live URL Preview */}
-                  <div className="flex items-center gap-1 text-[11px] text-muted-foreground bg-muted/20 px-2 py-1 rounded border border-border/40">
-                    <span className="font-mono text-muted-foreground/70">Public link:</span>
-                    <span className="font-mono text-foreground truncate">
-                      https://www.escoraholidays.com/destinations/{form.slug || "url-slug"}
-                    </span>
-                  </div>
 
                   {editing && !slugLocked && (
                     <div className="flex items-start gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 bg-amber-500/10 p-2 rounded border border-amber-500/20">
@@ -1087,9 +1060,6 @@ export default function DestinationsPage() {
                   {validationErrors.region && (
                     <p className="text-xs text-destructive">{validationErrors.region}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">
-                    District or geographic region in Kerala. Used on map highlights and destination cards.
-                  </p>
                 </div>
 
                 {/* Destination Category */}
@@ -1139,9 +1109,6 @@ export default function DestinationsPage() {
                   {validationErrors.type && (
                     <p className="text-xs text-destructive">{validationErrors.type}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground">
-                    Filter tag used on the Explore Kerala gallery page (<code className="text-foreground">/destinations</code>).
-                  </p>
                 </div>
               </div>
             </div>
@@ -1161,7 +1128,6 @@ export default function DestinationsPage() {
                   onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
                   label="Cover Image"
                   size="wide"
-                  helperText="Main 2D photograph for destination cards, explorer thumbnails, and guide hero headers. (360° panoramas remain locally configured)."
                 />
               </div>
             </div>
@@ -1187,9 +1153,6 @@ export default function DestinationsPage() {
                   placeholder="e.g. Kerala's tea-clad highland capital — mist-draped peaks, colonial bungalows, and mountain treks."
                   data-testid="input-destination-short-desc"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Tagline shown on homepage 3D explorer card and as a subtitle on the destination guide page.
-                </p>
               </div>
 
               {/* Destination Overview */}
@@ -1205,9 +1168,6 @@ export default function DestinationsPage() {
                   placeholder="Comprehensive narrative detailing the history, landscape, culture, and character of the destination…"
                   data-testid="textarea-destination-overview"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Rendered in the Overview narrative section of the public destination guide page.
-                </p>
               </div>
 
               {/* Top Attractions & Experiences */}
@@ -1217,9 +1177,6 @@ export default function DestinationsPage() {
                     <Label className="text-xs font-medium">
                       Top Attractions &amp; Experiences
                     </Label>
-                    <p className="text-[11px] text-muted-foreground">
-                      Key attractions and signature activities shown under &apos;Things to Do&apos; on the guide page.
-                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
@@ -1250,7 +1207,7 @@ export default function DestinationsPage() {
                     onChange={(e) => setBulkHighlightsText(e.target.value)}
                     rows={6}
                     placeholder={"One attraction per line, e.g.\nEravikulam National Park — home to the endangered Nilgiri Tahr\nMattupetty Dam and boating amidst the high ranges\nTea Museum & Lockhart Tea Factory visit"}
-                    className="text-xs font-mono"
+                    className="text-xs"
                   />
                 ) : (
                   <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
@@ -1261,7 +1218,7 @@ export default function DestinationsPage() {
                     ) : (
                       form.highlightsList.map((item, idx) => (
                         <div key={idx} className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground w-6 text-right font-mono">
+                          <span className="text-xs text-muted-foreground w-6 text-right">
                             {idx + 1}.
                           </span>
                           <Input
@@ -1298,9 +1255,6 @@ export default function DestinationsPage() {
                   rows={2}
                   placeholder="Nearest airport: Cochin International Airport (COK), approx. 110 km (about 3.5–4 hours by road). Nearest railway station: Aluva or Ernakulam."
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Transport guidance card displayed on the public destination detail page.
-                </p>
               </div>
             </div>
 
@@ -1325,9 +1279,6 @@ export default function DestinationsPage() {
                     onChange={(e) => setForm((f) => ({ ...f, bestSeason: e.target.value }))}
                     placeholder="e.g. September – March"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Season shown in Key Facts on the guide page.
-                  </p>
                 </div>
 
                 {/* Minimum Stay */}
@@ -1352,7 +1303,6 @@ export default function DestinationsPage() {
                         : ""
                     }
                   />
-                  <p className="text-[11px] text-muted-foreground">Recommended minimum nights.</p>
                 </div>
 
                 {/* Maximum Stay */}
@@ -1377,7 +1327,6 @@ export default function DestinationsPage() {
                         : ""
                     }
                   />
-                  <p className="text-[11px] text-muted-foreground">Recommended maximum nights.</p>
                 </div>
               </div>
 
@@ -1396,9 +1345,6 @@ export default function DestinationsPage() {
                   onChange={(e) => setForm((f) => ({ ...f, elevation: e.target.value }))}
                   placeholder="e.g. 1,600 m (5,200 ft)"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Altitude above sea level for highland or mountain destinations.
-                </p>
               </div>
             </div>
 
@@ -1432,9 +1378,6 @@ export default function DestinationsPage() {
                       {form.published ? "Active on Public Site" : "Draft (Hidden)"}
                     </Badge>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Controls whether this destination appears in public directory listings, the trip planner, and homepage explorers.
-                  </p>
                 </div>
 
                 <Switch

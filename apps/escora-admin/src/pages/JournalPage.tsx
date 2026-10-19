@@ -251,7 +251,7 @@ function RichTextToolbar({
           type="button"
           title={t.title}
           onClick={t.action}
-          className="px-2 py-1 text-xs font-mono font-medium rounded hover:bg-background hover:shadow-xs transition-all border border-transparent hover:border-border text-muted-foreground hover:text-foreground"
+          className="px-2 py-1 text-xs font-medium rounded hover:bg-background hover:shadow-xs transition-all border border-transparent hover:border-border text-muted-foreground hover:text-foreground"
         >
           {t.label}
         </button>
@@ -261,12 +261,12 @@ function RichTextToolbar({
           type="button"
           title="Open AI Content Assistant to refine or rewrite"
           onClick={onOpenAi}
-          className="px-2 py-1 text-xs font-mono font-medium rounded hover:bg-emerald-500/10 transition-all border border-emerald-600/30 text-emerald-700 dark:text-emerald-400 flex items-center gap-1 ml-1"
+          className="px-2 py-1 text-xs font-medium rounded hover:bg-primary/10 transition-all border border-primary/30 text-primary flex items-center gap-1 ml-1"
         >
-          <Sparkles className="h-3 w-3" /> AI Refine
+          <Sparkles className="h-3 w-3 text-primary" /> AI Refine
         </button>
       )}
-      <span className="ml-auto text-[10px] font-mono text-muted-foreground/60 hidden sm:inline">
+      <span className="ml-auto text-[10px] font-medium text-muted-foreground/60 hidden sm:inline">
         HTML Editor
       </span>
     </div>
@@ -521,11 +521,18 @@ export default function JournalPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-foreground">Journal</h1>
+          <h1 className="text-3xl font-serif font-semibold text-foreground">Journal</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Editorial travelogues, cultural dispatches, and Kerala guides published on{" "}
             <code className="text-xs">/journal</code>.
           </p>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-2">
+            <Info className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
+            <span>
+              <strong className="font-medium text-foreground/80">Where published articles appear:</strong>{" "}
+              Escora Journal feed and individual reading pages.
+            </span>
+          </div>
         </div>
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <Button
@@ -535,9 +542,9 @@ export default function JournalPage() {
               openCreate();
               setAiModalOpen(true);
             }}
-            className="border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 text-xs gap-1.5 h-9"
+            className="border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 text-xs gap-1.5 h-9"
           >
-            <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+            <Sparkles className="h-3.5 w-3.5 text-primary" />
             AI Content Assistant
           </Button>
           <Button onClick={openCreate} data-testid="button-add-post">
@@ -545,23 +552,6 @@ export default function JournalPage() {
           </Button>
         </div>
       </div>
-
-      {/* Integration & Public Usage Guide */}
-      <Alert className="border-primary/20 bg-primary/5">
-        <Info className="h-4 w-4 text-primary" />
-        <AlertTitle className="font-serif text-base font-medium">Journal &amp; Editorial Management</AlertTitle>
-        <AlertDescription className="text-xs text-muted-foreground mt-1.5 space-y-1">
-          <p>
-            Published articles appear on the main <strong>Escora Journal</strong> feed (<code className="text-foreground">/journal</code>) and dedicated reading pages (<code className="text-foreground">/journal/:id</code>).
-          </p>
-          <p>
-            The most recent published post is spotlighted in the <strong>Featured Story</strong> hero slot, while subsequent posts form the editorial reading grid. Comma-separated tags automatically populate the top tag filter chips.
-          </p>
-          <p className="text-[11px] text-muted-foreground/80 italic">
-            Publishing Note: Articles saved as draft (Published switch off) are hidden from the public feed and return a 404 for unauthenticated visitors.
-          </p>
-        </AlertDescription>
-      </Alert>
 
       {/* Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -575,7 +565,7 @@ export default function JournalPage() {
         >
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">All Articles</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">All Articles</span>
               <p className="text-2xl font-serif font-bold text-foreground">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : counts.total}
               </p>
@@ -597,7 +587,7 @@ export default function JournalPage() {
         >
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Published</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Published</span>
               <p className="text-2xl font-serif font-bold text-emerald-700 dark:text-emerald-400">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : counts.published}
               </p>
@@ -619,7 +609,7 @@ export default function JournalPage() {
         >
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">Drafts</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Drafts</span>
               <p className="text-2xl font-serif font-bold text-foreground">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : counts.draft}
               </p>
@@ -833,7 +823,7 @@ export default function JournalPage() {
 
                   {/* Category */}
                   <TableCell className="align-middle py-3">
-                    <Badge variant="outline" className="text-xs font-mono uppercase tracking-wider">
+                    <Badge variant="outline" className="text-xs uppercase tracking-wider font-medium">
                       {p.category}
                     </Badge>
                   </TableCell>
@@ -853,7 +843,7 @@ export default function JournalPage() {
                   {/* Read Time */}
                   <TableCell className="align-middle py-3 text-xs text-muted-foreground whitespace-nowrap">
                     {p.readTimeMinutes ? (
-                      <span className="flex items-center gap-1 font-mono">
+                      <span className="flex items-center gap-1">
                         <Clock className="h-3 w-3 text-muted-foreground/70" />
                         {p.readTimeMinutes}m read
                       </span>
@@ -939,7 +929,7 @@ export default function JournalPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <Badge variant="outline" className="text-xs font-mono uppercase tracking-wider text-primary border-primary/30">
+                  <Badge variant="outline" className="text-xs uppercase tracking-wider text-primary border-primary/30 font-medium">
                     {viewing?.category}
                   </Badge>
                   {viewing?.published ? (
@@ -952,7 +942,7 @@ export default function JournalPage() {
                     </Badge>
                   )}
                   {viewing?.readTimeMinutes && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1 font-mono">
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Clock className="h-3 w-3" /> {viewing.readTimeMinutes}m read
                     </span>
                   )}
@@ -1025,7 +1015,7 @@ export default function JournalPage() {
               {/* Excerpt */}
               {viewing.excerpt && (
                 <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-1">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-primary font-semibold block">
+                  <span className="text-[10px] uppercase tracking-wider text-primary font-semibold block">
                     Article Lead / Excerpt
                   </span>
                   <p className="text-sm font-serif italic text-foreground leading-relaxed">
@@ -1036,7 +1026,7 @@ export default function JournalPage() {
 
               {/* Formatted Article Body */}
               <div className="space-y-2">
-                <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold block">
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold block">
                   Article Body (Formatted Preview)
                 </span>
                 <div className="p-5 rounded-lg border border-border bg-card min-h-[160px] shadow-2xs">
@@ -1063,7 +1053,7 @@ export default function JournalPage() {
               {/* Tags */}
               {viewing.tags && (
                 <div className="space-y-1.5">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold block">
+                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold block">
                     Filter Tags
                   </span>
                   <div className="flex flex-wrap gap-1.5">
@@ -1071,7 +1061,7 @@ export default function JournalPage() {
                       const tag = t.trim();
                       if (!tag) return null;
                       return (
-                        <Badge key={idx} variant="secondary" className="text-xs font-mono">
+                        <Badge key={idx} variant="secondary" className="text-xs font-medium">
                           #{tag}
                         </Badge>
                       );
@@ -1125,22 +1115,17 @@ export default function JournalPage() {
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle className="font-serif text-2xl font-normal text-foreground">
-                  {editing ? "Edit Journal Article" : "New Journal Article"}
+                  {editing ? `Edit Journal Article — ${editing.title}` : "New Journal Article"}
                 </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
-                  {editing
-                    ? `Updating "${editing.title}" (ID: ${editing.id})`
-                    : "Create a new story for the Escora travel journal"}
-                </DialogDescription>
               </div>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setAiModalOpen(true)}
-                className="border-emerald-600/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 text-xs gap-1.5 h-8 font-medium shadow-xs"
+                className="border-primary/30 text-primary hover:bg-primary/10 hover:border-primary/50 text-xs gap-1.5 h-8 font-medium shadow-xs"
               >
-                <Sparkles className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
                 AI Assistant
               </Button>
             </div>
@@ -1181,13 +1166,13 @@ export default function JournalPage() {
                         setSlugManuallyEdited(false);
                         toast({ title: "Slug regenerated from title" });
                       }}
-                      className="text-[11px] text-primary hover:underline flex items-center gap-1 font-mono"
+                      className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
                     >
                       <RotateCcw className="h-3 w-3" /> Auto-generate from title
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono text-muted-foreground shrink-0">/journal/</span>
+                    <span className="text-xs font-medium text-muted-foreground shrink-0">/journal/</span>
                     <Input
                       id="post-slug"
                       value={form.slug}
@@ -1198,7 +1183,7 @@ export default function JournalPage() {
                       placeholder="slow-travel-kerala-backwaters"
                       required
                       data-testid="input-post-slug"
-                      className="font-mono text-xs"
+                      className="text-xs"
                     />
                   </div>
                 </div>
@@ -1244,9 +1229,8 @@ export default function JournalPage() {
                     min={1}
                     value={form.readTimeMinutes}
                     onChange={(e) => setForm((f) => ({ ...f, readTimeMinutes: Number(e.target.value) }))}
-                    className="text-xs font-mono"
+                    className="text-xs"
                   />
-                  <p className="text-[11px] text-muted-foreground">Estimated read badge (e.g. 5m read)</p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -1259,9 +1243,8 @@ export default function JournalPage() {
                     value={form.publishedAt}
                     onChange={(e) => setForm((f) => ({ ...f, publishedAt: e.target.value }))}
                     data-testid="input-post-published-at"
-                    className="text-xs font-mono"
+                    className="text-xs"
                   />
-                  <p className="text-[11px] text-muted-foreground">Date displayed on article card</p>
                 </div>
               </div>
 
@@ -1278,7 +1261,6 @@ export default function JournalPage() {
                     placeholder="e.g. Priya Menon"
                     className="text-xs"
                   />
-                  <p className="text-[11px] text-muted-foreground">Displayed byline and author attribution</p>
                 </div>
 
                 <div className="space-y-1.5">
@@ -1292,7 +1274,6 @@ export default function JournalPage() {
                     placeholder="e.g. Senior Curator · Journeys"
                     className="text-xs"
                   />
-                  <p className="text-[11px] text-muted-foreground">Subtitle shown in author card bio</p>
                 </div>
               </div>
 
@@ -1303,7 +1284,6 @@ export default function JournalPage() {
                   onChange={(url) => setForm((f) => ({ ...f, imageUrl: url }))}
                   label="Article Cover Image"
                   size="wide"
-                  helperText="Primary banner photograph displayed on the /journal cards and article header. Supports JPEG, PNG, WebP, AVIF up to 10MB."
                 />
               </div>
 
@@ -1317,11 +1297,8 @@ export default function JournalPage() {
                   value={form.tags}
                   onChange={(e) => setForm((f) => ({ ...f, tags: e.target.value }))}
                   placeholder="kerala, backwaters, tea plantations, ayurveda"
-                  className="text-xs font-mono"
+                  className="text-xs"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Populates the interactive tag filters on <code className="text-foreground">/journal</code>.
-                </p>
               </div>
 
               {/* Excerpt */}
@@ -1337,9 +1314,6 @@ export default function JournalPage() {
                   placeholder="A short compelling introduction displayed on preview cards..."
                   className="text-sm font-sans"
                 />
-                <p className="text-[11px] text-muted-foreground">
-                  Brief summary shown on the journal grid cards and as the article&apos;s lead paragraph.
-                </p>
               </div>
 
               {/* Article Content with Write & Live Preview Tabs */}
@@ -1409,13 +1383,10 @@ export default function JournalPage() {
                     )}
                   </div>
                 )}
-                <p className="text-[11px] text-muted-foreground">
-                  Use the toolbar buttons or standard HTML tags for bold text, section headings, quotes, links, and lists.
-                </p>
               </div>
 
               {/* Publication Status Switch */}
-              <div className="p-4 rounded-lg bg-muted/20 border border-border space-y-2">
+              <div className="p-4 rounded-lg bg-muted/20 border border-border">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Switch
@@ -1438,11 +1409,6 @@ export default function JournalPage() {
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground pl-11">
-                  {form.published
-                    ? "Active: The article will be immediately visible on the public /journal page and accessible via its URL."
-                    : "Draft: The article is kept private in the admin panel and hidden from public visitors."}
-                </p>
               </div>
             </div>
 

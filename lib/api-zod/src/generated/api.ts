@@ -525,7 +525,8 @@ export const DeletePackageParams = zod.object({
  * @summary List all itineraries
  */
 export const ListItinerariesQueryParams = zod.object({
-  "status": zod.coerce.string().optional()
+  "status": zod.coerce.string().optional(),
+  "enquiryId": zod.coerce.number().optional()
 })
 
 export const ListItinerariesResponseItem = zod.object({
@@ -560,6 +561,7 @@ export const ListItinerariesResponseItem = zod.object({
   "hotelTerms": zod.string().nullish(),
   "paymentTerms": zod.string().nullish(),
   "importantInfo": zod.string().nullish(),
+  "enquiryId": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -598,7 +600,8 @@ export const CreateItineraryBody = zod.object({
   "transportation": zod.string().optional(),
   "hotelTerms": zod.string().optional(),
   "paymentTerms": zod.string().optional(),
-  "importantInfo": zod.string().optional()
+  "importantInfo": zod.string().optional(),
+  "enquiryId": zod.number().optional()
 })
 
 
@@ -641,6 +644,7 @@ export const GetItineraryByShareTokenResponse = zod.object({
   "hotelTerms": zod.string().nullish(),
   "paymentTerms": zod.string().nullish(),
   "importantInfo": zod.string().nullish(),
+  "enquiryId": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -685,6 +689,7 @@ export const GetItineraryResponse = zod.object({
   "hotelTerms": zod.string().nullish(),
   "paymentTerms": zod.string().nullish(),
   "importantInfo": zod.string().nullish(),
+  "enquiryId": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -726,7 +731,8 @@ export const UpdateItineraryBody = zod.object({
   "transportation": zod.string().optional(),
   "hotelTerms": zod.string().optional(),
   "paymentTerms": zod.string().optional(),
-  "importantInfo": zod.string().optional()
+  "importantInfo": zod.string().optional(),
+  "enquiryId": zod.number().optional()
 })
 
 export const UpdateItineraryResponse = zod.object({
@@ -761,6 +767,7 @@ export const UpdateItineraryResponse = zod.object({
   "hotelTerms": zod.string().nullish(),
   "paymentTerms": zod.string().nullish(),
   "importantInfo": zod.string().nullish(),
+  "enquiryId": zod.number().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -996,6 +1003,17 @@ export const ListOrdersResponseItem = zod.object({
   "geoCountry": zod.string().nullish(),
   "geoRegion": zod.string().nullish(),
   "geoCity": zod.string().nullish(),
+  "bookingReference": zod.string().nullish(),
+  "enquiryId": zod.number().nullish(),
+  "itineraryId": zod.number().nullish(),
+  "itineraryTitle": zod.string().nullish(),
+  "currency": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "pricingDetails": zod.string().nullish(),
+  "itinerarySnapshot": zod.string().nullish(),
+  "convertedBy": zod.string().nullish(),
+  "convertedAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -1079,6 +1097,17 @@ export const GetOrderResponse = zod.object({
   "geoCountry": zod.string().nullish(),
   "geoRegion": zod.string().nullish(),
   "geoCity": zod.string().nullish(),
+  "bookingReference": zod.string().nullish(),
+  "enquiryId": zod.number().nullish(),
+  "itineraryId": zod.number().nullish(),
+  "itineraryTitle": zod.string().nullish(),
+  "currency": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "pricingDetails": zod.string().nullish(),
+  "itinerarySnapshot": zod.string().nullish(),
+  "convertedBy": zod.string().nullish(),
+  "convertedAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -1129,6 +1158,17 @@ export const UpdateOrderResponse = zod.object({
   "geoCountry": zod.string().nullish(),
   "geoRegion": zod.string().nullish(),
   "geoCity": zod.string().nullish(),
+  "bookingReference": zod.string().nullish(),
+  "enquiryId": zod.number().nullish(),
+  "itineraryId": zod.number().nullish(),
+  "itineraryTitle": zod.string().nullish(),
+  "currency": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "pricingDetails": zod.string().nullish(),
+  "itinerarySnapshot": zod.string().nullish(),
+  "convertedBy": zod.string().nullish(),
+  "convertedAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -1156,6 +1196,10 @@ export const ListEnquiriesResponseItem = zod.object({
   "phone": zod.string().nullish(),
   "message": zod.string(),
   "status": zod.string(),
+  "bookingId": zod.number().nullish(),
+  "bookingReference": zod.string().nullish(),
+  "convertedAt": zod.string().nullish(),
+  "convertedBy": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -1187,6 +1231,10 @@ export const GetEnquiryResponse = zod.object({
   "phone": zod.string().nullish(),
   "message": zod.string(),
   "status": zod.string(),
+  "bookingId": zod.number().nullish(),
+  "bookingReference": zod.string().nullish(),
+  "convertedAt": zod.string().nullish(),
+  "convertedBy": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -1210,6 +1258,10 @@ export const UpdateEnquiryResponse = zod.object({
   "phone": zod.string().nullish(),
   "message": zod.string(),
   "status": zod.string(),
+  "bookingId": zod.number().nullish(),
+  "bookingReference": zod.string().nullish(),
+  "convertedAt": zod.string().nullish(),
+  "convertedBy": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -1268,6 +1320,35 @@ export const AssistEnquiryResponse = zod.object({
   "priority": zod.enum(['low', 'medium', 'high'])
 }),
   "disclaimer": zod.string().describe('Human-in-the-loop review reminder')
+})
+
+
+/**
+ * @summary Convert contact enquiry to booking
+ */
+export const ConvertEnquiryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const ConvertEnquiryBody = zod.object({
+  "itineraryId": zod.number().optional(),
+  "guestName": zod.string().optional(),
+  "guestEmail": zod.string().optional(),
+  "guestPhone": zod.string().optional(),
+  "travelStyle": zod.string().optional(),
+  "destinations": zod.string().optional(),
+  "travelDate": zod.string().optional(),
+  "departureDate": zod.string().optional(),
+  "guestCount": zod.number().optional(),
+  "totalAmount": zod.number().optional(),
+  "currency": zod.string().optional(),
+  "status": zod.string().optional(),
+  "paymentStatus": zod.string().optional(),
+  "paymentTerms": zod.string().optional(),
+  "specialRequests": zod.string().optional(),
+  "notes": zod.string().optional(),
+  "customerAccepted": zod.boolean().optional(),
+  "availabilityConfirmed": zod.boolean().optional()
 })
 
 
@@ -1543,6 +1624,17 @@ export const GetDashboardStatsResponse = zod.object({
   "geoCountry": zod.string().nullish(),
   "geoRegion": zod.string().nullish(),
   "geoCity": zod.string().nullish(),
+  "bookingReference": zod.string().nullish(),
+  "enquiryId": zod.number().nullish(),
+  "itineraryId": zod.number().nullish(),
+  "itineraryTitle": zod.string().nullish(),
+  "currency": zod.string().nullish(),
+  "paymentStatus": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "pricingDetails": zod.string().nullish(),
+  "itinerarySnapshot": zod.string().nullish(),
+  "convertedBy": zod.string().nullish(),
+  "convertedAt": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })),

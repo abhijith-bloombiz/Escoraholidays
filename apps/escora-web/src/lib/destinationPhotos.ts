@@ -1,6 +1,6 @@
 import varkala from "@assets/escora/collections/varkala-cliffs.jpeg";
 import wayanad from "@assets/escora/collections/wayanad-churam.jpeg";
-import alleppey from "@assets/escora/collections/alleppey-backwaters.jpeg";
+import alleppey from "@assets/escora/collections/alleppey-lagoon-houseboat.jpeg";
 import kannur from "@assets/escora/collections/payyambalam-driving-beach.jpg";
 import munnar from "@assets/escora/collections/munnar-tea-estate.jpeg";
 import fortKochi from "@assets/escora/collections/fort-kochi-heritage.jpg";
@@ -8,6 +8,7 @@ import thekkady from "@assets/escora/collections/periyar-tiger-reserve.webp";
 import kovalam from "@assets/escora/collections/kovalam-beach.jpeg";
 import kumarakom from "@assets/escora/collections/kumarakom-bird-sanctuary.jpeg";
 import bekal from "@assets/escora/collections/bekal-fort.jpeg";
+import thrissur from "@assets/escora/collections/thrissur-pooram.webp";
 
 /**
  * Plain, text-free photographs per destination, for layouts that crop
@@ -26,4 +27,5 @@ export const DESTINATION_PHOTOS: Record<string, string> = {
   kovalam,
   kumarakom,
   bekal,
+  thrissur,
 };

@@ -109,60 +109,90 @@ export function computePricingTotal(pricing: Pick<ItineraryPricing, "items" | "d
   return Math.max(0, subtotal - (Number(pricing.discount) || 0) + (Number(pricing.taxes) || 0));
 }
 
-function safeParse<T>(str: string | null | undefined, fallback: T): T {
-  if (!str) return fallback;
-  try {
-    return JSON.parse(str) as T;
-  } catch {
-    return fallback;
+function safeParse<T>(val: unknown, fallback: T): T {
+  if (val === null || val === undefined) return fallback;
+  if (typeof val === "object") return val as T;
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (!trimmed) return fallback;
+    try {
+      return JSON.parse(trimmed) as T;
+    } catch {
+      return fallback;
+    }
   }
+  return fallback;
 }
 
-export function parseDays(str: string | null | undefined): ItineraryDay[] {
+export function parseDays(str: unknown): ItineraryDay[] {
   const parsed = safeParse<any[]>(str, []);
-  return parsed.map((d, i) => {
-    const dayNum = Number(d.day) || i + 1;
-    const images: string[] = [];
-    if (Array.isArray(d.imageUrls)) {
-      images.push(...d.imageUrls.filter(Boolean));
-    }
-    if (d.imageUrl && !images.includes(d.imageUrl)) {
-      images.unshift(d.imageUrl);
-    }
-    return {
-      day: dayNum,
-      date: d.date,
-      title: d.title || `Day ${dayNum}`,
-      subtitle: d.subtitle,
-      description: d.description,
-      optionalActivities: d.optionalActivities,
-      meals: d.meals,
-      stay: d.stay,
-      imageUrl: images[0] || d.imageUrl,
-      imageUrls: images.length > 0 ? images : undefined,
-      activities: Array.isArray(d.activities) ? d.activities : [],
-    };
-  });
+  if (!Array.isArray(parsed)) return [];
+  return parsed
+    .filter((d) => d && typeof d === "object")
+    .map((d, i) => {
+      const dayNum = Number(d.day) || i + 1;
+      const images: string[] = [];
+      if (Array.isArray(d.imageUrls)) {
+        images.push(...d.imageUrls.filter(Boolean));
+      }
+      if (d.imageUrl && !images.includes(d.imageUrl)) {
+        images.unshift(d.imageUrl);
+      }
+      return {
+        day: dayNum,
+        date: d.date,
+        title: d.title || `Day ${dayNum}`,
+        subtitle: d.subtitle,
+        description: d.description,
+        optionalActivities: d.optionalActivities,
+        meals: d.meals,
+        stay: d.stay,
+        imageUrl: images[0] || d.imageUrl,
+        imageUrls: images.length > 0 ? images : undefined,
+        activities: Array.isArray(d.activities) ? d.activities : [],
+      };
+    });
 }
 
-export function parseStays(str: string | null | undefined): ItineraryStay[] {
-  return safeParse(str, []);
+export function parseStays(str: unknown): ItineraryStay[] {
+  const parsed = safeParse<any[]>(str, []);
+  if (!Array.isArray(parsed)) return [];
+  return parsed.filter((s) => s && typeof s === "object");
 }
 
-export function parsePricing(str: string | null | undefined): ItineraryPricing {
-  return safeParse(str, emptyPricing);
+export function parsePricing(str: unknown): ItineraryPricing {
+  const parsed = safeParse<ItineraryPricing>(str, emptyPricing);
+  if (!parsed || typeof parsed !== "object") return emptyPricing;
+  return {
+    items: Array.isArray(parsed.items) ? parsed.items.filter((item) => item && typeof item === "object") : [],
+    discount: typeof parsed.discount === "number" ? parsed.discount : undefined,
+    taxes: typeof parsed.taxes === "number" ? parsed.taxes : undefined,
+    total: Number(parsed.total) || 0,
+    notes: parsed.notes || undefined,
+  };
 }
 
-export function parseStringList(str: string | null | undefined): string[] {
-  return safeParse(str, []);
+export function parseStringList(str: unknown): string[] {
+  const parsed = safeParse<unknown[]>(str, []);
+  if (!Array.isArray(parsed)) return [];
+  return parsed.map((item) => String(item ?? "").trim()).filter(Boolean);
 }
 
-export function parseTripIncludes(str: string | null | undefined): ItineraryTripIncludes {
-  return safeParse(str, DEFAULT_TRIP_INCLUDES);
+export function parseTripIncludes(str: unknown): ItineraryTripIncludes {
+  const parsed = safeParse<Partial<ItineraryTripIncludes>>(str, DEFAULT_TRIP_INCLUDES);
+  if (!parsed || typeof parsed !== "object") return DEFAULT_TRIP_INCLUDES;
+  return {
+    hotel: parsed.hotel ?? true,
+    transport: parsed.transport ?? true,
+    sightseeing: parsed.sightseeing ?? true,
+    transfer: parsed.transfer ?? true,
+  };
 }
 
-export function parseTransportation(str: string | null | undefined): ItineraryTransportation | null {
-  return safeParse(str, null);
+export function parseTransportation(str: unknown): ItineraryTransportation | null {
+  const parsed = safeParse<ItineraryTransportation | null>(str, null);
+  if (!parsed || typeof parsed !== "object") return null;
+  return parsed;
 }
 
 export function formatMoney(amount: number, currency: string): string {

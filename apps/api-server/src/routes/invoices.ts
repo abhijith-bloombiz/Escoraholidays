@@ -5,6 +5,7 @@ import {
   triggerPaymentReceipt,
   schedulePaymentDeadlineReminder,
 } from "../services/notification-service";
+import { triggerWhatsAppPaymentReceipt } from "../services/whatsapp";
 
 const router: IRouter = Router();
 
@@ -146,6 +147,9 @@ router.patch("/invoices/:id", async (req, res): Promise<void> => {
       const amountPaidNow = newPaidAmount > oldPaidAmount ? newPaidAmount - oldPaidAmount : newPaidAmount;
       triggerPaymentReceipt(updated, amountPaidNow).catch((err) => {
         logger.error({ err: err?.message, invoiceId: updated.id }, "[InvoiceRoute] Payment receipt trigger error");
+      });
+      triggerWhatsAppPaymentReceipt(updated).catch((err) => {
+        logger.error({ err: err?.message, invoiceId: updated.id }, "[InvoiceRoute] WhatsApp payment receipt trigger error");
       });
     }
 

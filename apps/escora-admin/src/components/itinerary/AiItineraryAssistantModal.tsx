@@ -41,11 +41,34 @@ import {
   ChevronUp,
 } from "lucide-react";
 
-interface AiItineraryAssistantModalProps {
+export interface AiItineraryAssistantModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onApplyDraft: (draft: ItineraryAiAssistResponse) => void;
+  onApplyDraft: (
+    draft: ItineraryAiAssistResponse,
+    extra?: {
+      customerName?: string;
+      customerEmail?: string;
+      customerPhone?: string;
+      startDate?: string;
+      enquiryId?: number;
+    }
+  ) => void | Promise<any>;
   initialEnquiryId?: number;
+  initialEnquiry?: Enquiry;
+  prefillData?: {
+    customerName?: string;
+    customerEmail?: string;
+    customerPhone?: string;
+    destination?: string;
+    durationDays?: number;
+    startDate?: string;
+    pace?: "unhurried-slow" | "balanced" | "active-discovery";
+    travelerType?: string;
+    budgetTier?: string;
+    notes?: string;
+    enquiryId?: number;
+  };
   currentFormData?: {
     customerName?: string;
     customerEmail?: string;
@@ -68,6 +91,8 @@ export default function AiItineraryAssistantModal({
   onClose,
   onApplyDraft,
   initialEnquiryId,
+  initialEnquiry,
+  prefillData,
   currentFormData,
   isEdit = false,
 }: AiItineraryAssistantModalProps) {
@@ -79,18 +104,33 @@ export default function AiItineraryAssistantModal({
   const [activeTab, setActiveTab] = useState<"input" | "preview">("input");
 
   // Form requirements state
-  const [customerName, setCustomerName] = useState(currentFormData?.customerName || "");
-  const [destination, setDestination] = useState(currentFormData?.destination || "Munnar & Alleppey Backwaters");
-  const [durationDays, setDurationDays] = useState(
-    currentFormData?.days && currentFormData.days.length > 0 ? currentFormData.days.length : 7
+  const [customerName, setCustomerName] = useState(
+    prefillData?.customerName || initialEnquiry?.name || currentFormData?.customerName || ""
   );
-  const [startDate, setStartDate] = useState(currentFormData?.startDate || "");
-  const [pace, setPace] = useState<"unhurried-slow" | "balanced" | "active-discovery">("unhurried-slow");
-  const [travelerType, setTravelerType] = useState("Couple / Pair");
-  const [budgetTier, setBudgetTier] = useState("Signature Slow-Luxury");
-  const [notes, setNotes] = useState("");
+  const [destination, setDestination] = useState(
+    prefillData?.destination || currentFormData?.destination || "Munnar & Alleppey Backwaters"
+  );
+  const [durationDays, setDurationDays] = useState(
+    prefillData?.durationDays ||
+      (currentFormData?.days && currentFormData.days.length > 0 ? currentFormData.days.length : 7)
+  );
+  const [startDate, setStartDate] = useState(prefillData?.startDate || currentFormData?.startDate || "");
+  const [pace, setPace] = useState<"unhurried-slow" | "balanced" | "active-discovery">(
+    prefillData?.pace || "unhurried-slow"
+  );
+  const [travelerType, setTravelerType] = useState(prefillData?.travelerType || "Couple / Pair");
+  const [budgetTier, setBudgetTier] = useState(prefillData?.budgetTier || "Signature Slow-Luxury");
+  const [notes, setNotes] = useState(
+    prefillData?.notes || (initialEnquiry?.message ? `Client inquiry: "${initialEnquiry.message}"` : "")
+  );
   const [selectedEnquiryId, setSelectedEnquiryId] = useState<string>(
-    initialEnquiryId ? String(initialEnquiryId) : ""
+    prefillData?.enquiryId
+      ? String(prefillData.enquiryId)
+      : initialEnquiry?.id
+      ? String(initialEnquiry.id)
+      : initialEnquiryId
+      ? String(initialEnquiryId)
+      : ""
   );
   const [refinementPrompt, setRefinementPrompt] = useState("");
   const [includeCurrentState, setIncludeCurrentState] = useState(isEdit);
@@ -99,12 +139,37 @@ export default function AiItineraryAssistantModal({
   const [generatedDraft, setGeneratedDraft] = useState<ItineraryAiAssistResponse | null>(null);
   const [expandedDay, setExpandedDay] = useState<number | null>(1);
 
-  // Sync initial enquiry if provided
+  // Sync initial enquiry or prefill data if changed when modal opens
   useEffect(() => {
-    if (initialEnquiryId) {
+    if (!isOpen) return;
+
+    if (prefillData) {
+      if (prefillData.customerName) setCustomerName(prefillData.customerName);
+      if (prefillData.destination) setDestination(prefillData.destination);
+      if (prefillData.durationDays) setDurationDays(prefillData.durationDays);
+      if (prefillData.startDate) setStartDate(prefillData.startDate);
+      if (prefillData.pace) setPace(prefillData.pace);
+      if (prefillData.travelerType) setTravelerType(prefillData.travelerType);
+      if (prefillData.budgetTier) setBudgetTier(prefillData.budgetTier);
+      if (prefillData.notes) setNotes(prefillData.notes);
+      if (prefillData.enquiryId) setSelectedEnquiryId(String(prefillData.enquiryId));
+    } else if (initialEnquiry) {
+      setSelectedEnquiryId(String(initialEnquiry.id));
+      if (initialEnquiry.name) setCustomerName(initialEnquiry.name);
+      if (initialEnquiry.message) setNotes(`Client inquiry: "${initialEnquiry.message}"`);
+    } else if (initialEnquiryId) {
       setSelectedEnquiryId(String(initialEnquiryId));
+      const enq = enquiriesData?.find((e: Enquiry) => e.id === initialEnquiryId);
+      if (enq) {
+        if (!customerName || customerName === "Valued Guest") {
+          setCustomerName(enq.name);
+        }
+        if (enq.message && !notes) {
+          setNotes(`Client inquiry: "${enq.message}"`);
+        }
+      }
     }
-  }, [initialEnquiryId]);
+  }, [isOpen, prefillData, initialEnquiry, initialEnquiryId, enquiriesData]);
 
   // When an enquiry is chosen from the dropdown, prefill relevant fields
   const handleEnquirySelect = (enqIdStr: string) => {
@@ -160,7 +225,7 @@ export default function AiItineraryAssistantModal({
           setActiveTab("preview");
           toast({
             title: "Itinerary proposal draft generated ✨",
-            description: `Crafted ${data.days.length}-day bespoke journey: "${data.title}"`,
+            description: `Crafted ${data.days.length}-day itinerary: "${data.title}"`,
           });
         },
         onError: (err: any) => {
@@ -174,35 +239,50 @@ export default function AiItineraryAssistantModal({
     );
   };
 
-  const handleApply = () => {
-    if (!generatedDraft) return;
-    onApplyDraft(generatedDraft);
-    toast({
-      title: "Proposal draft applied to editor ✨",
-      description: "Review and fine-tune activities, dates, and pricing before saving.",
-    });
-    onClose();
+  const [isApplying, setIsApplying] = useState(false);
+
+  const handleApply = async () => {
+    if (!generatedDraft || isApplying) return;
+    const finalEnquiryId =
+      selectedEnquiryId && selectedEnquiryId !== "none"
+        ? Number(selectedEnquiryId)
+        : prefillData?.enquiryId || initialEnquiry?.id || initialEnquiryId;
+
+    try {
+      setIsApplying(true);
+      await Promise.resolve(
+        onApplyDraft(generatedDraft, {
+          customerName: customerName.trim() || undefined,
+          customerEmail: prefillData?.customerEmail || initialEnquiry?.email || currentFormData?.customerEmail,
+          customerPhone: prefillData?.customerPhone || initialEnquiry?.phone || currentFormData?.customerPhone,
+          startDate: startDate.trim() || undefined,
+          enquiryId: finalEnquiryId,
+        })
+      );
+      onClose();
+    } catch (err: any) {
+      console.error("Error applying proposal draft", err);
+    } finally {
+      setIsApplying(false);
+    }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden bg-background">
         {/* Header */}
-        <DialogHeader className="p-6 pb-4 border-b bg-gradient-to-r from-emerald-950/20 via-background to-background">
+        <DialogHeader className="p-6 pb-4 border-b bg-muted/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-full bg-emerald-600/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center border border-emerald-600/20">
-                <Sparkles className="h-4 w-4" />
+              <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+                <Sparkles className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-serif text-foreground flex items-center gap-2">
+                <DialogTitle className="text-xl font-serif text-foreground">
                   AI Itinerary Assistant
-                  <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
-                    Phase 3B · Grounded
-                  </Badge>
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                  Bespoke Slow-Luxury Kerala proposal designer grounded in verified Escora destinations and journeys.
+                  Create personalised itineraries using customer requirements and available destinations.
                 </DialogDescription>
               </div>
             </div>
@@ -235,9 +315,6 @@ export default function AiItineraryAssistantModal({
                       <Compass className="h-3.5 w-3.5" />
                       Quick Import from Customer Enquiries
                     </CardTitle>
-                    <CardDescription className="text-[11px]">
-                      Select an incoming inquiry from the website inbox to automatically extract client dates and wishes.
-                    </CardDescription>
                   </CardHeader>
                   <CardContent className="px-4 pb-3">
                     <Select value={selectedEnquiryId} onValueChange={handleEnquirySelect}>
@@ -290,7 +367,7 @@ export default function AiItineraryAssistantModal({
                       onChange={(e) => setDurationDays(Number(e.target.value))}
                       className="h-9 text-xs w-28"
                     />
-                    <span className="text-xs text-muted-foreground font-mono">
+                    <span className="text-xs text-muted-foreground">
                       = {Math.max(1, durationDays - 1)} Nights
                     </span>
                   </div>
@@ -314,10 +391,10 @@ export default function AiItineraryAssistantModal({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unhurried-slow">
-                        🌿 Unhurried Slow (2-3 nights per stop, deeply restorative)
+                        🌿 Unhurried (2-3 nights per stop, relaxed pace)
                       </SelectItem>
                       <SelectItem value="balanced">
-                        ⚖️ Balanced Slow-Luxury (Classic Escora route flow)
+                        ⚖️ Balanced (Standard route flow)
                       </SelectItem>
                       <SelectItem value="active-discovery">
                         ⛰️ Active Discovery (Nature trails, plantations, wildlife)
@@ -355,10 +432,10 @@ export default function AiItineraryAssistantModal({
               </div>
 
               {/* Travel Designer Steering & Refinement Section */}
-              <div className="p-4 rounded-lg border border-emerald-600/30 bg-emerald-500/5 space-y-3">
+              <div className="p-4 rounded-lg border border-primary/20 bg-primary/5 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-emerald-600" />
+                    <Sparkles className="h-4 w-4 text-primary" />
                     <Label className="text-xs font-semibold text-foreground">
                       Travel Designer Steering / Refinement Prompt
                     </Label>
@@ -384,7 +461,7 @@ export default function AiItineraryAssistantModal({
                   className="text-xs resize-none bg-background"
                 />
                 <p className="text-[11px] text-muted-foreground">
-                  Your instructions will steer the proposal draft. The assistant will honor your direction while preserving verified catalogue grounding.
+                  Your instructions will steer the proposal draft using available destinations and journeys.
                 </p>
               </div>
             </div>
@@ -413,17 +490,17 @@ export default function AiItineraryAssistantModal({
               </Card>
 
               {/* Verified Catalogue Grounding Badges */}
-              <div className="p-3.5 rounded-lg border border-emerald-600/20 bg-emerald-500/5 space-y-2">
+              <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 space-y-2">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
                   <span className="text-xs font-semibold text-foreground">
-                    Verified Catalogue Grounding
+                    Matched Destinations &amp; Journeys
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
                   <span className="text-[11px] text-muted-foreground mr-1">Destinations:</span>
                   {generatedDraft.verifiedCatalogMatches.destinations.map((d, i) => (
-                    <Badge key={i} variant="outline" className="text-xs bg-background border-emerald-600/30 text-emerald-800 dark:text-emerald-300">
+                    <Badge key={i} variant="outline" className="text-xs bg-background border-primary/25 text-primary">
                       {d.name} ({d.region})
                     </Badge>
                   ))}
@@ -546,7 +623,7 @@ export default function AiItineraryAssistantModal({
                           </Badge>
                         </div>
                         <p className="text-[11px] text-muted-foreground">
-                          {stay.location} · {stay.roomType || "Signature Heritage Room"}
+                          {stay.location} · {stay.roomType || "Standard Heritage Room"}
                         </p>
                         {stay.notes && (
                           <p className="text-[10px] text-muted-foreground/80 italic">
@@ -606,7 +683,7 @@ export default function AiItineraryAssistantModal({
                 size="sm"
                 onClick={handleGenerate}
                 disabled={assistMutation.isPending}
-                className="gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white"
+                className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
               >
                 {assistMutation.isPending ? (
                   <>
@@ -624,10 +701,20 @@ export default function AiItineraryAssistantModal({
               <Button
                 size="sm"
                 onClick={handleApply}
-                className="gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white"
+                disabled={isApplying}
+                className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
               >
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Apply to Proposal Form
+                {isApplying ? (
+                  <>
+                    <RotateCw className="h-3.5 w-3.5 animate-spin" />
+                    Applying &amp; Saving Proposal...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    Apply to Proposal Form
+                  </>
+                )}
               </Button>
             )}
           </div>

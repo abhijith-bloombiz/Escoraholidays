@@ -18,9 +18,32 @@ interface TravelTypeCoverflowProps {
   items: TravelTypeItem[];
 }
 
+const getCardDisplayName = (item: TravelTypeItem) => {
+  switch (item.id) {
+    case "health-wellness":
+      return "HEALTH & WELLNESS";
+    case "nature-wildlife":
+      return "NATURE & WILDLIFE";
+    case "hill-stations":
+      return "HILL STATIONS";
+    case "backwaters":
+      return "BACKWATERS";
+    case "honeymoon":
+      return "HONEYMOON";
+    case "beaches":
+      return "BEACHES";
+    case "functional-medicine":
+      return "FUNCTIONAL MEDICINE";
+    case "historical-heritage":
+      return "HISTORICAL & HERITAGE";
+    default:
+      return item.label.toUpperCase();
+  }
+};
+
 export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items }) => {
-  // Center card initially on index 1 (Health & Wellness) or 0
-  const [activeIndex, setActiveIndex] = useState(1);
+  // Center card initially on index 2 (Nature & Wildlife) matching reference design
+  const [activeIndex, setActiveIndex] = useState(2);
   const [, navigate] = useLocation();
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
@@ -162,25 +185,23 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items 
     };
   }, []);
 
-  /* Scroll detection */
+  /* Scroll detection: pause auto-play while the user is actively scrolling */
   useEffect(() => {
+    let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
     const onScroll = () => {
       isScrollingRef.current = true;
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = setTimeout(() => {
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
         isScrollingRef.current = false;
-      }, 1000);
+        scrollTimeout = null;
+      }, 800);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("wheel", onScroll, { passive: true });
-    window.addEventListener("touchmove", onScroll, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("wheel", onScroll);
-      window.removeEventListener("touchmove", onScroll);
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
     };
   }, []);
 
@@ -309,7 +330,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items 
                 key={item.id}
                 role="button"
                 tabIndex={0}
-                className="coverflow-card cat-card"
+                className="coverflow-card"
                 data-offset={offsetAttr}
                 aria-label={`Explore ${item.label} journeys in Kerala`}
                 onClick={(e) => handleCardClick(e, i, item.link)}
@@ -331,21 +352,35 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items 
                     <div className="coverflow-card-border-glow" />
                   </div>
 
-                  {/* Top-Left Gold Badge */}
-                  <span className="c-label">{item.label}</span>
+                  {/* Center (Active) card editorial content with 3D depth */}
+                  <div className="coverflow-center-top">
+                    <span className="coverflow-loc-label">KERALA, INDIA</span>
+                    <span className="coverflow-loc-line" />
+                  </div>
 
-                  {/* Exact Previous Content & Typography */}
-                  <div className="content">
-                    <div className="c-name">{item.name}</div>
-                    <div className="c-reveal">
-                      <p>{item.desc}</p>
+                  <div className="coverflow-center-bottom">
+                    <h3 className="coverflow-center-title">
+                      {item.id === "nature-wildlife" ? (
+                        <>NATURE &amp;<br />WILDLIFE</>
+                      ) : item.id === "health-wellness" ? (
+                        <>HEALTH &amp;<br />WELLNESS</>
+                      ) : item.id === "historical-heritage" ? (
+                        <>HISTORICAL &amp;<br />HERITAGE</>
+                      ) : (
+                        getCardDisplayName(item)
+                      )}
+                    </h3>
+                    <p className="coverflow-center-desc">{item.desc}</p>
+                    <div className="coverflow-explore-cta">
+                      <span className="cta-text">EXPLORE →</span>
+                      <span className="cta-gold-line" />
                     </div>
-                    <div className="c-meta">
-                      <div className="c-count">{item.count}</div>
-                      <div className="c-cta">
-                        Explore <span className="arr" />
-                      </div>
-                    </div>
+                  </div>
+
+                  {/* Side cards: Destination / category name at bottom-left with gold underline */}
+                  <div className="coverflow-side-caption">
+                    <span className="side-dest-name">{getCardDisplayName(item)}</span>
+                    <span className="side-gold-line" />
                   </div>
                 </div>
               </div>
@@ -381,7 +416,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items 
             type="button"
             className={`coverflow-dot ${idx === activeIndex ? "active" : ""}`}
             onClick={() => handleSelect(idx)}
-            aria-label={`Jump to ${it.name}`}
+            aria-label={`Jump to ${it.label}`}
           />
         ))}
       </div>

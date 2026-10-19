@@ -2,6 +2,12 @@ import Layout from "@/components/layout/Layout";
 import { useState } from "react";
 import { useCreateEnquiry } from "@workspace/api-client-react";
 import { useSeo } from "@/hooks/useSeo";
+import {
+  BotanicalTopLeft,
+  BotanicalTopRight,
+  BotanicalBottomLeft,
+  BotanicalBottomRight,
+} from "@/components/BotanicalDecorations";
 
 export default function Contact() {
   useSeo({
@@ -29,30 +35,76 @@ export default function Contact() {
 
   return (
     <Layout>
-      {/* Hero */}
-      <section className="relative page-hero-top bg-bg overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{ backgroundImage: "radial-gradient(circle at 60% 40%, #cbab6e 0%, transparent 60%)" }}
-        />
-        <div className="container mx-auto max-w-4xl text-center reveal-up">
-          <p className="section-label mb-6"><span className="dot" />Contact</p>
-          <h1 className="font-serif text-5xl md:text-6xl text-ink font-light leading-[1.1] mb-6">
-            Start a <em className="italic text-gold">conversation</em>
-          </h1>
-          <p className="font-sans text-ink-mute text-base leading-relaxed max-w-xl mx-auto">
-            Whether you have a specific journey in mind or simply want to explore what's possible,
-            we're here to help. Our team responds within one business day.
-          </p>
+      <style>{`
+        @keyframes botanicalFloatSlow {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(-7px) rotate(0.6deg);
+          }
+        }
+        @keyframes botanicalFloatAlt {
+          0%, 100% {
+            transform: translateY(0px) rotate(0deg);
+          }
+          50% {
+            transform: translateY(6px) rotate(-0.5deg);
+          }
+        }
+        .botanical-anim-slow {
+          animation: botanicalFloatSlow 14s ease-in-out infinite;
+        }
+        .botanical-anim-alt {
+          animation: botanicalFloatAlt 16s ease-in-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .botanical-anim-slow,
+          .botanical-anim-alt {
+            animation: none !important;
+          }
+        }
+      `}</style>
+      <div className="relative overflow-hidden bg-bg">
+        {/* Botanical Vector Decorations */}
+        <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden" aria-hidden="true">
+          {/* Upper-left botanical spray */}
+          <BotanicalTopLeft className="absolute -top-4 -left-6 sm:top-0 sm:left-0 w-[240px] h-[250px] sm:w-[320px] sm:h-[340px] lg:w-[420px] lg:h-[440px] opacity-70 sm:opacity-80 lg:opacity-90 botanical-anim-slow" />
+
+          {/* Upper-right botanical spray */}
+          <BotanicalTopRight className="absolute -top-4 -right-6 sm:top-0 sm:right-0 w-[210px] h-[230px] sm:w-[280px] sm:h-[300px] lg:w-[380px] lg:h-[400px] opacity-65 sm:opacity-75 lg:opacity-85 botanical-anim-alt" />
+
+          {/* Lower-left botanical spray */}
+          <BotanicalBottomLeft className="absolute bottom-6 -left-6 sm:bottom-10 sm:left-0 w-[200px] h-[220px] sm:w-[260px] sm:h-[280px] lg:w-[350px] lg:h-[370px] opacity-45 sm:opacity-70 lg:opacity-80 botanical-anim-slow" />
+
+          {/* Lower-right botanical spray */}
+          <BotanicalBottomRight className="absolute bottom-2 -right-6 sm:bottom-6 sm:right-0 w-[190px] h-[210px] sm:w-[250px] sm:h-[270px] lg:w-[340px] lg:h-[360px] opacity-45 sm:opacity-70 lg:opacity-80 botanical-anim-alt" />
         </div>
-      </section>
 
-      <div className="container mx-auto max-w-4xl">
-        <hr className="page-divider" />
-      </div>
+        {/* Hero */}
+        <section className="relative z-10 page-hero-top bg-transparent overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{ backgroundImage: "radial-gradient(circle at 60% 40%, #cbab6e 0%, transparent 60%)" }}
+          />
+          <div className="container mx-auto max-w-4xl text-center reveal-up">
+            <p className="section-label mb-6"><span className="dot" />Contact</p>
+            <h1 className="font-serif text-5xl md:text-6xl text-ink font-light leading-[1.1] mb-6">
+              Start a <em className="italic text-gold">conversation</em>
+            </h1>
+            <p className="font-sans text-ink-mute text-base leading-relaxed max-w-xl mx-auto">
+              Whether you have a specific journey in mind or simply want to explore what's possible,
+              we're here to help. Our team responds within one business day.
+            </p>
+          </div>
+        </section>
 
-      {/* Content grid */}
-      <section className="container mx-auto max-w-4xl" style={{ paddingBottom: "var(--section-y)" }}>
+        <div className="container mx-auto max-w-4xl relative z-10">
+          <hr className="page-divider" />
+        </div>
+
+        {/* Content grid */}
+        <section className="container mx-auto max-w-4xl relative z-10" style={{ paddingBottom: "var(--section-y)" }}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
 
           {/* Contact details */}
@@ -160,6 +212,7 @@ export default function Contact() {
           </div>
         </div>
       </section>
+      </div>
     </Layout>
   );
 }

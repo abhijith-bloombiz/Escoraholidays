@@ -33,6 +33,7 @@ export interface IItinerary {
   hotelTerms?: string | null;
   paymentTerms?: string | null;
   importantInfo?: string | null;
+  enquiryId?: number | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -78,6 +79,7 @@ const itinerarySchema = new Schema<IItinerary>(
     hotelTerms: { type: String, default: null },
     paymentTerms: { type: String, default: null },
     importantInfo: { type: String, default: null },
+    enquiryId: { type: Number, default: null, index: true },
     createdAt: { type: Date, required: true, default: Date.now, index: true },
     updatedAt: { type: Date, required: true, default: Date.now },
   },
@@ -124,6 +126,7 @@ export const insertItinerarySchema = z.object({
   hotelTerms: z.string().optional().nullable(),
   paymentTerms: z.string().optional().nullable(),
   importantInfo: z.string().optional().nullable(),
+  enquiryId: z.number().optional().nullable(),
 });
 
 export type InsertItinerary = z.infer<typeof insertItinerarySchema>;

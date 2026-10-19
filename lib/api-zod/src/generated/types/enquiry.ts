@@ -13,6 +13,14 @@ export interface Enquiry {
   phone?: string | null;
   message: string;
   status: string;
+  /** @nullable */
+  bookingId?: number | null;
+  /** @nullable */
+  bookingReference?: string | null;
+  /** @nullable */
+  convertedAt?: string | null;
+  /** @nullable */
+  convertedBy?: string | null;
   createdAt: string;
   updatedAt: string;
 }

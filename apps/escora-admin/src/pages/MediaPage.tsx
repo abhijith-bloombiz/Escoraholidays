@@ -262,7 +262,7 @@ export default function MediaPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-serif text-foreground">Media Library</h1>
+          <h1 className="text-3xl font-serif font-semibold text-foreground">Media Library</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Unified library of all uploaded images and videos across destinations, journeys, itineraries, and stories.
           </p>
@@ -286,7 +286,7 @@ export default function MediaPage() {
         <Card className="bg-card">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">Total Assets</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Total Assets</span>
               <p className="text-2xl font-serif font-bold text-foreground">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : totalCount}
               </p>
@@ -302,7 +302,7 @@ export default function MediaPage() {
         <Card className="bg-card">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">Uploaded Files</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Uploaded Files</span>
               <p className="text-2xl font-serif font-bold text-emerald-700 dark:text-emerald-400">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : uploadedCount}
               </p>
@@ -318,8 +318,8 @@ export default function MediaPage() {
         <Card className="bg-card">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">Disk Storage</span>
-              <p className="text-2xl font-serif font-bold text-foreground font-mono">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Disk Storage</span>
+              <p className="text-2xl font-serif font-bold text-foreground">
                 {isLoading ? <Skeleton className="h-7 w-16" /> : formatBytes(totalSizeBytes)}
               </p>
               <span className="text-[10px] text-muted-foreground block">Local storage used</span>
@@ -334,7 +334,7 @@ export default function MediaPage() {
         <Card className="bg-card">
           <CardContent className="p-4 flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[11px] font-mono uppercase tracking-wider text-muted-foreground">External URLs</span>
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">External URLs</span>
               <p className="text-2xl font-serif font-bold text-sky-600 dark:text-sky-400">
                 {isLoading ? <Skeleton className="h-7 w-12" /> : externalCount}
               </p>
@@ -548,7 +548,7 @@ export default function MediaPage() {
                         playsInline
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-mono">
+                      <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-xs text-white text-[10px] px-1.5 py-0.5 rounded flex items-center gap-1 font-medium">
                         <Film className="h-3 w-3" /> Video
                       </div>
                     </div>
@@ -620,7 +620,7 @@ export default function MediaPage() {
                       {m.filename}
                     </p>
                     <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                      <span className="font-mono">
+                      <span className="tabular-nums font-medium">
                         {isExternal ? "External" : formatBytes(m.sizeBytes)}
                       </span>
                       {refCount > 0 ? (
@@ -748,7 +748,7 @@ export default function MediaPage() {
               {/* Metadata Details Grid */}
               <div className="grid grid-cols-2 gap-4 bg-muted/20 p-4 rounded-lg border border-border text-xs">
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
                     Asset Label / Filename
                   </span>
                   <span className="font-medium text-foreground text-sm block mt-0.5 break-all">
@@ -756,7 +756,7 @@ export default function MediaPage() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
                     Storage Source
                   </span>
                   <span className="font-medium text-foreground text-sm block mt-0.5">
@@ -772,25 +772,25 @@ export default function MediaPage() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
                     File Size
                   </span>
-                  <span className="font-medium text-foreground text-sm block mt-0.5 font-mono">
+                  <span className="font-medium text-foreground text-sm block mt-0.5 tabular-nums">
                     {viewingTarget.sizeBytes
                       ? `${formatBytes(viewingTarget.sizeBytes)} (${viewingTarget.sizeBytes.toLocaleString()} bytes)`
                       : "External (Not stored locally)"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
                     MIME Type
                   </span>
-                  <span className="font-medium text-foreground block mt-0.5 font-mono">
+                  <span className="font-medium text-foreground block mt-0.5 font-mono text-xs">
                     {viewingTarget.mimeType}
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
                     Availability Status
                   </span>
                   <span className="font-medium block mt-0.5">
@@ -810,10 +810,10 @@ export default function MediaPage() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
                     Total References
                   </span>
-                  <span className="font-medium text-foreground block mt-0.5 font-mono">
+                  <span className="font-medium text-foreground block mt-0.5">
                     {viewingTarget.usageCount ?? (viewingTarget.references?.length || 0)} content link(s)
                   </span>
                 </div>
@@ -821,7 +821,7 @@ export default function MediaPage() {
 
               {/* Referenced Content Section */}
               <div className="space-y-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block font-semibold">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-semibold">
                   Content Usage &amp; References ({viewingTarget.references?.length ?? 0})
                 </span>
                 {viewingTarget.references && viewingTarget.references.length > 0 ? (
@@ -829,7 +829,7 @@ export default function MediaPage() {
                     {viewingTarget.references.map((ref, idx) => (
                       <div key={idx} className="p-2.5 flex items-center justify-between hover:bg-muted/30">
                         <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="capitalize text-[10px] font-mono">
+                          <Badge variant="outline" className="capitalize text-[10px] font-medium">
                             {ref.type}
                           </Badge>
                           <span className="font-medium text-foreground">{ref.title}</span>
@@ -847,7 +847,7 @@ export default function MediaPage() {
 
               {/* Public Path Bar */}
               <div className="space-y-1.5">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block font-semibold">
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground block font-semibold">
                   {viewingTarget.storageType === "external" ? "External Image URL" : "Public CDN Path URL"}
                 </span>
                 <div className="flex items-center gap-2">
@@ -881,9 +881,6 @@ export default function MediaPage() {
                     </a>
                   </Button>
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  Copy and paste this URL into Destination, Journey, Itinerary, or Journal cover image inputs.
-                </p>
               </div>
             </div>
           )}

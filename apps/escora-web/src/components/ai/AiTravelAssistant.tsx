@@ -1,21 +1,19 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "wouter";
 import {
-  MessageSquare,
-  Sparkles,
   X,
   Send,
   RotateCcw,
-  Compass,
-  ArrowRight,
   ExternalLink,
   AlertCircle,
   RefreshCw,
-  MapPin,
+  Search,
+  Paperclip,
+  Map,
+  Navigation,
   Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   useAskAiAssistant,
   useGetAiStatus,
@@ -32,12 +30,31 @@ interface ChatMessage {
   groundedEntities?: AiGroundedEntity[];
 }
 
-const DEFAULT_SUGGESTIONS = [
-  "What is the best season to visit Kerala's backwaters?",
-  "Tell me about tea plantations and mist in Munnar.",
-  "Recommend a 7-day slow luxury journey route.",
-  "How does Escora's bespoke trip planning work?",
+const POPULAR_DESTINATIONS = [
+  { name: "Alleppey", slug: "alleppey" },
+  { name: "Kumarakom", slug: "kumarakom" },
+  { name: "Kovalam", slug: "kovalam" },
+  { name: "Bekal", slug: "bekal" },
 ];
+
+const DEFAULT_SUGGESTIONS = [
+  "What is the ideal time of year to visit Alleppey?",
+  'Tell me about the "The Malabar Escape" journey route.',
+  "How can I design a bespoke private itinerary with Escora?",
+];
+
+function SparkleIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 2C12 7.523 7.523 12 2 12C7.523 12 12 16.477 12 22C12 16.477 16.477 12 22 12C16.477 12 12 7.523 12 2Z" />
+    </svg>
+  );
+}
 
 export default function AiTravelAssistant() {
   const [isOpen, setIsOpen] = useState(false);
@@ -45,23 +62,64 @@ export default function AiTravelAssistant() {
   const [inputValue, setInputValue] = useState("");
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const panelRef = useRef<HTMLElement>(null);
+  const launcherRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
+  const prevMessagesLengthRef = useRef(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: aiStatus, isLoading: statusLoading } = useGetAiStatus();
+  const { data: aiStatus } = useGetAiStatus();
   const askMutation = useAskAiAssistant();
+
+  // Track whether user is near the bottom to preserve manual scroll position
+  const handleMessagesScroll = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const threshold = 100;
+    const distanceToBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    isNearBottomRef.current = distanceToBottom <= threshold;
+  };
 
   // Scroll to bottom when messages update
   useEffect(() => {
-    if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!isOpen) return;
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const isNewMessage = messages.length > prevMessagesLengthRef.current;
+    const lastMessage = messages[messages.length - 1];
+    const isUserMessage = lastMessage?.role === "user";
+
+    if (isUserMessage) {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      isNearBottomRef.current = true;
+    } else if (isNewMessage || askMutation.isPending) {
+      if (isNearBottomRef.current) {
+        container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      }
     }
+
+    prevMessagesLengthRef.current = messages.length;
   }, [messages, isOpen, askMutation.isPending]);
 
-  // Focus textarea when opening
+  // Initial scroll to bottom when opening
+  useEffect(() => {
+    if (!isOpen) return;
+    const timer = setTimeout(() => {
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        isNearBottomRef.current = true;
+      }
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [isOpen]);
+
+  // Focus input when opening
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => textareaRef.current?.focus(), 150);
+      setTimeout(() => inputRef.current?.focus(), 150);
     }
   }, [isOpen]);
 
@@ -74,6 +132,30 @@ export default function AiTravelAssistant() {
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
+  // Close AI Assistant on Outside Click / Tap
+  useEffect(() => {
+    if (!isOpen) return;
+
+    function handlePointerDown(e: PointerEvent) {
+      const target = e.target as Node | null;
+      if (!target) return;
+
+      if (panelRef.current && panelRef.current.contains(target)) {
+        return;
+      }
+      if (launcherRef.current && launcherRef.current.contains(target)) {
+        return;
+      }
+
+      setIsOpen(false);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
   }, [isOpen]);
 
   async function handleSendMessage(textToSend?: string) {
@@ -118,15 +200,15 @@ export default function AiTravelAssistant() {
           };
           setMessages((prev) => [...prev, assistantMsg]);
         },
-        onError: (err: any) => {
+        onError: () => {
           setLastFailedMessage(trimmed);
         },
       }
     );
   }
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
+  function handleInputKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
       e.preventDefault();
       handleSendMessage();
     }
@@ -138,8 +220,20 @@ export default function AiTravelAssistant() {
     setLastFailedMessage(null);
   }
 
+  const handleAttachmentClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setInputValue((prev) =>
+        prev ? `${prev} [Attached: ${file.name}]` : `[Attached: ${file.name}] `
+      );
+    }
+  };
+
   function renderFormattedMessage(text: string) {
-    // Basic markdown parsing for paragraphs and bullet points
     const paragraphs = text.split("\n\n").filter(Boolean);
 
     return (
@@ -162,137 +256,203 @@ export default function AiTravelAssistant() {
   }
 
   function formatInlineMarkdown(text: string) {
-    // Replaces **bold** with <strong>
     const parts = text.split(/(\*\*.*?\*\*)/g);
     return parts.map((part, i) => {
       if (part.startsWith("**") && part.endsWith("**")) {
-        return <strong key={i} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>;
+        return (
+          <strong key={i} className="font-semibold text-[#162B1F]">
+            {part.slice(2, -2)}
+          </strong>
+        );
       }
       return part;
     });
   }
 
-  const isConfigured = aiStatus?.configured ?? true;
-
   return (
-    <aside aria-label="Escora AI Travel Assistant" className="relative z-50">
-      {/* ── Floating Launcher Button ── */}
-      <div className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2">
+    <aside aria-label="Escora AI Travel Assistant">
+      {/* ── Floating Launcher Button (Bottom-Left) ── */}
+      <div ref={launcherRef} className="escora-ai-launcher fixed bottom-6 left-6 z-[520] flex items-center group">
         {!isOpen && (
-          <div
-            onClick={() => setIsOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#1A3F2C] text-white text-xs shadow-lg cursor-pointer hover:bg-[#293D1F] transition-all border border-[#c59a58]/40 animate-in fade-in slide-in-from-bottom-2 duration-300"
+          <span
+            className="pointer-events-none absolute bottom-[calc(100%+10px)] left-0 sm:left-1/2 sm:-translate-x-1/2 hidden sm:group-hover:inline-flex items-center px-2.5 py-1 text-[11.5px] font-medium tracking-wide text-[#1F382B] bg-[#F8FAF8] border border-[#CCD7D2] rounded-md shadow-md whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-75 z-50 select-none"
+            role="tooltip"
           >
-            <Sparkles className="h-3 w-3 text-[#c59a58]" />
-            <span className="font-medium">Plan with Escora AI</span>
-          </div>
+            Escora AI Assistant
+          </span>
         )}
 
         <button
           onClick={() => setIsOpen((prev) => !prev)}
-          className={`h-12 w-12 sm:h-13 sm:w-13 rounded-full flex items-center justify-center shadow-xl transition-all duration-300 ${
+          className={`escora-ai-btn relative h-14 w-14 sm:h-[58px] sm:w-[58px] rounded-full flex items-center justify-center transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1F382B] focus-visible:ring-offset-2 focus-visible:ring-offset-[#faf6ee] cursor-pointer shadow-[0_8px_24px_-4px_rgba(20,38,28,0.20),0_2px_8px_rgba(0,0,0,0.06)] hover:scale-105 hover:shadow-[0_12px_28px_-2px_rgba(20,38,28,0.30)] border ${
             isOpen
-              ? "bg-[#293D1F] text-white hover:bg-[#1A3F2C]"
-              : "bg-[#1A3F2C] text-white hover:bg-[#293D1F] ring-2 ring-[#c59a58]/40 hover:scale-105"
+              ? "bg-[#1F382B] text-white border-[#1F382B]"
+              : "bg-[#F8FAF8] text-[#1F382B] border-[#CCD7D2] hover:border-[#A8BDB2]"
           }`}
-          aria-label={isOpen ? "Close AI Travel Assistant" : "Open Escora AI Travel Assistant"}
-          title={isOpen ? "Close Assistant" : "Chat with Escora AI Travel Assistant"}
+          aria-label={isOpen ? "Close Escora AI Assistant" : "Ask Escora — AI Travel Assistant"}
+          title={isOpen ? "Close Assistant" : "Escora AI Assistant"}
           data-testid="ai-assistant-launcher"
         >
           {isOpen ? (
-            <X className="h-5 w-5" />
+            <X className="h-6 w-6 text-white transition-transform duration-200" strokeWidth={2} />
           ) : (
-            <div className="relative">
-              <Compass className="h-6 w-6 text-white" />
-              <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#c59a58] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#c59a58]" />
-              </span>
-            </div>
+            <SparkleIcon className="h-6 w-6 sm:h-7 sm:w-7 text-[#1F382B] transition-transform duration-300 group-hover:scale-110" />
           )}
         </button>
       </div>
 
-      {/* ── Main Chat Floating Panel ── */}
+      {/* ── Main Chat Floating Panel (Bottom-Left) ── */}
       {isOpen && (
         <section
-          className="fixed bottom-20 right-4 sm:bottom-22 sm:right-6 z-50 w-[calc(100vw-32px)] sm:w-[420px] h-[580px] max-h-[82vh] bg-[#FEFEFE] border border-[#CCD7D2] rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-250 font-sans"
+          ref={panelRef}
+          className="escora-ai-panel fixed bottom-20 left-4 sm:bottom-24 sm:left-6 z-[530] w-[calc(100vw-32px)] sm:w-[420px] h-[640px] max-h-[85vh] bg-[#F8FAF8] border border-[#CCD7D2] rounded-[26px] shadow-[0_16px_48px_-8px_rgba(20,38,28,0.18),0_4px_16px_rgba(0,0,0,0.06)] flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-250 font-sans box-border"
           data-testid="ai-assistant-panel"
           aria-modal="true"
           role="dialog"
         >
           {/* Header */}
-          <header className="bg-[#1A3F2C] text-white px-4 py-3.5 flex items-center justify-between shrink-0 border-b border-[#293D1F]">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-white/10 border border-[#c59a58]/40 flex items-center justify-center text-[#c59a58]">
-                <Compass className="h-4 w-4" />
+          <header className="bg-[#F8FAF8] px-5 py-4 flex items-center justify-between shrink-0 border-b border-[#E3ECE7]">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-11 h-11 rounded-full bg-[#1F382B] flex items-center justify-center text-white shrink-0 shadow-2xs">
+                <SparkleIcon className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <h2 className="font-serif text-sm font-semibold tracking-wide flex items-center gap-1.5">
-                  Escora Concierge
-                  <Badge className="bg-[#c59a58]/20 text-[#e6ca92] hover:bg-[#c59a58]/30 border-0 text-[9px] px-1.5 py-0 uppercase tracking-widest font-mono">
-                    AI Guide
-                  </Badge>
+              <div className="flex flex-col justify-center min-w-0">
+                <h2 className="font-['Inter',sans-serif] text-[17px] sm:text-[18px] font-semibold text-[#1F382B] leading-snug tracking-normal truncate">
+                  Escora AI Assistant
                 </h2>
-                <p className="text-[10px] text-white/70">
-                  Bespoke Kerala Travel Specialist
+                <p className="font-['Inter',sans-serif] text-[13px] sm:text-[13.5px] font-normal text-[#5A6E62] leading-snug mt-0.5 truncate">
+                  Your Kerala Travel Companion
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2 shrink-0">
               <button
+                type="button"
                 onClick={handleNewConversation}
-                className="p-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 rounded-full border border-[#DDE6E1] bg-transparent hover:bg-[#EEF3EE] hover:border-[#CCD7D2] text-[#4E6054] flex items-center justify-center transition-colors"
                 title="Start a new conversation"
                 aria-label="Start a new conversation"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
+                <RotateCcw className="w-3.5 h-3.5" />
               </button>
               <button
+                type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/10 transition-colors"
+                className="w-8 h-8 rounded-full border border-[#DDE6E1] bg-transparent hover:bg-[#EEF3EE] hover:border-[#CCD7D2] text-[#4E6054] flex items-center justify-center transition-colors"
                 title="Close chat panel"
                 aria-label="Close assistant panel"
               >
-                <X className="h-4 w-4" />
+                <X className="w-4 h-4" />
               </button>
             </div>
           </header>
 
           {/* Messages & Conversation Scroll Area */}
           <div
-            className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#FEFEFE]"
+            ref={messagesContainerRef}
+            onScroll={handleMessagesScroll}
+            className="escora-ai-messages flex-1 min-h-0 overflow-y-auto p-4 sm:p-5 space-y-4"
             aria-live="polite"
             data-testid="ai-messages-container"
           >
-            {/* Empty State / Welcoming Card */}
+            {/* Empty State / Welcome Screen */}
             {messages.length === 0 && (
-              <div className="space-y-4 pt-2">
-                <div className="p-4 rounded-xl bg-[#F3F7F4] border border-[#CCD7D2]/60 space-y-2">
-                  <div className="flex items-center gap-2 text-[#1A3F2C]">
-                    <Sparkles className="h-4 w-4 text-[#c59a58]" />
-                    <h3 className="font-serif font-semibold text-sm">Welcome to Escora Holidays</h3>
+              <div className="space-y-4 pt-1">
+                {/* Welcome Message with Avatar */}
+                <div className="flex items-start gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-[#EEF3EF] border border-[#D6E1DA] flex items-center justify-center shrink-0 text-[#1F382B] mt-0.5">
+                    <SparkleIcon className="w-4 h-4" />
                   </div>
-                  <p className="text-xs text-[#56664C] leading-relaxed">
-                    I am your private travel concierge, grounded in Escora&apos;s verified Kerala destinations and slow-luxury journeys. How may I assist your voyage?
-                  </p>
+
+                  <div className="flex-1 p-4 sm:p-5 rounded-2xl bg-[#F0F4F1] border border-[#E0E9E3] text-[#1F382B] text-xs sm:text-[13px] leading-relaxed space-y-3 shadow-2xs">
+                    <p>
+                      Hello! I&apos;m your <strong className="font-semibold text-[#162B1F]">Escora AI Assistant</strong>.<br />
+                      I can help you:
+                    </p>
+
+                    <div className="space-y-2.5 pt-0.5">
+                      <Link
+                        href="/journeys"
+                        className="flex items-center gap-2.5 text-[#2D4235] hover:text-[#162B1F] transition-colors group"
+                      >
+                        <div className="w-7 h-7 rounded-full bg-white/80 border border-[#D8E3DC] flex items-center justify-center shrink-0 text-[#2D4235] group-hover:bg-white group-hover:border-[#1F382B]/30 transition-colors">
+                          <Map className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-[12px] sm:text-[12.5px]">
+                          Explore the full journeys catalog for day-by-day details
+                        </span>
+                      </Link>
+
+                      <Link
+                        href="/destinations"
+                        className="flex items-center gap-2.5 text-[#2D4235] hover:text-[#162B1F] transition-colors group"
+                      >
+                        <div className="w-7 h-7 rounded-full bg-white/80 border border-[#D8E3DC] flex items-center justify-center shrink-0 text-[#2D4235] group-hover:bg-white group-hover:border-[#1F382B]/30 transition-colors">
+                          <Navigation className="w-3.5 h-3.5 rotate-45" />
+                        </div>
+                        <span className="text-[12px] sm:text-[12.5px]">
+                          Browse all verified destinations
+                        </span>
+                      </Link>
+
+                      <Link
+                        href="/contact"
+                        className="flex items-center gap-2.5 text-[#2D4235] hover:text-[#162B1F] transition-colors group"
+                      >
+                        <div className="w-7 h-7 rounded-full bg-white/80 border border-[#D8E3DC] flex items-center justify-center shrink-0 text-[#2D4235] group-hover:bg-white group-hover:border-[#1F382B]/30 transition-colors">
+                          <Calendar className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-[12px] sm:text-[12.5px]">
+                          Connect with a travel designer for personalized guidance
+                        </span>
+                      </Link>
+                    </div>
+
+                    <p className="text-[#3E5246] pt-1">
+                      We look forward to curating a memorable, unhurried Kerala experience just for you.
+                    </p>
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-[#788A63] font-semibold block px-1">
-                    Suggested Explorations
+                {/* Popular Destinations */}
+                <div className="pt-2 space-y-2">
+                  <span className="text-[10px] tracking-[0.14em] text-[#64756A] font-medium uppercase block px-1">
+                    POPULAR DESTINATIONS
                   </span>
-                  <div className="space-y-1.5">
+                  <div className="flex flex-wrap gap-2 sm:gap-2.5">
+                    {POPULAR_DESTINATIONS.map((dest) => (
+                      <Link
+                        key={dest.slug}
+                        href={`/destinations/${dest.slug}`}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#D6E1DA] text-[#223A2C] text-xs font-medium hover:bg-[#EEF3EF] hover:border-[#CCD7D2] transition-colors shadow-2xs"
+                      >
+                        <span>{dest.name}</span>
+                        <ExternalLink className="w-3 h-3 text-[#64756A] shrink-0" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Try Asking / Suggested Questions */}
+                <div className="pt-2 space-y-2">
+                  <div className="flex items-center gap-2.5 pt-1 px-1">
+                    <span className="text-[10px] tracking-[0.14em] text-[#64756A] font-medium uppercase shrink-0">
+                      TRY ASKING
+                    </span>
+                    <div className="h-px bg-[#E2EAE5] flex-1" />
+                  </div>
+                  <div className="space-y-2">
                     {DEFAULT_SUGGESTIONS.map((suggestion, idx) => (
                       <button
                         key={idx}
+                        type="button"
                         onClick={() => handleSendMessage(suggestion)}
                         disabled={askMutation.isPending}
-                        className="w-full text-left p-2.5 rounded-lg border border-[#CCD7D2]/70 bg-white hover:bg-[#F3F7F4] hover:border-[#1A3F2C]/30 text-xs text-[#293D1F] transition-all flex items-center justify-between group shadow-2xs"
+                        className="w-full text-left px-4 py-2.5 rounded-full border border-[#DDE6E1] bg-white hover:bg-[#EEF3EE] hover:border-[#CCD7D2] text-xs sm:text-[12.5px] text-[#223A2C] transition-colors flex items-center gap-2.5 shadow-2xs group"
                       >
-                        <span className="truncate pr-2">{suggestion}</span>
-                        <ArrowRight className="h-3 w-3 text-[#788A63] group-hover:text-[#1A3F2C] shrink-0 transition-transform group-hover:translate-x-0.5" />
+                        <Search className="w-3.5 h-3.5 text-[#5E7266] shrink-0 group-hover:text-[#1F382B] transition-colors" />
+                        <span className="truncate">{suggestion}</span>
                       </button>
                     ))}
                   </div>
@@ -308,69 +468,64 @@ export default function AiTravelAssistant() {
                   key={m.id}
                   className={`flex flex-col ${isUser ? "items-end" : "items-start"}`}
                 >
-                  <div
-                    className={`p-3.5 rounded-2xl max-w-[88%] shadow-2xs ${
-                      isUser
-                        ? "bg-[#1A3F2C] text-white rounded-tr-xs"
-                        : "bg-[#F3F7F4] border border-[#CCD7D2]/60 text-[#293D1F] rounded-tl-xs"
-                    }`}
-                  >
-                    {!isUser && (
-                      <div className="flex items-center gap-1.5 mb-1.5 text-[10px] text-[#56664C] font-mono">
-                        <Compass className="h-3 w-3 text-[#1A3F2C]" />
-                        <span>Escora Concierge</span>
-                      </div>
-                    )}
-
-                    {isUser ? (
+                  {isUser ? (
+                    <div className="p-3.5 rounded-2xl rounded-tr-xs max-w-[85%] bg-[#1F382B] text-white shadow-2xs">
                       <p className="text-xs sm:text-[13px] leading-relaxed whitespace-pre-wrap">
                         {m.content}
                       </p>
-                    ) : (
-                      renderFormattedMessage(m.content)
-                    )}
-
-                    {/* Grounded Entity Quick Links */}
-                    {!isUser && m.groundedEntities && m.groundedEntities.length > 0 && (
-                      <div className="mt-3 pt-2.5 border-t border-[#CCD7D2]/50 space-y-1.5">
-                        <span className="text-[10px] font-mono uppercase tracking-wider text-[#56664C] block font-medium">
-                          Relevant Escora Offerings:
-                        </span>
-                        <div className="flex flex-wrap gap-1.5">
-                          {m.groundedEntities.map((entity, eIdx) => (
-                            <Link
-                              key={eIdx}
-                              href={entity.url}
-                              className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-white border border-[#CCD7D2] text-[#1A3F2C] hover:bg-[#1A3F2C] hover:text-white transition-colors"
-                            >
-                              <span>{entity.title}</span>
-                              <ExternalLink className="h-2.5 w-2.5" />
-                            </Link>
-                          ))}
-                        </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2.5 w-full">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF3EF] border border-[#D6E1DA] flex items-center justify-center shrink-0 text-[#1F382B] mt-0.5">
+                        <SparkleIcon className="w-3.5 h-3.5" />
                       </div>
-                    )}
-                  </div>
+                      <div className="flex-1 space-y-1.5 max-w-[88%]">
+                        <div className="p-3.5 rounded-2xl rounded-tl-xs bg-[#F0F4F1] border border-[#E0E9E3] text-[#1F382B] shadow-2xs">
+                          {renderFormattedMessage(m.content)}
 
-                  {/* Follow-up Suggestions from Assistant */}
-                  {!isUser && m.suggestions && m.suggestions.length > 0 && (
-                    <div className="mt-2 pl-1 space-y-1 w-full">
-                      <div className="flex flex-wrap gap-1.5">
-                        {m.suggestions.map((sug, sIdx) => (
-                          <button
-                            key={sIdx}
-                            onClick={() => handleSendMessage(sug)}
-                            disabled={askMutation.isPending}
-                            className="text-[11px] text-left px-2.5 py-1 rounded-full border border-[#CCD7D2] bg-white hover:bg-[#F3F7F4] text-[#3F5630] hover:text-[#1A3F2C] transition-colors"
-                          >
-                            {sug}
-                          </button>
-                        ))}
+                          {/* Grounded Entity Quick Links */}
+                          {m.groundedEntities && m.groundedEntities.length > 0 && (
+                            <div className="mt-3 pt-2.5 border-t border-[#D8E3DC] space-y-1.5">
+                              <span className="text-[10px] uppercase tracking-wider text-[#5A6E62] block font-medium">
+                                Verified Escora Offerings:
+                              </span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {m.groundedEntities.map((entity, eIdx) => (
+                                  <Link
+                                    key={eIdx}
+                                    href={entity.url}
+                                    className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-white border border-[#D6E1DA] text-[#1F382B] hover:bg-[#1F382B] hover:text-white transition-colors"
+                                  >
+                                    <span>{entity.title}</span>
+                                    <ExternalLink className="h-2.5 w-2.5 text-[#5A6E62]" />
+                                  </Link>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Follow-up Suggestions from Assistant */}
+                        {m.suggestions && m.suggestions.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {m.suggestions.map((sug, sIdx) => (
+                              <button
+                                key={sIdx}
+                                type="button"
+                                onClick={() => handleSendMessage(sug)}
+                                disabled={askMutation.isPending}
+                                className="text-[11px] text-left px-3 py-1 rounded-full border border-[#D6E1DA] bg-white hover:bg-[#EEF3EF] text-[#223A2C] transition-colors shadow-2xs"
+                              >
+                                {sug}
+                              </button>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  <span className="text-[9px] text-[#788A63] mt-1 px-1 font-mono">
+                  <span className="text-[9.5px] text-[#7A8C81] mt-1 px-1 font-normal">
                     {m.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                   </span>
                 </div>
@@ -379,26 +534,29 @@ export default function AiTravelAssistant() {
 
             {/* Loading Indicator */}
             {askMutation.isPending && (
-              <div className="flex items-start gap-2">
-                <div className="p-3 rounded-2xl rounded-tl-xs bg-[#F3F7F4] border border-[#CCD7D2]/60 text-xs text-[#56664C] flex items-center gap-2 shadow-2xs">
+              <div className="flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#EEF3EF] border border-[#D6E1DA] flex items-center justify-center shrink-0 text-[#1F382B]">
+                  <SparkleIcon className="w-3.5 h-3.5" />
+                </div>
+                <div className="p-3 rounded-2xl rounded-tl-xs bg-[#F0F4F1] border border-[#E0E9E3] text-xs text-[#5A6E62] flex items-center gap-2 shadow-2xs">
                   <div className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#1A3F2C] animate-bounce [animation-delay:-0.3s]" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#1A3F2C] animate-bounce [animation-delay:-0.15s]" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#1A3F2C] animate-bounce" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#1F382B] animate-bounce [animation-delay:-0.3s]" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#1F382B] animate-bounce [animation-delay:-0.15s]" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#1F382B] animate-bounce" />
                   </div>
-                  <span className="text-[11px] italic">Curating your recommendations...</span>
+                  <span className="text-[11px]">Curating your recommendations...</span>
                 </div>
               </div>
             )}
 
-            {/* Error & Offline States */}
+            {/* Error State */}
             {askMutation.isError && (
-              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-[#293D1F] space-y-2">
-                <div className="flex items-center gap-2 text-amber-700">
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-[#293D1F] space-y-2">
+                <div className="flex items-center gap-2 text-amber-800">
                   <AlertCircle className="h-4 w-4 shrink-0" />
                   <span className="font-semibold">Notice</span>
                 </div>
-                <p className="text-[11px] leading-relaxed text-[#56664C]">
+                <p className="text-[11.5px] leading-relaxed text-[#56664C]">
                   {lastFailedMessage
                     ? "The assistant encountered a temporary provider issue. You can retry your question or speak directly with our team."
                     : "The assistant is currently unavailable."}
@@ -408,7 +566,7 @@ export default function AiTravelAssistant() {
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-7 text-xs border-[#1A3F2C]/30 text-[#1A3F2C] hover:bg-[#1A3F2C] hover:text-white"
+                      className="h-7 text-xs border-[#1F382B]/30 text-[#1F382B] hover:bg-[#1F382B] hover:text-white"
                       onClick={() => handleSendMessage(lastFailedMessage)}
                     >
                       <RefreshCw className="h-3 w-3 mr-1" /> Retry
@@ -416,47 +574,67 @@ export default function AiTravelAssistant() {
                   )}
                   <Link
                     href="/contact"
-                    className="text-xs text-[#1A3F2C] underline hover:no-underline font-medium"
+                    className="text-xs text-[#1F382B] underline hover:no-underline font-medium"
                   >
                     Contact Travel Designer →
                   </Link>
                 </div>
               </div>
             )}
-
-            <div ref={messagesEndRef} />
           </div>
 
           {/* Input & Sending Bar */}
-          <footer className="p-3 bg-[#FEFEFE] border-t border-[#CCD7D2] shrink-0 space-y-1.5">
-            <div className="relative flex items-center">
-              <textarea
-                ref={textareaRef}
-                rows={1}
+          <footer className="p-3.5 bg-[#F8FAF8] border-t border-[#E3ECE7] shrink-0 space-y-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+              accept="image/*,.pdf,.doc,.docx"
+            />
+            <div className="relative flex items-center bg-white border border-[#D2DDD7] rounded-full p-1.5 pl-2.5 pr-1.5 focus-within:border-[#1F382B] transition-colors shadow-2xs">
+              <div className="w-8 h-8 rounded-full bg-[#EEF3EF] flex items-center justify-center shrink-0 text-[#1F382B]">
+                <SparkleIcon className="w-4 h-4" />
+              </div>
+              <input
+                ref={inputRef}
+                type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
+                onKeyDown={handleInputKeyDown}
                 placeholder="Ask about destinations, season, itineraries..."
-                className="w-full resize-none rounded-xl border border-[#CCD7D2] px-3.5 py-2.5 pr-10 text-xs sm:text-sm bg-[#F3F7F4] text-[#293D1F] placeholder:text-[#788A63] focus:outline-none focus:ring-1 focus:ring-[#1A3F2C] focus:bg-white transition-all max-h-24"
+                className="w-full bg-transparent border-0 text-xs sm:text-[13px] text-[#1F382B] placeholder:text-[#7A8C81] focus:outline-none px-2.5 py-1"
                 disabled={askMutation.isPending}
                 aria-label="Ask Escora AI a travel question"
               />
               <button
                 type="button"
+                onClick={handleAttachmentClick}
+                className="p-1.5 rounded-full text-[#5E7266] hover:text-[#1F382B] transition-colors shrink-0"
+                title="Attach file or note"
+                aria-label="Attach file"
+              >
+                <Paperclip className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
                 onClick={() => handleSendMessage()}
                 disabled={!inputValue.trim() || askMutation.isPending}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-[#1A3F2C] text-white hover:bg-[#293D1F] disabled:opacity-30 disabled:hover:bg-[#1A3F2C] transition-colors"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#1F382B] text-white hover:bg-[#16291F] disabled:opacity-30 disabled:hover:bg-[#1F382B] transition-colors flex items-center justify-center shrink-0 shadow-xs"
                 title="Send message (Enter)"
                 aria-label="Send message"
                 data-testid="button-send-ai-message"
               >
-                <Send className="h-3.5 w-3.5" />
+                <Send className="w-3.5 h-3.5 text-white" />
               </button>
             </div>
 
-            <div className="flex items-center justify-between text-[10px] text-[#788A63] px-1 font-mono">
+            <div className="flex items-center justify-between text-[10.5px] text-[#6E8074] px-2 font-normal">
               <span>Press Enter to send</span>
-              <Link href="/plan" className="hover:underline text-[#3F5630]">
+              <Link
+                href="/plan"
+                className="hover:underline text-[#243C2E] font-medium transition-colors"
+              >
                 Custom Itinerary Planner →
               </Link>
             </div>

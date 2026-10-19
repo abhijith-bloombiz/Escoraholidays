@@ -67,7 +67,7 @@ export interface AiJournalAssistantModalProps {
 }
 
 const TONE_OPTIONS = [
-  { value: "slow-luxury", label: "Slow-Luxury (Contemplative & Botanical)" },
+  { value: "slow-luxury", label: "Contemplative & Botanical" },
   { value: "poetic-evocative", label: "Poetic & Evocative (Sensory Imagery)" },
   { value: "cultural-immersive", label: "Cultural & Immersive (Heritage & Lore)" },
   { value: "practical-concise", label: "Practical & Concise (Curated Guidance)" },
@@ -97,7 +97,7 @@ export default function AiJournalAssistantModal({
   // Input fields state
   const [topic, setTopic] = useState("");
   const [destination, setDestination] = useState("");
-  const [targetAudience, setTargetAudience] = useState("Slow-luxury travelers & couples");
+  const [targetAudience, setTargetAudience] = useState("Travelers & couples");
   const [instructions, setInstructions] = useState("");
   const [tone, setTone] = useState<"slow-luxury" | "poetic-evocative" | "cultural-immersive" | "practical-concise">("slow-luxury");
   const [textSource, setTextSource] = useState<"selected" | "full" | "custom">("full");
@@ -277,21 +277,18 @@ export default function AiJournalAssistantModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden bg-background">
         {/* Header */}
-        <DialogHeader className="p-6 pb-4 border-b bg-gradient-to-r from-emerald-950/20 via-background to-background shrink-0">
+        <DialogHeader className="p-6 pb-4 border-b bg-muted/20 shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-full bg-emerald-600/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center border border-emerald-600/20">
-                <Sparkles className="h-4 w-4" />
+              <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
+                <Sparkles className="h-4 w-4 text-primary" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-serif text-foreground flex items-center gap-2">
+                <DialogTitle className="text-xl font-serif text-foreground">
                   AI Content Assistant
-                  <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20">
-                    Phase 3C · Grounded
-                  </Badge>
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                  Draft stories, elevate slow-luxury tone, suggest headlines, or optimize SEO grounded in Escora catalogue.
+                  Draft stories, refine tone, suggest headlines, or optimize SEO for articles.
                 </DialogDescription>
               </div>
             </div>
@@ -323,16 +320,16 @@ export default function AiJournalAssistantModal({
                   onClick={() => setActionMode("generate_draft")}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     actionMode === "generate_draft"
-                      ? "border-emerald-600 bg-emerald-500/10 text-foreground ring-1 ring-emerald-600/30"
+                      ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
                       : "border-border hover:border-muted-foreground/30 bg-card text-muted-foreground"
                   }`}
                 >
                   <div className="flex items-center gap-1.5 text-xs font-medium text-foreground mb-1">
-                    <PenTool className="h-3.5 w-3.5 text-emerald-600" />
+                    <PenTool className="h-3.5 w-3.5 text-primary" />
                     Draft Article
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-tight">
-                    Generate full slow-luxury travel story from topic &amp; destination
+                    Generate full travel story from topic &amp; destination
                   </p>
                 </button>
 
@@ -341,12 +338,12 @@ export default function AiJournalAssistantModal({
                   onClick={() => setActionMode("suggest_metadata")}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     actionMode === "suggest_metadata"
-                      ? "border-emerald-600 bg-emerald-500/10 text-foreground ring-1 ring-emerald-600/30"
+                      ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
                       : "border-border hover:border-muted-foreground/30 bg-card text-muted-foreground"
                   }`}
                 >
                   <div className="flex items-center gap-1.5 text-xs font-medium text-foreground mb-1">
-                    <BookOpen className="h-3.5 w-3.5 text-emerald-600" />
+                    <BookOpen className="h-3.5 w-3.5 text-primary" />
                     Titles &amp; Excerpt
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-tight">
@@ -359,16 +356,16 @@ export default function AiJournalAssistantModal({
                   onClick={() => setActionMode("rewrite")}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     actionMode === "rewrite"
-                      ? "border-emerald-600 bg-emerald-500/10 text-foreground ring-1 ring-emerald-600/30"
+                      ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
                       : "border-border hover:border-muted-foreground/30 bg-card text-muted-foreground"
                   }`}
                 >
                   <div className="flex items-center gap-1.5 text-xs font-medium text-foreground mb-1">
-                    <Sparkles className="h-3.5 w-3.5 text-emerald-600" />
+                    <Sparkles className="h-3.5 w-3.5 text-primary" />
                     Rewrite &amp; Refine
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-tight">
-                    Elevate tone, expand details, shorten, or refine selected prose
+                    Refine tone, expand details, shorten, or polish selected prose
                   </p>
                 </button>
 
@@ -377,12 +374,12 @@ export default function AiJournalAssistantModal({
                   onClick={() => setActionMode("generate_seo")}
                   className={`p-3 rounded-lg border text-left transition-all ${
                     actionMode === "generate_seo"
-                      ? "border-emerald-600 bg-emerald-500/10 text-foreground ring-1 ring-emerald-600/30"
+                      ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary/30"
                       : "border-border hover:border-muted-foreground/30 bg-card text-muted-foreground"
                   }`}
                 >
                   <div className="flex items-center gap-1.5 text-xs font-medium text-foreground mb-1">
-                    <Search className="h-3.5 w-3.5 text-emerald-600" />
+                    <Search className="h-3.5 w-3.5 text-primary" />
                     SEO &amp; Keywords
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-tight">
@@ -404,7 +401,7 @@ export default function AiJournalAssistantModal({
                     className="text-xs"
                     onClick={() => setRewriteSubAction("rewrite")}
                   >
-                    Slow-Luxury Tone
+                    Editorial Tone
                   </Button>
                   <Button
                     type="button"
@@ -481,7 +478,7 @@ export default function AiJournalAssistantModal({
                     onChange={(e) => setCustomTextSnippet(e.target.value)}
                     rows={4}
                     placeholder="Enter or paste the text snippet you wish to rewrite or refine..."
-                    className="text-xs font-mono"
+                    className="text-xs"
                   />
                 </div>
               </div>
@@ -586,12 +583,12 @@ export default function AiJournalAssistantModal({
             </div>
 
             {/* Safeguard Assurance Notice */}
-            <div className="p-3.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 flex items-start gap-3">
-              <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+            <div className="p-3.5 rounded-lg bg-primary/5 border border-primary/20 flex items-start gap-3">
+              <ShieldCheck className="h-5 w-5 text-primary shrink-0 mt-0.5" />
               <div className="text-xs text-muted-foreground space-y-1">
-                <p className="font-semibold text-foreground">Escora Grounding &amp; Editorial Safeguards</p>
+                <p className="font-semibold text-foreground">Content Verification &amp; Editorial Guidelines</p>
                 <p>
-                  Destination claims are grounded in Escora&apos;s verified catalogue. The assistant never invents hotel availability or guaranteed prices. AI outputs are drafts that you can review and edit before applying.
+                  Destination details are verified against Escora&apos;s active catalog. AI outputs are drafts that you can review and edit before applying.
                 </p>
               </div>
             </div>
@@ -642,7 +639,7 @@ export default function AiJournalAssistantModal({
             {generatedDraft.verifiedCatalogMatches && (
               <div className="p-3 rounded-lg bg-muted/20 border border-border space-y-2">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold block">
-                  Grounded Escora Catalogue References
+                  Matched Destination &amp; Journey References
                 </span>
                 <div className="flex flex-wrap gap-2 text-xs">
                   {generatedDraft.verifiedCatalogMatches.destinations.map((d) => (
@@ -651,7 +648,7 @@ export default function AiJournalAssistantModal({
                     </Badge>
                   ))}
                   {generatedDraft.verifiedCatalogMatches.packages.map((p) => (
-                    <Badge key={p.slug} variant="outline" className="text-xs font-normal text-emerald-700 dark:text-emerald-400 border-emerald-600/30">
+                    <Badge key={p.slug} variant="outline" className="text-xs font-normal text-primary border-primary/25">
                       🌿 {p.title}
                     </Badge>
                   ))}
@@ -698,7 +695,7 @@ export default function AiJournalAssistantModal({
                 <Input
                   value={editableSlug}
                   onChange={(e) => setEditableSlug(e.target.value)}
-                  className="font-mono text-xs"
+                  className="text-xs"
                 />
               </div>
 
@@ -719,7 +716,7 @@ export default function AiJournalAssistantModal({
                     min={1}
                     value={editableReadTime}
                     onChange={(e) => setEditableReadTime(Number(e.target.value))}
-                    className="font-mono text-xs w-20"
+                    className="text-xs w-20"
                   />
                   <span className="text-xs text-muted-foreground">minutes read</span>
                 </div>
@@ -735,7 +732,7 @@ export default function AiJournalAssistantModal({
                   onClick={() => copyToClipboard(editableExcerpt, "excerpt")}
                   className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1"
                 >
-                  {copiedField === "excerpt" ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                  {copiedField === "excerpt" ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
                   Copy
                 </button>
               </div>
@@ -759,7 +756,7 @@ export default function AiJournalAssistantModal({
                     onClick={() => copyToClipboard(editableContent, "content")}
                     className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 mr-2"
                   >
-                    {copiedField === "content" ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                    {copiedField === "content" ? <Check className="h-3 w-3 text-primary" /> : <Copy className="h-3 w-3" />}
                     Copy HTML
                   </button>
                   <div className="flex items-center bg-muted/40 p-0.5 rounded-md border border-border">
@@ -851,7 +848,7 @@ export default function AiJournalAssistantModal({
                   value={editableTags}
                   onChange={(e) => setEditableTags(e.target.value)}
                   placeholder="comma-separated tags..."
-                  className="text-xs font-mono"
+                  className="text-xs"
                 />
               </div>
 
@@ -871,7 +868,7 @@ export default function AiJournalAssistantModal({
 
             {/* Editorial Advice */}
             {generatedDraft.editorialAdvice && (
-              <div className="p-3 rounded-md bg-emerald-500/5 border border-emerald-500/20 text-xs text-muted-foreground">
+              <div className="p-3 rounded-md bg-primary/5 border border-primary/20 text-xs text-muted-foreground">
                 <strong className="text-foreground block mb-0.5">Editorial Curator Guidance:</strong>
                 {generatedDraft.editorialAdvice}
               </div>
@@ -890,7 +887,7 @@ export default function AiJournalAssistantModal({
                 type="button"
                 onClick={handleGenerate}
                 disabled={assistMutation.isPending}
-                className="bg-emerald-700 hover:bg-emerald-800 text-white"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
               >
                 {assistMutation.isPending ? (
                   <>
@@ -938,7 +935,7 @@ export default function AiJournalAssistantModal({
                   type="button"
                   size="sm"
                   onClick={handleApplyAll}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white text-xs"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-xs"
                 >
                   <CheckCircle2 className="h-3.5 w-3.5 mr-1.5" /> Apply All to Editor
                 </Button>

@@ -4,8 +4,10 @@ import {
   SubscriberConsentModel,
   EnquiryModel,
   OrderModel,
+  AudienceGroupModel,
   getNextSequence,
   type ICampaign,
+  type IAudienceGroup,
   type CampaignAudienceType,
   type CampaignStatus,
 } from "@workspace/db";
@@ -42,6 +44,8 @@ export async function resolveAudience(targetAudience: {
   type: CampaignAudienceType;
   destinations?: string[];
   travelStyle?: string | null;
+  groupId?: number | null;
+  groupIds?: number[];
 }): Promise<{
   eligible: RecipientAudienceItem[];
   activeSubscribers: number;
@@ -112,7 +116,110 @@ export async function resolveAudience(targetAudience: {
     }
   }
 
-  // 3. Query consent records for all gathered emails
+  // 3. Collect from Audience Groups if specified
+  if (
+    targetAudience.type === "audience_group" ||
+    targetAudience.groupId ||
+    (targetAudience.groupIds && targetAudience.groupIds.length > 0)
+  ) {
+    const groupIds: number[] = [];
+    if (targetAudience.groupId) groupIds.push(targetAudience.groupId);
+    if (Array.isArray(targetAudience.groupIds)) {
+      groupIds.push(...targetAudience.groupIds);
+    }
+
+    const groupFilter: any = { isArchived: { $ne: true } };
+    if (groupIds.length > 0) {
+      groupFilter.id = { $in: groupIds };
+    }
+
+    const groups = await AudienceGroupModel.find(groupFilter).lean();
+
+    for (const group of groups) {
+      if (group.type === "manual" && Array.isArray(group.members)) {
+        for (const m of group.members) {
+          const email = (m.email || "").trim().toLowerCase();
+          if (!email || !email.includes("@")) continue;
+          if (!emailMap.has(email)) {
+            emailMap.set(email, {
+              name: (m.name || "Valued Traveler").trim(),
+              email,
+              source: `group:${group.name}`,
+            });
+          }
+        }
+      } else if (group.type === "dynamic" && group.rules) {
+        const rules = group.rules;
+
+        // Dynamic enquiry rules
+        if (
+          !rules.customerStatus ||
+          rules.customerStatus.length === 0 ||
+          rules.customerStatus.includes("enquiry")
+        ) {
+          const eqQuery: any = {};
+          if (rules.inactiveDays && rules.inactiveDays > 0) {
+            const cutoff = new Date(Date.now() - rules.inactiveDays * 24 * 60 * 60 * 1000);
+            eqQuery.createdAt = { $lte: cutoff };
+          }
+          const enquiries = await EnquiryModel.find(eqQuery).lean();
+          for (const eq of enquiries) {
+            const email = (eq.email || "").trim().toLowerCase();
+            if (!email || !email.includes("@")) continue;
+            if (!emailMap.has(email)) {
+              emailMap.set(email, {
+                name: (eq.name || "Valued Traveler").trim(),
+                email,
+                source: `dynamic:${group.name}`,
+              });
+            }
+          }
+        }
+
+        // Dynamic order rules
+        const ordQuery: any = {};
+        if (rules.customerStatus && rules.customerStatus.length > 0) {
+          const orderStatuses = rules.customerStatus.filter((s: string) => s !== "enquiry");
+          if (orderStatuses.length > 0) {
+            ordQuery.status = { $in: orderStatuses };
+          }
+        }
+        if (rules.travelStyle) {
+          ordQuery.travelStyle = rules.travelStyle;
+        }
+        if (rules.inactiveDays && rules.inactiveDays > 0) {
+          const cutoff = new Date(Date.now() - rules.inactiveDays * 24 * 60 * 60 * 1000);
+          ordQuery.createdAt = { $lte: cutoff };
+        }
+
+        const orders = await OrderModel.find(ordQuery).lean();
+        for (const ord of orders) {
+          const email = (ord.guestEmail || "").trim().toLowerCase();
+          if (!email || !email.includes("@")) continue;
+
+          if (rules.destinations && rules.destinations.length > 0 && ord.destinations) {
+            const ordDests = ord.destinations.toLowerCase();
+            const matchesDest = rules.destinations.some((d) =>
+              ordDests.includes(d.toLowerCase())
+            );
+            if (!matchesDest) continue;
+          }
+
+          if (!emailMap.has(email)) {
+            emailMap.set(email, {
+              name: (ord.guestName || "Valued Guest").trim(),
+              email,
+              source: `dynamic:${group.name}`,
+              destination: ord.destinations || undefined,
+              travelStyle: ord.travelStyle || undefined,
+            });
+          }
+        }
+      }
+    }
+  }
+
+  // 4. Query consent records for all gathered emails
   const emails = Array.from(emailMap.keys());
   const consentRecords = await SubscriberConsentModel.find({
     email: { $in: emails },
@@ -293,15 +400,121 @@ export async function updateCampaign(
   }
 
   // If edited, reset approval so staff re-approves the modified content
-  if (campaign.status === "approved" || campaign.status === "scheduled") {
+  if (
+    campaign.status === "approved" ||
+    campaign.status === "scheduled" ||
+    campaign.status === "pending_approval" ||
+    campaign.status === "rejected"
+  ) {
     campaign.status = "draft";
     campaign.approvedBy = null;
     campaign.approvedAt = null;
     campaign.scheduledAt = null;
+    campaign.rejectionReason = null;
   }
 
   await campaign.save();
   return campaign.toObject();
+}
+
+/**
+ * Submits a draft or rejected campaign for staff review and approval.
+ */
+export async function submitCampaignForApproval(id: number): Promise<ICampaign> {
+  const campaign = await CampaignModel.findOne({ id });
+  if (!campaign) {
+    throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  if (campaign.status === "sending" || campaign.status === "sent") {
+    throw new CampaignError(
+      `Cannot submit campaign #${id} in status "${campaign.status}"`,
+      400,
+      "INVALID_STATE"
+    );
+  }
+
+  if (!campaign.name.trim() || !campaign.subject.trim() || !campaign.contentHtml.trim()) {
+    throw new CampaignError(
+      "Campaign must have a name, subject line, and email content before submission",
+      400,
+      "VALIDATION_ERROR"
+    );
+  }
+
+  campaign.status = "pending_approval";
+  campaign.submittedForApprovalAt = new Date();
+  campaign.rejectionReason = null;
+  await campaign.save();
+
+  logger.info({ campaignId: id }, "[Campaign] Campaign submitted for approval");
+  return campaign.toObject();
+}
+
+/**
+ * Rejects a campaign with a recorded reason.
+ */
+export async function rejectCampaign(
+  id: number,
+  staffUsername: string,
+  reason: string
+): Promise<ICampaign> {
+  const campaign = await CampaignModel.findOne({ id });
+  if (!campaign) {
+    throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  if (campaign.status === "sending" || campaign.status === "sent") {
+    throw new CampaignError(
+      `Cannot reject campaign #${id} in status "${campaign.status}"`,
+      400,
+      "INVALID_STATE"
+    );
+  }
+
+  campaign.status = "rejected";
+  campaign.rejectedBy = staffUsername;
+  campaign.rejectedAt = new Date();
+  campaign.rejectionReason = reason.trim() || "Changes requested by reviewer";
+  campaign.approvedBy = null;
+  campaign.approvedAt = null;
+  campaign.scheduledAt = null;
+  await campaign.save();
+
+  logger.info({ campaignId: id, staffUsername, reason }, "[Campaign] Campaign rejected with reason");
+  return campaign.toObject();
+}
+
+/**
+ * Duplicates an existing campaign into a new draft.
+ */
+export async function duplicateCampaign(id: number): Promise<ICampaign> {
+  const campaign = await CampaignModel.findOne({ id }).lean();
+  if (!campaign) {
+    throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  const newId = await getNextSequence("campaigns");
+  const duplicated = await CampaignModel.create({
+    id: newId,
+    name: `Copy of ${campaign.name}`,
+    subject: campaign.subject,
+    previewText: campaign.previewText || null,
+    contentHtml: campaign.contentHtml,
+    targetAudience: { ...campaign.targetAudience },
+    status: "draft",
+    stats: {
+      totalRecipients: 0,
+      sentCount: 0,
+      failedCount: 0,
+      skippedCount: 0,
+    },
+    deliveries: [],
+    deliveryMode: null,
+  });
+
+  logger.info({ originalId: id, newId }, "[Campaign] Campaign duplicated into new draft");
+  return duplicated.toObject();
 }
 
 /**
@@ -370,6 +583,7 @@ export async function approveCampaign(id: number, staffUsername: string): Promis
   campaign.status = "approved";
   campaign.approvedBy = staffUsername;
   campaign.approvedAt = new Date();
+  campaign.rejectionReason = null;
   await campaign.save();
 
   logger.info({ campaignId: id, staffUsername }, "[Campaign] Campaign approved by staff");
@@ -724,3 +938,208 @@ export async function listSubscribers(subscribedFilter?: boolean) {
   }
   return SubscriberConsentModel.find(query).sort({ updatedAt: -1 }).lean();
 }
+
+/**
+ * ============================================================================
+ * AUDIENCE GROUP MANAGEMENT (Manual & Dynamic Segmentation)
+ * ============================================================================
+ */
+
+export async function listAudienceGroups() {
+  const groups = await AudienceGroupModel.find({ isArchived: { $ne: true } })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const results = [];
+  for (const g of groups) {
+    if (g.type === "manual") {
+      results.push({
+        ...g,
+        memberCount: g.members?.length || 0,
+      });
+    } else {
+      const { eligible, activeSubscribers, unsubscribedCount } = await resolveAudience({
+        type: "audience_group",
+        groupId: g.id,
+      } as any);
+      results.push({
+        ...g,
+        memberCount: eligible.length,
+        activeSubscribers,
+        unsubscribedCount,
+      });
+    }
+  }
+  return results;
+}
+
+export async function createAudienceGroup(data: {
+  name: string;
+  description?: string;
+  type: "manual" | "dynamic";
+  members?: Array<{ email: string; name?: string; source?: string }>;
+  rules?: any;
+}) {
+  if (!data.name || !data.name.trim()) {
+    throw new CampaignError("Group name is required", 400);
+  }
+
+  const id = await getNextSequence("audience_groups");
+  const doc = await AudienceGroupModel.create({
+    id,
+    name: data.name.trim(),
+    description: data.description?.trim() || null,
+    type: data.type || "manual",
+    members: (data.members || []).map((m) => ({
+      email: m.email.trim().toLowerCase(),
+      name: m.name?.trim() || null,
+      source: m.source || "manual",
+      addedAt: new Date(),
+    })),
+    rules: data.rules || {},
+    isArchived: false,
+  });
+
+  logger.info({ groupId: id, name: doc.name, type: doc.type }, "[Audience] Audience group created");
+  return doc.toObject();
+}
+
+export async function getAudienceGroup(id: number) {
+  const group = await AudienceGroupModel.findOne({ id }).lean();
+  if (!group || group.isArchived) {
+    throw new CampaignError(`Audience group #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  const { eligible, activeSubscribers, unsubscribedCount } = await resolveAudience({
+    type: "audience_group",
+    groupId: group.id,
+  } as any);
+
+  return {
+    ...group,
+    memberCount: eligible.length,
+    activeSubscribers,
+    unsubscribedCount,
+    resolvedMembers: eligible,
+  };
+}
+
+export async function updateAudienceGroup(
+  id: number,
+  data: Partial<{
+    name: string;
+    description: string;
+    type: "manual" | "dynamic";
+    members: Array<{ email: string; name?: string; source?: string }>;
+    rules: any;
+  }>
+) {
+  const group = await AudienceGroupModel.findOne({ id });
+  if (!group || group.isArchived) {
+    throw new CampaignError(`Audience group #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  if (data.name !== undefined) group.name = data.name.trim();
+  if (data.description !== undefined) group.description = data.description?.trim() || null;
+  if (data.type !== undefined) group.type = data.type;
+  if (data.rules !== undefined) group.rules = data.rules;
+  if (data.members !== undefined) {
+    group.members = data.members.map((m) => ({
+      email: m.email.trim().toLowerCase(),
+      name: m.name?.trim() || null,
+      source: m.source || "manual",
+      addedAt: new Date(),
+    }));
+  }
+
+  await group.save();
+  logger.info({ groupId: id, name: group.name }, "[Audience] Audience group updated");
+  return group.toObject();
+}
+
+export async function deleteAudienceGroup(id: number) {
+  const group = await AudienceGroupModel.findOne({ id });
+  if (!group) {
+    throw new CampaignError(`Audience group #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  group.isArchived = true;
+  await group.save();
+  logger.info({ groupId: id }, "[Audience] Audience group archived");
+}
+
+export async function addAudienceGroupMember(
+  id: number,
+  member: { email: string; name?: string; source?: string }
+) {
+  const group = await AudienceGroupModel.findOne({ id });
+  if (!group || group.isArchived) {
+    throw new CampaignError(`Audience group #${id} not found`, 404, "NOT_FOUND");
+  }
+  if (group.type !== "manual") {
+    throw new CampaignError("Cannot manually add contacts to a dynamic audience group", 400);
+  }
+
+  const cleanEmail = member.email.trim().toLowerCase();
+  if (!cleanEmail || !cleanEmail.includes("@")) {
+    throw new CampaignError("Valid email address is required", 400);
+  }
+
+  const existingIdx = group.members.findIndex((m) => m.email.toLowerCase() === cleanEmail);
+  if (existingIdx >= 0) {
+    group.members[existingIdx].name = member.name?.trim() || group.members[existingIdx].name;
+  } else {
+    group.members.push({
+      email: cleanEmail,
+      name: member.name?.trim() || null,
+      source: member.source || "manual",
+      addedAt: new Date(),
+    });
+  }
+
+  await group.save();
+  logger.info({ groupId: id, email: cleanEmail }, "[Audience] Member added to manual group");
+  return group.toObject();
+}
+
+export async function removeAudienceGroupMember(id: number, email: string) {
+  const group = await AudienceGroupModel.findOne({ id });
+  if (!group || group.isArchived) {
+    throw new CampaignError(`Audience group #${id} not found`, 404, "NOT_FOUND");
+  }
+  if (group.type !== "manual") {
+    throw new CampaignError("Cannot manually remove contacts from a dynamic audience group", 400);
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  group.members = group.members.filter((m) => m.email.toLowerCase() !== cleanEmail);
+  await group.save();
+  logger.info({ groupId: id, email: cleanEmail }, "[Audience] Member removed from manual group");
+  return group.toObject();
+}
+
+export async function previewAudienceGroup(id: number) {
+  const group = await AudienceGroupModel.findOne({ id }).lean();
+  if (!group || group.isArchived) {
+    throw new CampaignError(`Audience group #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  const { eligible, activeSubscribers, unsubscribedCount } = await resolveAudience({
+    type: "audience_group",
+    groupId: group.id,
+  } as any);
+
+  return {
+    group,
+    eligibleRecipients: eligible.length,
+    activeSubscribers,
+    unsubscribedCount,
+    sampleRecipients: eligible.slice(0, 20).map((r) => ({
+      name: r.name,
+      email: r.email,
+      source: r.source,
+      isSubscribed: r.isSubscribed,
+    })),
+  };
+}
+

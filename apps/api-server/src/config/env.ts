@@ -60,6 +60,25 @@ export interface AppConfig {
   enablePreTripReminders: boolean;
   enableCancellationNotifications: boolean;
   enableDocumentDelivery: boolean;
+  // WhatsApp Automation Configuration
+  whatsappProvider: "mock" | "cloud_api";
+  whatsappLiveSendingEnabled: boolean;
+  whatsappApiToken?: string;
+  whatsappPhoneNumberId?: string;
+  whatsappBusinessAccountId?: string;
+  whatsappWebhookVerifyToken?: string;
+  whatsappAppSecret?: string;
+  whatsappGraphApiVersion: string;
+  whatsappTestPhoneNumber?: string;
+  enableWhatsappEnquiryAcknowledgement: boolean;
+  enableWhatsappBookingConfirmation: boolean;
+  enableWhatsappItineraryUpdates: boolean;
+  enableWhatsappPaymentReceipts: boolean;
+  enableWhatsappPaymentReminders: boolean;
+  enableWhatsappPreTripReminders: boolean;
+  enableWhatsappPostTripFeedback: boolean;
+  enableWhatsappDocumentDelivery: boolean;
+  whatsappSimulateAutoDeliver: boolean;
 }
 
 const rawPort = process.env.PORT || "8080";
@@ -164,6 +183,41 @@ export function validateProductionConfig(cfg: AppConfig = config): void {
   }
 }
 
+/**
+ * Validates WhatsApp configuration when real Meta Cloud API delivery is explicitly active.
+ * Ensures server fails safely at startup if required credentials or security secrets are missing.
+ * Never leaks token or secret values in error messages.
+ */
+export function validateWhatsAppConfig(cfg: AppConfig = config): void {
+  // If explicitly configured for Meta Cloud API with live sending enabled:
+  if (cfg.whatsappProvider === "cloud_api" && cfg.whatsappLiveSendingEnabled) {
+    if (!cfg.whatsappApiToken || cfg.whatsappApiToken.trim().length < 10) {
+      throw new Error(
+        "WhatsApp configuration error: WHATSAPP_LIVE_SENDING_ENABLED=true with WHATSAPP_PROVIDER=cloud_api requires a valid WHATSAPP_API_TOKEN. Set this in your environment or use WHATSAPP_PROVIDER=mock for safe simulation."
+      );
+    }
+    if (!cfg.whatsappPhoneNumberId || cfg.whatsappPhoneNumberId.trim().length < 5) {
+      throw new Error(
+        "WhatsApp configuration error: WHATSAPP_LIVE_SENDING_ENABLED=true with WHATSAPP_PROVIDER=cloud_api requires a valid WHATSAPP_PHONE_NUMBER_ID. Set this in your environment or use WHATSAPP_PROVIDER=mock for safe simulation."
+      );
+    }
+  }
+
+  // If running in production with cloud_api provider, webhook verification and HMAC signing secrets are mandatory
+  if (cfg.isProduction && cfg.whatsappProvider === "cloud_api") {
+    if (!cfg.whatsappWebhookVerifyToken || cfg.whatsappWebhookVerifyToken.trim().length < 8) {
+      throw new Error(
+        "WhatsApp configuration error: In production with WHATSAPP_PROVIDER=cloud_api, WHATSAPP_WEBHOOK_VERIFY_TOKEN is required for webhook handshake verification."
+      );
+    }
+    if (!cfg.whatsappAppSecret || cfg.whatsappAppSecret.trim().length < 16) {
+      throw new Error(
+        "WhatsApp configuration error: In production with WHATSAPP_PROVIDER=cloud_api, WHATSAPP_APP_SECRET is required for x-hub-signature-256 HMAC verification."
+      );
+    }
+  }
+}
+
 export const config: AppConfig = {
   env: nodeEnv,
   port,
@@ -201,9 +255,29 @@ export const config: AppConfig = {
   enablePreTripReminders: process.env.ENABLE_PRE_TRIP_REMINDERS !== "false",
   enableCancellationNotifications: process.env.ENABLE_CANCELLATION_NOTIFICATIONS !== "false",
   enableDocumentDelivery: process.env.ENABLE_DOCUMENT_DELIVERY !== "false",
+  // WhatsApp Automation Defaults
+  whatsappProvider: (process.env.WHATSAPP_PROVIDER === "cloud_api" ? "cloud_api" : "mock"),
+  whatsappLiveSendingEnabled: process.env.WHATSAPP_LIVE_SENDING_ENABLED === "true",
+  whatsappApiToken: process.env.WHATSAPP_API_TOKEN?.trim() || undefined,
+  whatsappPhoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID?.trim() || undefined,
+  whatsappBusinessAccountId: process.env.WHATSAPP_BUSINESS_ACCOUNT_ID?.trim() || undefined,
+  whatsappWebhookVerifyToken: process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN?.trim() || undefined,
+  whatsappAppSecret: process.env.WHATSAPP_APP_SECRET?.trim() || undefined,
+  whatsappGraphApiVersion: process.env.WHATSAPP_GRAPH_API_VERSION?.trim() || "v20.0",
+  whatsappTestPhoneNumber: process.env.WHATSAPP_TEST_PHONE_NUMBER?.trim() || undefined,
+  enableWhatsappEnquiryAcknowledgement: process.env.ENABLE_WHATSAPP_ENQUIRY_ACKNOWLEDGEMENT !== "false",
+  enableWhatsappBookingConfirmation: process.env.ENABLE_WHATSAPP_BOOKING_CONFIRMATION !== "false",
+  enableWhatsappItineraryUpdates: process.env.ENABLE_WHATSAPP_ITINERARY_UPDATES !== "false",
+  enableWhatsappPaymentReceipts: process.env.ENABLE_WHATSAPP_PAYMENT_RECEIPTS !== "false",
+  enableWhatsappPaymentReminders: process.env.ENABLE_WHATSAPP_PAYMENT_REMINDERS !== "false",
+  enableWhatsappPreTripReminders: process.env.ENABLE_WHATSAPP_PRE_TRIP_REMINDERS !== "false",
+  enableWhatsappPostTripFeedback: process.env.ENABLE_WHATSAPP_POST_TRIP_FEEDBACK !== "false",
+  enableWhatsappDocumentDelivery: process.env.ENABLE_WHATSAPP_DOCUMENT_DELIVERY !== "false",
+  whatsappSimulateAutoDeliver: process.env.WHATSAPP_SIMULATE_AUTO_DELIVER !== "false",
 };
 
 // Fail fast immediately on import if running under production environment
 if (isProduction) {
   validateProductionConfig(config);
 }
+validateWhatsAppConfig(config);

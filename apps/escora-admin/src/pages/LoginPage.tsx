@@ -37,7 +37,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <div style={{
-            fontFamily: "'Playfair Display', Georgia, serif",
+            fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
             fontSize: "32px",
             fontWeight: 300,
             color: "#f0ebe0",
@@ -46,9 +46,10 @@ export default function LoginPage() {
             Escora
           </div>
           <div style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: "10px",
-            letterSpacing: "0.3em",
+            fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            fontSize: "11px",
+            fontWeight: 500,
+            letterSpacing: "0.2em",
             color: "#cbab6e",
             textTransform: "uppercase",
             marginTop: "6px",
@@ -61,9 +62,10 @@ export default function LoginPage() {
           <div style={{ marginBottom: "20px" }}>
             <label style={{
               display: "block",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "10px",
-              letterSpacing: "0.2em",
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              fontSize: "11px",
+              fontWeight: 500,
+              letterSpacing: "0.08em",
               textTransform: "uppercase",
               color: "#cbab6e",
               marginBottom: "8px",
@@ -83,7 +85,7 @@ export default function LoginPage() {
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(203,171,110,0.2)",
                 color: "#f0ebe0",
-                fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                 fontSize: "14px",
                 outline: "none",
                 boxSizing: "border-box",
@@ -97,9 +99,10 @@ export default function LoginPage() {
           <div style={{ marginBottom: "28px" }}>
             <label style={{
               display: "block",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "10px",
-              letterSpacing: "0.2em",
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              fontSize: "11px",
+              fontWeight: 500,
+              letterSpacing: "0.08em",
               textTransform: "uppercase",
               color: "#cbab6e",
               marginBottom: "8px",
@@ -118,7 +121,7 @@ export default function LoginPage() {
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(203,171,110,0.2)",
                 color: "#f0ebe0",
-                fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                 fontSize: "14px",
                 outline: "none",
                 boxSizing: "border-box",
@@ -136,7 +139,7 @@ export default function LoginPage() {
               background: "rgba(220,38,38,0.1)",
               border: "1px solid rgba(220,38,38,0.3)",
               color: "#fca5a5",
-              fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               fontSize: "13px",
             }}>
               {error}
@@ -152,9 +155,10 @@ export default function LoginPage() {
               background: loading ? "rgba(203,171,110,0.4)" : "#cbab6e",
               border: "none",
               color: "#0f1a12",
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: "11px",
-              letterSpacing: "0.2em",
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              fontSize: "12px",
+              fontWeight: 600,
+              letterSpacing: "0.15em",
               textTransform: "uppercase",
               cursor: loading ? "not-allowed" : "pointer",
               transition: "background 0.2s",
@@ -169,7 +173,7 @@ export default function LoginPage() {
           paddingTop: "24px",
           borderTop: "1px solid rgba(203,171,110,0.1)",
           textAlign: "center",
-          fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
           fontSize: "12px",
           color: "rgba(240,235,224,0.3)",
         }}>

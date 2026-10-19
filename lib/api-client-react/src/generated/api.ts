@@ -32,6 +32,8 @@ import type {
   CampaignSendInput,
   CampaignUnsubscribeInput,
   CampaignUpdate,
+  ConvertEnquiryInput,
+  ConvertEnquiryResponse,
   DashboardStats,
   Destination,
   DestinationInput,
@@ -3383,6 +3385,78 @@ export const useAssistEnquiry = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getAssistEnquiryMutationOptions(options));
+    }
+
+export const getConvertEnquiryUrl = (id: number,) => {
+
+
+
+
+  return `/api/enquiries/${id}/convert`
+}
+
+/**
+ * @summary Convert contact enquiry to booking
+ */
+export const convertEnquiry = async (id: number,
+    convertEnquiryInput?: ConvertEnquiryInput, options?: RequestInit): Promise<ConvertEnquiryResponse> => {
+
+  return customFetch<ConvertEnquiryResponse>(getConvertEnquiryUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      convertEnquiryInput,)
+  }
+);}
+
+
+
+
+export const getConvertEnquiryMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof convertEnquiry>>, TError,{id: number;data?: BodyType<ConvertEnquiryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof convertEnquiry>>, TError,{id: number;data?: BodyType<ConvertEnquiryInput>}, TContext> => {
+
+const mutationKey = ['convertEnquiry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof convertEnquiry>>, {id: number;data?: BodyType<ConvertEnquiryInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  convertEnquiry(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ConvertEnquiryMutationResult = NonNullable<Awaited<ReturnType<typeof convertEnquiry>>>
+    export type ConvertEnquiryMutationBody = BodyType<ConvertEnquiryInput> | undefined
+    export type ConvertEnquiryMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Convert contact enquiry to booking
+ */
+export const useConvertEnquiry = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof convertEnquiry>>, TError,{id: number;data?: BodyType<ConvertEnquiryInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof convertEnquiry>>,
+        TError,
+        {id: number;data?: BodyType<ConvertEnquiryInput>},
+        TContext
+      > => {
+      return useMutation(getConvertEnquiryMutationOptions(options));
     }
 
 export const getListJournalPostsUrl = (params?: ListJournalPostsParams,) => {

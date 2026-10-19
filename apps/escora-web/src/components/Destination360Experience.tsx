@@ -160,10 +160,13 @@ function PanoramaModal({
       }
 
       function onWheel(event: WheelEvent) {
-        event.preventDefault();
-        camera.fov = Math.max(35, Math.min(100, camera.fov + event.deltaY * 0.05));
-        camera.updateProjectionMatrix();
-        setZoomLevel(Math.round(camera.fov));
+        // Only zoom if Ctrl/Cmd is pressed; otherwise allow normal page scrolling without trapping the user
+        if (event.ctrlKey || event.metaKey) {
+          event.preventDefault();
+          camera.fov = Math.max(35, Math.min(100, camera.fov + event.deltaY * 0.05));
+          camera.updateProjectionMatrix();
+          setZoomLevel(Math.round(camera.fov));
+        }
       }
 
       function onResize() {
@@ -484,12 +487,10 @@ export default function Destination360Experience({ destinations }: Destination36
 
             {/* ── Top-Left Editorial Content Overlay ── */}
             <div className="dest-360-editorial-block">
-              {/* Eyebrow Label with 02 and Dash */}
+              {/* Eyebrow Label matching The Escora Way standard */}
               <div className="dest-360-eyebrow">
-                <span className="dest-360-eyebrow-icon">✦</span>
-                <span className="dest-360-eyebrow-num">02</span>
-                <span className="dest-360-eyebrow-dash" />
-                <span className="dest-360-eyebrow-text">360° DESTINATION EXPERIENCE</span>
+                <span className="dot" />
+                <span>360° DESTINATION EXPERIENCE</span>
               </div>
 
               {/* Headline with Serif Italic 'Every Angle.' */}

@@ -11,3 +11,8 @@ export * from "./subscriber-consent.model";
 export * from "./campaign.model";
 export * from "./invoice.model";
 export * from "./notification.model";
+export * from "./whatsapp-message.model";
+export * from "./whatsapp-consent.model";
+export * from "./whatsapp-setting.model";
+export * from "./audience-group.model";
+export * from "./email-automation.model";

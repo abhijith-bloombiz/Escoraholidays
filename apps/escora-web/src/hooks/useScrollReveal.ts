@@ -139,8 +139,12 @@ export function useScrollReveal() {
 
     observeElements();
 
-    // Dynamically watch for added elements (route changes, API fetch responses)
-    const mut = new MutationObserver(() => observeElements());
+    // Dynamically watch for added elements (route changes, API fetch responses) with debounce
+    let mutTimer: ReturnType<typeof setTimeout> | null = null;
+    const mut = new MutationObserver(() => {
+      if (mutTimer) clearTimeout(mutTimer);
+      mutTimer = setTimeout(observeElements, 120);
+    });
     mut.observe(document.body, { childList: true, subtree: true });
 
     return () => {
@@ -148,6 +152,7 @@ export function useScrollReveal() {
       headingObs.disconnect();
       revealObs.disconnect();
       mut.disconnect();
+      if (mutTimer) clearTimeout(mutTimer);
     };
   }, []);
 }

@@ -15,7 +15,6 @@ const COLLECTIONS = [
 ];
 
 const LINKS_AFTER = [
-  { href: "/trip-planner", label: "Trip Planner" },
   { href: "/journeys", label: "Journeys" },
   { href: "/destinations", label: "Explore Kerala" },
   { href: "/journal", label: "Journal" },
@@ -96,6 +95,9 @@ export default function NavbarV3() {
   const lastScrollY = useRef(0);
   const lastTouchTime = useRef(0);
   const lastScrollDownTime = useRef(0);
+  const heroElRef = useRef<HTMLElement | null>(null);
+  const heroBottomRef = useRef(typeof window !== "undefined" ? window.innerHeight : 800);
+  const scrolledRef = useRef(false);
   const isTouchInteraction = useRef(
     typeof window !== "undefined"
       ? window.matchMedia("(pointer: coarse) and (hover: none)").matches
@@ -105,22 +107,28 @@ export default function NavbarV3() {
   const overHero = location === "/" && !scrolled && !menuOpen;
   const isVisible = menuOpen || collectionsOpen || scrollVisible || hoverVisible;
 
-  // Determine if the user is currently viewing the hero section or top of the page
+  // Cached hero boundary calculation (measured on mount and resize, not on every scroll tick)
+  const updateHeroMetrics = () => {
+    if (typeof window === "undefined") return;
+    if (!heroElRef.current || !heroElRef.current.isConnected) {
+      heroElRef.current = document.querySelector(
+        '.hero-editorial, .hero2, .v3dest-hero, .page-hero-top, [data-hero], section[class*="hero"], header[class*="hero"]'
+      );
+    }
+    if (heroElRef.current) {
+      const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      const rect = heroElRef.current.getBoundingClientRect();
+      heroBottomRef.current = Math.round(rect.top + scrollY + rect.height);
+    } else {
+      heroBottomRef.current = window.innerHeight;
+    }
+  };
+
+  // Determine if the user is currently viewing the hero section or top of the page without DOM queries
   const isInHero = () => {
     const currentScrollY = Math.max(0, window.scrollY || document.documentElement.scrollTop);
-    // Always considered hero when at or near the top of the page
     if (currentScrollY <= 120) return true;
-
-    // Check if a dedicated hero element exists and is still in the top viewport area
-    const heroEl = document.querySelector(
-      '.hero-editorial, .hero2, .v3dest-hero, .page-hero-top, [data-hero], section[class*="hero"], header[class*="hero"]'
-    );
-    if (heroEl) {
-      const rect = heroEl.getBoundingClientRect();
-      return rect.bottom > 80;
-    }
-
-    return false;
+    return currentScrollY < (heroBottomRef.current - 80);
   };
 
   const clearScrollStopTimer = () => {
@@ -200,7 +208,11 @@ export default function NavbarV3() {
 
     const handleScroll = () => {
       const currentScrollY = Math.max(0, window.scrollY || document.documentElement.scrollTop);
-      setScrolled(currentScrollY > 60);
+      const isScrolled = currentScrollY > 60;
+      if (scrolledRef.current !== isScrolled) {
+        scrolledRef.current = isScrolled;
+        setScrolled(isScrolled);
+      }
 
       // Keep navbar visible if mobile menu or dropdown is open
       if (menuOpen || collectionsOpen) {
@@ -315,17 +327,28 @@ export default function NavbarV3() {
       }
     };
 
+    updateHeroMetrics();
     onScroll();
+
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+    const onResize = () => {
+      if (resizeTimer) clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(updateHeroMetrics, 150);
+    };
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("pointerdown", onPointerDown, { passive: true });
+    window.addEventListener("resize", onResize, { passive: true });
 
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("resize", onResize);
+      if (resizeTimer) clearTimeout(resizeTimer);
       clearScrollStopTimer();
     };
   }, [menuOpen, collectionsOpen]);
@@ -361,6 +384,20 @@ export default function NavbarV3() {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     closeTimer.current = setTimeout(() => setCollectionsOpen(false), 150);
   }
+
+  // Close menus on route change
+  useEffect(() => {
+    setMenuOpen(false);
+    setCollectionsOpen(false);
+    setMobileCollectionsOpen(false);
+  }, [location]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimer.current) clearTimeout(closeTimer.current);
+    };
+  }, []);
 
   const isActive = (href: string) => (href === "/" ? location === "/" : location.startsWith(href));
 
@@ -420,11 +457,25 @@ export default function NavbarV3() {
         </div>
 
         <div className="v3-nav-right nav-right-desktop">
-          <Link href="/plan" className="v3-nav-cta">Plan a Journey</Link>
+          <Link
+            href="/plan-a-journey"
+            className="v3-nav-cta"
+            aria-label="Plan a Journey"
+          >
+            <span>Plan a Journey</span>
+          </Link>
         </div>
 
         {/* Phones use the bottom tab bar instead of the burger menu. */}
-        <Link href="/plan" className="v3-nav-cta v3-nav-cta-phone">Plan a Journey</Link>
+        <div className="v3-nav-phone-cta-wrap">
+          <Link
+            href="/plan-a-journey"
+            className="v3-nav-cta v3-nav-cta-phone"
+            aria-label="Plan a Journey"
+          >
+            <span>Plan a Journey</span>
+          </Link>
+        </div>
 
         <button
           className="v3-nav-burger nav-hamburger"
@@ -454,7 +505,15 @@ export default function NavbarV3() {
         {LINKS_AFTER.map((l) => (
           <Link key={l.href} href={l.href} className={isActive(l.href) ? "active" : ""}>{l.label}</Link>
         ))}
-        <Link href="/plan" className="v3-mobile-cta">Plan a Journey</Link>
+
+        <Link
+          href="/plan-a-journey"
+          onClick={() => setMenuOpen(false)}
+          className="v3-mobile-cta"
+        >
+          Plan a Journey
+        </Link>
+
         <a href="tel:+918157003344" className="v3-mobile-phone">+91 8157 003 344</a>
       </div>
     </>

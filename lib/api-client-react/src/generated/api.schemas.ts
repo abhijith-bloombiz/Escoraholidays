@@ -298,6 +298,8 @@ export interface Itinerary {
   paymentTerms?: string | null;
   /** @nullable */
   importantInfo?: string | null;
+  /** @nullable */
+  enquiryId?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -332,6 +334,7 @@ export interface ItineraryInput {
   hotelTerms?: string;
   paymentTerms?: string;
   importantInfo?: string;
+  enquiryId?: number;
 }
 
 export interface ItineraryUpdate {
@@ -364,6 +367,7 @@ export interface ItineraryUpdate {
   hotelTerms?: string;
   paymentTerms?: string;
   importantInfo?: string;
+  enquiryId?: number;
 }
 
 export interface ItineraryAiActivity {
@@ -653,6 +657,28 @@ export interface Order {
   geoRegion?: string | null;
   /** @nullable */
   geoCity?: string | null;
+  /** @nullable */
+  bookingReference?: string | null;
+  /** @nullable */
+  enquiryId?: number | null;
+  /** @nullable */
+  itineraryId?: number | null;
+  /** @nullable */
+  itineraryTitle?: string | null;
+  /** @nullable */
+  currency?: string | null;
+  /** @nullable */
+  paymentStatus?: string | null;
+  /** @nullable */
+  paymentTerms?: string | null;
+  /** @nullable */
+  pricingDetails?: string | null;
+  /** @nullable */
+  itinerarySnapshot?: string | null;
+  /** @nullable */
+  convertedBy?: string | null;
+  /** @nullable */
+  convertedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -701,6 +727,14 @@ export interface Enquiry {
   phone?: string | null;
   message: string;
   status: string;
+  /** @nullable */
+  bookingId?: number | null;
+  /** @nullable */
+  bookingReference?: string | null;
+  /** @nullable */
+  convertedAt?: string | null;
+  /** @nullable */
+  convertedBy?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -714,6 +748,33 @@ export interface EnquiryInput {
 
 export interface EnquiryUpdate {
   status?: string;
+}
+
+export interface ConvertEnquiryInput {
+  itineraryId?: number;
+  guestName?: string;
+  guestEmail?: string;
+  guestPhone?: string;
+  travelStyle?: string;
+  destinations?: string;
+  travelDate?: string;
+  departureDate?: string;
+  guestCount?: number;
+  totalAmount?: number;
+  currency?: string;
+  status?: string;
+  paymentStatus?: string;
+  paymentTerms?: string;
+  specialRequests?: string;
+  notes?: string;
+  customerAccepted?: boolean;
+  availabilityConfirmed?: boolean;
+}
+
+export interface ConvertEnquiryResponse {
+  success: boolean;
+  booking: Order;
+  enquiry: Enquiry;
 }
 
 /**
@@ -1191,6 +1252,7 @@ featured?: boolean;
 
 export type ListItinerariesParams = {
 status?: string;
+enquiryId?: number;
 };
 
 export type ListTravelCategoriesParams = {

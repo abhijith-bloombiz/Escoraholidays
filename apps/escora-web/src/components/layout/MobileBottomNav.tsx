@@ -32,7 +32,7 @@ const NAV = [
     ),
   },
   {
-    href: "/plan",
+    href: "/plan-a-journey",
     label: "Plan",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -47,6 +47,15 @@ export default function MobileBottomNav() {
 
   function isActive(href: string) {
     if (href === "/" || href === "/#categories") return location === "/";
+    if (href === "/plan-a-journey") {
+      return (
+        location.startsWith("/plan-a-journey") ||
+        location.startsWith("/choose-journey") ||
+        location === "/plan" ||
+        location.startsWith("/trip-planner") ||
+        location.startsWith("/ai-planner")
+      );
+    }
     return location.startsWith(href);
   }
 

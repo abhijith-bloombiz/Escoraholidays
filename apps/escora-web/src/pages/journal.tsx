@@ -1,16 +1,16 @@
 import Layout from "@/components/layout/Layout";
 import { useListJournalPosts } from "@workspace/api-client-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useSeo } from "@/hooks/useSeo";
 import { Link } from "wouter";
 
 const CATEGORIES = ["All", "Travelogue", "Culture", "Heritage", "Cuisine", "Wellness", "News"];
 
 const MOCK_POSTS = [
-  { id: 1, title: "The Art of Slow Travel in Kerala's Backwaters", category: "Travelogue", excerpt: "Discovering the unhurried rhythm of life along the meandering canals of Alleppey, where time stands still and nature reclaims the soul.", authorName: "Priya Menon", readTimeMinutes: 5, imageUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80", publishedAt: "2023-10-15T10:00:00Z", slug: "slow-travel-backwaters" },
-  { id: 2, title: "Echoes of the Past: Fort Kochi's Colonial Legacy", category: "Heritage", excerpt: "A walk through the cobblestone streets of Fort Kochi, uncovering tales of spice merchants, Portuguese explorers, and Dutch architecture.", authorName: "David Silva", readTimeMinutes: 7, imageUrl: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80", publishedAt: "2023-09-22T08:30:00Z", slug: "fort-kochi-legacy" },
-  { id: 3, title: "Munnar's Green Carpet: The Story of Tea", category: "Culture", excerpt: "Journey into the misty hills of Munnar to understand the centuries-old tradition of tea cultivation and the people who nurture it.", authorName: "Ananya Krishnan", readTimeMinutes: 6, imageUrl: "https://images.unsplash.com/photo-1444927714506-8492d94b4e3d?auto=format&fit=crop&w=800&q=80", publishedAt: "2023-11-05T14:15:00Z", slug: "munnar-tea-story" },
-  { id: 4, title: "Ayurveda: The Ancient Science of Healing", category: "Wellness", excerpt: "Exploring the roots of Ayurveda in Kerala and how traditional wellness practices are being preserved in modern retreats.", authorName: "Dr. Arun Kumar", readTimeMinutes: 8, imageUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80", publishedAt: "2023-08-10T09:45:00Z", slug: "ayurveda-healing" },
+  { id: 1, title: "The Art of Slow Travel in Kerala's Backwaters", category: "Travelogue", excerpt: "Discovering the unhurried rhythm of life along the meandering canals of Alleppey, where time stands still and nature reclaims the soul.", authorName: "Priya Menon", readTimeMinutes: 5, imageUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=80", publishedAt: "2023-10-15T10:00:00Z", slug: "slow-travel-backwaters", tags: "alleppey, backwaters, slow-travel, houseboat" },
+  { id: 2, title: "Echoes of the Past: Fort Kochi's Colonial Legacy", category: "Heritage", excerpt: "A walk through the cobblestone streets of Fort Kochi, uncovering tales of spice merchants, Portuguese explorers, and Dutch architecture.", authorName: "David Silva", readTimeMinutes: 7, imageUrl: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=800&q=80", publishedAt: "2023-09-22T08:30:00Z", slug: "fort-kochi-legacy", tags: "fort-kochi, heritage, arrival, travel-tips" },
+  { id: 3, title: "Munnar's Green Carpet: The Story of Tea", category: "Culture", excerpt: "Journey into the misty hills of Munnar to understand the centuries-old tradition of tea cultivation and the people who nurture it.", authorName: "Ananya Krishnan", readTimeMinutes: 6, imageUrl: "https://images.unsplash.com/photo-1444927714506-8492d94b4e3d?auto=format&fit=crop&w=800&q=80", publishedAt: "2023-11-05T14:15:00Z", slug: "munnar-tea-story", tags: "munnar, monsoon, season-guide, cardamom-hills" },
+  { id: 4, title: "Ayurveda: The Ancient Science of Healing", category: "Wellness", excerpt: "Exploring the roots of Ayurveda in Kerala and how traditional wellness practices are being preserved in modern retreats.", authorName: "Dr. Arun Kumar", readTimeMinutes: 8, imageUrl: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=800&q=80", publishedAt: "2023-08-10T09:45:00Z", slug: "ayurveda-healing", tags: "ayurveda, wellness, experience-guide" },
 ];
 
 export default function Journal() {
@@ -22,6 +22,30 @@ export default function Journal() {
 
   const [activeFilter, setActiveFilter] = useState("All");
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [isTopicsOpen, setIsTopicsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close topic dropdown on outside click
+  useEffect(() => {
+    if (!isTopicsOpen) return;
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsTopicsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isTopicsOpen]);
+
+  // Close topic dropdown on Escape
+  useEffect(() => {
+    if (!isTopicsOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setIsTopicsOpen(false);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isTopicsOpen]);
 
   const queryParams = activeFilter !== "All" ? { category: activeFilter, published: true } : { published: true };
   const { data: apiPosts, isLoading } = useListJournalPosts(queryParams);
@@ -40,7 +64,7 @@ export default function Journal() {
       const raw = (p as any).tags;
       if (raw) raw.split(",").forEach((t: string) => { const trimmed = t.trim(); if (trimmed) tagSet.add(trimmed); });
     });
-    return Array.from(tagSet).slice(0, 12);
+    return Array.from(tagSet);
   }, [allPosts]);
 
   const featuredPost = posts[0];
@@ -61,41 +85,140 @@ export default function Journal() {
         </div>
       </section>
 
-      {/* Filter section */}
-      <section className="py-6 bg-bg-2 border-b border-line sticky top-[80px] z-40 backdrop-blur-md bg-bg-2/90">
-        <div className="container mx-auto px-6 md:px-12 space-y-3">
-          <div className="flex gap-4 overflow-x-auto no-scrollbar md:justify-center min-w-max mx-auto">
-            {CATEGORIES.map(cat => (
-              <button
-                key={cat}
-                onClick={() => { setActiveFilter(cat); setActiveTag(null); }}
-                className={`font-mono text-xs uppercase tracking-widest px-6 py-3 rounded transition-colors ${
-                  activeFilter === cat
-                    ? "bg-gold text-bg"
-                    : "border border-line text-ink-soft hover:border-gold hover:text-gold"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
-          {allTags.length > 0 && (
-            <div className="flex flex-wrap gap-2 md:justify-center">
-              {allTags.map(tag => (
+      {/* Filter section — Compact single row with Explore topics dropdown */}
+      <section className="py-4 sm:py-5 bg-[#FAF8F5] border-b border-[#E2EAE4] sticky top-[80px] z-40 backdrop-blur-md bg-[#FAF8F5]/95">
+        <div className="container mx-auto px-6 md:px-12">
+          <div className="flex items-center justify-center flex-wrap gap-2 sm:gap-2.5">
+            {/* Category pills */}
+            {CATEGORIES.map(cat => {
+              const isSelected = activeFilter === cat;
+              return (
                 <button
-                  key={tag}
-                  onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-                  className={`font-mono text-[10px] uppercase tracking-widest px-3 py-1 rounded-full transition-colors border ${
-                    activeTag === tag
-                      ? "bg-gold/20 border-gold text-gold"
-                      : "border-line/60 text-ink-mute hover:border-gold/50 hover:text-ink-soft"
+                  key={cat}
+                  type="button"
+                  onClick={() => {
+                    setActiveFilter(cat);
+                    setActiveTag(null);
+                  }}
+                  className={`h-8 px-4 rounded-full text-xs font-sans tracking-wide transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? "bg-[#183628] text-white font-medium shadow-xs"
+                      : "bg-white/85 hover:bg-white text-[#38483D] border border-[#D5DFD8] hover:border-[#183628]/40"
                   }`}
                 >
-                  #{tag}
+                  {cat}
                 </button>
-              ))}
-            </div>
-          )}
+              );
+            })}
+
+            {/* Subtle divider before topics control on desktop */}
+            {allTags.length > 0 && (
+              <span className="hidden md:inline-block w-px h-4 bg-[#D5DFD8] mx-1 self-center" aria-hidden="true" />
+            )}
+
+            {/* "Explore topics" Dropdown Control */}
+            {allTags.length > 0 && (
+              <div className="relative inline-block" ref={dropdownRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsTopicsOpen(prev => !prev)}
+                  className={`h-8 px-3.5 rounded-full text-xs font-sans font-medium tracking-wide inline-flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${
+                    activeTag
+                      ? "bg-[#183628] text-white shadow-xs"
+                      : isTopicsOpen
+                      ? "bg-white text-[#183628] border border-[#183628] shadow-xs"
+                      : "bg-white/85 hover:bg-white text-[#38483D] border border-[#D5DFD8] hover:border-[#183628]/40"
+                  }`}
+                  aria-expanded={isTopicsOpen}
+                  aria-haspopup="true"
+                >
+                  <span>{activeTag ? `#${activeTag}` : "Explore topics"}</span>
+                  <svg
+                    className={`w-3.5 h-3.5 text-current transition-transform duration-200 ${isTopicsOpen ? "rotate-180" : ""}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+
+                {/* Popover */}
+                {isTopicsOpen && (
+                  <div className="absolute right-0 md:left-1/2 md:-translate-x-1/2 mt-2 z-50 w-72 sm:w-80 p-3.5 bg-white rounded-2xl border border-[#D5DFD8] shadow-lg animate-in fade-in zoom-in-95 duration-150">
+                    <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-[#E2EAE4]">
+                      <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#637568]">
+                        Filter by topic
+                      </span>
+                      {activeTag && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveTag(null);
+                            setIsTopicsOpen(false);
+                          }}
+                          className="text-[11px] font-sans text-[#B58D5D] hover:underline cursor-pointer"
+                        >
+                          Clear topic
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1">
+                      {allTags.map(tag => {
+                        const isTagSelected = activeTag === tag;
+                        return (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              setActiveTag(isTagSelected ? null : tag);
+                              setIsTopicsOpen(false);
+                            }}
+                            className={`font-mono text-[11px] tracking-wide px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                              isTagSelected
+                                ? "bg-[#183628] text-white font-medium"
+                                : "bg-[#EFF4F0] hover:bg-[#E2EAE4] text-[#38483D] border border-transparent hover:border-[#D5DFD8]"
+                            }`}
+                          >
+                            #{tag}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Active topic badge with quick remove ✕ */}
+            {activeTag && (
+              <button
+                type="button"
+                onClick={() => setActiveTag(null)}
+                className="h-8 pl-3 pr-2 rounded-full text-xs font-sans bg-[#EFF4F0] text-[#183628] border border-[#D5DFD8] hover:border-[#B58D5D] hover:bg-[#E2EAE4] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Remove topic filter"
+              >
+                <span>#{activeTag}</span>
+                <span className="text-xs leading-none text-[#637568] hover:text-[#183628] font-semibold">✕</span>
+              </button>
+            )}
+
+            {/* Reset button if any filter is active */}
+            {(activeFilter !== "All" || activeTag !== null) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveFilter("All");
+                  setActiveTag(null);
+                }}
+                className="h-8 px-3 rounded-full text-xs font-sans uppercase tracking-wider text-[#B58D5D] border border-[#B58D5D] hover:bg-[#B58D5D] hover:text-white transition-colors cursor-pointer"
+              >
+                Reset
+              </button>
+            )}
+          </div>
         </div>
       </section>
 
@@ -206,11 +329,11 @@ export default function Journal() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-32 reveal-up">
-              <p className="font-serif text-2xl text-ink-soft">No stories found for this category.</p>
+            <div className="text-center py-28 reveal-up">
+              <p className="font-editorial text-2xl text-[#183628]">No stories found for this selection.</p>
               <button 
-                onClick={() => setActiveFilter("All")}
-                className="mt-8 font-mono text-xs text-gold uppercase tracking-widest hover:text-gold-bright transition-colors"
+                onClick={() => { setActiveFilter("All"); setActiveTag(null); }}
+                className="mt-6 font-sans text-xs uppercase tracking-widest text-white bg-[#183628] hover:bg-[#26533A] px-6 py-2.5 rounded-full transition-colors cursor-pointer"
               >
                 Clear Filters
               </button>

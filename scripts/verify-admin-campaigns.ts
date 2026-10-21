@@ -237,6 +237,23 @@ async function runCampaignAutomationVerification() {
         status: "confirmed",
       });
 
+      // Explicitly record booking marketing consent for Marcus Vance
+      await SubscriberConsentModel.findOneAndUpdate(
+        { email: testOrderEmail.toLowerCase() },
+        {
+          $set: {
+            name: "Marcus Vance",
+            subscribed: true,
+            status: "subscribed",
+            source: "booking_consent",
+            consentDate: new Date(),
+            unsubscribedAt: null,
+            suppressed: false,
+          },
+        },
+        { upsert: true }
+      );
+
       // Query audience preview
       const previewRes = await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/audience-preview`, {
         method: "POST",

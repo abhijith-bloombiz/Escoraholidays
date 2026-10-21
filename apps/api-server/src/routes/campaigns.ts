@@ -1,6 +1,12 @@
 import crypto from "node:crypto";
 import { Router, Request, Response, NextFunction } from "express";
-import { CampaignModel, SubscriberConsentModel, NotificationModel, AudienceGroupModel } from "@workspace/db";
+import {
+  CampaignModel,
+  SubscriberConsentModel,
+  NotificationModel,
+  AudienceGroupModel,
+  getNextSequence,
+} from "@workspace/db";
 import { config } from "../config/env";
 import { logger } from "../lib/logger";
 import { getAutomationSettings } from "../services/notification-service";
@@ -10,6 +16,7 @@ import {
   ScheduleCampaignBody,
   SendCampaignBody,
   UnsubscribeGuestBody,
+  z,
 } from "@workspace/api-zod";
 import {
   createCampaign,
@@ -26,6 +33,13 @@ import {
   sendCampaign,
   handleUnsubscribe,
   listSubscribers,
+  adminUnsubscribeSubscriber,
+  recordExplicitConsent,
+  suppressEmailAddress,
+  unsuppressEmailAddress,
+  inspectContactRelationships,
+  deleteContactRecordSafely,
+  auditAndFixConsentInconsistencies,
   listAudienceGroups,
   createAudienceGroup,
   getAudienceGroup,
@@ -34,8 +48,18 @@ import {
   addAudienceGroupMember,
   removeAudienceGroupMember,
   previewAudienceGroup,
+  validateCampaignPreSend,
+  renderTemplate,
+  subscribeToNewsletter,
   CampaignError,
 } from "../services/campaign-service";
+import { renderCampaignForRecipient } from "../services/merge-tag-resolver";
+import {
+  sendEmailWithStatus,
+  getEffectiveEmailProvider,
+  getAuthenticatedSender,
+  verifyEmailTransport,
+} from "../lib/email";
 
 const router = Router();
 
@@ -66,9 +90,9 @@ router.get(
             $group: {
               _id: "$status",
               count: { $sum: 1 },
-              totalDelivered: { $sum: "$deliveredCount" },
-              totalSent: { $sum: "$sentCount" },
-              totalFailed: { $sum: "$failedCount" },
+              totalDelivered: { $sum: { $ifNull: ["$stats.sentCount", { $ifNull: ["$deliveredCount", 0] }] } },
+              totalSent: { $sum: { $ifNull: ["$stats.sentCount", { $ifNull: ["$sentCount", 0] }] } },
+              totalFailed: { $sum: { $ifNull: ["$stats.failedCount", { $ifNull: ["$failedCount", 0] }] } },
             },
           },
         ]),
@@ -81,7 +105,12 @@ router.get(
           },
         ]),
         AudienceGroupModel.countDocuments(),
-        SubscriberConsentModel.countDocuments({ subscribed: true }),
+        SubscriberConsentModel.countDocuments({
+          $or: [
+            { status: "subscribed", subscribed: true, suppressed: { $ne: true } },
+            { subscribed: true, suppressed: { $ne: true }, unsubscribedAt: null },
+          ],
+        }),
         getAutomationSettings(),
       ]);
 
@@ -99,8 +128,8 @@ router.get(
         nMap[row._id] = row.count;
       }
 
-      const notifSent = nMap["sent"] || 0;
-      const notifFailed = nMap["failed"] || 0;
+      const notifSent = (nMap["sent"] || 0) + (nMap["accepted"] || 0) + (nMap["delivered"] || 0) + (nMap["simulated"] || 0);
+      const notifFailed = (nMap["failed"] || 0) + (nMap["bounced"] || 0);
 
       let activeAutomations = 0;
       const autoKeys = [
@@ -122,7 +151,7 @@ router.get(
       }
 
       res.json({
-        campaignsSent: (cMap["completed"] || 0) + (cMap["sending"] || 0),
+        campaignsSent: (cMap["sent"] || 0) + (cMap["completed"] || 0) + (cMap["sending"] || 0),
         scheduledCampaigns: cMap["scheduled"] || 0,
         pendingApprovals: cMap["pending_approval"] || 0,
         draftCampaigns: cMap["draft"] || 0,
@@ -176,20 +205,247 @@ router.post("/campaigns", async (req: Request, res: Response, next: NextFunction
   }
 });
 
+const AdminUnsubscribeBody = z.object({
+  email: z.string().email("Invalid email address"),
+  reason: z.string().optional(),
+  source: z.string().optional(),
+});
+
+const RecordExplicitConsentBody = z.object({
+  email: z.string().email("Invalid email address"),
+  name: z.string().optional(),
+  consentMethod: z.string().min(1, "Consent method is required"),
+  source: z.string().min(1, "Genuine consent source is required"),
+  consentDate: z.string().optional(),
+  doubleOptInConfirmed: z.boolean().optional(),
+  notes: z.string().optional(),
+});
+
+const SuppressEmailBody = z.object({
+  email: z.string().email("Invalid email address"),
+  reason: z.string().min(1, "Suppression reason is required"),
+});
+
+const UnsuppressEmailBody = z.object({
+  email: z.string().email("Invalid email address"),
+  reason: z.string().optional(),
+});
+
+const DeleteContactBody = z.object({
+  email: z.string().email("Invalid email address"),
+});
+
 /**
  * GET /api/campaigns/subscribers
- * Lists subscriber consent status. Admin only.
+ * Lists subscriber consent status with search, subscribed, and suppression filters. Admin only.
  */
 router.get(
   "/campaigns/subscribers",
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const subscribedParam = req.query.subscribed;
-      const subscribedFilter =
-        subscribedParam === "true" ? true : subscribedParam === "false" ? false : undefined;
-      const subscribers = await listSubscribers(subscribedFilter);
+      const statusParam = req.query.status as string | undefined;
+      const subscribedParam = req.query.subscribed as string | undefined;
+      const suppressedParam = req.query.suppressed as string | undefined;
+      const searchParam = req.query.search as string | undefined;
+
+      const filter: any = {};
+      if (statusParam) filter.status = statusParam;
+      if (subscribedParam === "true") filter.subscribed = true;
+      if (subscribedParam === "false") filter.subscribed = false;
+      if (suppressedParam === "true") filter.suppressed = true;
+      if (suppressedParam === "false") filter.suppressed = false;
+      if (searchParam) filter.search = searchParam;
+
+      const subscribers = await listSubscribers(filter);
       res.json(subscribers);
     } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/subscribers/unsubscribe
+ * Admin manual opt-out of an email address with audit trail. Admin only.
+ */
+router.post(
+  "/campaigns/subscribers/unsubscribe",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsed = AdminUnsubscribeBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.issues[0]?.message || "Invalid input" });
+        return;
+      }
+
+      const adminUsername = (req.session as any)?.user?.username || "Admin Staff";
+      const updated = await adminUnsubscribeSubscriber(
+        parsed.data.email,
+        adminUsername,
+        parsed.data.reason,
+        parsed.data.source
+      );
+      res.json(updated);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/subscribers/consent
+ * Records genuine, explicit customer subscription consent. Admin only.
+ */
+router.post(
+  "/campaigns/subscribers/consent",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsed = RecordExplicitConsentBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.issues[0]?.message || "Invalid input" });
+        return;
+      }
+
+      const adminUsername = (req.session as any)?.user?.username || "Admin Staff";
+      const updated = await recordExplicitConsent(parsed.data.email, adminUsername, parsed.data);
+      res.json(updated);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/subscribers/suppress
+ * Suppresses an email address from all marketing communications. Admin only.
+ */
+router.post(
+  "/campaigns/subscribers/suppress",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsed = SuppressEmailBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.issues[0]?.message || "Invalid input" });
+        return;
+      }
+
+      const adminUsername = (req.session as any)?.user?.username || "Admin Staff";
+      const updated = await suppressEmailAddress(parsed.data.email, adminUsername, parsed.data.reason);
+      res.json(updated);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/subscribers/unsuppress
+ * Lifts marketing suppression from an email address. Admin only.
+ */
+router.post(
+  "/campaigns/subscribers/unsuppress",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsed = UnsuppressEmailBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.issues[0]?.message || "Invalid input" });
+        return;
+      }
+
+      const adminUsername = (req.session as any)?.user?.username || "Admin Staff";
+      const updated = await unsuppressEmailAddress(parsed.data.email, adminUsername, parsed.data.reason);
+      res.json(updated);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * GET /api/campaigns/subscribers/check-delete
+ * Inspects all relationships for a contact to determine if removal is safe. Admin only.
+ */
+router.get(
+  "/campaigns/subscribers/check-delete",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const email = req.query.email as string;
+      if (!email?.trim()) {
+        res.status(400).json({ error: "Email query parameter is required" });
+        return;
+      }
+
+      const inspection = await inspectContactRelationships(email);
+      res.json(inspection);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * DELETE /api/campaigns/subscribers
+ * Safely removes a contact record without deleting financial records. Admin only.
+ */
+router.delete(
+  "/campaigns/subscribers",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const parsed = DeleteContactBody.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.issues[0]?.message || "Invalid input" });
+        return;
+      }
+
+      const adminUsername = (req.session as any)?.user?.username || "Admin Staff";
+      const result = await deleteContactRecordSafely(parsed.data.email, adminUsername);
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/subscribers/audit-fix
+ * Reconciles confirmed inconsistent consent records (such as test opt-out fixtures). Admin only.
+ */
+router.post(
+  "/campaigns/subscribers/audit-fix",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const adminUsername = (req.session as any)?.user?.username || "Admin Staff";
+      const result = await auditAndFixConsentInconsistencies(adminUsername);
+      res.json(result);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
       next(err);
     }
   }
@@ -363,6 +619,41 @@ router.post(
           }
           await campaign.save();
         }
+      }
+
+      // Also verify and update transactional NotificationModel if messageId matches
+      const notif = await NotificationModel.findOne({ messageId: emailId });
+      if (notif) {
+        if (eventType === "email.delivered") {
+          notif.status = "delivered";
+          notif.deliveredAt = new Date();
+          notif.metadata = {
+            ...(notif.metadata || {}),
+            deliveryConfirmedAt: new Date(),
+            webhookEvent: eventType,
+          };
+          logger.info({ emailId, notificationId: notif.id }, "[CampaignWebhook] Notification marked as confirmed delivered via webhook");
+        } else if (eventType === "email.bounced") {
+          notif.status = "bounced";
+          notif.bouncedAt = new Date();
+          notif.error = event?.data?.bounce?.message || "Email address bounced";
+          notif.metadata = {
+            ...(notif.metadata || {}),
+            bounceDetails: event?.data?.bounce || null,
+            webhookEvent: eventType,
+          };
+          logger.warn({ emailId, notificationId: notif.id }, "[CampaignWebhook] Notification marked as bounced via webhook");
+        } else if (eventType === "email.complained") {
+          notif.status = "bounced";
+          notif.bouncedAt = new Date();
+          notif.error = "Recipient reported spam complaint";
+          notif.metadata = {
+            ...(notif.metadata || {}),
+            complaintDetails: event?.data || null,
+            webhookEvent: eventType,
+          };
+        }
+        await notif.save();
       }
 
       // If bounced or complained, permanently record opt-out in SubscriberConsentModel
@@ -597,6 +888,192 @@ router.get(
 );
 
 /**
+ * GET /api/campaigns/email-config
+ * Returns active email provider and authenticated sender information (no secrets). Admin only.
+ */
+router.get(
+  "/campaigns/email-config",
+  async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const provider = getEffectiveEmailProvider();
+      const sender = getAuthenticatedSender();
+      res.json({
+        provider,
+        senderEmail: sender.email,
+        senderName: sender.name,
+        fullFrom: sender.fullFrom,
+        isConfigured: sender.isConfigured,
+        authMechanism:
+          provider === "gmail"
+            ? "Gmail SMTP (Google App Password / 2FA)"
+            : provider === "resend"
+            ? "Resend API (Domain / Onboarding)"
+            : "Simulation / Mock (Credentials Missing)",
+        smtpHost: provider === "gmail" ? config.gmailSmtpHost : undefined,
+        smtpPort: provider === "gmail" ? config.gmailSmtpPort : undefined,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/email-config/verify
+ * Tests the SMTP / email provider connection without dispatching mail. Admin only.
+ */
+router.post(
+  "/campaigns/email-config/verify",
+  async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await verifyEmailTransport();
+      res.json(result);
+    } catch (err: any) {
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/test-email
+ * POST /api/campaigns/:id/test-email
+ * Sends a single test email directly to the provided recipient.
+ * CRITICAL SAFEGUARDS:
+ * - Sends ONLY to the single provided recipient email.
+ * - Does NOT contact the campaign audience.
+ * - Does NOT mutate campaign status or increment delivery statistics.
+ * - Authenticated genuinely as arunopera7@gmail.com when Gmail is active.
+ */
+router.post(
+  ["/campaigns/test-email", "/campaigns/:id/test-email"],
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const recipientEmail = (req.body?.recipientEmail || req.body?.to || "").trim().toLowerCase();
+      if (!recipientEmail || !recipientEmail.includes("@")) {
+        res.status(400).json({ error: "A valid recipient email address is required for sending a test email." });
+        return;
+      }
+
+      let subject = (req.body?.subject || req.body?.campaign?.subject || "").trim();
+      let contentHtml = req.body?.contentHtml || req.body?.campaign?.contentHtml || "";
+      const previewText = req.body?.previewText || req.body?.campaign?.previewText;
+
+      // If an existing campaign ID is specified and subject/content were omitted, load from campaign
+      const campaignId = Number(req.params.id || req.body?.campaignId);
+      if (campaignId && (!subject || !contentHtml)) {
+        const campaign = await CampaignModel.findOne({ id: campaignId }).lean();
+        if (campaign) {
+          subject = subject || campaign.subject;
+          contentHtml = contentHtml || campaign.contentHtml;
+        }
+      }
+
+      if (!subject) {
+        subject = "Escora Journeys — Test Email Preview";
+      }
+      if (!contentHtml) {
+        contentHtml = "<p>This is a test email sent from Escora Holidays Admin.</p>";
+      }
+
+      // Render merge tags with realistic preview data
+      const sampleRecipient = {
+        name: req.body?.recipientName || "Valued Traveler",
+        email: recipientEmail,
+        destination: req.body?.destination || "Munnar & Alleppey",
+        token: "test-preview-token",
+      };
+
+      const rendered = renderCampaignForRecipient(
+        {
+          subject,
+          contentHtml,
+          previewText,
+        },
+        sampleRecipient,
+        { baseUrl: config.publicUrl }
+      );
+
+      const sender = getAuthenticatedSender();
+      logger.info(
+        { recipient: recipientEmail, from: sender.fullFrom, provider: sender.provider },
+        "[Campaign] Dispatching test email"
+      );
+
+      const result = await sendEmailWithStatus({
+        to: recipientEmail,
+        subject: `[Test] ${rendered.renderedSubject}`,
+        html: rendered.renderedHtml,
+      });
+
+      // Persist test email audit record into NotificationModel so it appears in Email History
+      const notifId = await getNextSequence("notifications");
+      const notifStatus = result.status === "simulated" ? "simulated" : (result.success ? "accepted" : "failed");
+      await NotificationModel.create({
+        id: notifId,
+        type: "campaign_test_email",
+        category: "manual",
+        relatedType: "campaign",
+        relatedId: campaignId || 0,
+        recipientEmail,
+        recipientName: sampleRecipient.name,
+        subject: `[Test] ${rendered.renderedSubject}`,
+        status: notifStatus,
+        sentAt: result.sentAt || new Date(),
+        messageId: result.messageId || null,
+        error: result.error || null,
+        retryCount: 0,
+        idempotencyKey: `campaign_test_email:${notifId}:${Date.now()}`,
+        metadata: {
+          isTestEmail: true,
+          campaignId: campaignId || null,
+          provider: result.provider || sender.provider,
+          smtpResponse: result.smtpResponse || null,
+          providerResponse: result.providerResponse || null,
+          acceptedRecipients: result.acceptedRecipients || [recipientEmail],
+          rejectedRecipients: result.rejectedRecipients || [],
+          from: sender.fullFrom,
+        },
+      }).catch((err) => {
+        logger.error({ err: err?.message, notifId }, "[Campaign] Failed to persist test email audit record");
+      });
+
+      if (!result.success) {
+        res.status(400).json({
+          success: false,
+          error: result.error || "Failed to deliver test email",
+          provider: result.provider || sender.provider,
+          from: sender.fullFrom,
+          notificationId: notifId,
+        });
+        return;
+      }
+
+      const statusMessage =
+        result.status === "simulated"
+          ? `Test email simulated (mock mode). No live message was dispatched to ${recipientEmail}.`
+          : `Test email accepted by ${result.provider === "gmail" ? "Gmail SMTP relay" : "provider"} for delivery to ${recipientEmail}. Note: Final delivery to inbox depends on recipient spam filters.`;
+
+      res.json({
+        success: true,
+        status: result.status,
+        messageId: result.messageId,
+        provider: result.provider || sender.provider,
+        from: sender.fullFrom,
+        to: recipientEmail,
+        recipient: recipientEmail,
+        subject: `[Test] ${subject}`,
+        personalizedSubject: `[Test] ${rendered.renderedSubject}`,
+        smtpResponse: result.smtpResponse,
+        message: statusMessage,
+        notificationId: notifId,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+/**
  * GET /api/campaigns/:id
  * Retrieves campaign details with stats and delivery logs. Admin only.
  */
@@ -708,6 +1185,33 @@ router.post(
 );
 
 /**
+ * GET /api/campaigns/:id/presend-validation
+ * POST /api/campaigns/:id/presend-validation
+ * Evaluates recipient data, merge tags, fallbacks, and compliance before dispatching. Admin only.
+ */
+router.all(
+  "/campaigns/:id/presend-validation",
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const id = Number(req.params.id);
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: "Invalid campaign ID" });
+        return;
+      }
+
+      const validationSummary = await validateCampaignPreSend(id);
+      res.json(validationSummary);
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
  * POST /api/campaigns/audience-estimate
  * Estimates target recipients and consent counts for a target audience before saving. Admin only.
  */
@@ -720,18 +1224,64 @@ router.post(
         destinations: req.body?.destinations,
         travelStyle: req.body?.travelStyle,
       };
-      const { eligible, activeSubscribers, unsubscribedCount } = await resolveAudience(targetAudience);
+
+      if (targetAudience.type === "custom_segment") {
+        res.status(400).json({
+          error:
+            "The 'Custom Destination Segment' audience option has been retired. Please select one of the supported audience segments.",
+          code: "RETIRED_AUDIENCE_SEGMENT",
+        });
+        return;
+      }
+
+      const result = await resolveAudience(targetAudience);
       res.json({
-        eligibleRecipients: eligible.length,
-        activeSubscribers,
-        unsubscribedCount,
-        sampleRecipients: eligible.slice(0, 5).map((r) => ({
+        totalSelected: result.totalSelected,
+        eligibleRecipients: result.eligibleRecipients,
+        eligibleCount: result.eligibleCount,
+        activeSubscribers: result.activeSubscribers,
+        unsubscribedCount: result.unsubscribedCount,
+        excludedNotSubscribed: result.excludedNotSubscribed,
+        excludedUnsubscribed: result.excludedUnsubscribed,
+        excludedSuppressed: result.excludedSuppressed,
+        sampleRecipients: result.eligible.slice(0, 10).map((r) => ({
           name: r.name,
           email: r.email,
           source: r.source,
           isSubscribed: r.isSubscribed,
+          isSuppressed: r.isSuppressed,
+          consentStatus: r.consentStatus,
         })),
       });
+    } catch (err: any) {
+      if (err instanceof CampaignError) {
+        res.status(err.statusCode).json({ error: err.message, code: err.code });
+        return;
+      }
+      next(err);
+    }
+  }
+);
+
+/**
+ * POST /api/campaigns/newsletter
+ * POST /api/newsletter/subscribe
+ * Public website newsletter signup endpoint with rate limiting and opt-out/suppression protection.
+ */
+router.post(
+  ["/campaigns/newsletter", "/newsletter/subscribe"],
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const email = typeof req.body?.email === "string" ? req.body.email.trim() : "";
+      const name = typeof req.body?.name === "string" ? req.body.name.trim() : undefined;
+
+      if (!email || !email.includes("@")) {
+        res.status(400).json({ error: "Please provide a valid email address.", code: "INVALID_EMAIL" });
+        return;
+      }
+
+      const result = await subscribeToNewsletter(email, name);
+      res.json(result);
     } catch (err: any) {
       if (err instanceof CampaignError) {
         res.status(err.statusCode).json({ error: err.message, code: err.code });

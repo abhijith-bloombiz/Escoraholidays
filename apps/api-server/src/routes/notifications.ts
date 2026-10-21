@@ -17,7 +17,24 @@ import {
 
 const router = Router();
 
-const DEFAULT_AUTOMATIONS = [
+export const RETIRED_AUTOMATION_IDS = [
+  "pre_trip_reminder",
+  "travel_document_delivery",
+  "enquiry_followup",
+  "itinerary_update",
+  "internal_staff_notification",
+] as const;
+
+export const RETIRED_NOTIFICATION_TYPES = [
+  "pre_trip_reminder",
+  "travel_document_delivery",
+  "enquiry_followup",
+  "itinerary_update",
+  "exceptional_notice",
+  "major_itinerary_update",
+] as const;
+
+export const DEFAULT_AUTOMATIONS = [
   {
     id: "enquiry_acknowledgement",
     name: "Enquiry Acknowledgement",
@@ -79,51 +96,6 @@ const DEFAULT_AUTOMATIONS = [
     enabled: true,
   },
   {
-    id: "pre_trip_reminder",
-    name: "Pre-Trip Countdown & Guide",
-    category: "scheduled",
-    trigger: "pre_trip_departure",
-    triggerDescription: "Configured days prior to scheduled tour departure",
-    templateId: "pre_trip_countdown",
-    templateName: "Kerala Luxury Journey Countdown & Packing Guide",
-    recipientLogic: "Guest on upcoming confirmed tour",
-    timingType: "delay",
-    delayValue: 3,
-    delayUnit: "days",
-    requiresApproval: false,
-    enabled: true,
-  },
-  {
-    id: "travel_document_delivery",
-    name: "Travel Documents & Vouchers",
-    category: "transactional",
-    trigger: "travel_documents_ready",
-    triggerDescription: "Flight tickets, resort vouchers or permits verified and attached",
-    templateId: "travel_vouchers_dossier",
-    templateName: "Official Travel Vouchers & Journey Dossier",
-    recipientLogic: "Lead traveller email",
-    timingType: "immediate",
-    delayValue: 0,
-    delayUnit: "hours",
-    requiresApproval: false,
-    enabled: true,
-  },
-  {
-    id: "enquiry_followup",
-    name: "Enquiry Follow-Up",
-    category: "scheduled",
-    trigger: "enquiry_unconverted",
-    triggerDescription: "Unconverted enquiry with no recorded staff engagement",
-    templateId: "enquiry_followup_consultation",
-    templateName: "Curated Itinerary Follow-up & Kerala Consultation",
-    recipientLogic: "Unconverted enquirer email",
-    timingType: "delay",
-    delayValue: 24,
-    delayUnit: "hours",
-    requiresApproval: false,
-    enabled: true,
-  },
-  {
     id: "post_trip_feedback",
     name: "Post-Trip Thank-You & Review Request",
     category: "scheduled",
@@ -138,36 +110,6 @@ const DEFAULT_AUTOMATIONS = [
     requiresApproval: false,
     enabled: true,
   },
-  {
-    id: "itinerary_update",
-    name: "Itinerary Update & Amenity Notice",
-    category: "transactional",
-    trigger: "itinerary_amended",
-    triggerDescription: "Published itinerary updated by travel operations",
-    templateId: "itinerary_refinement_notice",
-    templateName: "Itinerary Refinement Notice & Updated Journey Plan",
-    recipientLogic: "Confirmed travellers on updated itinerary",
-    timingType: "immediate",
-    delayValue: 0,
-    delayUnit: "hours",
-    requiresApproval: false,
-    enabled: true,
-  },
-  {
-    id: "internal_staff_notification",
-    name: "Internal Staff Operational Alert",
-    category: "operational",
-    trigger: "operational_alert",
-    triggerDescription: "VIP arrival, booking cancellation, or high-budget inquiry",
-    templateId: "concierge_duty_alert",
-    templateName: "Escora Concierge Operational Duty Alert",
-    recipientLogic: "Assigned tour specialist & operations desk",
-    timingType: "immediate",
-    delayValue: 0,
-    delayUnit: "hours",
-    requiresApproval: false,
-    enabled: true,
-  },
 ];
 
 const TRIGGER_TO_NOTIFICATION_TYPE: Record<string, string> = {
@@ -175,12 +117,7 @@ const TRIGGER_TO_NOTIFICATION_TYPE: Record<string, string> = {
   booking_confirmed: "booking_confirmation",
   payment_succeeded: "payment_receipt",
   payment_reminder_due: "payment_deadline_reminder",
-  pre_trip_departure: "pre_trip_reminder",
-  travel_documents_ready: "travel_document_delivery",
-  enquiry_unconverted: "enquiry_followup",
   trip_completed: "post_trip_feedback",
-  itinerary_amended: "itinerary_update",
-  operational_alert: "exceptional_notice",
 };
 
 const TRIGGER_TO_SETTING_KEY: Record<string, string> = {
@@ -188,25 +125,42 @@ const TRIGGER_TO_SETTING_KEY: Record<string, string> = {
   booking_confirmed: "enableBookingConfirmation",
   payment_succeeded: "enablePaymentReceipts",
   payment_reminder_due: "enablePaymentReminders",
-  pre_trip_departure: "enablePreTripReminders",
-  travel_documents_ready: "enableDocumentDelivery",
-  enquiry_unconverted: "enableEnquiryFollowups",
   trip_completed: "enablePostTripFeedback",
-  itinerary_amended: "enableItineraryUpdates",
-  operational_alert: "enableStaffNotifications",
 };
 
 /**
- * Ensures initial default automations are seeded into database if collection is empty.
+ * Ensures only the 5 essential automations are active in database.
+ * Automatically decommissions the 5 retired automations and cancels any pending jobs.
  */
 async function ensureAutomationsSeeded(): Promise<void> {
   try {
-    const count = await EmailAutomationModel.countDocuments();
-    if (count === 0) {
-      await EmailAutomationModel.insertMany(DEFAULT_AUTOMATIONS);
+    // 1. Remove retired automation rules from EmailAutomationModel
+    await EmailAutomationModel.deleteMany({ id: { $in: Array.from(RETIRED_AUTOMATION_IDS) } });
+
+    // 2. Invalidate / cancel pending scheduled jobs for retired automations (preserving audit records)
+    await NotificationModel.updateMany(
+      {
+        type: { $in: Array.from(RETIRED_NOTIFICATION_TYPES) },
+        status: { $in: ["pending", "pending_approval"] },
+      },
+      {
+        $set: {
+          status: "cancelled",
+          error: "Automation rule retired from active email dispatches",
+          updatedAt: new Date(),
+        },
+      }
+    );
+
+    // 3. Ensure each of the 5 retained automations exists in DB
+    for (const auto of DEFAULT_AUTOMATIONS) {
+      const exists = await EmailAutomationModel.findOne({ id: auto.id });
+      if (!exists) {
+        await EmailAutomationModel.create(auto);
+      }
     }
   } catch (err) {
-    // If concurrent insert happens, ignore duplicate key error
+    // Duplicate key or concurrent operation safeguard
   }
 }
 
@@ -219,7 +173,7 @@ router.get("/notifications/automations", async (_req: Request, res: Response, ne
     await ensureAutomationsSeeded();
 
     const [automations, statsAgg, recentExecutions] = await Promise.all([
-      EmailAutomationModel.find().sort({ createdAt: 1 }).lean(),
+      EmailAutomationModel.find({ id: { $nin: Array.from(RETIRED_AUTOMATION_IDS) } }).sort({ createdAt: 1 }).lean(),
       NotificationModel.aggregate([
         {
           $group: {
@@ -349,6 +303,18 @@ router.post("/notifications/automations", async (req: Request, res: Response, ne
       return;
     }
 
+    const RETIRED_TRIGGERS = [
+      "pre_trip_departure",
+      "travel_documents_ready",
+      "enquiry_unconverted",
+      "itinerary_amended",
+      "operational_alert",
+    ];
+    if (RETIRED_TRIGGERS.includes(trigger)) {
+      res.status(400).json({ error: `The trigger "${trigger}" has been retired and is no longer supported.` });
+      return;
+    }
+
     const id = `auto_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     const staffUsername = (req as any).user?.username || req.body.staffUsername || "Staff Admin";
 
@@ -425,12 +391,8 @@ router.put("/notifications/automations/:id", async (req: Request, res: Response,
     const settingKey = TRIGGER_TO_SETTING_KEY[updated.trigger];
     if (settingKey && typeof updated.enabled === "boolean") {
       const settingUpdates: Record<string, any> = { [settingKey]: updated.enabled };
-      if (updated.trigger === "enquiry_unconverted" && updated.delayValue) {
-        settingUpdates.enquiryFollowupDelayHours = updated.delayValue;
-      } else if (updated.trigger === "trip_completed" && updated.delayValue) {
+      if (updated.trigger === "trip_completed" && updated.delayValue) {
         settingUpdates.postTripFeedbackDelayHours = updated.delayValue;
-      } else if (updated.trigger === "pre_trip_departure" && updated.delayValue) {
-        settingUpdates.preTripReminderDays = updated.delayValue;
       }
       await updateAutomationSettings(settingUpdates, staffUsername);
     }
@@ -480,9 +442,7 @@ router.patch("/notifications/automations/:id", async (req: Request, res: Respons
     if (settingKey && typeof req.body.enabled === "boolean") {
       const settingUpdates: Record<string, any> = { [settingKey]: req.body.enabled };
       if (typeof req.body.delayValue === "number") {
-        if (updated.trigger === "enquiry_unconverted") settingUpdates.enquiryFollowupDelayHours = req.body.delayValue;
         if (updated.trigger === "trip_completed") settingUpdates.postTripFeedbackDelayHours = req.body.delayValue;
-        if (updated.trigger === "pre_trip_departure") settingUpdates.preTripReminderDays = req.body.delayValue;
       }
       await updateAutomationSettings(settingUpdates, staffUsername);
     }

@@ -1,0 +1,459 @@
+/* ============================================================
+   ESCORA TROPICAL LAGOON HERO
+   Editorial Luxury Kerala Composition (Water, Typography, Houseboat)
+   ============================================================ */
+
+/* ────────────────────────────────────────────────────────────
+   ESCORA HEADLINE MANUAL CONTROL PANEL
+   Easily tweak position, alignment, size, weight, stretch, color, and gradient
+──────────────────────────────────────────────────────────── */
+:root {
+  /* 1. TYPOGRAPHY & FONT (Preserved for global & component serif styling) */
+  --escora-font-family: 'Dusk Oracular Serif', serif;
+  --escora-font-size: clamp(105px, 22.5vw, 320px);
+  --escora-font-weight: 400;
+  --escora-line-height: 0.78;
+
+  /* 2. SPACING & KERNING */
+  --escora-letter-spacing: clamp(-0.01em, 0.005em, 0.02em);
+  --escora-char-gap: clamp(2px, 0.45vw, 10px);
+
+  /* 3. WORDMARK POSITION & ALIGNMENT */
+  --escora-pos-y: 0%;
+  /* Vertical shift: negative = UP, positive = DOWN */
+  --escora-pos-x: 0px;
+  /* Horizontal shift: negative = LEFT, positive = RIGHT */
+  --escora-align-justify: center;
+  /* center | flex-start | flex-end | space-between */
+
+  /* 4. WORDMARK SIZING (PNG NATURAL 2172x724 ASPECT RATIO) */
+  --escora-wordmark-width: clamp(340px, 80vw, 1280px);
+
+  /* 5. COLOUR & DEPTH */
+  --escora-color: #163826;
+  --escora-shadow: 0 10px 28px rgba(12, 38, 22, 0.09);
+
+  /* 6. HOUSEBOAT CONTROLS (SIZE & POSITION) */
+  --boat-scale: 0.80;
+  /* Multiplier: 0.85 = 15% smaller, 0.75 = 25% smaller, 1.1 = 10% bigger */
+  --boat-width: clamp(280px, 54vw, 860px);
+  /* Base width span */
+  --boat-pos-y: 50%;
+  /* Vertical position: lower % = UP, higher % = DOWN (e.g. 48% or 53%) */
+  --boat-pos-x: 50%;
+  /* Horizontal position: 50% = centered */
+  --boat-rotate: 0deg;
+  /* Rotation angle if you want subtle natural drift angle */
+}
+
+.tropical-hero-pin-container {
+  position: relative;
+  width: 100%;
+}
+
+.tropical-hero-root {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 640px;
+  overflow: hidden;
+  background-color: #f3efe6;
+  color: #173727;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER 1: FULL-BLEED AERIAL LAGOON BACKGROUND
+──────────────────────────────────────────────────────────── */
+.tropical-hero-bg-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tropical-hero-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+  transform: translateZ(0);
+}
+
+/* Subtle soft ambient tone to harmonize highlights */
+.tropical-hero-lighting-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 50%,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(240, 245, 240, 0.02) 60%,
+      rgba(14, 38, 25, 0.06) 100%);
+  pointer-events: none;
+}
+
+/* ────────────────────────────────────────────────────────────
+   CENTERPIECE CONTAINER: TYPOGRAPHY + BOAT COMPOSITION
+──────────────────────────────────────────────────────────── */
+.tropical-hero-centerpiece {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ── DUSK ORACULAR SERIF LOCAL FONT DECLARATION ── */
+@font-face {
+  font-family: 'Dusk Oracular Serif';
+  src: url('/fonts/dusk-oracular/Dusk-Oracular-Serif.ttf') format('truetype');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Eyebrow above the 'E' in ESCORA ── */
+.tropical-hero-eyebrow-container {
+  position: absolute;
+  top: clamp(18%, 23vh, 26%);
+  left: clamp(4%, 6.5vw, 9%);
+  z-index: 4;
+  pointer-events: none;
+}
+
+.tropical-hero-eyebrow {
+  display: block;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: clamp(10px, 0.72vw, 11.5px);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #163826;
+  opacity: 0.85;
+}
+
+/* ── MOTION WRAPPERS (ISOLATE GSAP TRANSFORMS FROM CSS LAYOUT) ── */
+.tropical-hero-heading-motion-wrapper {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+.tropical-hero-boat-scroll-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.tropical-hero-boat-entrance-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* ── LAYER 2: OVERSIZED 'ESCORA' WORDMARK IMAGE (Z-INDEX 2, BEHIND BOAT) ── */
+.tropical-hero-wordmark-layer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: var(--escora-align-justify, center);
+  pointer-events: none;
+  transform: translate(var(--escora-pos-x, 0px), var(--escora-pos-y, 0%));
+}
+
+.tropical-hero-wordmark-img {
+  display: block;
+  width: var(--escora-wordmark-width, clamp(340px, 80vw, 1280px));
+  max-width: 92vw;
+  height: auto;
+  aspect-ratio: 2172 / 724;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  transform: translateZ(0);
+}
+
+/* Fallback & legacy typography rules */
+.tropical-hero-typography-layer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: var(--escora-align-justify, center);
+  pointer-events: none;
+}
+
+.tropical-hero-brand-title {
+  display: none;
+}
+
+.hero-char {
+  display: inline-block;
+}
+
+/* ── LAYER 3: TOP-DOWN HOUSEBOAT (Z-INDEX 3, IN FRONT OF TEXT) ── */
+.tropical-hero-boat-layer {
+  position: absolute;
+  top: var(--boat-pos-y, 50.5%);
+  left: var(--boat-pos-x, 50%);
+  transform: translate(-50%, -50%) rotate(var(--boat-rotate, 0deg)) scale(var(--boat-scale, 1));
+  z-index: 3;
+  width: var(--boat-width, clamp(320px, 62vw, 980px));
+  max-width: 88vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.tropical-hero-boat-img {
+  width: 100%;
+  height: auto;
+  max-height: 52vh;
+  object-fit: contain;
+  display: block;
+  /* Multi-layered soft drop shadow casting realistic boat depth over water and typography */
+  filter: drop-shadow(0 26px 44px rgba(10, 36, 22, 0.42)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
+  transform: translateZ(0);
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER 4: BOTTOM-LEFT EDITORIAL DESCRIPTION & CTA
+──────────────────────────────────────────────────────────── */
+.tropical-hero-bottom-left {
+  position: absolute;
+  bottom: clamp(32px, 6.5vh, 68px);
+  left: clamp(24px, 7.6vw, 108px);
+  z-index: 10;
+  max-width: min(390px, 86vw);
+  pointer-events: auto;
+}
+
+.tropical-hero-description {
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  font-size: clamp(17px, 1.35vw, 21px);
+  font-weight: 400;
+  line-height: 1.5;
+  color: #163826;
+  letter-spacing: -0.01em;
+  margin: 0 0 clamp(16px, 2.4vh, 24px) 0;
+  text-shadow: 0 1px 6px rgba(255, 255, 255, 0.5);
+}
+
+.tropical-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  group: cta;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tropical-hero-cta-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid #163826;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #163826;
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tropical-hero-cta:hover .tropical-hero-cta-icon {
+  background-color: #163826;
+  color: #FAF7F1;
+  transform: translateX(4px);
+  border-color: #163826;
+  box-shadow: 0 8px 20px rgba(22, 56, 38, 0.25);
+}
+
+.tropical-hero-cta-label {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: #163826;
+  transition: color 0.3s ease;
+}
+
+.tropical-hero-cta:hover .tropical-hero-cta-label {
+  color: #C59B27;
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER 5: RIGHT-SIDE VERTICAL LABELS & MILESTONE INDICATORS
+──────────────────────────────────────────────────────────── */
+.tropical-hero-right-panel {
+  position: absolute;
+  right: clamp(24px, 4.5vw, 76px);
+  top: clamp(130px, 17vh, 180px);
+  bottom: clamp(40px, 7.5vh, 80px);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.tropical-hero-categories {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  text-align: left;
+}
+
+.hero-cat-tag {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: clamp(9px, 0.65vw, 10.5px);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(22, 56, 38, 0.72);
+  user-select: none;
+  transition: color 0.25s, transform 0.25s;
+}
+
+.tropical-hero-milestones {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  user-select: none;
+}
+
+.hero-milestone-number {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: rgba(22, 56, 38, 0.45);
+}
+
+.hero-milestone-number.active {
+  color: #163826;
+  font-weight: 600;
+}
+
+.hero-milestone-line {
+  width: 1.5px;
+  height: 38px;
+  background-color: #183628;
+  border-radius: 2px;
+}
+
+/* ────────────────────────────────────────────────────────────
+   RESPONSIVE MEDIA QUERIES
+──────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .tropical-hero-eyebrow-container {
+    top: 22%;
+    left: 6%;
+  }
+
+  .tropical-hero-wordmark-img {
+    width: clamp(300px, 86vw, 920px);
+  }
+
+  .tropical-hero-boat-layer {
+    width: clamp(280px, 70vw, 760px);
+    top: 50%;
+  }
+
+  .tropical-hero-brand-title {
+    font-size: clamp(80px, 20vw, 220px);
+    gap: clamp(2px, 0.4vw, 8px);
+  }
+
+  .tropical-hero-right-panel {
+    right: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .tropical-hero-root {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .tropical-hero-eyebrow-container {
+    top: 17%;
+    left: 20px;
+  }
+
+  .tropical-hero-wordmark-img {
+    width: 92vw;
+    max-width: 94vw;
+  }
+
+  .tropical-hero-brand-title {
+    font-size: clamp(52px, 16vw, 96px);
+    gap: 2px;
+  }
+
+  .tropical-hero-boat-layer {
+    width: 86vw;
+    top: 48%;
+  }
+
+  .tropical-hero-right-panel {
+    display: none;
+  }
+
+  .tropical-hero-bottom-left {
+    bottom: 28px;
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+
+  .tropical-hero-description {
+    font-size: 14.5px;
+    margin-bottom: 14px;
+  }
+
+  .tropical-hero-cta-icon {
+    width: 38px;
+    height: 38px;
+  }
+}

@@ -16,7 +16,7 @@ export default function Contact() {
     url: "https://www.escoraholidays.com/contact",
   });
 
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", marketingConsent: false });
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const mutation = useCreateEnquiry();
@@ -25,7 +25,15 @@ export default function Contact() {
     e.preventDefault();
     setError("");
     mutation.mutate(
-      { data: { name: form.name, email: form.email, phone: form.phone || undefined, message: form.message } },
+      {
+        data: {
+          name: form.name,
+          email: form.email,
+          phone: form.phone || undefined,
+          message: form.message,
+          marketingConsent: form.marketingConsent,
+        } as any,
+      },
       {
         onSuccess: () => setSubmitted(true),
         onError: () => setError("Something went wrong. Please try again or email us directly."),
@@ -198,6 +206,21 @@ export default function Contact() {
                     className="w-full bg-transparent border border-line text-ink text-sm px-4 py-3 focus:outline-none focus:border-gold transition-colors resize-none"
                     placeholder="How can we help you plan your journey?"
                   />
+                </div>
+                <div className="flex items-start gap-3 pt-1">
+                  <input
+                    id="contact-marketing-consent"
+                    type="checkbox"
+                    checked={form.marketingConsent}
+                    onChange={(e) => setForm((f) => ({ ...f, marketingConsent: e.target.checked }))}
+                    className="mt-1 h-4 w-4 rounded border-line text-gold focus:ring-gold accent-[#cbab6e] cursor-pointer"
+                  />
+                  <label
+                    htmlFor="contact-marketing-consent"
+                    className="font-sans text-xs text-ink-mute leading-relaxed cursor-pointer select-none"
+                  >
+                    I'd like to receive occasional travel inspiration, destination guides, and special offers from Escora Holidays by email. I can unsubscribe at any time.
+                  </label>
                 </div>
                 {error && <p className="text-sm text-red-500">{error}</p>}
                 <button

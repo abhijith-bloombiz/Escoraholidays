@@ -9,6 +9,14 @@ import TheEscoraWay from "@/components/TheEscoraWay";
 import Kerala3DDestinationExplorer from "@/components/Kerala3DDestinationExplorer";
 import Destination360Experience from "@/components/Destination360Experience";
 import FromYourIdeaToKerala from "@/components/FromYourIdeaToKerala";
+import TropicalLagoonHero from "@/components/TropicalLagoonHero";
+import whyEscoraBg from "@assets/escora/why-escora-bg.jpeg";
+import typeWildlife from "@assets/escora/collections/nature-wildlife-hero.jpg";
+import typeHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
+import typeHoneymoon from "@assets/escora/collections/honeymoon-hero.jpg";
+import typeAyurveda from "@assets/escora/collections/panchakarma.jpg";
+import typeMedicine from "@assets/escora/collections/medical-tourism.jpeg";
+import { KERALA_DESTINATIONS, DESTINATION_BADGES } from "@/lib/keralaDestinations";
 import "./home-v2.css";
 
 const FALLBACK_PACKAGES = [
@@ -17,16 +25,6 @@ const FALLBACK_PACKAGES = [
   { id: 3, name: "Wayanad Wilds", durationNights: 3, route: "Calicut · Wayanad", category: "Adventure", priceFrom: 90000, heroImageUrl: "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=800&q=80", description: "Three nights in Wayanad's tribal heartland — jungle treks, waterfalls and forest living.", featured: true },
   { id: 4, name: "Spice Coast Odyssey", durationNights: 7, route: "Kochi · Marari · Kumarakom", category: "Culture", priceFrom: 220000, heroImageUrl: "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=800&q=80", description: "Seven nights tracing the ancient spice trade across Kerala's storied coast and backwaters.", featured: false },
 ];
-
-import heroBg from "@assets/escora/hero-bg-kerala.png";
-import FloatingWaterHero from "@/components/FloatingWaterHero";
-import whyEscoraBg from "@assets/escora/why-escora-bg.jpeg";
-import typeWildlife from "@assets/escora/collections/nature-wildlife-hero.jpg";
-import typeHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
-import typeHoneymoon from "@assets/escora/collections/honeymoon-hero.jpg";
-import typeAyurveda from "@assets/escora/collections/panchakarma.jpg";
-import typeMedicine from "@assets/escora/collections/medical-tourism.jpeg";
-import { KERALA_DESTINATIONS, DESTINATION_BADGES } from "@/lib/keralaDestinations";
 
 const FALLBACK_DESTINATIONS = KERALA_DESTINATIONS;
 
@@ -374,6 +372,7 @@ const CAT_STRIP_BTNS = [
 interface EnquiryForm {
   name: string; phone: string; email: string; type: string;
   dates: string; pax: string; budget: string;
+  marketingConsent?: boolean;
 }
 
 export default function Home() {
@@ -383,21 +382,14 @@ export default function Home() {
   const [enquirySent, setEnquirySent] = useState(false);
   const [enquiryError, setEnquiryError] = useState("");
 
-  useEffect(() => {
-    // Preload hero background image
-    const heroImg = new window.Image();
-    heroImg.src = heroBg;
-  }, []);
-
   const [form, setForm] = useState<EnquiryForm>({
-    name: "", phone: "", email: "", type: "", dates: "", pax: "2 adults (couple)", budget: "",
+    name: "", phone: "", email: "", type: "", dates: "", pax: "2 adults (couple)", budget: "", marketingConsent: false,
   });
   const createEnquiry = useCreateEnquiry();
 
   const categoriesRef = useRef<HTMLElement>(null);
   const packagesRef = useRef<HTMLElement>(null);
   const exploreSectionRef = useRef<HTMLElement>(null);
-  const heroSectionRef = useRef<HTMLElement>(null);
 
   const [activeRetreatCard, setActiveRetreatCard] = useState<number>(1);
 
@@ -462,13 +454,6 @@ export default function Home() {
   const { data: destinationsData } = useListDestinations({ published: true });
   const exploreDestinations = destinationsData && destinationsData.length > 0 ? destinationsData : FALLBACK_DESTINATIONS;
 
-  /* Initial reveal for elements already in view in hero on load (general reveal managed by Layout's useScrollReveal) */
-  useEffect(() => {
-    const heroEls = document.querySelectorAll(".hero-editorial .rv, .hero-editorial .mr2, .hero2 .rv, .hero2 .mr2");
-    const t = setTimeout(() => heroEls.forEach((el) => el.classList.add("in", "card-in-view")), 150);
-    return () => clearTimeout(t);
-  }, []);
-
   /* Build pkg cards — fall back to built-in samples when API has no data */
   const pkgCards = (packagesData?.length ? packagesData : FALLBACK_PACKAGES).slice(0, 6).map((pkg) => ({
     cats: [pkg.category?.toLowerCase() || "luxury"],
@@ -518,7 +503,15 @@ export default function Home() {
       `Approximate dates: ${form.dates || "Not specified"}\n` +
       `Budget: ${form.budget || "Not specified"}`;
     createEnquiry.mutate(
-      { data: { name: form.name, email: form.email, phone: form.phone, message } },
+      {
+        data: {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          message,
+          marketingConsent: form.marketingConsent,
+        } as any,
+      },
       {
         onSuccess: () => setEnquirySent(true),
         onError: () => setEnquiryError("Something went wrong. Please try again or message us on WhatsApp."),
@@ -538,20 +531,8 @@ export default function Home() {
 
   return (
     <Layout>
-      {/* ═══════════════════════════════ HERO EDITORIAL ═══════════════════════════════ */}
-      <section
-        className="hero-editorial"
-        id="hero"
-        aria-label="Escora — Kerala, your way"
-        ref={heroSectionRef}
-      >
-        <FloatingWaterHero containerRef={heroSectionRef} />
-
-
-        {/* Visually hidden H1 for SEO semantics */}
-        <h1 className="sr-only">Escora Holidays — Kerala, Luxury Private Travel</h1>
-
-      </section>
+      {/* ═══════════════════════ TROPICAL LAGOON HERO ═══════════════════════ */}
+      <TropicalLagoonHero />
 
       {/* ═══════════════════════ THE ESCORA WAY ═══════════════════════ */}
       <TheEscoraWay />
@@ -1283,6 +1264,23 @@ export default function Home() {
                       <span className="enquiry-divider-line" />
                       <span>KERALA · INDIA — NABH ACCREDITED RETREAT</span>
                       <span className="enquiry-divider-line" />
+                    </div>
+
+                    <div className="flex items-start gap-3 py-2 text-left" style={{ marginBottom: "14px" }}>
+                      <input
+                        id="home-enquiry-marketing-consent"
+                        type="checkbox"
+                        checked={Boolean(form.marketingConsent)}
+                        onChange={(e) => setForm({ ...form, marketingConsent: e.target.checked })}
+                        className="mt-1 h-4 w-4 rounded accent-[#c59a58] cursor-pointer shrink-0"
+                      />
+                      <label
+                        htmlFor="home-enquiry-marketing-consent"
+                        className="text-[12px] leading-relaxed cursor-pointer select-none"
+                        style={{ color: "rgba(255, 255, 255, 0.78)" }}
+                      >
+                        I'd like to receive occasional travel inspiration, destination guides, and special offers from Escora Holidays by email. I can unsubscribe at any time.
+                      </label>
                     </div>
 
                     {enquiryError && <p className="enquiry-error-msg">{enquiryError}</p>}

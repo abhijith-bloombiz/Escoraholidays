@@ -30,6 +30,7 @@ export type NotificationType =
   | "complaint_response"
   | "refund_notice"
   | "travel_disruption"
+  | "campaign_test_email"
   // Conversion & Audit
   | "enquiry_conversion";
 
@@ -46,6 +47,10 @@ export type NotificationStatus =
   | "pending_approval"
   | "sending"
   | "sent"
+  | "accepted"
+  | "delivered"
+  | "simulated"
+  | "bounced"
   | "failed"
   | "cancelled"
   | "skipped";
@@ -54,7 +59,7 @@ export interface INotification {
   id: number;
   type: NotificationType;
   category: NotificationCategory;
-  relatedType: "order" | "itinerary" | "enquiry" | "invoice" | "customer";
+  relatedType: "order" | "itinerary" | "enquiry" | "invoice" | "customer" | "campaign";
   relatedId: number;
   recipientEmail: string;
   recipientName: string;
@@ -66,6 +71,8 @@ export interface INotification {
   sentBy?: string | null;
   scheduledFor?: Date | null;
   sentAt?: Date | null;
+  deliveredAt?: Date | null;
+  bouncedAt?: Date | null;
   messageId?: string | null;
   error?: string | null;
   retryCount: number;
@@ -112,6 +119,8 @@ const notificationSchema = new Schema<INotification>(
     sentBy: { type: String, default: null },
     scheduledFor: { type: Date, default: null, index: true },
     sentAt: { type: Date, default: null },
+    deliveredAt: { type: Date, default: null },
+    bouncedAt: { type: Date, default: null },
     messageId: { type: String, default: null },
     error: { type: String, default: null },
     retryCount: { type: Number, default: 0 },

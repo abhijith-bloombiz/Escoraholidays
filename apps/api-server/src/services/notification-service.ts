@@ -62,11 +62,21 @@ export function isLiveTransactionalSending(): boolean {
   if (config.env === "test") {
     return false;
   }
-  return Boolean(
-    config.transactionalSendingEnabled &&
-      config.resendApiKey &&
+  const isGmailActive = Boolean(
+    (config.emailProvider === "gmail" || config.emailProvider === "auto") &&
+      config.gmailUser &&
+      config.gmailAppPassword &&
+      config.gmailAppPassword.trim().length > 0
+  );
+  const isResendActive = Boolean(
+    config.resendApiKey &&
       config.resendApiKey.trim().length > 0 &&
       getResendClient() !== null
+  );
+
+  return Boolean(
+    isGmailActive ||
+      (config.transactionalSendingEnabled && isResendActive)
   );
 }
 
@@ -88,7 +98,13 @@ export async function getAutomationSettings(): Promise<IAutomationSetting> {
   try {
     const existing = await AutomationSettingModel.findOne({ id: "default" }).lean();
     if (existing) {
-      cachedSettings = existing as IAutomationSetting;
+      cachedSettings = {
+        ...(existing as IAutomationSetting),
+        enableItineraryUpdates: false,
+        enableEnquiryFollowups: false,
+        enablePreTripReminders: false,
+        enableDocumentDelivery: false,
+      };
       lastSettingsFetch = now;
       return cachedSettings;
     }
@@ -96,14 +112,14 @@ export async function getAutomationSettings(): Promise<IAutomationSetting> {
     const defaults: IAutomationSetting = {
       id: "default",
       enableBookingConfirmation: config.enableBookingConfirmation,
-      enableItineraryUpdates: config.enableItineraryUpdateNotifications,
-      enableEnquiryFollowups: config.enableEnquiryFollowup,
+      enableItineraryUpdates: false,
+      enableEnquiryFollowups: false,
       enablePostTripFeedback: config.enablePostTripFeedback,
       enablePaymentReceipts: config.enablePaymentReceipts,
       enablePaymentReminders: config.enablePaymentReminders,
-      enablePreTripReminders: config.enablePreTripReminders,
+      enablePreTripReminders: false,
       enableCancellationNotifications: config.enableCancellationNotifications,
-      enableDocumentDelivery: config.enableDocumentDelivery,
+      enableDocumentDelivery: false,
       enquiryFollowupDelayHours: config.enquiryFollowupDelayHours,
       postTripFeedbackDelayHours: config.postTripFeedbackDelayHours,
       updatedAt: new Date(),
@@ -118,14 +134,14 @@ export async function getAutomationSettings(): Promise<IAutomationSetting> {
     return {
       id: "default",
       enableBookingConfirmation: config.enableBookingConfirmation,
-      enableItineraryUpdates: config.enableItineraryUpdateNotifications,
-      enableEnquiryFollowups: config.enableEnquiryFollowup,
+      enableItineraryUpdates: false,
+      enableEnquiryFollowups: false,
       enablePostTripFeedback: config.enablePostTripFeedback,
       enablePaymentReceipts: config.enablePaymentReceipts,
       enablePaymentReminders: config.enablePaymentReminders,
-      enablePreTripReminders: config.enablePreTripReminders,
+      enablePreTripReminders: false,
       enableCancellationNotifications: config.enableCancellationNotifications,
-      enableDocumentDelivery: config.enableDocumentDelivery,
+      enableDocumentDelivery: false,
       enquiryFollowupDelayHours: config.enquiryFollowupDelayHours,
       postTripFeedbackDelayHours: config.postTripFeedbackDelayHours,
     };
@@ -171,7 +187,7 @@ async function getOrCreateConsentToken(email: string, name?: string): Promise<st
     await SubscriberConsentModel.create({
       email: normalizedEmail,
       name: name || null,
-      subscribed: true,
+      subscribed: false,
       token: newToken,
       source: "transactional",
     });
@@ -352,167 +368,23 @@ export function detectItineraryChanges(
 
 /**
  * Triggered when a confirmed itinerary has meaningful changes made.
- * Avoids sending for unconfirmed drafts or repeated processing of the same edit.
+ * DECOMMISSIONED: This automation rule has been retired.
  */
 export async function triggerItineraryUpdate(
-  itinerary: IItinerary,
-  previousItinerary?: Partial<IItinerary>
+  _itinerary: IItinerary,
+  _previousItinerary?: Partial<IItinerary>
 ): Promise<INotification | null> {
-  const settings = await getAutomationSettings();
-  if (!settings.enableItineraryUpdates) {
-    return null;
-  }
-
-  if (itinerary.status !== "confirmed") {
-    return null;
-  }
-
-  const recipientEmail = (itinerary.customerEmail || "").trim().toLowerCase();
-  if (!recipientEmail || !recipientEmail.includes("@")) {
-    logger.info({ itineraryId: itinerary.id }, "[Notification] Confirmed itinerary lacks customer email; update notification skipped");
-    return null;
-  }
-
-  const changes = detectItineraryChanges(itinerary, previousItinerary);
-  if (changes.length === 0) {
-    logger.info({ itineraryId: itinerary.id }, "[Notification] No meaningful customer-facing changes detected in itinerary update");
-    return null;
-  }
-
-  // Idempotency hash: based on itinerary ID and hash of the changes to avoid duplicate sends for repeated saves
-  const changesHash = crypto
-    .createHash("sha256")
-    .update(changes.sort().join("|"))
-    .digest("hex")
-    .slice(0, 10);
-
-  const idempotencyKey = `itinerary_update:itinerary:${itinerary.id}:${changesHash}`;
-
-  const existing = await NotificationModel.findOne({ idempotencyKey });
-  if (existing) {
-    logger.info({ itineraryId: itinerary.id, idempotencyKey }, "[Notification] Itinerary update already notified for this exact change set");
-    return existing.toObject();
-  }
-
-  const { subject, html } = renderItineraryUpdateEmail(itinerary, changes);
-  const notifId = await getNextSequence("notifications");
-
-  const isLive = isLiveTransactionalSending();
-  let status: INotification["status"] = "pending";
-  let messageId: string | null = null;
-  let errorMsg: string | null = null;
-  let sentAt: Date | null = null;
-
-  if (isLive) {
-    const resendKey = `escora-itin-${itinerary.id}-${changesHash}`;
-    const sendResult = await sendEmailWithStatus({
-      to: recipientEmail,
-      subject,
-      html,
-      idempotencyKey: resendKey,
-      retries: 2,
-    });
-
-    if (sendResult.success) {
-      status = "sent";
-      messageId = sendResult.messageId || null;
-      sentAt = new Date();
-      logger.info({ itineraryId: itinerary.id, messageId }, "[Notification] Itinerary update email delivered via Resend");
-    } else {
-      status = "failed";
-      errorMsg = sendResult.error || "Delivery provider rejected email";
-      logger.error({ itineraryId: itinerary.id, error: errorMsg }, "[Notification] Itinerary update dispatch failed");
-    }
-  } else {
-    status = "sent";
-    messageId = `mock_resend_msg_${crypto.randomUUID()}`;
-    sentAt = new Date();
-    logger.info({ itineraryId: itinerary.id, messageId }, "[Notification] Itinerary update processed in simulation mode");
-  }
-
-  try {
-    const doc = await NotificationModel.create({
-      id: notifId,
-      type: "itinerary_update",
-      category: "transactional",
-      relatedType: "itinerary",
-      relatedId: itinerary.id,
-      recipientEmail,
-      recipientName: itinerary.customerName,
-      subject,
-      status,
-      sentAt,
-      messageId,
-      error: errorMsg,
-      retryCount: 0,
-      idempotencyKey,
-      metadata: {
-        changes,
-        shareToken: itinerary.shareToken,
-        title: itinerary.title,
-      },
-    });
-    return doc.toObject();
-  } catch (err: any) {
-    if (err.code === 11000) {
-      const existingAfterRace = await NotificationModel.findOne({ idempotencyKey });
-      return existingAfterRace ? existingAfterRace.toObject() : null;
-    }
-    throw err;
-  }
+  // Retired automation rule: no itinerary update emails are dispatched
+  return null;
 }
 
 /**
  * Schedules an Enquiry Follow-Up with a configurable delay.
- * Durable in DB; executed by the background scheduler tick.
+ * DECOMMISSIONED: This automation rule has been retired.
  */
-export async function scheduleEnquiryFollowup(enquiry: IEnquiry): Promise<INotification | null> {
-  const settings = await getAutomationSettings();
-  if (!settings.enableEnquiryFollowups) {
-    return null;
-  }
-
-  const normalizedEmail = (enquiry.email || "").trim().toLowerCase();
-  if (!normalizedEmail || !normalizedEmail.includes("@")) {
-    return null;
-  }
-
-  const idempotencyKey = `enquiry_followup:enquiry:${enquiry.id}`;
-  const existing = await NotificationModel.findOne({ idempotencyKey });
-  if (existing) {
-    return existing.toObject();
-  }
-
-  const delayHours = settings.enquiryFollowupDelayHours ?? config.enquiryFollowupDelayHours;
-  const delayMs = delayHours * 60 * 60 * 1000;
-  const scheduledFor = new Date(Date.now() + delayMs);
-  const notifId = await getNextSequence("notifications");
-
-  const doc = await NotificationModel.create({
-    id: notifId,
-    type: "enquiry_followup",
-    category: "service_followup",
-    relatedType: "enquiry",
-    relatedId: enquiry.id,
-    recipientEmail: normalizedEmail,
-    recipientName: enquiry.name,
-    subject: "Following up on your Kerala journey inquiry — Escora Holidays",
-    status: "pending",
-    scheduledFor,
-    retryCount: 0,
-    idempotencyKey,
-    metadata: {
-      enquiryId: enquiry.id,
-      originalCreatedAt: enquiry.createdAt,
-    },
-  });
-
-  logger.info(
-    { enquiryId: enquiry.id, scheduledFor },
-    "[Notification] Scheduled enquiry follow-up job in database"
-  );
-
-  return doc.toObject();
+export async function scheduleEnquiryFollowup(_enquiry: IEnquiry): Promise<INotification | null> {
+  // Retired automation rule: no enquiry follow-up emails are scheduled
+  return null;
 }
 
 /**
@@ -638,6 +510,17 @@ export async function triggerPaymentReceipt(
     logger.info({ invoiceId: invoice.id }, "[Notification] Payment receipt automations disabled via settings");
     return null;
   }
+
+  // Safeguard: Payment confirmation must not be sent for failed, pending, unverified payments or cancelled invoices
+  if (!invoice.paidAmount || invoice.paidAmount <= 0 || invoice.status === "cancelled" || (invoice.status as string) === "pending") {
+    logger.info({ invoiceId: invoice.id, status: invoice.status, paidAmount: invoice.paidAmount }, "[Notification] No verified payment on invoice; payment receipt skipped");
+    return null;
+  }
+  if (amountPaidNow !== undefined && amountPaidNow <= 0) {
+    logger.info({ invoiceId: invoice.id, amountPaidNow }, "[Notification] Non-positive payment amount; payment receipt skipped");
+    return null;
+  }
+
   const email = (invoice.customerEmail || "").trim().toLowerCase();
   if (!email || !email.includes("@")) {
     logger.warn({ invoiceId: invoice.id }, "[Notification] Missing or invalid customer email on invoice");
@@ -807,86 +690,26 @@ export async function triggerBookingCancellation(
 
 /**
  * Delivers travel documents and vouchers.
+ * DECOMMISSIONED: This automation rule has been retired.
  */
 export async function triggerTravelDocumentDelivery(
-  order: IOrder,
-  details: { title: string; documentType?: string; notes?: string; downloadUrl?: string }
+  _order: IOrder,
+  _details: { title: string; documentType?: string; notes?: string; downloadUrl?: string }
 ): Promise<INotification | null> {
-  const settings = await getAutomationSettings();
-  if (!settings.enableDocumentDelivery) return null;
-  const email = (order.guestEmail || "").trim().toLowerCase();
-  if (!email || !email.includes("@")) return null;
-
-  const idempotencyKey = `travel_docs:order:${order.id}:${crypto.createHash("sha256").update(details.title).digest("hex").slice(0, 10)}`;
-  const existing = await NotificationModel.findOne({ idempotencyKey }).lean();
-  if (existing) return existing;
-
-  const { subject, html } = renderTravelDocumentDeliveryEmail(order, details);
-  const notifId = await getNextSequence("notifications");
-  const notification = await NotificationModel.create({
-    id: notifId,
-    type: "travel_document_delivery",
-    category: "transactional",
-    relatedType: "order",
-    relatedId: order.id,
-    recipientEmail: email,
-    recipientName: order.guestName,
-    subject,
-    status: "pending",
-    retryCount: 0,
-    idempotencyKey,
-    metadata: details,
-  });
-
-  await dispatchNotificationEmail(notification, subject, html);
-  return notification;
+  // Retired automation rule: no travel document delivery emails are dispatched
+  return null;
 }
 
 /**
  * Schedules pre-trip reminder prior to customer arrival.
+ * DECOMMISSIONED: This automation rule has been retired.
  */
 export async function schedulePreTripReminder(
-  order: IOrder,
-  daysBeforeTrip: number = 3
+  _order: IOrder,
+  _daysBeforeTrip: number = 3
 ): Promise<INotification | null> {
-  const settings = await getAutomationSettings();
-  if (!settings.enablePreTripReminders) return null;
-  if (order.status !== "confirmed") return null;
-
-  const email = (order.guestEmail || "").trim().toLowerCase();
-  if (!email || !email.includes("@")) return null;
-
-  const travelDateStr = order.travelDate;
-  if (!travelDateStr) return null;
-
-  const travelDate = new Date(travelDateStr);
-  if (Number.isNaN(travelDate.getTime())) return null;
-
-  const scheduledFor = new Date(travelDate.getTime() - daysBeforeTrip * 24 * 60 * 60 * 1000);
-  const idempotencyKey = `pre_trip_reminder:order:${order.id}`;
-  const existing = await NotificationModel.findOne({ idempotencyKey }).lean();
-  if (existing) return existing;
-
-  const notifId = await getNextSequence("notifications");
-  const notification = await NotificationModel.create({
-    id: notifId,
-    type: "pre_trip_reminder",
-    category: "service_followup",
-    relatedType: "order",
-    relatedId: order.id,
-    recipientEmail: email,
-    recipientName: order.guestName,
-    subject: `Your Kerala Journey Begins Soon — Essential Pre-Trip Details (Ref #${order.id})`,
-    status: "pending",
-    scheduledFor,
-    retryCount: 0,
-    idempotencyKey,
-    metadata: {
-      travelDate: order.travelDate,
-      departureDate: order.departureDate,
-    },
-  });
-  return notification;
+  // Retired automation rule: no pre-trip reminder emails are scheduled
+  return null;
 }
 
 /**
@@ -899,6 +722,22 @@ export async function schedulePaymentDeadlineReminder(
   const settings = await getAutomationSettings();
   if (!settings.enablePaymentReminders) return null;
   if (!invoice.dueDate || invoice.balanceDue <= 0 || invoice.status === "paid" || invoice.status === "cancelled") {
+    // Invalidate any previously scheduled reminders if invoice settled or cancelled
+    await NotificationModel.updateMany(
+      {
+        relatedType: "invoice",
+        relatedId: invoice.id,
+        type: "payment_deadline_reminder",
+        status: "pending",
+      },
+      {
+        $set: {
+          status: "cancelled",
+          error: "Invoice balance is settled or invoice was cancelled",
+          updatedAt: new Date(),
+        },
+      }
+    );
     return null;
   }
   const email = (invoice.customerEmail || "").trim().toLowerCase();
@@ -906,6 +745,24 @@ export async function schedulePaymentDeadlineReminder(
 
   const dueDate = new Date(invoice.dueDate);
   if (Number.isNaN(dueDate.getTime())) return null;
+
+  // Invalidate any previous pending reminders for this invoice if due date has changed
+  await NotificationModel.updateMany(
+    {
+      relatedType: "invoice",
+      relatedId: invoice.id,
+      type: "payment_deadline_reminder",
+      status: "pending",
+      "metadata.dueDate": { $ne: invoice.dueDate },
+    },
+    {
+      $set: {
+        status: "cancelled",
+        error: `Invoice due date updated to ${invoice.dueDate}`,
+        updatedAt: new Date(),
+      },
+    }
+  );
 
   const scheduledFor = new Date(dueDate.getTime() - daysBeforeDue * 24 * 60 * 60 * 1000);
   const idempotencyKey = `payment_deadline_reminder:invoice:${invoice.id}:${invoice.dueDate}`;
@@ -1428,6 +1285,26 @@ export async function processDueEmailNotifications(): Promise<number> {
     }
 
     try {
+      // Decommissioned automation safeguard: prevent any pending jobs for retired automations from dispatching
+      const RETIRED_DISPATCH_TYPES = [
+        "pre_trip_reminder",
+        "travel_document_delivery",
+        "enquiry_followup",
+        "itinerary_update",
+        "exceptional_notice",
+        "major_itinerary_update",
+      ];
+      if (RETIRED_DISPATCH_TYPES.includes(claimed.type)) {
+        claimed.status = "cancelled";
+        claimed.error = "Automation rule retired from active email dispatches";
+        await claimed.save();
+        logger.info(
+          { notifId: claimed.id, type: claimed.type },
+          "[Notification] Cancelled dispatch for retired automation"
+        );
+        continue;
+      }
+
       // 1. Lifecycle verification checks based on notification type
       if (claimed.type === "enquiry_followup") {
         const enquiry = await EnquiryModel.findOne({ id: claimed.relatedId }).lean();
@@ -1662,15 +1539,31 @@ async function dispatchNotificationEmail(
     });
 
     if (sendResult.success) {
-      claimed.status = "sent";
+      claimed.status = sendResult.status === "simulated" ? "simulated" : "accepted";
       claimed.messageId = sendResult.messageId || null;
-      claimed.sentAt = new Date();
+      claimed.sentAt = sendResult.sentAt || new Date();
       claimed.error = null;
+      claimed.metadata = {
+        ...(claimed.metadata || {}),
+        provider: sendResult.provider,
+        smtpResponse: sendResult.smtpResponse || null,
+        providerResponse: sendResult.providerResponse || null,
+        acceptedRecipients: sendResult.acceptedRecipients || [claimed.recipientEmail],
+        rejectedRecipients: sendResult.rejectedRecipients || [],
+        isSimulated: sendResult.status === "simulated",
+      };
     } else {
       claimed.retryCount = (claimed.retryCount || 0) + 1;
       if (claimed.retryCount >= 2) {
         claimed.status = "failed";
         claimed.error = sendResult.error || "Delivery provider rejected email";
+        claimed.metadata = {
+          ...(claimed.metadata || {}),
+          provider: sendResult.provider,
+          smtpResponse: sendResult.smtpResponse || null,
+          providerResponse: sendResult.providerResponse || null,
+          rejectedRecipients: sendResult.rejectedRecipients || [claimed.recipientEmail],
+        };
       } else {
         claimed.status = "pending";
         claimed.scheduledFor = new Date(Date.now() + 5 * 60 * 1000);
@@ -1679,10 +1572,16 @@ async function dispatchNotificationEmail(
     }
   } else {
     // Safe simulation mode
-    claimed.status = "sent";
-    claimed.messageId = `mock_resend_msg_${crypto.randomUUID()}`;
+    claimed.status = "simulated";
+    claimed.messageId = `simulated_${crypto.randomUUID()}`;
     claimed.sentAt = new Date();
     claimed.error = null;
+    claimed.metadata = {
+      ...(claimed.metadata || {}),
+      provider: "mock",
+      isSimulated: true,
+      simulationReason: "Automated simulation mode / provider not in live mode",
+    };
   }
 
   claimed.subject = subject;
@@ -1695,21 +1594,21 @@ async function dispatchNotificationEmail(
     payment_receipt: "payment_succeeded",
     enquiry_acknowledgement: "enquiry_submitted",
     payment_deadline_reminder: "payment_reminder_due",
-    pre_trip_reminder: "pre_trip_departure",
-    travel_document_delivery: "travel_documents_ready",
-    enquiry_followup: "enquiry_unconverted",
     post_trip_feedback: "trip_completed",
-    itinerary_update: "itinerary_amended",
-    exceptional_notice: "operational_alert",
   };
   const triggerKey = notifTypeToTrigger[claimed.type];
   if (triggerKey) {
+    const isSuccess =
+      claimed.status === "sent" ||
+      claimed.status === "accepted" ||
+      claimed.status === "delivered" ||
+      claimed.status === "simulated";
     EmailAutomationModel.updateOne(
       { trigger: triggerKey },
       {
         $set: {
           lastExecutedAt: new Date(),
-          lastExecutionStatus: claimed.status === "sent" ? "success" : "failed",
+          lastExecutionStatus: isSuccess ? "success" : "failed",
           lastExecutionError: claimed.error || null,
         },
       }

@@ -1,6 +1,13 @@
+export type SupportedAudienceSegment =
+  | "all_contacts"
+  | "enquiries_only"
+  | "confirmed_guests"
+  | "subscribed_contacts"
+  | "audience_group";
+
 export interface VisualCampaignFields {
   name: string;
-  audienceType: "all_contacts" | "enquiries_only" | "confirmed_guests" | "custom_segment" | "audience_group";
+  audienceType: SupportedAudienceSegment | "custom_segment";
   groupId?: string;
   groupIds?: string[];
   subject: string;
@@ -304,62 +311,99 @@ export function generateCampaignHtml(fields: VisualCampaignFields): string {
 
 /**
  * Extracts visual fields from existing HTML if available, or returns default template fields.
+ * Restores custom content, images, quotes, highlights, CTA, footer notes, and audience selections.
  */
 export function extractFieldsFromExisting(
   name: string,
   subject: string,
   previewText: string | null | undefined,
   audienceType: any,
-  contentHtml: string
+  contentHtml: string,
+  extra?: {
+    groupId?: string | number | null;
+    groupIds?: Array<string | number>;
+    destinations?: string[];
+    travelStyle?: string | null;
+  }
 ): VisualCampaignFields {
-  // Check if it matches an existing preset
+  // 1. Detect which preset template was originally chosen, if any
+  let matchedPreset = CAMPAIGN_TEMPLATES[0];
   for (const t of CAMPAIGN_TEMPLATES) {
-    if (contentHtml.includes(t.defaultValues.eyebrow) || (subject && subject.includes(t.title))) {
-      return {
-        ...t.defaultValues,
-        name: name || "",
-        audienceType: audienceType || "all_contacts",
-        subject: subject || t.defaultValues.subject,
-        previewText: previewText || t.defaultValues.previewText,
-        templateId: t.id,
-      };
+    if (
+      contentHtml.includes(t.defaultValues.eyebrow) ||
+      (subject && subject.includes(t.title)) ||
+      (t.defaultValues.heading && contentHtml.includes(t.defaultValues.heading))
+    ) {
+      matchedPreset = t;
+      break;
     }
   }
 
-  // Parse HTML elements gracefully
-  const eyebrowMatch = contentHtml.match(/letter-spacing:\s*0\.25em[^>]*>([^<]+)<\/div>/i);
+  // 2. Parse HTML elements gracefully
+  const eyebrowMatch =
+    contentHtml.match(/letter-spacing:\s*(?:0\.\d+em|\d+px)[^>]*>([\s\S]*?)<\/(?:div|span)>/i) ||
+    contentHtml.match(/text-transform:\s*uppercase[^>]*>([\s\S]*?)<\/(?:div|span)>/i);
   const headingMatch = contentHtml.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i);
   const imgMatch = contentHtml.match(/<img[^>]+src=["']([^"']+)["']/i);
-  const ctaMatch = contentHtml.match(/<a[^>]+href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/i);
-  const quoteMatch = contentHtml.match(/&ldquo;([\s\S]*?)&rdquo;|"([\s\S]*?)"/i);
+  const leadMatch =
+    contentHtml.match(/<p[^>]+style=["'][^"']*font-style:\s*italic[^"']*["'][^>]*>([\s\S]*?)<\/p>/i) ||
+    contentHtml.match(/<h1[^>]*>[\s\S]*?<\/h1>\s*(?:<div[^>]*>[\s\S]*?<\/div>\s*)?<p[^>]*>([\s\S]*?)<\/p>/i);
+  const quoteMatch =
+    contentHtml.match(/&ldquo;([\s\S]*?)&rdquo;/i) ||
+    contentHtml.match(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/i);
+  const secondaryNoteMatch =
+    contentHtml.match(/<p[^>]+style=["'][^"']*(?:margin:\s*24px\s+0\s+0\s+0|text-align:\s*center)[^"']*["'][^>]*>([\s\S]*?)<\/p>/i) ||
+    contentHtml.match(/<p[^>]+style=["'][^"']*font-size:\s*(?:12|13)px[^"']*["'][^>]*>([\s\S]*?)<\/p>/i);
 
-  // Extract body paragraphs (excluding compliance footer)
+  // Extract highlights
+  const highlightsMatches = Array.from(contentHtml.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi))
+    .map((m) => m[1].replace(/<[^>]+>/g, "").trim())
+    .filter(Boolean);
+
+  // Extract CTA (excluding unsubscribe links)
+  const allLinks = Array.from(contentHtml.matchAll(/<a[^>]+href=["']([^"']+)["'][^>]*style=["']([^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi));
+  const ctaLink = allLinks.find((m) => !m[1].includes("unsubscribe") && !m[3].toLowerCase().includes("unsubscribe"));
+
+  // Extract accent color from CTA background or border
+  let extractedAccent = matchedPreset.accentColor;
+  if (ctaLink && ctaLink[2]) {
+    const bgMatch = ctaLink[2].match(/background(?:-color)?:\s*([^;]+)/i);
+    if (bgMatch) extractedAccent = bgMatch[1].trim();
+  }
+
+  // Extract body paragraphs (excluding lead, quote, secondary note, and footer)
   const paragraphMatches = Array.from(contentHtml.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/gi))
     .map((m) => m[1].replace(/<[^>]+>/g, "").trim())
     .filter(
       (text) =>
-        text.length > 20 &&
+        text.length > 10 &&
         !text.includes("Heritage House") &&
-        !text.includes("You received this message")
+        !text.includes("You received this message") &&
+        (!leadMatch || !text.includes(leadMatch[1].replace(/<[^>]+>/g, "").trim())) &&
+        (!secondaryNoteMatch || !text.includes(secondaryNoteMatch[1].replace(/<[^>]+>/g, "").trim())) &&
+        (!quoteMatch || !text.includes(quoteMatch[1].replace(/<[^>]+>/g, "").trim()))
     );
 
-  const fallbackTemplate = CAMPAIGN_TEMPLATES[0];
+  const defaults = matchedPreset.defaultValues;
 
   return {
     name: name || "",
     audienceType: audienceType || "all_contacts",
-    subject: subject || fallbackTemplate.defaultValues.subject,
-    previewText: previewText || fallbackTemplate.defaultValues.previewText,
-    templateId: fallbackTemplate.id,
-    eyebrow: eyebrowMatch ? eyebrowMatch[1].trim() : fallbackTemplate.defaultValues.eyebrow,
-    heading: headingMatch ? headingMatch[1].replace(/<[^>]+>/g, "").trim() : fallbackTemplate.defaultValues.heading,
-    heroImage: imgMatch ? imgMatch[1] : fallbackTemplate.defaultValues.heroImage,
-    body: paragraphMatches.length > 0 ? paragraphMatches.join("\n\n") : fallbackTemplate.defaultValues.body,
-    quote: quoteMatch ? (quoteMatch[1] || quoteMatch[2]).trim() : fallbackTemplate.defaultValues.quote,
-    highlights: fallbackTemplate.defaultValues.highlights,
-    ctaText: ctaMatch ? ctaMatch[2].replace(/<[^>]+>/g, "").trim() : fallbackTemplate.defaultValues.ctaText,
-    ctaUrl: ctaMatch ? ctaMatch[1] : fallbackTemplate.defaultValues.ctaUrl,
-    secondaryNote: fallbackTemplate.defaultValues.secondaryNote,
-    accentColor: fallbackTemplate.accentColor,
+    groupId: extra?.groupId ? String(extra.groupId) : undefined,
+    groupIds: extra?.groupIds ? extra.groupIds.map(String) : undefined,
+    subject: subject || defaults.subject,
+    previewText: previewText || defaults.previewText,
+    templateId: matchedPreset.id,
+    eyebrow: eyebrowMatch ? eyebrowMatch[1].replace(/<[^>]+>/g, "").trim() : defaults.eyebrow,
+    heading: headingMatch ? headingMatch[1].replace(/<[^>]+>/g, "").trim() : defaults.heading,
+    lead: leadMatch ? leadMatch[1].replace(/<[^>]+>/g, "").trim() : defaults.lead,
+    heroImage: imgMatch ? imgMatch[1] : defaults.heroImage,
+    body: paragraphMatches.length > 0 ? paragraphMatches.join("\n\n") : defaults.body,
+    quote: quoteMatch ? quoteMatch[1].replace(/<[^>]+>/g, "").trim() : defaults.quote,
+    highlights: highlightsMatches.length > 0 ? highlightsMatches : defaults.highlights,
+    ctaText: ctaLink ? ctaLink[3].replace(/<[^>]+>/g, "").trim() : defaults.ctaText,
+    ctaUrl: ctaLink ? ctaLink[1] : defaults.ctaUrl,
+    secondaryNote: secondaryNoteMatch ? secondaryNoteMatch[1].replace(/<[^>]+>/g, "").trim() : defaults.secondaryNote,
+    accentColor: extractedAccent,
   };
 }

@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { InvoiceModel, getNextSequence } from "@workspace/db";
+import { InvoiceModel, NotificationModel, getNextSequence } from "@workspace/db";
 import { logger } from "../lib/logger";
 import {
   triggerPaymentReceipt,
@@ -154,8 +154,27 @@ router.patch("/invoices/:id", async (req, res): Promise<void> => {
     }
 
     // If dueDate changed and balance is still due, reschedule payment reminder
-    if (updates.dueDate && updated.balanceDue > 0 && updated.status !== "paid") {
+    if (updates.dueDate && updated.balanceDue > 0 && updated.status !== "paid" && updated.status !== "cancelled") {
       schedulePaymentDeadlineReminder(updated).catch(() => {});
+    }
+
+    // Safeguard: Invalidate scheduled payment reminders if invoice is paid, settled, or cancelled
+    if (updated.status === "paid" || updated.status === "cancelled" || updated.balanceDue <= 0) {
+      NotificationModel.updateMany(
+        {
+          relatedType: "invoice",
+          relatedId: updated.id,
+          type: "payment_deadline_reminder",
+          status: "pending",
+        },
+        {
+          $set: {
+            status: "cancelled",
+            error: `Invoice balance settled or cancelled (status: ${updated.status})`,
+            updatedAt: new Date(),
+          },
+        }
+      ).catch(() => {});
     }
 
     res.json(serializeDates(updated));

@@ -27,6 +27,8 @@ router.use(authRouter);
 router.use(aiRouter);
 router.get("/campaigns/unsubscribe", campaignsRouter);
 router.post("/campaigns/unsubscribe", campaignsRouter);
+router.post("/campaigns/newsletter", campaignsRouter);
+router.post("/newsletter/subscribe", campaignsRouter);
 router.post("/campaigns/webhooks/resend", campaignsRouter);
 router.use(whatsappWebhookRouter);
 

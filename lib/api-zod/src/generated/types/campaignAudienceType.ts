@@ -12,5 +12,6 @@ export const CampaignAudienceType = {
   all_contacts: 'all_contacts',
   enquiries_only: 'enquiries_only',
   confirmed_guests: 'confirmed_guests',
-  custom_segment: 'custom_segment',
+  subscribed_contacts: 'subscribed_contacts',
+  audience_group: 'audience_group',
 } as const;

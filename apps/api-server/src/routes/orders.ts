@@ -26,6 +26,7 @@ import {
   triggerWhatsAppBookingConfirmation,
   triggerWhatsAppDocumentDelivery,
 } from "../services/whatsapp";
+import { processPublicFormConsent } from "../services/campaign-service";
 
 const router: IRouter = Router();
 
@@ -198,6 +199,17 @@ router.post("/orders", async (req, res, next): Promise<void> => {
         logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] WhatsApp booking confirmation trigger error on create");
       });
     }
+
+    // Process optional marketing consent checkbox from journey plan / booking form
+    const marketingConsent = Boolean((req.body as any)?.marketingConsent ?? (parsed.data as any)?.marketingConsent);
+    processPublicFormConsent({
+      email: order.guestEmail,
+      name: order.guestName,
+      marketingConsent,
+      source: "website_plan_journey",
+    }).catch((err) => {
+      logger.error({ err: err?.message, email: order.guestEmail }, "[OrderRoute] Failed to record consent");
+    });
 
     res.status(201).json(GetOrderResponse.parse(serializeDates(order)));
   } catch (err: any) {

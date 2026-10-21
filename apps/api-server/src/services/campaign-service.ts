@@ -4,22 +4,35 @@ import {
   SubscriberConsentModel,
   EnquiryModel,
   OrderModel,
+  InvoiceModel,
   AudienceGroupModel,
   getNextSequence,
   type ICampaign,
   type IAudienceGroup,
   type CampaignAudienceType,
   type CampaignStatus,
+  type ISubscriberConsent,
 } from "@workspace/db";
 import { config } from "../config/env";
 import { sendEmailWithStatus } from "../lib/email";
 import { logger } from "../lib/logger";
+import {
+  resolveMergeTags,
+  resolveDestinationFromOrders,
+  renderCampaignForRecipient,
+  buildUnsubscribeUrl,
+  detectUnresolvedAndMalformedTags,
+  type PreSendValidationSummary,
+} from "./merge-tag-resolver";
 
 export interface RecipientAudienceItem {
   name: string;
   email: string;
   source: string;
   isSubscribed: boolean;
+  isSuppressed?: boolean;
+  suppressionReason?: string | null;
+  consentStatus?: "subscribed" | "not_subscribed" | "unsubscribed" | "suppressed";
   token: string;
   destination?: string;
   travelStyle?: string;
@@ -38,7 +51,7 @@ export class CampaignError extends Error {
 
 /**
  * Resolves the target recipient list for a campaign, deduplicating contacts
- * and cross-referencing with verified subscriber consent status.
+ * and cross-referencing with authoritative subscriber consent status.
  */
 export async function resolveAudience(targetAudience: {
   type: CampaignAudienceType;
@@ -48,15 +61,67 @@ export async function resolveAudience(targetAudience: {
   groupIds?: number[];
 }): Promise<{
   eligible: RecipientAudienceItem[];
+  totalSelected: number;
+  eligibleRecipients: number;
+  eligibleCount: number;
   activeSubscribers: number;
   unsubscribedCount: number;
+  excludedNotSubscribed: number;
+  excludedUnsubscribed: number;
+  excludedSuppressed: number;
 }> {
+  // 0. Safeguard for retired 'custom_segment': Return 0 recipients to prevent accidental dispatch
+  if ((targetAudience.type as string) === "custom_segment") {
+    return {
+      eligible: [],
+      totalSelected: 0,
+      eligibleRecipients: 0,
+      eligibleCount: 0,
+      activeSubscribers: 0,
+      unsubscribedCount: 0,
+      excludedNotSubscribed: 0,
+      excludedUnsubscribed: 0,
+      excludedSuppressed: 0,
+    };
+  }
+
   const emailMap = new Map<
     string,
     { name: string; email: string; source: string; destination?: string; travelStyle?: string }
   >();
 
-  // 1. Collect from Enquiries if applicable
+  // 1. Collect from Subscribed Contacts Only (New explicit consent segment)
+  if (targetAudience.type === "subscribed_contacts") {
+    const subscribers = await SubscriberConsentModel.find({
+      suppressed: { $ne: true },
+      unsubscribedAt: null,
+      $or: [
+        { status: "subscribed" },
+        {
+          subscribed: true,
+          status: { $nin: ["not_subscribed", "unsubscribed", "suppressed"] },
+          $or: [
+            { consentDate: { $ne: null } },
+            { source: { $regex: /newsletter|consent|opt_in|form/i } },
+            { doubleOptInConfirmed: true },
+          ],
+        },
+      ],
+    }).lean();
+    for (const sub of subscribers) {
+      const email = (sub.email || "").trim().toLowerCase();
+      if (!email || !email.includes("@")) continue;
+      if (!emailMap.has(email)) {
+        emailMap.set(email, {
+          name: (sub.name || "Valued Subscriber").trim(),
+          email,
+          source: sub.source || "subscriber",
+        });
+      }
+    }
+  }
+
+  // 2. Collect from Enquiries if applicable
   if (targetAudience.type === "all_contacts" || targetAudience.type === "enquiries_only") {
     const enquiries = await EnquiryModel.find().lean();
     for (const eq of enquiries) {
@@ -72,11 +137,10 @@ export async function resolveAudience(targetAudience: {
     }
   }
 
-  // 2. Collect from Orders if applicable
+  // 3. Collect from Orders if applicable
   if (
     targetAudience.type === "all_contacts" ||
-    targetAudience.type === "confirmed_guests" ||
-    targetAudience.type === "custom_segment"
+    targetAudience.type === "confirmed_guests"
   ) {
     const orderQuery: any = {};
     if (targetAudience.type === "confirmed_guests") {
@@ -91,7 +155,7 @@ export async function resolveAudience(targetAudience: {
       const email = (ord.guestEmail || "").trim().toLowerCase();
       if (!email || !email.includes("@")) continue;
 
-      // Filter by destination if requested in custom segment
+      // Filter by destination if requested
       if (
         targetAudience.destinations &&
         targetAudience.destinations.length > 0 &&
@@ -111,6 +175,37 @@ export async function resolveAudience(targetAudience: {
           source: ord.status === "confirmed" || ord.status === "completed" ? "guest" : "order",
           destination: ord.destinations || undefined,
           travelStyle: ord.travelStyle || undefined,
+        });
+      }
+    }
+  }
+
+  // 3b. For 'all_contacts', also include active newsletter subscribers who haven't submitted enquiries or orders yet
+  if (targetAudience.type === "all_contacts") {
+    const subscribers = await SubscriberConsentModel.find({
+      suppressed: { $ne: true },
+      unsubscribedAt: null,
+      $or: [
+        { status: "subscribed" },
+        {
+          subscribed: true,
+          status: { $nin: ["not_subscribed", "unsubscribed", "suppressed"] },
+          $or: [
+            { consentDate: { $ne: null } },
+            { source: { $regex: /newsletter|consent|opt_in|form/i } },
+            { doubleOptInConfirmed: true },
+          ],
+        },
+      ],
+    }).lean();
+    for (const sub of subscribers) {
+      const email = (sub.email || "").trim().toLowerCase();
+      if (!email || !email.includes("@")) continue;
+      if (!emailMap.has(email)) {
+        emailMap.set(email, {
+          name: (sub.name || "Valued Subscriber").trim(),
+          email,
+          source: sub.source || "newsletter",
         });
       }
     }
@@ -151,12 +246,25 @@ export async function resolveAudience(targetAudience: {
       } else if (group.type === "dynamic" && group.rules) {
         const rules = group.rules;
 
+        // Normalize status list
+        const rawStatus: any = rules.customerStatus;
+        const statusList: string[] = Array.isArray(rawStatus)
+          ? rawStatus.map((s: any) => String(s).toLowerCase().trim())
+          : typeof rawStatus === "string" && (rawStatus as string).trim()
+          ? [(rawStatus as string).toLowerCase().trim()]
+          : [];
+
+        const includesAll = statusList.length === 0 || statusList.includes("all");
+        const includesEnquiries =
+          includesAll || statusList.includes("enquiry") || statusList.includes("lead_only");
+        const includesOrders =
+          includesAll ||
+          statusList.some((s) =>
+            ["confirmed", "completed", "confirmed_bookers", "repeat_customers"].includes(s)
+          );
+
         // Dynamic enquiry rules
-        if (
-          !rules.customerStatus ||
-          rules.customerStatus.length === 0 ||
-          rules.customerStatus.includes("enquiry")
-        ) {
+        if (includesEnquiries) {
           const eqQuery: any = {};
           if (rules.inactiveDays && rules.inactiveDays > 0) {
             const cutoff = new Date(Date.now() - rules.inactiveDays * 24 * 60 * 60 * 1000);
@@ -166,137 +274,250 @@ export async function resolveAudience(targetAudience: {
           for (const eq of enquiries) {
             const email = (eq.email || "").trim().toLowerCase();
             if (!email || !email.includes("@")) continue;
+
+            const eqDest = (eq as any).destination;
+            if (rules.destinations && rules.destinations.length > 0 && eqDest) {
+              const eqDestLower = String(eqDest).toLowerCase();
+              const matchesDest = rules.destinations.some((d: string) =>
+                eqDestLower.includes(d.toLowerCase())
+              );
+              if (!matchesDest) continue;
+            }
+
             if (!emailMap.has(email)) {
               emailMap.set(email, {
                 name: (eq.name || "Valued Traveler").trim(),
                 email,
                 source: `dynamic:${group.name}`,
+                destination: eqDest || undefined,
               });
             }
           }
         }
 
         // Dynamic order rules
-        const ordQuery: any = {};
-        if (rules.customerStatus && rules.customerStatus.length > 0) {
-          const orderStatuses = rules.customerStatus.filter((s: string) => s !== "enquiry");
-          if (orderStatuses.length > 0) {
-            ordQuery.status = { $in: orderStatuses };
+        if (includesOrders) {
+          const ordQuery: any = {
+            status: { $in: ["confirmed", "completed"] },
+          };
+          if (rules.travelStyle) {
+            ordQuery.travelStyle = rules.travelStyle;
           }
-        }
-        if (rules.travelStyle) {
-          ordQuery.travelStyle = rules.travelStyle;
-        }
-        if (rules.inactiveDays && rules.inactiveDays > 0) {
-          const cutoff = new Date(Date.now() - rules.inactiveDays * 24 * 60 * 60 * 1000);
-          ordQuery.createdAt = { $lte: cutoff };
-        }
-
-        const orders = await OrderModel.find(ordQuery).lean();
-        for (const ord of orders) {
-          const email = (ord.guestEmail || "").trim().toLowerCase();
-          if (!email || !email.includes("@")) continue;
-
-          if (rules.destinations && rules.destinations.length > 0 && ord.destinations) {
-            const ordDests = ord.destinations.toLowerCase();
-            const matchesDest = rules.destinations.some((d) =>
-              ordDests.includes(d.toLowerCase())
-            );
-            if (!matchesDest) continue;
+          if (rules.inactiveDays && rules.inactiveDays > 0) {
+            const cutoff = new Date(Date.now() - rules.inactiveDays * 24 * 60 * 60 * 1000);
+            ordQuery.createdAt = { $lte: cutoff };
           }
 
-          if (!emailMap.has(email)) {
-            emailMap.set(email, {
-              name: (ord.guestName || "Valued Guest").trim(),
-              email,
-              source: `dynamic:${group.name}`,
-              destination: ord.destinations || undefined,
-              travelStyle: ord.travelStyle || undefined,
-            });
+          const orders = await OrderModel.find(ordQuery).lean();
+          for (const ord of orders) {
+            const email = (ord.guestEmail || "").trim().toLowerCase();
+            if (!email || !email.includes("@")) continue;
+
+            if (rules.destinations && rules.destinations.length > 0 && ord.destinations) {
+              const ordDests = ord.destinations.toLowerCase();
+              const matchesDest = rules.destinations.some((d: string) =>
+                ordDests.includes(d.toLowerCase())
+              );
+              if (!matchesDest) continue;
+            }
+
+            if (!emailMap.has(email)) {
+              emailMap.set(email, {
+                name: (ord.guestName || "Valued Guest").trim(),
+                email,
+                source: `dynamic:${group.name}`,
+                destination: ord.destinations || undefined,
+                travelStyle: ord.travelStyle || undefined,
+              });
+            }
           }
         }
       }
     }
   }
 
-  // 4. Query consent records for all gathered emails
+  // 4. Deterministic order & destination lookup for all gathered contacts
   const emails = Array.from(emailMap.keys());
+  const ordersForEmails = await OrderModel.find({
+    guestEmail: { $in: emails },
+  })
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const ordersByEmail = new Map<string, Array<any>>();
+  for (const ord of ordersForEmails) {
+    const em = (ord.guestEmail || "").trim().toLowerCase();
+    if (!ordersByEmail.has(em)) ordersByEmail.set(em, []);
+    ordersByEmail.get(em)!.push(ord);
+  }
+
+  // Refine each contact in emailMap with authentic, deterministic data
+  for (const [email, info] of emailMap.entries()) {
+    const userOrders = ordersByEmail.get(email);
+    if (userOrders && userOrders.length > 0) {
+      const resolvedDest = resolveDestinationFromOrders(userOrders);
+      if (resolvedDest) {
+        info.destination = resolvedDest;
+      }
+      // If name was a generic placeholder, use the authentic guestName from booking
+      const confirmedOrLatest =
+        userOrders.find((o) => o.status === "confirmed" || o.status === "completed") ||
+        userOrders[0];
+      if (
+        confirmedOrLatest?.guestName &&
+        (!info.name ||
+          info.name === "Valued Guest" ||
+          info.name === "Valued Traveler" ||
+          info.name.trim().length === 0)
+      ) {
+        info.name = confirmedOrLatest.guestName.trim();
+      }
+    }
+  }
+
+  // 4b. Filter by minBookings if specified in dynamic rules
+  if (targetAudience.type === "audience_group" && targetAudience.groupId) {
+    const grp = await AudienceGroupModel.findOne({ id: targetAudience.groupId }).lean();
+    if (grp?.type === "dynamic" && grp.rules?.minBookings && grp.rules.minBookings > 1) {
+      for (const [email] of emailMap.entries()) {
+        const orderCount = ordersByEmail.get(email)?.length || 0;
+        if (orderCount < grp.rules.minBookings) {
+          emailMap.delete(email);
+        }
+      }
+    }
+  }
+
+  // 5. Query consent records for all gathered emails
   const consentRecords = await SubscriberConsentModel.find({
     email: { $in: emails },
   }).lean();
 
-  const consentMap = new Map<string, { subscribed: boolean; token: string }>();
+  const consentMap = new Map<
+    string,
+    {
+      status: "subscribed" | "not_subscribed" | "unsubscribed" | "suppressed";
+      subscribed: boolean;
+      token: string;
+      suppressed: boolean;
+      suppressionReason?: string | null;
+    }
+  >();
   for (const c of consentRecords) {
+    const isSuppressed = Boolean(c.suppressed || c.status === "suppressed");
+    const isUnsubscribed = Boolean(
+      c.status === "unsubscribed" ||
+      (!c.subscribed && c.unsubscribedAt)
+    );
+    const isExplicitlySubscribed = Boolean(
+      !isSuppressed &&
+      !isUnsubscribed &&
+      (c.status === "subscribed" ||
+        (c.subscribed && (c.consentDate || c.source?.includes("newsletter") || c.source?.includes("consent"))))
+    );
+
+    let resolvedStatus: "subscribed" | "not_subscribed" | "unsubscribed" | "suppressed" = "not_subscribed";
+    if (isSuppressed) {
+      resolvedStatus = "suppressed";
+    } else if (isUnsubscribed) {
+      resolvedStatus = "unsubscribed";
+    } else if (isExplicitlySubscribed) {
+      resolvedStatus = "subscribed";
+    }
+
     consentMap.set(c.email.toLowerCase(), {
-      subscribed: c.subscribed,
+      status: resolvedStatus,
+      subscribed: resolvedStatus === "subscribed",
       token: c.token,
+      suppressed: isSuppressed,
+      suppressionReason: c.suppressionReason,
     });
   }
 
-  // 4. Build eligible list with tokens (auto-creating consent tokens for newly seen contacts)
+  // 6. Build audience items with accurate 4-state consent classification
   const eligible: RecipientAudienceItem[] = [];
   let activeSubscribers = 0;
-  let unsubscribedCount = 0;
+  let excludedNotSubscribed = 0;
+  let excludedUnsubscribed = 0;
+  let excludedSuppressed = 0;
 
   for (const [email, info] of emailMap.entries()) {
     let consent = consentMap.get(email);
     if (!consent) {
-      // Create new consent record
-      const newToken = crypto.randomBytes(24).toString("hex");
-      try {
-        await SubscriberConsentModel.create({
-          email,
-          name: info.name,
-          subscribed: true,
-          token: newToken,
-          source: info.source,
-        });
-        consent = { subscribed: true, token: newToken };
-      } catch {
-        // If raced, re-query
-        const existing = await SubscriberConsentModel.findOne({ email }).lean();
-        consent = {
-          subscribed: existing?.subscribed ?? true,
-          token: existing?.token || newToken,
-        };
-      }
+      // In-memory default to Not Subscribed: Enquiries, bookings, and unverified contacts NEVER automatically get marketing consent!
+      // Audience resolution is purely read-only and must NEVER create or modify consent records.
+      consent = {
+        status: "not_subscribed",
+        subscribed: false,
+        token: "",
+        suppressed: false,
+        suppressionReason: null,
+      };
     }
 
-    const isSubscribed = consent.subscribed;
+    const isSuppressed = consent.status === "suppressed";
+    const isSubscribed = consent.status === "subscribed";
+    const isUnsubscribed = consent.status === "unsubscribed";
+
     if (isSubscribed) {
       activeSubscribers++;
+    } else if (isSuppressed) {
+      excludedSuppressed++;
+    } else if (isUnsubscribed) {
+      excludedUnsubscribed++;
     } else {
-      unsubscribedCount++;
+      excludedNotSubscribed++;
     }
 
     eligible.push({
       ...info,
       isSubscribed,
+      isSuppressed,
+      suppressionReason: consent.suppressionReason,
+      consentStatus: consent.status,
       token: consent.token,
     });
   }
 
-  return { eligible, activeSubscribers, unsubscribedCount };
+  const totalSelected = emailMap.size;
+  const unsubscribedCount = excludedUnsubscribed;
+
+  return {
+    eligible,
+    totalSelected,
+    eligibleRecipients: activeSubscribers,
+    eligibleCount: activeSubscribers,
+    activeSubscribers,
+    unsubscribedCount,
+    excludedNotSubscribed,
+    excludedUnsubscribed,
+    excludedSuppressed,
+  };
 }
 
 /**
  * Interpolates template variables with personalization and ensures CAN-SPAM / GDPR
  * compliance by appending a verified unsubscribe link and physical company address.
+ * Delegated to the centralized resolveMergeTags engine for secure, HTML-escaped, non-recursive rendering.
  */
 export function renderTemplate(
   templateHtml: string,
   recipient: { name: string; email: string; destination?: string; token: string },
   baseUrl = config.publicUrl
 ): string {
-  const unsubscribeUrl = `${baseUrl.replace(/\/$/, "")}/api/campaigns/unsubscribe?token=${recipient.token}&email=${encodeURIComponent(recipient.email)}`;
-  const year = new Date().getFullYear().toString();
+  const result = resolveMergeTags(
+    templateHtml,
+    {
+      name: recipient.name,
+      email: recipient.email,
+      destination: recipient.destination,
+      token: recipient.token,
+    },
+    { isHtml: true, baseUrl }
+  );
 
-  let rendered = templateHtml
-    .replace(/\{\{\s*name\s*\}\}/gi, recipient.name || "Valued Guest")
-    .replace(/\{\{\s*email\s*\}\}/gi, recipient.email)
-    .replace(/\{\{\s*destination\s*\}\}/gi, recipient.destination || "Kerala")
-    .replace(/\{\{\s*year\s*\}\}/gi, year)
-    .replace(/\{\{\s*unsubscribeUrl\s*\}\}/gi, unsubscribeUrl);
+  let rendered = result.rendered;
+  const unsubscribeUrl = buildUnsubscribeUrl(recipient.token, recipient.email, baseUrl);
 
   // If the user's template does not already feature the unsubscribe URL, add a branded slow-luxury footer
   if (!rendered.includes(unsubscribeUrl)) {
@@ -329,8 +550,18 @@ export async function createCampaign(input: {
     type?: CampaignAudienceType;
     destinations?: string[];
     travelStyle?: string | null;
+    groupId?: number | null;
+    groupIds?: number[];
   };
 }): Promise<ICampaign> {
+  if ((input.targetAudience?.type as string) === "custom_segment") {
+    throw new CampaignError(
+      "The 'Custom Destination Segment' audience option has been retired. Please select one of the four supported audience segments: All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, or Audience Group.",
+      400,
+      "RETIRED_AUDIENCE_SEGMENT"
+    );
+  }
+
   const id = await getNextSequence("campaigns");
 
   const campaign = await CampaignModel.create({
@@ -343,6 +574,8 @@ export async function createCampaign(input: {
       type: input.targetAudience?.type || "all_contacts",
       destinations: input.targetAudience?.destinations || [],
       travelStyle: input.targetAudience?.travelStyle || null,
+      groupId: input.targetAudience?.groupId ?? null,
+      groupIds: input.targetAudience?.groupIds || [],
     },
     status: "draft",
     stats: {
@@ -358,19 +591,26 @@ export async function createCampaign(input: {
 }
 
 /**
- * Updates an existing campaign draft.
+ * Updates an existing campaign draft or eligible status.
+ * Safeguards:
+ * - Sending: Disallowed.
+ * - Sent: Disallowed (must duplicate).
+ * - Scheduled: Direct edit disallowed (must unschedule first).
+ * - Approved / Pending / Rejected / Cancelled: Invalides approval & returns to Draft.
  */
 export async function updateCampaign(
   id: number,
   data: Partial<{
     name: string;
     subject: string;
-    previewText: string;
+    previewText: string | null;
     contentHtml: string;
     targetAudience: {
       type: CampaignAudienceType;
       destinations?: string[];
       travelStyle?: string | null;
+      groupId?: number | null;
+      groupIds?: number[];
     };
   }>
 ): Promise<ICampaign> {
@@ -379,11 +619,27 @@ export async function updateCampaign(
     throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
   }
 
-  if (campaign.status === "sending" || campaign.status === "sent") {
+  if (campaign.status === "sending") {
     throw new CampaignError(
-      `Cannot edit campaign #${id} because it has already been sent or is currently dispatching`,
+      `Cannot edit campaign #${id} while it is actively sending`,
       400,
       "INVALID_STATE"
+    );
+  }
+
+  if (campaign.status === "sent") {
+    throw new CampaignError(
+      `Cannot edit campaign #${id} because it has already been sent. Please duplicate it to create an editable draft.`,
+      400,
+      "CANNOT_EDIT_SENT"
+    );
+  }
+
+  if (campaign.status === "scheduled") {
+    throw new CampaignError(
+      `Cannot edit campaign #${id} while it is scheduled. Please unschedule the campaign first before editing.`,
+      400,
+      "SCHEDULED_CAMPAIGN"
     );
   }
 
@@ -392,19 +648,28 @@ export async function updateCampaign(
   if (data.previewText !== undefined) campaign.previewText = data.previewText?.trim() || null;
   if (data.contentHtml !== undefined) campaign.contentHtml = data.contentHtml;
   if (data.targetAudience !== undefined) {
+    if ((data.targetAudience.type as string) === "custom_segment") {
+      throw new CampaignError(
+        "The 'Custom Destination Segment' audience option has been retired. Please select one of the four supported audience segments: All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, or Audience Group.",
+        400,
+        "RETIRED_AUDIENCE_SEGMENT"
+      );
+    }
     campaign.targetAudience = {
       type: data.targetAudience.type || campaign.targetAudience.type,
-      destinations: data.targetAudience.destinations || campaign.targetAudience.destinations,
-      travelStyle: data.targetAudience.travelStyle ?? campaign.targetAudience.travelStyle,
+      destinations: data.targetAudience.destinations !== undefined ? data.targetAudience.destinations : campaign.targetAudience.destinations,
+      travelStyle: data.targetAudience.travelStyle !== undefined ? data.targetAudience.travelStyle : campaign.targetAudience.travelStyle,
+      groupId: data.targetAudience.groupId !== undefined ? data.targetAudience.groupId : campaign.targetAudience.groupId,
+      groupIds: data.targetAudience.groupIds !== undefined ? data.targetAudience.groupIds : (campaign.targetAudience.groupIds || []),
     };
   }
 
-  // If edited, reset approval so staff re-approves the modified content
+  // If edited, reset approval and return to draft so staff re-approves the modified content
   if (
     campaign.status === "approved" ||
-    campaign.status === "scheduled" ||
     campaign.status === "pending_approval" ||
-    campaign.status === "rejected"
+    campaign.status === "rejected" ||
+    campaign.status === "cancelled"
   ) {
     campaign.status = "draft";
     campaign.approvedBy = null;
@@ -439,6 +704,14 @@ export async function submitCampaignForApproval(id: number): Promise<ICampaign> 
       "Campaign must have a name, subject line, and email content before submission",
       400,
       "VALIDATION_ERROR"
+    );
+  }
+
+  if ((campaign.targetAudience?.type as string) === "custom_segment") {
+    throw new CampaignError(
+      "The 'Custom Destination Segment' audience option has been retired. Please edit this campaign and select a supported audience segment before requesting approval.",
+      400,
+      "RETIRED_AUDIENCE_SEGMENT"
     );
   }
 
@@ -546,20 +819,186 @@ export async function previewCampaignAudience(id: number) {
     throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
   }
 
-  const { eligible, activeSubscribers, unsubscribedCount } = await resolveAudience(
-    campaign.targetAudience
-  );
+  const result = await resolveAudience(campaign.targetAudience);
 
   return {
-    eligibleRecipients: eligible.length,
-    activeSubscribers,
-    unsubscribedCount,
-    sampleRecipients: eligible.slice(0, 10).map((r) => ({
+    totalSelected: result.totalSelected,
+    eligibleRecipients: result.eligibleRecipients,
+    eligibleCount: result.eligibleCount,
+    activeSubscribers: result.activeSubscribers,
+    unsubscribedCount: result.unsubscribedCount,
+    excludedNotSubscribed: result.excludedNotSubscribed,
+    excludedUnsubscribed: result.excludedUnsubscribed,
+    excludedSuppressed: result.excludedSuppressed,
+    sampleRecipients: result.eligible.slice(0, 100).map((r) => ({
       name: r.name,
       email: r.email,
       source: r.source,
       isSubscribed: r.isSubscribed,
+      isSuppressed: r.isSuppressed,
+      consentStatus: r.consentStatus,
+      destination: r.destination,
+      hasDestination: Boolean(r.destination),
     })),
+  };
+}
+
+/**
+ * Evaluates campaign merge tags and recipient data before dispatch,
+ * identifying ready recipients, excluded recipients, and fallbacks.
+ */
+export async function validateCampaignPreSend(id: number): Promise<PreSendValidationSummary> {
+  const campaign = await CampaignModel.findOne({ id }).lean();
+  if (!campaign) {
+    throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  if ((campaign.targetAudience?.type as string) === "custom_segment") {
+    return {
+      campaignId: id,
+      totalEligible: 0,
+      readyToSend: 0,
+      excludedCount: 1,
+      canSend: false,
+      fallbacksSummary: {
+        nameFallbackCount: 0,
+        destinationFallbackCount: 0,
+        exactDestinationCount: 0,
+      },
+      unresolvedTags: [],
+      malformedTags: [],
+      exclusionReasons: [
+        {
+          email: "(none)",
+          reason:
+            "The 'Custom Destination Segment' audience option has been retired. Please edit this campaign and select a supported audience segment before sending.",
+          code: "RETIRED_AUDIENCE_SEGMENT",
+        },
+      ],
+      sampleRecipients: [],
+    };
+  }
+
+  const { eligible } = await resolveAudience(campaign.targetAudience);
+
+  let readyToSend = 0;
+  let nameFallbackCount = 0;
+  let destinationFallbackCount = 0;
+  let exactDestinationCount = 0;
+  const unresolvedTagsSet = new Set<string>();
+  const malformedTagsSet = new Set<string>();
+  const exclusionReasons: PreSendValidationSummary["exclusionReasons"] = [];
+  const sampleRecipients: PreSendValidationSummary["sampleRecipients"] = [];
+
+  for (const recipient of eligible) {
+    if (!recipient.email || !recipient.email.includes("@")) {
+      exclusionReasons.push({
+        email: recipient.email || "(blank)",
+        reason: "Missing or invalid recipient email address",
+        code: "INVALID_EMAIL",
+      });
+      continue;
+    }
+
+    if (recipient.isSuppressed) {
+      exclusionReasons.push({
+        email: recipient.email,
+        reason: recipient.suppressionReason || "Recipient address suppressed from marketing delivery",
+        code: "SUPPRESSED",
+      });
+      continue;
+    }
+
+    if (!recipient.isSubscribed) {
+      const isOptedOut = recipient.consentStatus === "unsubscribed";
+      exclusionReasons.push({
+        email: recipient.email,
+        reason: isOptedOut
+          ? "Recipient has opted out of marketing communications (Unsubscribed)"
+          : "Recipient has no verified marketing consent (Not Subscribed)",
+        code: isOptedOut ? "UNSUBSCRIBED" : "NOT_SUBSCRIBED",
+      });
+      continue;
+    }
+
+    if (!recipient.token) {
+      exclusionReasons.push({
+        email: recipient.email,
+        reason: "Missing consent token; cannot generate compliant unsubscribe link",
+        code: "MISSING_CONSENT_TOKEN",
+      });
+      continue;
+    }
+
+    const rendered = renderCampaignForRecipient(
+      campaign,
+      recipient,
+      { baseUrl: config.publicUrl }
+    );
+
+    if (!rendered.success) {
+      exclusionReasons.push({
+        email: recipient.email,
+        reason: rendered.errors.join("; "),
+        code: "UNRESOLVED_TAGS",
+      });
+      continue;
+    }
+
+    readyToSend++;
+    if (rendered.usedFallbacks.name) {
+      nameFallbackCount++;
+    }
+    if (rendered.usedFallbacks.destination) {
+      destinationFallbackCount++;
+    } else {
+      exactDestinationCount++;
+    }
+
+    if (sampleRecipients.length < 5) {
+      sampleRecipients.push({
+        email: recipient.email,
+        name: recipient.name,
+        destination: recipient.destination || "Kerala",
+        usedNameFallback: rendered.usedFallbacks.name,
+        usedDestinationFallback: rendered.usedFallbacks.destination,
+        previewSubject: rendered.renderedSubject,
+      });
+    }
+  }
+
+  // Also inspect template itself for unresolvable tags
+  const templateDetect = detectUnresolvedAndMalformedTags(
+    `${campaign.subject} ${campaign.contentHtml} ${campaign.previewText || ""}`
+  );
+  const supportedPattern = /\{\{\s*(name|destination|year|email|unsubscribeurl)\s*\}\}/i;
+  const invalidTemplateTags = templateDetect.unresolved.filter((t) => !supportedPattern.test(t));
+  for (const t of invalidTemplateTags) unresolvedTagsSet.add(t);
+  for (const m of templateDetect.malformed) malformedTagsSet.add(m);
+
+  return {
+    campaignId: id,
+    totalEligible: eligible.length,
+    readyToSend,
+    excludedCount: exclusionReasons.length,
+    canSend: readyToSend > 0 && unresolvedTagsSet.size === 0 && malformedTagsSet.size === 0,
+    fallbacksSummary: {
+      nameFallbackCount,
+      destinationFallbackCount,
+      exactDestinationCount,
+    },
+    unresolvedTags: Array.from(unresolvedTagsSet),
+    malformedTags: Array.from(malformedTagsSet),
+    exclusionReasons: exclusionReasons.slice(0, 50),
+    sampleRecipients,
+    blockReason:
+      readyToSend === 0
+        ? "This campaign has 0 eligible marketing recipients. All selected contacts are either not subscribed, unsubscribed, or suppressed."
+        : unresolvedTagsSet.size > 0
+        ? `Unresolved merge tags found: ${Array.from(unresolvedTagsSet).join(", ")}`
+        : malformedTagsSet.size > 0
+        ? `Malformed merge tags found: ${Array.from(malformedTagsSet).join(", ")}`
+        : null,
   };
 }
 
@@ -580,6 +1019,14 @@ export async function approveCampaign(id: number, staffUsername: string): Promis
     );
   }
 
+  if ((campaign.targetAudience?.type as string) === "custom_segment") {
+    throw new CampaignError(
+      `Campaign #${id} cannot be approved because it uses the retired 'Custom Destination Segment'. Please edit the campaign and reassign its audience to a supported segment before approval.`,
+      400,
+      "RETIRED_AUDIENCE_SEGMENT"
+    );
+  }
+
   campaign.status = "approved";
   campaign.approvedBy = staffUsername;
   campaign.approvedAt = new Date();
@@ -597,6 +1044,14 @@ export async function scheduleCampaign(id: number, scheduledAtStr: string): Prom
   const campaign = await CampaignModel.findOne({ id });
   if (!campaign) {
     throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  if ((campaign.targetAudience?.type as string) === "custom_segment") {
+    throw new CampaignError(
+      `Campaign #${id} cannot be scheduled because it uses the retired 'Custom Destination Segment'. Please edit the campaign and reassign its audience to a supported segment.`,
+      400,
+      "RETIRED_AUDIENCE_SEGMENT"
+    );
   }
 
   // Approval safeguard: MUST be approved before scheduling
@@ -649,6 +1104,19 @@ export async function sendCampaign(
   id: number,
   options?: { mock?: boolean; alreadyClaimed?: boolean }
 ): Promise<ICampaign> {
+  const existingCheck = await CampaignModel.findOne({ id }).lean();
+  if (!existingCheck) {
+    throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
+  }
+
+  if ((existingCheck.targetAudience?.type as string) === "custom_segment") {
+    throw new CampaignError(
+      `Campaign #${id} cannot be dispatched because it uses the retired 'Custom Destination Segment'. Please edit the campaign and reassign its audience to a supported segment.`,
+      400,
+      "RETIRED_AUDIENCE_SEGMENT"
+    );
+  }
+
   let campaign;
 
   if (options?.alreadyClaimed) {
@@ -698,11 +1166,37 @@ export async function sendCampaign(
     }
   }
 
+  // 2. Pre-send audience check for retired segment
+  if ((campaign.targetAudience?.type as string) === "custom_segment") {
+    throw new CampaignError(
+      `Campaign #${id} cannot be dispatched because it uses the retired 'Custom Destination Segment'. Please edit the campaign and reassign its audience to a supported segment.`,
+      400,
+      "RETIRED_AUDIENCE_SEGMENT"
+    );
+  }
+
   // 2. Resolve audience
   const { eligible } = await resolveAudience(campaign.targetAudience);
 
   // 3. Determine if live delivery is permissible
   // Safe sending default: Never send real emails unless explicitly enabled via env AND API key is present AND not in mock mode
+  if (options?.mock === false) {
+    if (config.campaignSendingEnabled !== true) {
+      throw new CampaignError(
+        "Live bulk campaign sending is disabled in server configuration (CAMPAIGN_SENDING_ENABLED is false). Keep Simulation Mode checked to run a dry-run test.",
+        400,
+        "CAMPAIGN_SENDING_DISABLED"
+      );
+    }
+    if (!config.resendApiKey || config.resendApiKey.trim().length === 0) {
+      throw new CampaignError(
+        "Bulk campaign sending requires RESEND_API_KEY to be configured. Keep Simulation Mode checked for dry-run testing or configure Resend for live delivery.",
+        400,
+        "RESEND_KEY_MISSING"
+      );
+    }
+  }
+
   const isLiveDelivery =
     config.campaignSendingEnabled === true &&
     Boolean(config.resendApiKey && config.resendApiKey.trim().length > 0) &&
@@ -717,6 +1211,21 @@ export async function sendCampaign(
     },
     "[Campaign] Beginning campaign delivery dispatch"
   );
+
+  // 3b. Safeguard: Prevent empty/misleading dispatch when zero recipients are eligible
+  const eligibleRecipientsList = eligible.filter(
+    (r) => r.isSubscribed && !r.isSuppressed && r.consentStatus === "subscribed"
+  );
+  if (eligibleRecipientsList.length === 0) {
+    if (!options?.alreadyClaimed) {
+      await CampaignModel.updateOne({ id }, { $set: { status: "approved" } });
+    }
+    throw new CampaignError(
+      "Campaign has 0 eligible marketing recipients with verified explicit consent. Dispatch blocked to prevent misleading empty dispatch.",
+      400,
+      "ZERO_ELIGIBLE_RECIPIENTS"
+    );
+  }
 
   // Existing deliveries map for restart recovery and duplicate prevention
   const existingDeliveryMap = new Map(
@@ -759,31 +1268,77 @@ export async function sendCampaign(
       continue;
     }
 
-    // 4. Strict Consent Safeguard: Recheck recipient consent immediately before dispatch in DB
+    // 4. Strict Consent & Suppression Safeguard: Recheck recipient consent immediately before dispatch in DB
     const latestConsent = await SubscriberConsentModel.findOne({
       email: normalizedEmail,
     }).lean();
 
-    if (!recipient.isSubscribed || (latestConsent && !latestConsent.subscribed)) {
+    const isSuppressed = Boolean(latestConsent?.suppressed || latestConsent?.status === "suppressed");
+    const isUnsubscribed = Boolean(latestConsent?.status === "unsubscribed" || (!latestConsent?.subscribed && latestConsent?.unsubscribedAt));
+    const isExplicitlySubscribed = Boolean(
+      !isSuppressed &&
+      !isUnsubscribed &&
+      (latestConsent?.status === "subscribed" || (latestConsent?.subscribed && (latestConsent?.consentDate || latestConsent?.source?.includes("newsletter") || latestConsent?.source?.includes("consent"))))
+    );
+
+    if (!isExplicitlySubscribed || isSuppressed) {
+      let errorMsg = "Recipient has no verified marketing consent (Not Subscribed)";
+      if (isSuppressed) {
+        errorMsg = `Recipient suppressed from marketing communications (${latestConsent?.suppressionReason || "Suppression rule active"})`;
+      } else if (isUnsubscribed) {
+        errorMsg = "Recipient opted out of marketing communications (Unsubscribed)";
+      }
+
       finalDeliveries.push({
         recipientEmail: recipient.email,
         recipientName: recipient.name,
         status: "skipped_unsubscribed",
         deliveryStatus: "skipped_unsubscribed",
         sentAt: new Date(),
-        error: "Recipient opted out of marketing communications",
+        error: errorMsg,
       });
       skippedCount++;
       continue;
     }
 
-    // 5. Render personalized content with merge tags & CAN-SPAM compliant unsubscribe link
-    const personalizedHtml = renderTemplate(campaign.contentHtml, {
-      ...recipient,
-      token: latestConsent?.token || recipient.token,
-    });
+    // 5. Pre-send validation & merge tag resolution
     const recipientToken = latestConsent?.token || recipient.token;
-    const unsubscribeUrl = `${config.publicUrl.replace(/\/$/, "")}/api/campaigns/unsubscribe?token=${recipientToken}&email=${encodeURIComponent(recipient.email)}`;
+    if (!recipientToken) {
+      finalDeliveries.push({
+        recipientEmail: recipient.email,
+        recipientName: recipient.name,
+        status: "failed",
+        deliveryStatus: "failed",
+        sentAt: new Date(),
+        error: "Missing cryptographic consent token; cannot generate compliant unsubscribe link",
+      });
+      failedCount++;
+      continue;
+    }
+
+    const rendered = renderCampaignForRecipient(
+      campaign,
+      {
+        ...recipient,
+        token: recipientToken,
+      },
+      { baseUrl: config.publicUrl }
+    );
+
+    if (!rendered.success) {
+      finalDeliveries.push({
+        recipientEmail: recipient.email,
+        recipientName: recipient.name,
+        status: "failed",
+        deliveryStatus: "failed",
+        sentAt: new Date(),
+        error: `Personalization failed: ${rendered.errors.join("; ")}`,
+      });
+      failedCount++;
+      continue;
+    }
+
+    const unsubscribeUrl = buildUnsubscribeUrl(recipientToken, recipient.email, config.publicUrl);
 
     if (isLiveDelivery) {
       // Deterministic idempotency key: avoids duplicate sends even after ambiguous network disconnects
@@ -792,8 +1347,8 @@ export async function sendCampaign(
       try {
         const sendResult = await sendEmailWithStatus({
           to: recipient.email,
-          subject: campaign.subject,
-          html: personalizedHtml,
+          subject: rendered.renderedSubject,
+          html: rendered.renderedHtml,
           idempotencyKey,
           headers: {
             "List-Unsubscribe": `<${unsubscribeUrl}>`,
@@ -802,13 +1357,19 @@ export async function sendCampaign(
         });
 
         if (sendResult.success) {
+          const effStatus = sendResult.status === "simulated" ? "simulated" : "accepted";
           finalDeliveries.push({
             recipientEmail: recipient.email,
             recipientName: recipient.name,
-            status: "accepted",
-            deliveryStatus: "accepted",
-            sentAt: new Date(),
+            status: effStatus,
+            deliveryStatus: effStatus,
+            sentAt: sendResult.sentAt || new Date(),
             messageId: sendResult.messageId || null,
+            provider: sendResult.provider,
+            smtpResponse: sendResult.smtpResponse || null,
+            providerResponse: sendResult.providerResponse || null,
+            acceptedRecipients: sendResult.acceptedRecipients || [recipient.email],
+            rejectedRecipients: sendResult.rejectedRecipients || [],
           });
           sentCount++;
         } else {
@@ -819,6 +1380,11 @@ export async function sendCampaign(
             deliveryStatus: "failed",
             sentAt: new Date(),
             error: sendResult.error || "Delivery provider rejected email",
+            provider: sendResult.provider,
+            smtpResponse: sendResult.smtpResponse || null,
+            providerResponse: sendResult.providerResponse || null,
+            acceptedRecipients: sendResult.acceptedRecipients || [],
+            rejectedRecipients: sendResult.rejectedRecipients || [recipient.email],
           });
           failedCount++;
         }
@@ -834,14 +1400,16 @@ export async function sendCampaign(
         failedCount++;
       }
     } else {
-      // 6. Safe Mock / Simulation Mode: Zero outbound calls to Resend
+      // 6. Safe Mock / Simulation Mode: Zero outbound calls to provider
       finalDeliveries.push({
         recipientEmail: recipient.email,
         recipientName: recipient.name,
-        status: "sent",
+        status: "simulated",
         deliveryStatus: "simulated",
         sentAt: new Date(),
-        messageId: `mock_resend_msg_${crypto.randomUUID()}`,
+        messageId: `mock_resend_msg_simulated_${crypto.randomUUID()}`,
+        provider: "mock",
+        providerResponse: "Simulation mode - zero outbound mail sent",
       });
       sentCount++;
     }
@@ -916,6 +1484,7 @@ export async function handleUnsubscribe(
     );
   }
 
+  consent.status = "unsubscribed";
   consent.subscribed = false;
   consent.unsubscribedAt = new Date();
   await consent.save();
@@ -931,12 +1500,610 @@ export async function handleUnsubscribe(
 /**
  * Lists subscriber consent status for administration.
  */
-export async function listSubscribers(subscribedFilter?: boolean) {
+export async function listSubscribers(
+  filter?:
+    | boolean
+    | {
+        subscribed?: boolean;
+        suppressed?: boolean;
+        status?: "subscribed" | "not_subscribed" | "unsubscribed" | "suppressed";
+        search?: string;
+      }
+) {
   const query: any = {};
-  if (typeof subscribedFilter === "boolean") {
-    query.subscribed = subscribedFilter;
+  if (typeof filter === "boolean") {
+    query.subscribed = filter;
+  } else if (filter && typeof filter === "object") {
+    if (filter.status) {
+      if (filter.status === "suppressed") {
+        query.$or = [{ suppressed: true }, { status: "suppressed" }];
+      } else if (filter.status === "subscribed") {
+        query.status = "subscribed";
+        query.subscribed = true;
+        query.suppressed = { $ne: true };
+      } else if (filter.status === "unsubscribed") {
+        query.status = "unsubscribed";
+        query.suppressed = { $ne: true };
+      } else if (filter.status === "not_subscribed") {
+        query.status = "not_subscribed";
+        query.suppressed = { $ne: true };
+      }
+    } else {
+      if (typeof filter.subscribed === "boolean") {
+        query.subscribed = filter.subscribed;
+      }
+      if (typeof filter.suppressed === "boolean") {
+        query.suppressed = filter.suppressed;
+      }
+    }
+    if (filter.search?.trim()) {
+      const s = filter.search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      query.$or = [{ email: { $regex: s, $options: "i" } }, { name: { $regex: s, $options: "i" } }];
+    }
   }
-  return SubscriberConsentModel.find(query).sort({ updatedAt: -1 }).lean();
+  const records = await SubscriberConsentModel.find(query).sort({ updatedAt: -1 }).lean();
+  return records.map((r) => {
+    let resolvedStatus = r.status;
+    if (!resolvedStatus) {
+      if (r.suppressed) resolvedStatus = "suppressed";
+      else if (r.unsubscribedAt || (!r.subscribed && r.unsubscribedAt)) resolvedStatus = "unsubscribed";
+      else if (r.subscribed && (r.consentDate || r.source?.includes("newsletter") || r.source?.includes("consent"))) resolvedStatus = "subscribed";
+      else resolvedStatus = "not_subscribed";
+    }
+    return {
+      ...r,
+      status: resolvedStatus,
+    };
+  });
+}
+
+/**
+ * Unsubscribes an email from marketing communications with recorded reason and admin actor.
+ */
+export async function adminUnsubscribeSubscriber(
+  email: string,
+  adminUsername: string,
+  reason?: string,
+  source?: string
+): Promise<ISubscriberConsent> {
+  const normalized = email.toLowerCase().trim();
+  if (!normalized || !normalized.includes("@")) {
+    throw new CampaignError("Invalid email address provided", 400, "INVALID_EMAIL");
+  }
+
+  let consent = await SubscriberConsentModel.findOne({ email: normalized });
+  if (!consent) {
+    consent = new SubscriberConsentModel({
+      email: normalized,
+      status: "unsubscribed",
+      subscribed: false,
+      token: crypto.randomBytes(24).toString("hex"),
+      source: source || "admin_manual",
+    });
+  }
+
+  consent.status = "unsubscribed";
+  consent.subscribed = false;
+  consent.unsubscribedAt = new Date();
+  consent.source = source || consent.source || "admin_manual";
+  consent.updatedBy = adminUsername;
+
+  if (!consent.auditLog) consent.auditLog = [];
+  consent.auditLog.push({
+    action: "unsubscribed",
+    performedBy: adminUsername,
+    timestamp: new Date(),
+    reason: reason?.trim() || "Unsubscribed by administrator in consent registry",
+    source: consent.source,
+  });
+
+  await consent.save();
+  logger.info({ email: normalized, adminUsername, reason }, "[Consent] Contact unsubscribed by admin");
+  return consent.toObject();
+}
+
+/**
+ * Records explicit marketing consent provided genuinely by the customer.
+ */
+export async function recordExplicitConsent(
+  email: string,
+  adminUsername: string,
+  data: {
+    name?: string;
+    consentMethod: string;
+    source: string;
+    consentDate?: Date | string;
+    doubleOptInConfirmed?: boolean;
+    notes?: string;
+  }
+): Promise<ISubscriberConsent> {
+  const normalized = email.toLowerCase().trim();
+  if (!normalized || !normalized.includes("@")) {
+    throw new CampaignError("Invalid email address provided", 400, "INVALID_EMAIL");
+  }
+
+  if (!data.consentMethod?.trim() || !data.source?.trim()) {
+    throw new CampaignError(
+      "Consent method and genuine source are required to record explicit subscription consent",
+      400,
+      "VALIDATION_ERROR"
+    );
+  }
+
+  let consent = await SubscriberConsentModel.findOne({ email: normalized });
+  if (!consent) {
+    consent = new SubscriberConsentModel({
+      email: normalized,
+      name: data.name?.trim() || null,
+      token: crypto.randomBytes(24).toString("hex"),
+    });
+  } else if (data.name?.trim()) {
+    consent.name = data.name.trim();
+  }
+
+  // If email was suppressed, recording explicit fresh consent lifts suppression
+  if (consent.suppressed) {
+    consent.suppressed = false;
+    consent.suppressedAt = null;
+    consent.suppressionReason = null;
+    consent.suppressedBy = null;
+  }
+
+  const cDate = data.consentDate ? new Date(data.consentDate) : new Date();
+  consent.status = "subscribed";
+  consent.subscribed = true;
+  consent.unsubscribedAt = null;
+  consent.source = data.source.trim();
+  consent.consentDate = Number.isNaN(cDate.getTime()) ? new Date() : cDate;
+  consent.consentMethod = data.consentMethod.trim();
+  consent.doubleOptInConfirmed = Boolean(data.doubleOptInConfirmed);
+  consent.updatedBy = adminUsername;
+
+  if (!consent.auditLog) consent.auditLog = [];
+  consent.auditLog.push({
+    action: "subscribed",
+    performedBy: adminUsername,
+    timestamp: new Date(),
+    reason: data.notes?.trim() || "Explicit subscription consent recorded",
+    method: data.consentMethod.trim(),
+    source: data.source.trim(),
+  });
+
+  await consent.save();
+  logger.info({ email: normalized, adminUsername, source: data.source }, "[Consent] Explicit consent recorded");
+  return consent.toObject();
+}
+
+/**
+ * Suppresses an email address from all marketing communications.
+ */
+export async function suppressEmailAddress(
+  email: string,
+  adminUsername: string,
+  reason: string
+): Promise<ISubscriberConsent> {
+  const normalized = email.toLowerCase().trim();
+  if (!normalized || !normalized.includes("@")) {
+    throw new CampaignError("Invalid email address provided", 400, "INVALID_EMAIL");
+  }
+
+  if (!reason?.trim()) {
+    throw new CampaignError("A suppression reason is required", 400, "VALIDATION_ERROR");
+  }
+
+  let consent = await SubscriberConsentModel.findOne({ email: normalized });
+  if (!consent) {
+    consent = new SubscriberConsentModel({
+      email: normalized,
+      token: crypto.randomBytes(24).toString("hex"),
+      source: "admin_suppression",
+    });
+  }
+
+  consent.status = "suppressed";
+  consent.suppressed = true;
+  consent.suppressedAt = new Date();
+  consent.suppressionReason = reason.trim();
+  consent.suppressedBy = adminUsername;
+  consent.subscribed = false;
+  if (!consent.unsubscribedAt) consent.unsubscribedAt = new Date();
+  consent.updatedBy = adminUsername;
+
+  if (!consent.auditLog) consent.auditLog = [];
+  consent.auditLog.push({
+    action: "suppressed",
+    performedBy: adminUsername,
+    timestamp: new Date(),
+    reason: reason.trim(),
+  });
+
+  await consent.save();
+  logger.info({ email: normalized, adminUsername, reason }, "[Consent] Email address suppressed");
+  return consent.toObject();
+}
+
+/**
+ * Lifts email suppression. Leaves status as unsubscribed unless explicit consent is separately recorded.
+ */
+export async function unsuppressEmailAddress(
+  email: string,
+  adminUsername: string,
+  reason?: string
+): Promise<ISubscriberConsent> {
+  const normalized = email.toLowerCase().trim();
+  const consent = await SubscriberConsentModel.findOne({ email: normalized });
+  if (!consent) {
+    throw new CampaignError(`Contact record for ${normalized} not found`, 404, "NOT_FOUND");
+  }
+
+  consent.suppressed = false;
+  consent.suppressedAt = null;
+  consent.suppressionReason = null;
+  consent.suppressedBy = null;
+  consent.status = "unsubscribed";
+  consent.subscribed = false;
+  consent.updatedBy = adminUsername;
+
+  if (!consent.auditLog) consent.auditLog = [];
+  consent.auditLog.push({
+    action: "unsuppressed",
+    performedBy: adminUsername,
+    timestamp: new Date(),
+    reason: reason?.trim() || "Suppression removed by admin",
+  });
+
+  await consent.save();
+  logger.info({ email: normalized, adminUsername }, "[Consent] Email address suppression lifted");
+  return consent.toObject();
+}
+
+/**
+ * Public website newsletter signup handler.
+ * Enforces rate limiting, normalization, duplicate prevention, and opt-out/suppression protection.
+ */
+export async function subscribeToNewsletter(email: string, name?: string): Promise<{
+  success: boolean;
+  message: string;
+  alreadySubscribed?: boolean;
+}> {
+  const normalized = email.toLowerCase().trim();
+  if (!normalized || !normalized.includes("@") || !normalized.includes(".")) {
+    throw new CampaignError("Please provide a valid email address.", 400, "INVALID_EMAIL");
+  }
+
+  let consent = await SubscriberConsentModel.findOne({ email: normalized });
+
+  // 1. If address is suppressed, preserve suppression protection and return safe acknowledgement
+  if (consent?.suppressed || consent?.status === "suppressed") {
+    logger.info({ email: normalized }, "[Newsletter] Signup attempted for suppressed email; protection preserved");
+    return {
+      success: true,
+      message: "Thank you for subscribing! Check your inbox for updates.",
+    };
+  }
+
+  // 2. If address was previously unsubscribed, DO NOT silently resubscribe!
+  if (consent?.status === "unsubscribed" || (!consent?.subscribed && consent?.unsubscribedAt)) {
+    logger.info({ email: normalized }, "[Newsletter] Signup attempted for unsubscribed email; opt-out preserved");
+    return {
+      success: true,
+      message: "Thank you for your interest! Your email is recorded in our system.",
+    };
+  }
+
+  // 3. If already subscribed, return friendly duplicate status
+  if (consent?.status === "subscribed" && consent?.subscribed) {
+    return {
+      success: true,
+      alreadySubscribed: true,
+      message: "You are already subscribed to the Escora newsletter!",
+    };
+  }
+
+  // 4. Record genuine explicit subscription consent
+  const newToken = consent?.token || crypto.randomBytes(24).toString("hex");
+  if (!consent) {
+    consent = new SubscriberConsentModel({
+      email: normalized,
+      name: name?.trim() || null,
+      status: "subscribed",
+      subscribed: true,
+      token: newToken,
+      source: "website_newsletter",
+      consentDate: new Date(),
+      consentMethod: "web_footer_form",
+      auditLog: [
+        {
+          action: "subscribed",
+          performedBy: "customer",
+          timestamp: new Date(),
+          source: "website_newsletter",
+          method: "web_footer_form",
+          reason: "Public website newsletter subscription",
+        },
+      ],
+    });
+  } else {
+    consent.status = "subscribed";
+    consent.subscribed = true;
+    consent.source = "website_newsletter";
+    consent.consentDate = new Date();
+    consent.consentMethod = "web_footer_form";
+    if (name?.trim() && !consent.name) consent.name = name.trim();
+    if (!consent.auditLog) consent.auditLog = [];
+    consent.auditLog.push({
+      action: "subscribed",
+      performedBy: "customer",
+      timestamp: new Date(),
+      source: "website_newsletter",
+      method: "web_footer_form",
+      reason: "Public website newsletter subscription",
+    });
+  }
+
+  await consent.save();
+  logger.info({ email: normalized }, "[Newsletter] New subscriber consent recorded");
+
+  return {
+    success: true,
+    message: "Thank you for subscribing! Welcome to Escora slow journeys.",
+  };
+}
+
+/**
+ * Processes optional marketing consent from public contact/enquiry/booking forms.
+ * - When marketingConsent === true: Records explicit consent IF NOT suppressed AND NOT unsubscribed.
+ * - When marketingConsent is falsy or omitted: Does NOT grant consent. If new record is created, status is 'not_subscribed'.
+ * - Never silently overrides an existing Unsubscribed or Suppressed status.
+ */
+export async function processPublicFormConsent(options: {
+  email: string;
+  name?: string;
+  marketingConsent?: boolean;
+  source: string;
+}): Promise<void> {
+  const normalized = options.email.toLowerCase().trim();
+  if (!normalized || !normalized.includes("@")) return;
+
+  const consent = await SubscriberConsentModel.findOne({ email: normalized });
+
+  if (options.marketingConsent === true) {
+    // If contact is already suppressed or unsubscribed, NEVER silently override!
+    if (consent) {
+      if (consent.suppressed || consent.status === "suppressed") {
+        logger.info(
+          { email: normalized },
+          "[Consent] Public form submitted with consent checkbox, but address is suppressed; suppression preserved"
+        );
+        return;
+      }
+      if (consent.status === "unsubscribed" || (!consent.subscribed && consent.unsubscribedAt)) {
+        logger.info(
+          { email: normalized },
+          "[Consent] Public form submitted with consent checkbox, but contact is unsubscribed; opt-out preserved"
+        );
+        return;
+      }
+      // If already subscribed or not_subscribed, update with fresh consent
+      consent.status = "subscribed";
+      consent.subscribed = true;
+      consent.consentDate = new Date();
+      consent.consentMethod = "contact_form_checkbox";
+      consent.source = options.source;
+      if (options.name?.trim() && !consent.name) consent.name = options.name.trim();
+      if (!consent.auditLog) consent.auditLog = [];
+      consent.auditLog.push({
+        action: "subscribed",
+        performedBy: "customer",
+        timestamp: new Date(),
+        source: options.source,
+        method: "contact_form_checkbox",
+        reason: "Public contact form marketing consent checkbox selected",
+      });
+      await consent.save();
+    } else {
+      // Create new explicit subscription
+      const newToken = crypto.randomBytes(24).toString("hex");
+      await SubscriberConsentModel.create({
+        email: normalized,
+        name: options.name?.trim() || null,
+        status: "subscribed",
+        subscribed: true,
+        token: newToken,
+        source: options.source,
+        consentDate: new Date(),
+        consentMethod: "contact_form_checkbox",
+        auditLog: [
+          {
+            action: "subscribed",
+            performedBy: "customer",
+            timestamp: new Date(),
+            source: options.source,
+            method: "contact_form_checkbox",
+            reason: "Public contact form marketing consent checkbox selected",
+          },
+        ],
+      });
+    }
+    logger.info({ email: normalized, source: options.source }, "[Consent] Explicit marketing consent recorded from public form");
+  } else {
+    // marketingConsent is false or omitted
+    // If contact does not exist in consent table yet, record as NOT SUBSCRIBED
+    if (!consent) {
+      const newToken = crypto.randomBytes(24).toString("hex");
+      try {
+        await SubscriberConsentModel.create({
+          email: normalized,
+          name: options.name?.trim() || null,
+          status: "not_subscribed",
+          subscribed: false,
+          token: newToken,
+          source: options.source,
+          unsubscribedAt: null,
+        });
+      } catch {
+        // Race condition safe
+      }
+    }
+  }
+}
+
+/**
+ * Inspects relationships across the application for a given contact email.
+ */
+export async function inspectContactRelationships(email: string) {
+  const normalized = email.toLowerCase().trim();
+  if (!normalized) {
+    throw new CampaignError("Invalid email address", 400, "INVALID_EMAIL");
+  }
+
+  const emailRegex = new RegExp(`^${normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+
+  const [enquiriesCount, ordersCount, invoicesCount, groups, deliveriesCount, consent] = await Promise.all([
+    EnquiryModel.countDocuments({ email: emailRegex }),
+    OrderModel.countDocuments({ guestEmail: emailRegex }),
+    InvoiceModel.countDocuments({ customerEmail: emailRegex }),
+    AudienceGroupModel.find({ "members.email": normalized, isArchived: { $ne: true } })
+      .select("id name")
+      .lean(),
+    CampaignModel.countDocuments({ "deliveries.recipientEmail": emailRegex }),
+    SubscriberConsentModel.findOne({ email: normalized }).lean(),
+  ]);
+
+  const hasFinancialOrBookingRecords = ordersCount > 0 || invoicesCount > 0;
+  const canDelete = !hasFinancialOrBookingRecords;
+
+  let message = "";
+  if (hasFinancialOrBookingRecords) {
+    message = `Contact cannot be safely deleted because active itinerary/financial records exist (${ordersCount} bookings/orders, ${invoicesCount} invoices). Financial and booking documents must be preserved for statutory compliance and accounting integrity. You can unsubscribe or suppress the email address instead.`;
+  } else if (enquiriesCount > 0) {
+    message = `Contact has ${enquiriesCount} enquiry record(s) and membership in ${groups.length} customer group(s). Safe to delete contact record.`;
+  } else {
+    message = "Contact has no associated order or invoice records and can be safely removed.";
+  }
+
+  return {
+    email: normalized,
+    enquiriesCount,
+    ordersCount,
+    invoicesCount,
+    deliveriesCount,
+    audienceGroups: groups.map((g) => ({ id: g.id, name: g.name })),
+    hasFinancialOrBookingRecords,
+    canDelete,
+    isSuppressed: Boolean(consent?.suppressed),
+    isOptedOut: Boolean(consent && !consent.subscribed),
+    message,
+  };
+}
+
+/**
+ * Safely deletes a contact record, respecting financial record locks and preserving opt-out / suppression tombstones.
+ */
+export async function deleteContactRecordSafely(email: string, adminUsername: string) {
+  const inspection = await inspectContactRelationships(email);
+  if (!inspection.canDelete) {
+    throw new CampaignError(inspection.message, 400, "CANNOT_DELETE_ACTIVE_RECORDS");
+  }
+
+  const normalized = inspection.email;
+  const emailRegex = new RegExp(`^${normalized.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i");
+
+  // 1. Remove from all Audience Group memberships
+  const groupUpdateResult = await AudienceGroupModel.updateMany(
+    { "members.email": normalized },
+    { $pull: { members: { email: normalized } } }
+  );
+
+  // 1b. Remove unconverted enquiry records
+  const enqResult = await EnquiryModel.deleteMany({ email: emailRegex, status: { $ne: "converted" } });
+
+  // 2. For subscriber consent:
+  // If the contact is suppressed or unsubscribed, PRESERVE the tombstone to prevent future accidental marketing!
+  const consent = await SubscriberConsentModel.findOne({ email: normalized });
+  let consentPreserved = false;
+  if (consent) {
+    if (consent.suppressed || !consent.subscribed) {
+      if (!consent.auditLog) consent.auditLog = [];
+      consent.auditLog.push({
+        action: "deleted",
+        performedBy: adminUsername,
+        timestamp: new Date(),
+        reason:
+          "Contact record detached from customer groups; suppression/opt-out status preserved as protective tombstone",
+      });
+      consent.updatedBy = adminUsername;
+      await consent.save();
+      consentPreserved = true;
+    } else {
+      await SubscriberConsentModel.deleteOne({ email: normalized });
+    }
+  }
+
+  logger.info(
+    {
+      email: normalized,
+      adminUsername,
+      groupsUpdated: groupUpdateResult.modifiedCount,
+      enquiriesRemoved: enqResult.deletedCount,
+      consentPreserved,
+    },
+    "[Consent] Contact record safely removed"
+  );
+
+  return {
+    success: true,
+    email: normalized,
+    groupsUpdated: groupUpdateResult.modifiedCount,
+    enquiriesRemoved: enqResult.deletedCount,
+    consentPreserved,
+    message: consentPreserved
+      ? "Contact removed from customer groups and enquiry listings. Marketing opt-out/suppression protection is preserved to safeguard the customer."
+      : "Contact record, enquiries, and consent entry successfully removed.",
+  };
+}
+
+/**
+ * Audits existing consent records for anomalies (such as "Opted Out Guest" with subscribed: true)
+ * and reconciles them to canonical opt-out status with an audit trail.
+ */
+export async function auditAndFixConsentInconsistencies(adminUsername: string) {
+  const inconsistent = await SubscriberConsentModel.find({
+    subscribed: true,
+    $or: [{ name: /opted\s*out/i }, { email: /^optout\./i }, { source: /opt_out/i }],
+  });
+
+  const fixed: Array<{ email: string; name?: string | null; previousStatus: string }> = [];
+
+  for (const record of inconsistent) {
+    record.subscribed = false;
+    record.unsubscribedAt = record.unsubscribedAt || new Date();
+    record.source = "audit_reconciliation";
+    record.updatedBy = adminUsername;
+
+    if (!record.auditLog) record.auditLog = [];
+    record.auditLog.push({
+      action: "reconciled",
+      performedBy: adminUsername,
+      timestamp: new Date(),
+      reason:
+        "Audit reconciliation: Corrected inconsistent consent status from legacy auto-subscription of opt-out test fixture",
+    });
+
+    await record.save();
+    fixed.push({
+      email: record.email,
+      name: record.name,
+      previousStatus: "subscribed",
+    });
+  }
+
+  logger.info({ count: fixed.length, adminUsername }, "[Consent] Audit reconciliation completed");
+  return {
+    totalEvaluated: inconsistent.length,
+    totalFixed: fixed.length,
+    fixedRecords: fixed,
+  };
 }
 
 /**
@@ -1124,21 +2291,41 @@ export async function previewAudienceGroup(id: number) {
     throw new CampaignError(`Audience group #${id} not found`, 404, "NOT_FOUND");
   }
 
-  const { eligible, activeSubscribers, unsubscribedCount } = await resolveAudience({
+  const {
+    eligible,
+    totalSelected,
+    activeSubscribers,
+    unsubscribedCount,
+    excludedNotSubscribed,
+    excludedUnsubscribed,
+    excludedSuppressed,
+  } = await resolveAudience({
     type: "audience_group",
     groupId: group.id,
   } as any);
 
   return {
     group,
-    eligibleRecipients: eligible.length,
+    groupId: String(group.id),
+    name: group.name,
+    type: group.type,
+    eligibleRecipients: activeSubscribers,
+    eligibleCount: activeSubscribers,
+    totalMatching: totalSelected,
+    totalSelected,
     activeSubscribers,
     unsubscribedCount,
-    sampleRecipients: eligible.slice(0, 20).map((r) => ({
+    unsubscribedExcluded: unsubscribedCount,
+    excludedNotSubscribed,
+    excludedUnsubscribed,
+    excludedSuppressed,
+    sampleRecipients: eligible.slice(0, 50).map((r) => ({
       name: r.name,
       email: r.email,
       source: r.source,
       isSubscribed: r.isSubscribed,
+      isSuppressed: r.isSuppressed,
+      consentStatus: r.consentStatus,
     })),
   };
 }

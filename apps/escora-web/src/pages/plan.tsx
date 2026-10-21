@@ -70,6 +70,7 @@ interface FormData {
   name: string;
   email: string;
   phone: string;
+  marketingConsent?: boolean;
 }
 
 const EMPTY: FormData = {
@@ -84,6 +85,7 @@ const EMPTY: FormData = {
   name: "",
   email: "",
   phone: "",
+  marketingConsent: false,
 };
 
 const TOTAL_STEPS = 5;
@@ -183,8 +185,9 @@ export default function PlanPage() {
           guestCount: (form.adults + form.children) || undefined,
           budgetRange: form.budgetRange || undefined,
           specialRequests: form.preferences || undefined,
+          marketingConsent: form.marketingConsent,
           ...trackingData,
-        },
+        } as any,
       },
       {
         onSuccess: () => setSubmitted(true),
@@ -558,6 +561,22 @@ export default function PlanPage() {
                       placeholder="+91 98765 43210"
                       className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#293D1F] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
                     />
+                  </div>
+
+                  <div className="flex items-start gap-3 p-3.5 rounded-xl border border-[#DCE6E0] bg-[#FAF8F5]/80">
+                    <input
+                      id="plan-marketing-consent"
+                      type="checkbox"
+                      checked={Boolean(form.marketingConsent)}
+                      onChange={(e) => setForm((f) => ({ ...f, marketingConsent: e.target.checked }))}
+                      className="mt-1 h-4 w-4 rounded border-[#DCE6E0] text-[#183628] focus:ring-[#183628] accent-[#183628] cursor-pointer shrink-0"
+                    />
+                    <label
+                      htmlFor="plan-marketing-consent"
+                      className="text-xs text-[#56664C] leading-relaxed cursor-pointer select-none"
+                    >
+                      I'd like to receive occasional travel inspiration, destination guides, and special offers from Escora Holidays by email. I can unsubscribe at any time.
+                    </label>
                   </div>
                 </div>
 

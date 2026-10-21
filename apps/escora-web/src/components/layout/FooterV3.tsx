@@ -1,7 +1,48 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import escoraLogoLight from "@assets/escora/escora-logo-light.png";
 
 export default function FooterV3() {
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterState, setNewsletterState] = useState<"idle" | "loading" | "success" | "duplicate" | "error">("idle");
+  const [newsletterMsg, setNewsletterMsg] = useState("");
+
+  async function handleNewsletterSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const email = newsletterEmail.trim();
+    if (!email || !email.includes("@") || !email.includes(".")) {
+      setNewsletterState("error");
+      setNewsletterMsg("Please enter a valid email address.");
+      return;
+    }
+    setNewsletterState("loading");
+    setNewsletterMsg("");
+    try {
+      const res = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        if (data.alreadySubscribed) {
+          setNewsletterState("duplicate");
+          setNewsletterMsg("You are already subscribed to the Escora newsletter!");
+        } else {
+          setNewsletterState("success");
+          setNewsletterMsg(data.message || "Thank you for subscribing! Check your inbox for travel inspiration.");
+          setNewsletterEmail("");
+        }
+      } else {
+        setNewsletterState("error");
+        setNewsletterMsg(data.error || "Failed to subscribe. Please try again.");
+      }
+    } catch {
+      setNewsletterState("error");
+      setNewsletterMsg("Unable to connect. Please try again later.");
+    }
+  }
+
   return (
     <footer className="cinematic-footer" aria-label="Site Footer">
       {/* Background Aerial Beach Image & Fade Overlay */}
@@ -31,6 +72,80 @@ export default function FooterV3() {
               Slow journeys. Deeper stories.<br />
               A more meaningful Kerala.
             </p>
+
+            {/* ── Compact Newsletter Signup: Stay Inspired ── */}
+            <div className="cinematic-footer-newsletter" style={{ marginTop: "20px", marginBottom: "22px", maxWidth: "340px" }}>
+              <h4 style={{ fontFamily: "var(--f-mono, monospace)", fontSize: "11px", fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: "#c59a58", margin: "0 0 8px 0" }}>
+                Stay Inspired
+              </h4>
+              <p style={{ fontFamily: "var(--f-body, sans-serif)", fontSize: "12.5px", lineHeight: "1.5", color: "rgba(245, 242, 235, 0.75)", margin: "0 0 12px 0" }}>
+                Discover Kerala's hidden places, thoughtful journeys, and occasional special offers from Escora.
+              </p>
+
+              {newsletterState === "success" ? (
+                <div role="status" aria-live="polite" style={{ background: "rgba(36, 84, 61, 0.5)", border: "1px solid #24543D", borderRadius: "8px", padding: "10px 14px", color: "#A3D9B8", fontSize: "12px", lineHeight: "1.4" }}>
+                  ✓ {newsletterMsg}
+                </div>
+              ) : (
+                <form onSubmit={handleNewsletterSubmit} className="cinematic-footer-newsletter-form" noValidate>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input
+                      type="email"
+                      id="footer-newsletter-email"
+                      value={newsletterEmail}
+                      onChange={(e) => setNewsletterEmail(e.target.value)}
+                      placeholder="Your email address"
+                      aria-label="Email address for newsletter"
+                      disabled={newsletterState === "loading"}
+                      style={{
+                        flex: 1,
+                        background: "rgba(255, 255, 255, 0.08)",
+                        border: "1px solid rgba(229, 221, 208, 0.25)",
+                        borderRadius: "9999px",
+                        padding: "8px 14px",
+                        fontSize: "12px",
+                        color: "#fff",
+                        outline: "none",
+                      }}
+                    />
+                    <button
+                      type="submit"
+                      id="footer-newsletter-submit-btn"
+                      disabled={newsletterState === "loading"}
+                      style={{
+                        background: "#c59a58",
+                        color: "#0c2016",
+                        border: "none",
+                        borderRadius: "9999px",
+                        padding: "8px 16px",
+                        fontSize: "10.5px",
+                        fontWeight: 600,
+                        letterSpacing: "0.1em",
+                        textTransform: "uppercase",
+                        cursor: "pointer",
+                        whiteSpace: "nowrap",
+                        transition: "opacity 0.2s ease",
+                      }}
+                    >
+                      {newsletterState === "loading" ? "..." : "Subscribe"}
+                    </button>
+                  </div>
+                  {newsletterState === "duplicate" && (
+                    <p role="status" aria-live="polite" style={{ color: "#cbab6e", fontSize: "11px", margin: "6px 0 0 4px" }}>
+                      ℹ {newsletterMsg}
+                    </p>
+                  )}
+                  {newsletterState === "error" && (
+                    <p role="alert" aria-live="polite" style={{ color: "#f87171", fontSize: "11px", margin: "6px 0 0 4px" }}>
+                      ⚠ {newsletterMsg}
+                    </p>
+                  )}
+                  <p style={{ fontSize: "10px", color: "rgba(245, 242, 235, 0.45)", margin: "6px 0 0 4px", lineHeight: "1.3" }}>
+                    Marketing communications from Escora. Unsubscribe at any time.
+                  </p>
+                </form>
+              )}
+            </div>
 
             <div>
               <Link href="/plan-a-journey" className="cinematic-footer-plan-btn">

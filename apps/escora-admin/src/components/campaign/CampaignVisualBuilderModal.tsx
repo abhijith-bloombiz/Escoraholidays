@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useId } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Mail,
   Users,
@@ -20,6 +20,8 @@ import {
   ExternalLink,
   ShieldCheck,
   RefreshCw,
+  Send,
+  Key,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +45,12 @@ import {
   generateCampaignHtml,
   extractFieldsFromExisting,
 } from "./campaignTemplates";
+import {
+  SAMPLE_RECIPIENT_PROFILES,
+  resolveMergeTagsClient,
+  detectUnresolvedAndMalformedTags,
+  type SampleRecipientProfile,
+} from "./mergeTagResolver";
 
 interface CampaignVisualBuilderModalProps {
   isOpen: boolean;
@@ -63,10 +71,13 @@ interface CampaignVisualBuilderModalProps {
     subject: string;
     previewText?: string | null;
     contentHtml: string;
+    status?: string;
     targetAudience: {
       type: VisualCampaignFields["audienceType"];
-      groupId?: string;
-      groupIds?: string[];
+      groupId?: string | number | null;
+      groupIds?: Array<string | number>;
+      destinations?: string[];
+      travelStyle?: string | null;
     };
   } | null;
 }
@@ -93,7 +104,32 @@ export default function CampaignVisualBuilderModal({
   const [currentStep, setCurrentStep] = useState<WorkflowStep>("details");
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
   const [simulateSampleData, setSimulateSampleData] = useState(true);
+  const [selectedSampleProfile, setSelectedSampleProfile] = useState<SampleRecipientProfile>(
+    SAMPLE_RECIPIENT_PROFILES[0]
+  );
   const [templateInspectModal, setTemplateInspectModal] = useState<CampaignTemplatePreset | null>(null);
+  const [testEmailDialogOpen, setTestEmailDialogOpen] = useState(false);
+  const [testRecipientEmail, setTestRecipientEmail] = useState("");
+
+  // Authenticated email configuration query
+  const { data: emailConfig } = useQuery<{
+    provider: string;
+    senderEmail: string;
+    senderName: string;
+    fullFrom: string;
+    isConfigured: boolean;
+    authMechanism: string;
+    smtpHost?: string;
+    smtpPort?: number;
+  }>({
+    queryKey: ["campaigns", "email-config"],
+    queryFn: async () => {
+      const res = await fetch("/api/campaigns/email-config", { credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load email config");
+      return res.json();
+    },
+    enabled: isOpen,
+  });
 
   // Form Fields
   const [fields, setFields] = useState<VisualCampaignFields>(() => {
@@ -120,7 +156,13 @@ export default function CampaignVisualBuilderModal({
           initialCampaign.subject,
           initialCampaign.previewText,
           initialCampaign.targetAudience.type,
-          initialCampaign.contentHtml
+          initialCampaign.contentHtml,
+          {
+            groupId: initialCampaign.targetAudience.groupId ?? undefined,
+            groupIds: initialCampaign.targetAudience.groupIds,
+            destinations: initialCampaign.targetAudience.destinations,
+            travelStyle: initialCampaign.targetAudience.travelStyle,
+          }
         );
         setFields(extracted);
       } else {
@@ -161,18 +203,36 @@ export default function CampaignVisualBuilderModal({
     isLoading: isAudienceLoading,
     refetch: refetchAudience,
   } = useQuery<{
+    totalSelected: number;
     eligibleRecipients: number;
     activeSubscribers: number;
     unsubscribedCount: number;
+    excludedNotSubscribed: number;
+    excludedUnsubscribed: number;
+    excludedSuppressed: number;
     sampleRecipients: Array<{
       name: string;
       email: string;
       source: string;
       isSubscribed: boolean;
+      isSuppressed?: boolean;
+      consentStatus?: string;
     }>;
   }>({
     queryKey: ["campaigns", "audience-estimate", fields.audienceType, fields.groupId],
     queryFn: async () => {
+      if ((fields.audienceType as string) === "custom_segment") {
+        return {
+          totalSelected: 0,
+          eligibleRecipients: 0,
+          activeSubscribers: 0,
+          unsubscribedCount: 0,
+          excludedNotSubscribed: 0,
+          excludedUnsubscribed: 0,
+          excludedSuppressed: 0,
+          sampleRecipients: [],
+        };
+      }
       const res = await fetch("/api/campaigns/audience-estimate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -233,15 +293,38 @@ export default function CampaignVisualBuilderModal({
   // Compile HTML
   const compiledHtml = generateCampaignHtml(fields);
 
-  // Render HTML preview with optional simulated personalization
-  const previewHtml = simulateSampleData
-    ? compiledHtml
-        .replace(/\{\{\s*name\s*\}\}/gi, "Lady Eleanor")
-        .replace(/\{\{\s*destination\s*\}\}/gi, "Munnar & Alleppey")
-        .replace(/\{\{\s*email\s*\}\}/gi, "eleanor@example.com")
-        .replace(/\{\{\s*year\s*\}\}/gi, new Date().getFullYear().toString())
-        .replace(/\{\{\s*unsubscribeUrl\s*\}\}/gi, "#")
-    : compiledHtml;
+  // Render HTML preview with centralized merge tag resolver & sample recipient
+  const previewResolution = simulateSampleData
+    ? resolveMergeTagsClient(compiledHtml, selectedSampleProfile)
+    : {
+        rendered: compiledHtml,
+        tagValues: {},
+        usedFallbacks: { name: false, destination: false },
+        unresolvedTags: detectUnresolvedAndMalformedTags(compiledHtml).unresolved,
+        malformedTags: detectUnresolvedAndMalformedTags(compiledHtml).malformed,
+      };
+
+  const previewHtml = previewResolution.rendered;
+
+  // Render subject with personalization for envelope preview
+  const previewSubjectResult = simulateSampleData
+    ? resolveMergeTagsClient(fields.subject, selectedSampleProfile, { isHtml: false })
+    : {
+        rendered: fields.subject,
+        tagValues: {},
+        usedFallbacks: { name: false, destination: false },
+        unresolvedTags: detectUnresolvedAndMalformedTags(fields.subject).unresolved,
+        malformedTags: detectUnresolvedAndMalformedTags(fields.subject).malformed,
+      };
+
+  const previewSubject = previewSubjectResult.rendered;
+
+  // Check for unresolved or malformed tags across entire template
+  const fullTemplateText = `${fields.subject} ${fields.previewText} ${fields.heading} ${fields.lead || ""} ${fields.body} ${fields.quote || ""}`;
+  const templateTagDetection = detectUnresolvedAndMalformedTags(fullTemplateText);
+  const supportedTagPattern = /\{\{\s*(name|destination|year|email|unsubscribeurl)\s*\}\}/i;
+  const invalidTemplateTags = templateTagDetection.unresolved.filter((t) => !supportedTagPattern.test(t));
+  const malformedTemplateTags = templateTagDetection.malformed;
 
   // Validation
   const validationErrors: string[] = [];
@@ -251,6 +334,17 @@ export default function CampaignVisualBuilderModal({
   if (!fields.body.trim()) validationErrors.push("Email Body content is required.");
   if (!fields.ctaText.trim()) validationErrors.push("CTA Button text is required.");
   if (!fields.ctaUrl.trim()) validationErrors.push("CTA Destination URL is required.");
+  if (invalidTemplateTags.length > 0) {
+    validationErrors.push(`Unresolved merge tags detected: ${invalidTemplateTags.join(", ")}. Please use supported tags.`);
+  }
+  if (malformedTemplateTags.length > 0) {
+    validationErrors.push(`Malformed merge tag syntax detected: ${malformedTemplateTags.join(", ")}. Check for missing braces.`);
+  }
+  if ((fields.audienceType as string) === "custom_segment") {
+    validationErrors.push(
+      "The 'Custom Destination Segment' audience option has been retired. Please select one of the four supported audience segments (All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, or Audience Group)."
+    );
+  }
 
   const isValid = validationErrors.length === 0;
 
@@ -275,6 +369,46 @@ export default function CampaignVisualBuilderModal({
       groupIds: fields.groupId ? [fields.groupId] : undefined,
     });
   };
+
+  // Test email mutation (never touches audience groups)
+  const sendTestMutation = useMutation({
+    mutationFn: async (recipient: string) => {
+      const res = await fetch("/api/campaigns/test-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          recipientEmail: recipient,
+          campaign: {
+            name: fields.name || "Test Campaign",
+            subject: fields.subject || "Escora Journeys Test Email",
+            previewText: fields.previewText,
+            contentHtml: compiledHtml,
+          },
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.error || "Failed to dispatch test email");
+      }
+      return data;
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Test Email Dispatched",
+        description: data.message || `Test email dispatched to ${testRecipientEmail || emailConfig?.senderEmail}`,
+      });
+      setTestEmailDialogOpen(false);
+      setTestRecipientEmail("");
+    },
+    onError: (err: any) => {
+      toast({
+        title: "Test Email Failed",
+        description: err.message || "Failed to send test email",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Step navigation helper
   const goToNextStep = () => {
@@ -416,12 +550,27 @@ export default function CampaignVisualBuilderModal({
                       <option value="all_contacts">All Contacts (Enquiries + Bookings)</option>
                       <option value="enquiries_only">Inquiries Prospects Only</option>
                       <option value="confirmed_guests">Confirmed Journey Guests Only</option>
-                      <option value="custom_segment">Custom Destination Segment</option>
+                      <option value="subscribed_contacts">Subscribed Contacts Only</option>
                       <option value="audience_group">Audience Group (Custom Segment)</option>
+                      {(fields.audienceType as string) === "custom_segment" && (
+                        <option value="custom_segment" disabled>
+                          -- Retired: Custom Destination Segment (Select a supported option) --
+                        </option>
+                      )}
                     </select>
                     <span className="text-[11px] text-muted-foreground">
                       Selects active, subscribed contacts matching these criteria.
                     </span>
+
+                    {(fields.audienceType as string) === "custom_segment" && (
+                      <div className="mt-2.5 p-3 rounded-md bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                        <AlertCircle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                        <div>
+                          <span className="font-semibold block">Retired Audience Option</span>
+                          This campaign was saved with the retired <strong>Custom Destination Segment</strong>. Please reassign the audience to one of the four supported segments above before saving.
+                        </div>
+                      </div>
+                    )}
 
                     {fields.audienceType === "audience_group" && (
                       <div className="mt-2.5">
@@ -448,34 +597,67 @@ export default function CampaignVisualBuilderModal({
                   </div>
                 </div>
 
-                {/* Audience Estimate Info Box */}
-                <div className="p-3.5 rounded-lg border border-[#24543D]/25 bg-[#24543D]/5 flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2.5 text-[#24543D]">
-                    <Users className="h-4 w-4 shrink-0" />
-                    <div>
-                      <span className="font-semibold">Audience Reach:</span>{" "}
-                      {isAudienceLoading ? (
-                        <span className="text-muted-foreground">Calculating eligible recipients...</span>
-                      ) : audienceEstimate ? (
-                        <span>
-                          <strong>{audienceEstimate.eligibleRecipients}</strong> eligible recipients (
-                          {audienceEstimate.activeSubscribers} subscribed,{" "}
-                          {audienceEstimate.unsubscribedCount} unsubscribed contacts automatically excluded)
-                        </span>
+                {/* Audience Estimate & Consent Breakdown Box */}
+                <div className="p-3.5 rounded-lg border border-[#24543D]/25 bg-[#24543D]/5 space-y-2.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[#24543D]">
+                      <Users className="h-4 w-4 shrink-0" />
+                      <span className="font-semibold text-sm">Audience Membership & Consent Breakdown</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => refetchAudience()}
+                      className="h-7 text-xs text-[#24543D] hover:bg-[#24543D]/10"
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" /> Re-check
+                    </Button>
+                  </div>
+
+                  {isAudienceLoading ? (
+                    <div className="text-muted-foreground py-2 text-center">Calculating audience breakdown...</div>
+                  ) : audienceEstimate ? (
+                    <div className="space-y-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+                        <div className="bg-white/80 p-2 rounded border border-[#E5DDD0]">
+                          <span className="text-sm font-bold block text-foreground">{audienceEstimate.totalSelected}</span>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Selected</span>
+                        </div>
+                        <div className="bg-emerald-50/80 p-2 rounded border border-emerald-200">
+                          <span className="text-sm font-bold block text-emerald-800">{audienceEstimate.eligibleRecipients}</span>
+                          <span className="text-[10px] text-emerald-700 uppercase tracking-wider font-semibold">Eligible Marketing</span>
+                        </div>
+                        <div className="bg-slate-50/80 p-2 rounded border border-slate-200">
+                          <span className="text-sm font-bold block text-slate-700">{audienceEstimate.excludedNotSubscribed}</span>
+                          <span className="text-[10px] text-slate-600 uppercase tracking-wider">Not Subscribed</span>
+                        </div>
+                        <div className="bg-amber-50/80 p-2 rounded border border-amber-200">
+                          <span className="text-sm font-bold block text-amber-800">{audienceEstimate.excludedUnsubscribed}</span>
+                          <span className="text-[10px] text-amber-700 uppercase tracking-wider">Unsubscribed</span>
+                        </div>
+                        <div className="bg-red-50/80 p-2 rounded border border-red-200">
+                          <span className="text-sm font-bold block text-red-700">{audienceEstimate.excludedSuppressed}</span>
+                          <span className="text-[10px] text-red-600 uppercase tracking-wider">Suppressed</span>
+                        </div>
+                      </div>
+
+                      {audienceEstimate.eligibleRecipients === 0 ? (
+                        <div className="p-2 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-1.5">
+                          <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
+                          <span>
+                            <strong>0 eligible marketing recipients:</strong> All selected contacts are either not subscribed, unsubscribed, or suppressed. Marketing emails require explicit marketing consent.
+                          </span>
+                        </div>
                       ) : (
-                        <span>Real-time audience calculation active.</span>
+                        <div className="text-[11px] text-muted-foreground">
+                          ✓ <strong>{audienceEstimate.eligibleRecipients}</strong> out of <strong>{audienceEstimate.totalSelected}</strong> contacts have verified marketing consent and will receive this campaign.
+                        </div>
                       )}
                     </div>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => refetchAudience()}
-                    className="h-7 text-xs text-[#24543D] hover:bg-[#24543D]/10"
-                  >
-                    <RefreshCw className="h-3 w-3 mr-1" /> Re-check
-                  </Button>
+                  ) : (
+                    <span className="text-muted-foreground">Real-time audience calculation active.</span>
+                  )}
                 </div>
 
                 {/* Email Subject Line (Full-Width) with Quick Merge Tag helper */}
@@ -1034,18 +1216,54 @@ export default function CampaignVisualBuilderModal({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {/* Sample Personalization Toggle */}
+                  {/* Send Test Email Action */}
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => setSimulateSampleData(!simulateSampleData)}
-                    className="h-8 text-xs gap-1.5"
-                    title="Toggle between real merge tags and sample customer data"
+                    onClick={() => {
+                      setTestRecipientEmail(emailConfig?.senderEmail || "arunopera7@gmail.com");
+                      setTestEmailDialogOpen(true);
+                    }}
+                    className="h-8 text-xs gap-1.5 border-[#24543D]/40 text-[#24543D] hover:bg-[#24543D]/10 font-medium"
+                    data-testid="button-open-test-email-modal"
                   >
-                    <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-                    {simulateSampleData ? "Sample: Lady Eleanor" : "Raw: {{name}}"}
+                    <Send className="h-3.5 w-3.5" />
+                    Send Test Email
                   </Button>
+
+                  {/* Sample Personalization Toggle & Recipient Selector */}
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSimulateSampleData(!simulateSampleData)}
+                      className="h-8 text-xs gap-1.5"
+                      title="Toggle between real merge tags and sample customer data"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+                      {simulateSampleData ? "Personalized Preview" : "Raw {{tags}}"}
+                    </Button>
+
+                    {simulateSampleData && (
+                      <select
+                        value={selectedSampleProfile.id}
+                        onChange={(e) => {
+                          const found = SAMPLE_RECIPIENT_PROFILES.find((p) => p.id === e.target.value);
+                          if (found) setSelectedSampleProfile(found);
+                        }}
+                        className="h-8 text-xs px-2 rounded-md border border-[#E5DDD0] bg-white dark:bg-card text-foreground font-sans focus:outline-none focus:ring-1 focus:ring-[#24543D]"
+                        title="Choose a realistic sample recipient profile to preview merge tag resolution"
+                      >
+                        {SAMPLE_RECIPIENT_PROFILES.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
 
                   {/* Desktop / Mobile Toggle */}
                   <div className="flex items-center border border-[#E5DDD0] rounded-md p-0.5 bg-white dark:bg-card">
@@ -1077,20 +1295,103 @@ export default function CampaignVisualBuilderModal({
                 </div>
               </div>
 
+              {/* Tag Validation Alerts */}
+              {(invalidTemplateTags.length > 0 || malformedTemplateTags.length > 0) && (
+                <div className="p-3.5 rounded-xl border border-red-200 bg-red-50/80 dark:bg-red-950/30 text-red-900 dark:text-red-200 text-xs flex items-start gap-2.5">
+                  <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 shrink-0" />
+                  <div className="space-y-1">
+                    <p className="font-semibold">Unresolved or Malformed Merge Tags Detected</p>
+                    {invalidTemplateTags.length > 0 && (
+                      <p>
+                        The following placeholders cannot be resolved and will block campaign delivery:{" "}
+                        <span className="font-mono font-medium">{invalidTemplateTags.join(", ")}</span>.
+                        Supported tags are: <span className="font-mono">{"{{name}}, {{destination}}, {{year}}, {{email}}, {{unsubscribeUrl}}"}</span>.
+                      </p>
+                    )}
+                    {malformedTemplateTags.length > 0 && (
+                      <p>
+                        Syntax error in merge tag braces:{" "}
+                        <span className="font-mono font-medium">{malformedTemplateTags.join(", ")}</span>.
+                        Ensure tags have double braces on both sides.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Personalization Tag Resolution Indicators */}
+              {simulateSampleData && (
+                <div className="p-3 rounded-xl border border-[#E5DDD0] bg-[#FFFDF9] dark:bg-card/60 flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-muted-foreground font-medium text-[11px] flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-amber-600" />
+                    Resolved Tags:
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] py-0 h-5 gap-1 ${
+                      previewResolution.usedFallbacks.name
+                        ? "bg-amber-500/10 text-amber-800 border-amber-300"
+                        : "bg-emerald-500/10 text-emerald-800 border-emerald-300"
+                    }`}
+                  >
+                    <span>{"{{name}}"}</span> →{" "}
+                    <strong>{previewResolution.tagValues["{{name}}"] || selectedSampleProfile.name || "Valued Guest"}</strong>
+                    {previewResolution.usedFallbacks.name && (
+                      <span className="text-[9px] opacity-75">(Fallback)</span>
+                    )}
+                  </Badge>
+
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] py-0 h-5 gap-1 ${
+                      previewResolution.usedFallbacks.destination
+                        ? "bg-amber-500/10 text-amber-800 border-amber-300"
+                        : "bg-emerald-500/10 text-emerald-800 border-emerald-300"
+                    }`}
+                  >
+                    <span>{"{{destination}}"}</span> →{" "}
+                    <strong>{previewResolution.tagValues["{{destination}}"] || "Kerala"}</strong>
+                    {previewResolution.usedFallbacks.destination && (
+                      <span className="text-[9px] opacity-75">(Fallback)</span>
+                    )}
+                  </Badge>
+
+                  <Badge variant="outline" className="text-[10px] py-0 h-5 bg-muted/60 text-muted-foreground">
+                    <span>{"{{year}}"}</span> → {new Date().getFullYear()}
+                  </Badge>
+
+                  <span className="text-[10px] text-muted-foreground ml-auto hidden sm:inline">
+                    Simulating: {selectedSampleProfile.description}
+                  </span>
+                </div>
+              )}
+
               {/* Inbox Envelope Meta Preview */}
-              <div className="p-4 rounded-xl border border-[#E5DDD0] bg-[#FFFDF9] dark:bg-card space-y-1 text-xs">
-                <div className="flex items-center gap-2">
+              <div className="p-4 rounded-xl border border-[#E5DDD0] bg-[#FFFDF9] dark:bg-card space-y-1.5 text-xs">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="font-semibold text-muted-foreground w-16">From:</span>
-                  <span className="text-foreground">Escora Holidays &lt;concierge@escoraholidays.com&gt;</span>
+                  <span className="text-foreground font-mono text-[11px] bg-muted/60 px-2 py-0.5 rounded">
+                    {emailConfig?.fullFrom || '"Escora Journeys" <arunopera7@gmail.com>'}
+                  </span>
+                  {emailConfig && (
+                    <Badge
+                      variant="outline"
+                      className={`text-[10px] py-0 h-4.5 ${
+                        emailConfig.isConfigured
+                          ? "bg-emerald-500/10 text-emerald-700 border-emerald-300"
+                          : "bg-amber-500/10 text-amber-700 border-amber-300"
+                      }`}
+                    >
+                      {emailConfig.isConfigured
+                        ? "Authenticated (Gmail SMTP)"
+                        : "App Password Required"}
+                    </Badge>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-muted-foreground w-16">Subject:</span>
                   <span className="text-foreground font-medium">
-                    {simulateSampleData
-                      ? fields.subject
-                          .replace(/\{\{\s*name\s*\}\}/gi, "Lady Eleanor")
-                          .replace(/\{\{\s*destination\s*\}\}/gi, "Munnar & Alleppey")
-                      : fields.subject || "(No subject line)"}
+                    {previewSubject || "(No subject line)"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1192,6 +1493,36 @@ export default function CampaignVisualBuilderModal({
                     This campaign will be saved in <strong>Draft</strong> status. Staff approval and optional scheduling can be completed afterwards from the campaigns dashboard.
                   </p>
                 )}
+
+                {initialCampaign?.status === "approved" && (
+                  <div className="p-3.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
+                    <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block font-semibold">Approval Safeguard:</strong>
+                      Saving modifications to this approved campaign will automatically invalidate its existing approval and reset the status to <strong>Draft</strong>. It must be submitted and approved again before live sending.
+                    </div>
+                  </div>
+                )}
+
+                {initialCampaign?.status === "pending_approval" && (
+                  <div className="p-3.5 rounded-lg border border-blue-500/40 bg-blue-500/10 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5">
+                    <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block font-semibold">Review Queue Notice:</strong>
+                      Saving edits will withdraw this campaign from the pending approval queue and return it to <strong>Draft</strong> status. You can resubmit it for review when ready.
+                    </div>
+                  </div>
+                )}
+
+                {initialCampaign?.status === "rejected" && (
+                  <div className="p-3.5 rounded-lg border border-purple-500/40 bg-purple-500/10 text-xs text-purple-900 dark:text-purple-200 flex items-start gap-2.5">
+                    <AlertCircle className="h-4 w-4 text-purple-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="block font-semibold">Revision Notice:</strong>
+                      Saving your corrections will clear previous rejection remarks and reset the campaign to <strong>Draft</strong> status, ready for re-review.
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Summary Overview Card */}
@@ -1208,7 +1539,13 @@ export default function CampaignVisualBuilderModal({
                   <div>
                     <span className="text-muted-foreground block">Audience Segment:</span>
                     <strong className="text-foreground capitalize">
-                      {fields.audienceType.replace("_", " ")}
+                      {(fields.audienceType as string) === "custom_segment" ? (
+                        <span className="text-amber-700 dark:text-amber-400 font-semibold">
+                          Custom Destination Segment (Retired — Action Required)
+                        </span>
+                      ) : (
+                        fields.audienceType.replace("_", " ")
+                      )}
                     </strong>
                   </div>
                   <div>
@@ -1216,9 +1553,15 @@ export default function CampaignVisualBuilderModal({
                     <strong className="text-foreground">{selectedTemplate.title}</strong>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block">Estimated Reach:</span>
+                    <span className="text-muted-foreground block">Audience Reach:</span>
                     <strong className="text-foreground">
-                      {audienceEstimate ? `${audienceEstimate.eligibleRecipients} eligible contacts` : "Pending calculation"}
+                      {audienceEstimate ? (
+                        <span>
+                          {audienceEstimate.totalSelected} selected contacts ({audienceEstimate.eligibleRecipients} eligible for marketing)
+                        </span>
+                      ) : (
+                        "Pending calculation"
+                      )}
                     </strong>
                   </div>
                 </div>
@@ -1354,6 +1697,118 @@ export default function CampaignVisualBuilderModal({
               </DialogFooter>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* TEST EMAIL DISPATCH DIALOG */}
+      <Dialog
+        open={testEmailDialogOpen}
+        onOpenChange={(open) => !open && setTestEmailDialogOpen(false)}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-lg flex items-center gap-2">
+              <Send className="h-4 w-4 text-[#24543D]" />
+              Send Test Email
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2 text-xs">
+            <div className="p-3.5 rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 text-amber-900 dark:text-amber-200 space-y-1.5">
+              <div className="flex items-center gap-2 font-medium">
+                <AlertCircle className="h-4 w-4 text-amber-600 shrink-0" />
+                <span>Test Mode Only — Audience Protected</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-300">
+                This dispatches a single test email exclusively to the email address entered below. 
+                <strong> No audience members or contacts will be emailed</strong>, and the campaign status will remain in Draft.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="font-semibold text-foreground block">
+                Sender Identity (Authentic Gmail SMTP)
+              </label>
+              <div className="p-2.5 rounded border border-[#E5DDD0] bg-muted/30 font-mono text-[11px] space-y-1">
+                <div>
+                  <span className="text-muted-foreground">From: </span>
+                  <strong className="text-foreground">
+                    {emailConfig?.fullFrom || '"Escora Journeys" <arunopera7@gmail.com>'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Mechanism: </span>
+                  <span className="text-foreground">
+                    {emailConfig?.authMechanism || "Gmail SMTP (Google App Password / 2FA)"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Status: </span>
+                  <span className={emailConfig?.isConfigured ? "text-emerald-600 font-medium" : "text-amber-600 font-medium"}>
+                    {emailConfig?.isConfigured ? "Ready to send" : "Pending GMAIL_APP_PASSWORD in .env"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {!emailConfig?.isConfigured && (
+              <div className="p-3 rounded-lg border border-zinc-200 bg-zinc-50 dark:bg-zinc-900/50 text-zinc-700 dark:text-zinc-300 space-y-1">
+                <div className="flex items-center gap-1.5 font-medium text-foreground">
+                  <Key className="h-3.5 w-3.5 text-[#24543D]" />
+                  <span>Required Setup for arunopera7@gmail.com</span>
+                </div>
+                <ol className="list-decimal pl-4 space-y-0.5 text-[11px] text-muted-foreground">
+                  <li>Enable 2-Step Verification on Google Account (arunopera7@gmail.com).</li>
+                  <li>Visit Google Account &gt; Security &gt; <strong>App Passwords</strong>.</li>
+                  <li>Generate a 16-character password named &quot;Escora Admin&quot;.</li>
+                  <li>Set <code className="bg-muted px-1 rounded">GMAIL_APP_PASSWORD=...</code> in server <code className="bg-muted px-1 rounded">.env</code>.</li>
+                </ol>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="font-semibold text-foreground block">
+                Recipient Email Address <span className="text-red-500">*</span>
+              </label>
+              <Input
+                type="email"
+                placeholder="e.g. arunopera7@gmail.com"
+                value={testRecipientEmail}
+                onChange={(e) => setTestRecipientEmail(e.target.value)}
+                className="h-9 text-xs"
+                data-testid="input-test-email-recipient"
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Enter your own email to preview and verify the layout in your inbox.
+              </p>
+            </div>
+
+            <DialogFooter className="gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setTestEmailDialogOpen(false)}
+                disabled={sendTestMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  const target = testRecipientEmail.trim() || emailConfig?.senderEmail || "arunopera7@gmail.com";
+                  sendTestMutation.mutate(target);
+                }}
+                disabled={sendTestMutation.isPending}
+                className="bg-[#24543D] hover:bg-[#1a3d2c] text-[#FAF7F1] gap-1.5"
+                data-testid="button-confirm-send-test-email"
+              >
+                <Send className="h-3.5 w-3.5" />
+                {sendTestMutation.isPending ? "Sending Test..." : "Send Test Email"}
+              </Button>
+            </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </Dialog>

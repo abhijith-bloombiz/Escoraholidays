@@ -1,11 +1,71 @@
+import nodemailer, { type Transporter } from "nodemailer";
 import { Resend } from "resend";
 import { logger } from "./logger";
 import { config } from "../config/env";
 
 let resendInstance: any = config.resendApiKey ? new Resend(config.resendApiKey) : null;
+let gmailTransporter: Transporter | null = null;
 let isForcedUnconfigured = false;
+let isTestingResendClient = false;
 const FROM = config.emailFrom || "onboarding@resend.dev";
 const ADMIN_EMAIL = config.adminEmail;
+
+export type EmailProviderType = "gmail" | "resend" | "mock";
+
+/**
+ * Resolves the currently active email dispatch provider based on environment variables.
+ * Priority: Test client injection > Explicit EMAIL_PROVIDER > Gmail credentials present > Resend API key present > mock
+ */
+export function getEffectiveEmailProvider(): EmailProviderType {
+  if (isForcedUnconfigured) return "mock";
+  if (isTestingResendClient && resendInstance) return "resend";
+  if (config.emailProvider === "gmail") return "gmail";
+  if (config.emailProvider === "resend") return "resend";
+  if (config.emailProvider === "mock") return "mock";
+
+  // Auto mode: If GMAIL_APP_PASSWORD is set, prioritize genuine Gmail SMTP authentication
+  if (config.gmailUser && config.gmailAppPassword && config.gmailAppPassword.trim().length > 0) {
+    return "gmail";
+  }
+  if (config.resendApiKey && config.resendApiKey.trim().length > 0) {
+    return "resend";
+  }
+  return "mock";
+}
+
+/**
+ * Returns sender information formatted for headers and UI display.
+ */
+export function getAuthenticatedSender(): {
+  email: string;
+  name: string;
+  fullFrom: string;
+  provider: EmailProviderType;
+  isConfigured: boolean;
+} {
+  const provider = getEffectiveEmailProvider();
+  if (provider === "gmail" || config.emailProvider === "gmail" || Boolean(config.gmailAppPassword)) {
+    const email = config.gmailUser || "arunopera7@gmail.com";
+    const name = config.gmailFromName || "Escora Journeys";
+    const isConfigured = Boolean(config.gmailUser && config.gmailAppPassword && config.gmailAppPassword.trim().length > 0);
+    return {
+      email,
+      name,
+      fullFrom: `"${name}" <${email}>`,
+      provider: "gmail",
+      isConfigured,
+    };
+  }
+
+  const isConfigured = Boolean(config.resendApiKey && config.resendApiKey.trim().length > 0);
+  return {
+    email: config.emailFrom,
+    name: "Escora Journeys",
+    fullFrom: config.emailFrom || "onboarding@resend.dev",
+    provider: isConfigured ? "resend" : "mock",
+    isConfigured,
+  };
+}
 
 export function getResendClient(): Resend | null {
   if (isForcedUnconfigured) return null;
@@ -17,21 +77,87 @@ export function getResendClient(): Resend | null {
   return null;
 }
 
+export function getGmailTransporter(): Transporter | null {
+  if (isForcedUnconfigured) return null;
+  if (gmailTransporter) return gmailTransporter;
+  if (config.gmailUser && config.gmailAppPassword && config.gmailAppPassword.trim().length > 0) {
+    gmailTransporter = nodemailer.createTransport({
+      host: config.gmailSmtpHost || "smtp.gmail.com",
+      port: config.gmailSmtpPort || 465,
+      secure: (config.gmailSmtpPort || 465) === 465, // true for 465 SSL, false for 587 STARTTLS
+      auth: {
+        user: config.gmailUser,
+        pass: config.gmailAppPassword.replace(/\s+/g, ""), // Strip whitespace commonly copied from Google 2FA screen
+      },
+    });
+    return gmailTransporter;
+  }
+  return null;
+}
+
 export function setResendClientForTesting(client: any): void {
   if (client === null) {
     isForcedUnconfigured = true;
+    isTestingResendClient = false;
     resendInstance = null;
+    gmailTransporter = null;
   } else {
     isForcedUnconfigured = false;
+    isTestingResendClient = true;
     resendInstance = client;
   }
+}
+
+/**
+ * Validates connection to the active email provider without sending mail.
+ */
+export async function verifyEmailTransport(): Promise<{
+  success: boolean;
+  provider: EmailProviderType;
+  message: string;
+}> {
+  const provider = getEffectiveEmailProvider();
+  if (provider === "gmail") {
+    const transporter = getGmailTransporter();
+    if (!transporter) {
+      return {
+        success: false,
+        provider: "gmail",
+        message: "Gmail SMTP credentials not configured. Please set GMAIL_APP_PASSWORD in environment variables.",
+      };
+    }
+    try {
+      await transporter.verify();
+      return {
+        success: true,
+        provider: "gmail",
+        message: `Successfully authenticated with Gmail SMTP server for ${config.gmailUser}`,
+      };
+    } catch (err: any) {
+      let msg = sanitizeError(err?.message || "Gmail verification failed");
+      if (err?.code === "EAUTH" || err?.responseCode === 535) {
+        msg = `Gmail SMTP authentication failed for ${config.gmailUser}. Please verify your 16-character Google App Password in .env.`;
+      }
+      return { success: false, provider: "gmail", message: msg };
+    }
+  }
+
+  if (provider === "resend") {
+    if (!config.resendApiKey) {
+      return { success: false, provider: "resend", message: "RESEND_API_KEY is not configured" };
+    }
+    return { success: true, provider: "resend", message: "Resend API key configured" };
+  }
+
+  return { success: false, provider: "mock", message: "No live email provider is configured" };
 }
 
 function sanitizeError(msg?: string): string {
   if (!msg) return "Unknown delivery error";
   return msg
     .replace(/re_[a-zA-Z0-9_\-\.]+/g, "[REDACTED_API_KEY]")
-    .replace(/whsec_[a-zA-Z0-9_\-\.]+/g, "[REDACTED_SECRET]");
+    .replace(/whsec_[a-zA-Z0-9_\-\.]+/g, "[REDACTED_SECRET]")
+    .replace(/[a-zA-Z0-9]{16}/g, (match) => (match.length === 16 ? "[REDACTED_APP_PASSWORD]" : match));
 }
 
 export function isTransientError(errMsg?: string, statusCode?: number): boolean {
@@ -55,55 +181,199 @@ export function isTransientError(errMsg?: string, statusCode?: number): boolean 
 }
 
 async function send(to: string, subject: string, html: string): Promise<void> {
-  const client = getResendClient();
-  if (!client) return; // email not configured — skip silently
-  try {
-    const { data, error } = await client.emails.send({
-      from: FROM,
-      to,
-      subject,
-      html,
-    });
-    if (error) {
-      // If the domain is not yet verified on Resend, automatically fallback to onboarding@resend.dev
-      if (error.message?.includes("domain is not verified") && FROM !== "onboarding@resend.dev") {
-        logger.warn("Custom domain not verified yet on Resend. Falling back to onboarding@resend.dev");
-        const fallback = await client.emails.send({
-          from: "onboarding@resend.dev",
-          to,
-          subject,
-          html,
-        });
-        if (!fallback.error) {
-          logger.info({ id: fallback.data?.id, to }, "Email delivered via Resend onboarding domain");
-          return;
-        }
-      }
-      logger.warn({ error: sanitizeError(error.message) }, "Email send failed via Resend");
-    } else {
-      logger.info({ id: data?.id, to }, "Email delivered via Resend");
-    }
-  } catch (err: any) {
-    logger.warn({ err: sanitizeError(err?.message) }, "Email send error (non-fatal)");
-  }
+  await sendEmailWithStatus({ to, subject, html });
+}
+
+export interface EmailSendResult {
+  success: boolean;
+  status: "accepted" | "simulated" | "delivered" | "failed";
+  messageId?: string;
+  error?: string;
+  provider: EmailProviderType;
+  from?: string;
+  isTransient?: boolean;
+  smtpResponse?: string;
+  providerResponse?: string;
+  acceptedRecipients?: string[];
+  rejectedRecipients?: string[];
+  sentAt?: Date;
 }
 
 /**
- * Sends an email and returns detailed delivery status for audit and tracking.
- * Includes official Resend SDK error handling, custom headers, idempotency keys,
- * secret sanitization, and transient error retry logic.
+ * Sends an email via either Gmail SMTP or Resend, returning detailed delivery status for audit and tracking.
+ * Includes official Google SMTP authentication, Resend fallback, custom headers,
+ * idempotency keys, secret sanitization, and transient error retry logic.
  */
+export function htmlToPlainText(html: string): string {
+  if (!html) return "";
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, "$2 ($1)")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<\/h[1-6]>/gi, "\n\n")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/tr>/gi, "\n")
+    .replace(/<\/li>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n\s+\n/g, "\n\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export async function sendEmailWithStatus(options: {
   to: string;
   subject: string;
   html: string;
+  text?: string;
+  from?: string;
   headers?: Record<string, string>;
   idempotencyKey?: string;
   retries?: number;
-}): Promise<{ success: boolean; messageId?: string; error?: string; isTransient?: boolean }> {
+}): Promise<EmailSendResult> {
+  const provider = getEffectiveEmailProvider();
+  const sender = getAuthenticatedSender();
+  const fromAddress = options.from || sender.fullFrom;
+  const maxAttempts = options.retries ?? 2;
+  const textContent = options.text || htmlToPlainText(options.html);
+
+  // -------------------------------------------------------------
+  // PROVIDER 0: MOCK / SIMULATION MODE
+  // -------------------------------------------------------------
+  if (provider === "mock") {
+    const mockId = `simulated_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    logger.info({ to: options.to, mockId }, "[Email] Simulation mode dispatch (no live email sent)");
+    return {
+      success: true,
+      status: "simulated",
+      messageId: mockId,
+      provider: "mock",
+      from: fromAddress,
+      providerResponse: "Mock provider simulation (zero network transmission)",
+      acceptedRecipients: [options.to],
+      rejectedRecipients: [],
+      sentAt: new Date(),
+    };
+  }
+
+  // -------------------------------------------------------------
+  // PROVIDER 1: GMAIL SMTP (GENUINE GOOGLE ACCOUNT AUTHENTICATION)
+  // -------------------------------------------------------------
+  if (provider === "gmail" || config.emailProvider === "gmail") {
+    const transporter = getGmailTransporter();
+    if (!transporter) {
+      return {
+        success: false,
+        status: "failed",
+        provider: "gmail",
+        error: `Gmail credentials missing. Please set GMAIL_APP_PASSWORD in your environment variables for ${config.gmailUser}.`,
+      };
+    }
+
+    const customHeaders: Record<string, string> = { ...(options.headers || {}) };
+    if (options.idempotencyKey) {
+      customHeaders["X-Idempotency-Key"] = options.idempotencyKey;
+    }
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const info = await transporter.sendMail({
+          from: fromAddress,
+          to: options.to,
+          subject: options.subject,
+          text: textContent,
+          html: options.html,
+          headers: Object.keys(customHeaders).length > 0 ? customHeaders : undefined,
+        });
+
+        const accepted = (info.accepted || []).map((r: any) => String(r?.address || r));
+        const rejected = (info.rejected || []).map((r: any) => String(r?.address || r));
+
+        if (rejected.length > 0 && accepted.length === 0) {
+          logger.warn(
+            { to: options.to, response: info.response, rejected },
+            "Gmail SMTP relay rejected recipient address"
+          );
+          return {
+            success: false,
+            status: "failed",
+            error: `Gmail SMTP relay rejected recipient: ${rejected.join(", ")}. Response: ${info.response || "No response details"}`,
+            provider: "gmail",
+            from: fromAddress,
+            smtpResponse: info.response,
+            providerResponse: info.response,
+            acceptedRecipients: accepted,
+            rejectedRecipients: rejected,
+            sentAt: new Date(),
+          };
+        }
+
+        logger.info(
+          { messageId: info.messageId, to: options.to, from: fromAddress, response: info.response },
+          "Email accepted by Gmail SMTP relay (inbox delivery unconfirmed)"
+        );
+        return {
+          success: true,
+          status: "accepted",
+          messageId: info.messageId,
+          provider: "gmail",
+          from: fromAddress,
+          smtpResponse: info.response,
+          providerResponse: info.response,
+          acceptedRecipients: accepted,
+          rejectedRecipients: rejected,
+          sentAt: new Date(),
+        };
+      } catch (err: any) {
+        let cleanMsg = sanitizeError(err?.message || "Delivery error via Gmail SMTP");
+        if (err?.code === "EAUTH" || err?.responseCode === 535) {
+          cleanMsg = `Gmail authentication failed for ${config.gmailUser}. Ensure 2-Step Verification is active and your Google App Password is correct.`;
+          return { success: false, status: "failed", error: cleanMsg, provider: "gmail", from: fromAddress, isTransient: false };
+        }
+
+        const isTransient = isTransientError(cleanMsg);
+        if (isTransient && attempt < maxAttempts) {
+          logger.warn(
+            { attempt, error: cleanMsg },
+            "Transient network error via Gmail SMTP. Retrying delivery..."
+          );
+          await new Promise((resolve) => setTimeout(resolve, attempt * 500));
+          continue;
+        }
+
+        logger.warn({ error: cleanMsg, to: options.to }, "Email send failed via Gmail SMTP");
+        return { success: false, status: "failed", error: cleanMsg, provider: "gmail", from: fromAddress, isTransient };
+      }
+    }
+
+    return {
+      success: false,
+      status: "failed",
+      error: "Maximum delivery retry attempts exceeded on Gmail SMTP",
+      provider: "gmail",
+      from: fromAddress,
+      isTransient: true,
+    };
+  }
+
+  // -------------------------------------------------------------
+  // PROVIDER 2: RESEND (DOMAIN / ONBOARDING INTEGRATION)
+  // -------------------------------------------------------------
   const client = getResendClient();
   if (!client) {
-    return { success: false, error: "Resend email provider is not configured" };
+    return {
+      success: false,
+      status: "failed",
+      provider: "mock",
+      error: "No email provider is configured. Please configure GMAIL_USER and GMAIL_APP_PASSWORD, or RESEND_API_KEY in your environment.",
+    };
   }
 
   const customHeaders: Record<string, string> = { ...(options.headers || {}) };
@@ -111,14 +381,13 @@ export async function sendEmailWithStatus(options: {
     customHeaders["Idempotency-Key"] = options.idempotencyKey;
   }
 
-  const maxAttempts = options.retries ?? 2;
-
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       const { data, error } = await client.emails.send({
         from: FROM,
         to: options.to,
         subject: options.subject,
+        text: textContent,
         html: options.html,
         headers: Object.keys(customHeaders).length > 0 ? customHeaders : undefined,
       });
@@ -130,15 +399,26 @@ export async function sendEmailWithStatus(options: {
             from: "onboarding@resend.dev",
             to: options.to,
             subject: options.subject,
+            text: textContent,
             html: options.html,
             headers: Object.keys(customHeaders).length > 0 ? customHeaders : undefined,
           });
 
           if (!fallback.error && fallback.data) {
-            return { success: true, messageId: fallback.data.id };
+            return {
+              success: true,
+              status: "accepted",
+              messageId: fallback.data.id,
+              provider: "resend",
+              from: "onboarding@resend.dev",
+              providerResponse: "Accepted by Resend API via fallback address",
+              acceptedRecipients: [options.to],
+              rejectedRecipients: [],
+              sentAt: new Date(),
+            };
           }
           const cleanMsg = sanitizeError(fallback.error?.message || "Delivery failed");
-          return { success: false, error: cleanMsg, isTransient: isTransientError(cleanMsg) };
+          return { success: false, status: "failed", error: cleanMsg, provider: "resend", isTransient: isTransientError(cleanMsg) };
         }
 
         const cleanMsg = sanitizeError(error.message);
@@ -153,10 +433,20 @@ export async function sendEmailWithStatus(options: {
           continue;
         }
 
-        return { success: false, error: cleanMsg, isTransient };
+        return { success: false, status: "failed", error: cleanMsg, provider: "resend", isTransient };
       }
 
-      return { success: true, messageId: data?.id };
+      return {
+        success: true,
+        status: "accepted",
+        messageId: data?.id,
+        provider: "resend",
+        from: FROM,
+        providerResponse: "Accepted by Resend API for delivery (inbox delivery unconfirmed)",
+        acceptedRecipients: [options.to],
+        rejectedRecipients: [],
+        sentAt: new Date(),
+      };
     } catch (err: any) {
       const cleanMsg = sanitizeError(err?.message || "Unexpected delivery error");
       const isTransient = isTransientError(cleanMsg);
@@ -170,11 +460,11 @@ export async function sendEmailWithStatus(options: {
         continue;
       }
 
-      return { success: false, error: cleanMsg, isTransient };
+      return { success: false, status: "failed", error: cleanMsg, provider: "resend", isTransient };
     }
   }
 
-  return { success: false, error: "Maximum delivery retry attempts exceeded", isTransient: true };
+  return { success: false, status: "failed", error: "Maximum delivery retry attempts exceeded", provider: "resend", isTransient: true };
 }
 
 /**

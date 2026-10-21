@@ -1048,7 +1048,8 @@ export const CreateOrderBody = zod.object({
   "timezone": zod.string().optional(),
   "geoCountry": zod.string().optional(),
   "geoRegion": zod.string().optional(),
-  "geoCity": zod.string().optional()
+  "geoCity": zod.string().optional(),
+  "marketingConsent": zod.boolean().optional()
 })
 
 
@@ -1213,7 +1214,8 @@ export const CreateEnquiryBody = zod.object({
   "name": zod.string(),
   "email": zod.string(),
   "phone": zod.string().optional(),
-  "message": zod.string()
+  "message": zod.string(),
+  "marketingConsent": zod.boolean().optional()
 })
 
 
@@ -1697,9 +1699,11 @@ export const CreateCampaignBody = zod.object({
   "previewText": zod.string().optional(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
-  "travelStyle": zod.string().nullish()
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
 }).optional()
 })
 
@@ -1718,9 +1722,11 @@ export const GetCampaignResponse = zod.object({
   "previewText": zod.string().nullish(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
-  "travelStyle": zod.string().nullish()
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
 }),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
   "scheduledAt": zod.string().nullish(),
@@ -1759,9 +1765,11 @@ export const UpdateCampaignBody = zod.object({
   "previewText": zod.string().optional(),
   "contentHtml": zod.string().optional(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
-  "travelStyle": zod.string().nullish()
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
 }).optional()
 })
 
@@ -1772,9 +1780,11 @@ export const UpdateCampaignResponse = zod.object({
   "previewText": zod.string().nullish(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
-  "travelStyle": zod.string().nullish()
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
 }),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
   "scheduledAt": zod.string().nullish(),

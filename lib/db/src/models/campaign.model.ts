@@ -14,6 +14,7 @@ export type CampaignAudienceType =
   | "all_contacts"
   | "enquiries_only"
   | "confirmed_guests"
+  | "subscribed_contacts"
   | "custom_segment"
   | "audience_group";
 
@@ -34,7 +35,13 @@ export interface ICampaignDelivery {
   deliveryStatus?: CampaignDeliveryStatus;
   sentAt?: Date;
   deliveredAt?: Date | null;
+  bouncedAt?: Date | null;
   messageId?: string | null;
+  provider?: string | null;
+  providerResponse?: string | null;
+  smtpResponse?: string | null;
+  acceptedRecipients?: string[] | null;
+  rejectedRecipients?: string[] | null;
   error?: string | null;
 }
 
@@ -95,7 +102,13 @@ const campaignDeliverySchema = new Schema<ICampaignDelivery>(
     deliveryStatus: { type: String, default: null },
     sentAt: { type: Date, default: Date.now },
     deliveredAt: { type: Date, default: null },
+    bouncedAt: { type: Date, default: null },
     messageId: { type: String, default: null },
+    provider: { type: String, default: null },
+    providerResponse: { type: String, default: null },
+    smtpResponse: { type: String, default: null },
+    acceptedRecipients: { type: [String], default: [] },
+    rejectedRecipients: { type: [String], default: [] },
     error: { type: String, default: null },
   },
   { _id: false }

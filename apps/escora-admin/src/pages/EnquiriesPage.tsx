@@ -1645,17 +1645,33 @@ export default function EnquiriesPage() {
                       <Badge
                         variant="outline"
                         className={
-                          enquiryNotifications[0].status === "sent"
+                          enquiryNotifications[0].status === "delivered"
                             ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/10 text-[10px]"
+                            : enquiryNotifications[0].status === "accepted" || enquiryNotifications[0].status === "sent"
+                            ? "border-sky-500/30 text-sky-600 bg-sky-500/10 text-[10px]"
+                            : enquiryNotifications[0].status === "simulated"
+                            ? "border-purple-500/30 text-purple-600 bg-purple-500/10 text-[10px]"
                             : enquiryNotifications[0].status === "pending"
                             ? "border-amber-500/30 text-amber-600 bg-amber-500/10 text-[10px]"
+                            : enquiryNotifications[0].status === "bounced"
+                            ? "border-orange-500/30 text-orange-600 bg-orange-500/10 text-[10px]"
+                            : enquiryNotifications[0].status === "failed"
+                            ? "border-red-500/30 text-red-600 bg-red-500/10 text-[10px]"
                             : "border-zinc-500/30 text-zinc-500 text-[10px]"
                         }
                       >
                         {enquiryNotifications[0].status === "pending"
                           ? `Scheduled (${new Date(enquiryNotifications[0].scheduledFor).toLocaleDateString()})`
-                          : enquiryNotifications[0].status === "sent"
-                          ? "Delivered"
+                          : enquiryNotifications[0].status === "delivered"
+                          ? "Delivered (Confirmed)"
+                          : enquiryNotifications[0].status === "accepted" || enquiryNotifications[0].status === "sent"
+                          ? "Accepted by Mail Relay"
+                          : enquiryNotifications[0].status === "simulated"
+                          ? "Simulated"
+                          : enquiryNotifications[0].status === "bounced"
+                          ? "Bounced"
+                          : enquiryNotifications[0].status === "failed"
+                          ? "Failed"
                           : enquiryNotifications[0].status === "cancelled"
                           ? "Cancelled (Resolved)"
                           : enquiryNotifications[0].status}
@@ -1669,8 +1685,16 @@ export default function EnquiriesPage() {
                       ? `Follow-up will dispatch on ${new Date(enquiryNotifications[0].scheduledFor).toLocaleString()} if unresolved.`
                       : enquiryNotifications[0].status === "cancelled"
                       ? `Follow-up cancelled: ${enquiryNotifications[0].error || "Customer replied or booked."}`
-                      : enquiryNotifications[0].status === "sent"
-                      ? `Follow-up sent on ${new Date(enquiryNotifications[0].sentAt || enquiryNotifications[0].updatedAt).toLocaleString()}.`
+                      : enquiryNotifications[0].status === "delivered"
+                      ? `Follow-up confirmed delivered on ${new Date(enquiryNotifications[0].deliveredAt || enquiryNotifications[0].sentAt || enquiryNotifications[0].updatedAt).toLocaleString()}.`
+                      : enquiryNotifications[0].status === "accepted" || enquiryNotifications[0].status === "sent"
+                      ? `Follow-up accepted by mail relay on ${new Date(enquiryNotifications[0].sentAt || enquiryNotifications[0].updatedAt).toLocaleString()} (check Spam/Junk if not in inbox).`
+                      : enquiryNotifications[0].status === "simulated"
+                      ? `Follow-up simulated (mock mode) on ${new Date(enquiryNotifications[0].sentAt || enquiryNotifications[0].updatedAt).toLocaleString()}.`
+                      : enquiryNotifications[0].status === "bounced"
+                      ? `Follow-up bounced: ${enquiryNotifications[0].error || "Mailbox rejected message."}`
+                      : enquiryNotifications[0].status === "failed"
+                      ? `Follow-up failed: ${enquiryNotifications[0].error || "Delivery error."}`
                       : `Status: ${enquiryNotifications[0].status}`}
                   </p>
                 </div>

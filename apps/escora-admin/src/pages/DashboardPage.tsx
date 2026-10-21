@@ -23,7 +23,10 @@ import { cn } from "@/lib/utils";
  * Examples: ₹0, ₹20,000, ₹4.50 Lakhs, ₹1.25 Cr.
  */
 export function formatIndianCurrency(amount?: number | null): { formatted: string; full: string } {
-  if (amount === undefined || amount === null || Number.isNaN(amount) || amount === 0) {
+  if (amount === undefined || amount === null || Number.isNaN(amount)) {
+    return { formatted: "—", full: "—" };
+  }
+  if (amount === 0) {
     return { formatted: "₹0", full: "₹0" };
   }
   const abs = Math.abs(amount);
@@ -50,6 +53,7 @@ function StatCard({
   iconColor,
   testId,
   tooltip,
+  isLoading,
 }: {
   title: string;
   value: string | number | undefined;
@@ -60,6 +64,7 @@ function StatCard({
   iconColor: string;
   testId: string;
   tooltip?: string;
+  isLoading?: boolean;
 }) {
   const cardContent = (
     <div
@@ -83,14 +88,14 @@ function StatCard({
       </div>
 
       <div className="my-2">
-        {value === undefined ? (
+        {isLoading ? (
           <Skeleton className="h-9 w-20 my-1 bg-[#F2F1E7]" />
         ) : (
           <div
             className="text-3xl font-serif font-semibold text-[#172923] tracking-tight tabular-nums"
             title={tooltip}
           >
-            {value}
+            {value ?? "—"}
           </div>
         )}
       </div>
@@ -111,7 +116,7 @@ function StatCard({
 }
 
 export default function DashboardPage() {
-  const { data: stats, isLoading, isFetching, refetch } = useGetDashboardStats({
+  const { data: stats, isLoading, isError, isFetching, refetch } = useGetDashboardStats({
     query: { queryKey: getGetDashboardStatsQueryKey(), refetchInterval: 30000 },
   });
   const { toast } = useToast();
@@ -178,47 +183,73 @@ export default function DashboardPage() {
         </button>
       </div>
 
+      {/* Graceful Error Notification */}
+      {isError && (
+        <div
+          role="alert"
+          className="rounded-xl bg-[#FEF0EA] border border-[#F6D0C1] p-4 text-xs sm:text-sm text-[#D96534] flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
+        >
+          <div className="flex items-center gap-2">
+            <span className="font-medium">Unable to fetch latest dashboard statistics.</span>
+            <span className="text-xs text-[#B84E20] hidden sm:inline">Check server connection and retry.</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => refetch()}
+            disabled={isFetching}
+            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white hover:bg-[#FAF8F5] border border-[#F6D0C1] text-xs font-medium text-[#D96534] transition-colors self-start sm:self-auto shadow-2xs cursor-pointer"
+          >
+            <RefreshCw className={cn("h-3 w-3", isFetching && "animate-spin")} />
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Row 1: Catalog & Publishing Overview Cards (4 Columns) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Destinations"
-          value={isLoading ? undefined : stats?.totalDestinations}
+          value={stats?.totalDestinations}
           sub={`${stats?.publishedDestinations ?? "—"} published`}
           icon={MapPin}
           badgeBg="bg-[#E8F3EE]"
           iconColor="text-[#183D2E]"
           href="/destinations"
           testId="stat-card-destinations"
+          isLoading={isLoading}
         />
         <StatCard
           title="Journeys"
-          value={isLoading ? undefined : stats?.totalPackages}
+          value={stats?.totalPackages}
           sub={`${stats?.publishedPackages ?? "—"} published`}
           icon={Package}
           badgeBg="bg-[#FDF4E7]"
           iconColor="text-[#B57529]"
           href="/packages"
           testId="stat-card-journeys"
+          isLoading={isLoading}
         />
         <StatCard
           title="Enquiries"
-          value={isLoading ? undefined : stats?.totalOrders}
+          value={stats?.totalOrders}
           sub={`${stats?.enquiries ?? "—"} open · ${stats?.confirmed ?? "—"} confirmed`}
           icon={Mail}
           badgeBg="bg-[#FEF0EA]"
           iconColor="text-[#D96534]"
           href="/orders"
           testId="stat-card-enquiries"
+          isLoading={isLoading}
         />
         <StatCard
           title="Journal Posts"
-          value={isLoading ? undefined : stats?.totalJournalPosts}
+          value={stats?.totalJournalPosts}
           sub={`${stats?.publishedJournalPosts ?? "—"} published`}
           icon={BookOpen}
           badgeBg="bg-[#EDF4FD]"
           iconColor="text-[#2B6CB0]"
           href="/journal"
           testId="stat-card-journal-posts"
+          isLoading={isLoading}
         />
       </div>
 
@@ -226,43 +257,47 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Open Enquiries"
-          value={isLoading ? undefined : (stats?.enquiries ?? 0)}
+          value={stats?.enquiries}
           sub="Awaiting response"
           icon={Clock}
           badgeBg="bg-[#FDF4E7]"
           iconColor="text-[#B57529]"
           href="/orders"
           testId="stat-enquiries-open"
+          isLoading={isLoading}
         />
         <StatCard
           title="Confirmed Bookings"
-          value={isLoading ? undefined : (stats?.confirmed ?? 0)}
+          value={stats?.confirmed}
           sub="Guests confirmed"
           icon={CheckCircle2}
           badgeBg="bg-[#E8F3EE]"
           iconColor="text-[#183D2E]"
           href="/orders"
           testId="stat-confirmed"
+          isLoading={isLoading}
         />
         <StatCard
           title="Total Revenue"
-          value={isLoading ? undefined : revenueDisplay.formatted}
+          value={revenueDisplay.formatted}
           sub="Collected from paid invoices"
           icon={IndianRupee}
           badgeBg="bg-[#E8F3EE]"
           iconColor="text-[#183D2E]"
           testId="stat-revenue"
-          tooltip={`Exact collected revenue: ${revenueDisplay.full}`}
+          tooltip={stats?.totalRevenue !== undefined ? `Exact collected revenue: ${revenueDisplay.full}` : undefined}
+          isLoading={isLoading}
         />
         <StatCard
           title="Contact Inbox"
-          value={isLoading ? undefined : (stats?.newContactEnquiries ?? 0)}
+          value={stats?.newContactEnquiries}
           sub="Unread messages"
           icon={MessageSquare}
           badgeBg="bg-[#EDF4FD]"
           iconColor="text-[#2B6CB0]"
           href="/enquiries"
           testId="stat-contact-inbox"
+          isLoading={isLoading}
         />
       </div>
 

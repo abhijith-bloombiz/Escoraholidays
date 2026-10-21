@@ -16,7 +16,7 @@ import {
   ConvertEnquiryParams,
   ConvertEnquiryBody,
 } from "@workspace/api-zod";
-import { sendContactConfirmation, sendAdminContactNotification } from "../lib/email";
+import { sendAdminContactNotification } from "../lib/email";
 import {
   scheduleEnquiryFollowup,
   cancelEnquiryFollowup,
@@ -31,6 +31,7 @@ import {
 import { aiService, AiServiceError, assistEnquiry } from "../services/ai";
 import { createRateLimiter } from "../middleware/rate-limiter";
 import { logger } from "../lib/logger";
+import { processPublicFormConsent } from "../services/campaign-service";
 
 const router: IRouter = Router();
 
@@ -90,7 +91,6 @@ router.post("/enquiries", async (req, res, next): Promise<void> => {
 
     // Send emails and WhatsApp notifications asynchronously — don't block the response
     Promise.all([
-      sendContactConfirmation(enquiry),
       sendAdminContactNotification(enquiry),
       triggerEnquiryAcknowledgement(enquiry),
       triggerWhatsAppEnquiryAcknowledgement(enquiry),
@@ -99,6 +99,17 @@ router.post("/enquiries", async (req, res, next): Promise<void> => {
     // Schedule polite customer follow-up in durable DB queue
     scheduleEnquiryFollowup(enquiry).catch((err) => {
       logger.error({ err: err?.message, enquiryId: enquiry.id }, "[EnquiryRoute] Failed to schedule enquiry follow-up");
+    });
+
+    // Process optional marketing consent checkbox
+    const marketingConsent = Boolean((req.body as any)?.marketingConsent ?? (parsed.data as any)?.marketingConsent);
+    processPublicFormConsent({
+      email: enquiry.email,
+      name: enquiry.name,
+      marketingConsent,
+      source: "website_contact_form",
+    }).catch((err) => {
+      logger.error({ err: err?.message, email: enquiry.email }, "[EnquiryRoute] Failed to record consent");
     });
 
     res.status(201).json(GetEnquiryResponse.parse(serialized));

@@ -2796,6 +2796,8 @@ components:
           type: string
         geoCity:
           type: string
+        marketingConsent:
+          type: boolean
 
     OrderUpdate:
       type: object
@@ -2853,6 +2855,8 @@ components:
           type: string
         message:
           type: string
+        marketingConsent:
+          type: boolean
 
     EnquiryUpdate:
       type: object
@@ -3461,7 +3465,7 @@ components:
 
     CampaignAudienceType:
       type: string
-      enum: [all_contacts, enquiries_only, confirmed_guests, custom_segment]
+      enum: [all_contacts, enquiries_only, confirmed_guests, subscribed_contacts, audience_group]
 
     CampaignTargetAudience:
       type: object

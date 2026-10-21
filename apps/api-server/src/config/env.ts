@@ -40,6 +40,13 @@ export interface AppConfig {
   resendApiKey?: string;
   emailFrom: string;
   adminEmail: string;
+  // Gmail SMTP / Authenticated Email Configuration
+  emailProvider: "auto" | "gmail" | "resend" | "mock";
+  gmailUser: string;
+  gmailAppPassword?: string;
+  gmailFromName: string;
+  gmailSmtpHost: string;
+  gmailSmtpPort: number;
   isProduction: boolean;
   groqApiKey?: string;
   groqModel: string;
@@ -231,6 +238,13 @@ export const config: AppConfig = {
   resendApiKey: process.env.RESEND_API_KEY || undefined,
   emailFrom: process.env.EMAIL_FROM || "Escora Journeys <hello@escoraholidays.com>",
   adminEmail: process.env.ADMIN_EMAIL || "admin@escoraholidays.com",
+  // Gmail SMTP / Authenticated Email Configuration
+  emailProvider: (process.env.EMAIL_PROVIDER as any) || "auto",
+  gmailUser: process.env.GMAIL_USER?.trim() || "arunopera7@gmail.com",
+  gmailAppPassword: process.env.GMAIL_APP_PASSWORD?.trim() || undefined,
+  gmailFromName: process.env.GMAIL_FROM_NAME?.trim() || "Escora Journeys",
+  gmailSmtpHost: process.env.GMAIL_SMTP_HOST?.trim() || "smtp.gmail.com",
+  gmailSmtpPort: Number(process.env.GMAIL_SMTP_PORT) || 465,
   isProduction,
   groqApiKey: process.env.GROQ_API_KEY?.trim() || undefined,
   groqModel: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",

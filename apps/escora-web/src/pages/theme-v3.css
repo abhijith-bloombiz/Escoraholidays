@@ -52,9 +52,9 @@ html.theme-v3 {
   --tint: rgba(26, 63, 44, 0.07);
   --tint-strong: rgba(26, 63, 44, 0.3);
 
-  --f-display: 'Playfair Display', Georgia, serif;
-  --f-serif: 'Playfair Display', Georgia, serif;
-  --f-heading: 'Playfair Display', Georgia, serif;
+  --f-display: 'Fonarto', 'Playfair Display', Georgia, serif;
+  --f-serif: 'Fonarto', 'Playfair Display', Georgia, serif;
+  --f-heading: 'Fonarto', 'Playfair Display', Georgia, serif;
   --f-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --f-mono: 'JetBrains Mono', monospace;
   --f-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -72,14 +72,14 @@ html.theme-v3 {
 }
 html.theme-v3 body { background: var(--v3-white); color: var(--ink); }
 
-/* Headings use Playfair Display */
+/* Headings use Fonarto */
 html.theme-v3 .font-serif,
 html.theme-v3 h1,
 html.theme-v3 h2,
 html.theme-v3 h3,
 html.theme-v3 h4,
 html.theme-v3 h5,
-html.theme-v3 h6 { font-family: 'Playfair Display', Georgia, serif; }
+html.theme-v3 h6 { font-family: 'Fonarto', 'Playfair Display', Georgia, serif; }
 html.theme-v3 .font-mono { font-family: 'JetBrains Mono', monospace; font-weight: 600; letter-spacing: 0.12em; }
 html.theme-v3 .font-sans { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
 

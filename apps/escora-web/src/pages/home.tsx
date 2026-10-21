@@ -380,6 +380,7 @@ export default function Home() {
   const [whyVideoOpen, setWhyVideoOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeCat, setActiveCat] = useState("all");
+  const [activeTravelTypeIndex, setActiveTravelTypeIndex] = useState(1);
   const [enquirySent, setEnquirySent] = useState(false);
   const [enquiryError, setEnquiryError] = useState("");
 
@@ -564,18 +565,46 @@ export default function Home() {
       >
         <div className="wrap">
           <div className="cat-section-head">
-            <div>
+            <div className="cat-section-head-left">
               <div className="eyebrow rv"><span className="dot" />Travel by Type</div>
               <h2 className="display-md rv d2" style={{ maxWidth: "20ch" }}>
                 Eight ways to discover <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kerala</em>.
               </h2>
             </div>
-            <p className="rv d3" style={{ maxWidth: "38ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
-              Choose your travel personality — we'll compose a journey from scratch, entirely around you.
-            </p>
+            <div className="cat-section-head-right">
+              <p className="rv d3" style={{ maxWidth: "44ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
+                Choose your travel personality — we'll compose a journey from scratch, entirely around you.
+              </p>
+              <div
+                className="travel-type-filter-bar rv d4"
+                role="tablist"
+                aria-label="Filter travel personality"
+              >
+                {TRAVEL_TYPE_ITEMS.map((item, idx) => {
+                  const isActive = idx === activeTravelTypeIndex;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      role="tab"
+                      id={`travel-filter-${item.id}`}
+                      aria-selected={isActive}
+                      className={`travel-type-filter-pill ${isActive ? "active" : ""}`}
+                      onClick={() => setActiveTravelTypeIndex(idx)}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
 
-          <TravelTypeCoverflow items={TRAVEL_TYPE_ITEMS} />
+          <TravelTypeCoverflow
+            items={TRAVEL_TYPE_ITEMS}
+            activeIndex={activeTravelTypeIndex}
+            onActiveIndexChange={setActiveTravelTypeIndex}
+          />
         </div>
       </section>
 

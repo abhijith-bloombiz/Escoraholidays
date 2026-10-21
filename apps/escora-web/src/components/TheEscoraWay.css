@@ -18,7 +18,7 @@
   padding: clamp(32px, 4.5vh, 64px) 0;
   box-sizing: border-box;
   overflow: hidden;
-  border-top: 1px solid rgba(228, 222, 210, 0.6);
+  border-top: none;
   scroll-snap-align: none;
   scroll-snap-stop: normal;
 }
@@ -95,7 +95,7 @@
 }
 
 .escora-way-index-num {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.16em;
@@ -176,9 +176,9 @@
   flex-shrink: 0;
 }
 
-/* Main Heading — Elegant Playfair Display typography matching reference */
+/* Main Heading — Elegant Fonarto typography */
 .escora-way-heading {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-size: clamp(42px, 4.2vw, 66px);
   font-weight: 400;
   line-height: 1.06;
@@ -192,14 +192,14 @@
 }
 
 .escora-way-heading .italic-green {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-style: italic;
   font-weight: 400;
   color: #143323;
 }
 
 .escora-way-heading .italic-gold {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-style: italic;
   font-weight: 400;
   color: #B58D5D;
@@ -342,7 +342,7 @@
 }
 
 .escora-way-story-tagline {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-style: italic;
   font-size: clamp(14px, 1.05vw, 15.5px);
   font-weight: 400;

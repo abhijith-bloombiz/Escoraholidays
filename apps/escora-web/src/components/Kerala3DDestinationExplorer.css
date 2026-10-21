@@ -1,6 +1,9 @@
 /* ============================================================
-   KERALA 3D DESTINATION EXPLORER — Editorial Interactive Section
-   Accurately matched to the original luxury reference design
+   EXPLORE KERALA — Interactive Inverted Arch Cards Showcase
+   Matches the luxury aesthetic of Escora Holidays with 7 cards:
+   - Top row: 3 cards in an upward arch curve (⌒)
+   - Center card: Overlapping both rows, highlighted & larger (1.18x)
+   - Bottom row: 3 cards in an inverted downward bowl curve (◡)
    ============================================================ */
 
 .kerala-3d-explorer-section {
@@ -13,18 +16,17 @@
   flex-direction: column;
   justify-content: center;
   background-color: #FAF8F5;
-  padding: clamp(24px, 3vh, 36px) 0 clamp(42px, 5vh, 62px) 0;
-  scroll-snap-align: none;
-  scroll-snap-stop: normal;
+  padding: clamp(32px, 4vh, 52px) 0 clamp(44px, 5.5vh, 68px) 0;
   overflow: hidden;
   box-sizing: border-box;
   border-top: 1px solid rgba(228, 222, 210, 0.6);
   border-bottom: 1px solid rgba(228, 222, 210, 0.6);
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   color: #143323;
+  outline: none;
 }
 
-/* ── Dedicated Luxury Background Layer (Independent from foreground content) ── */
+/* ── Luxury Background Layer (Mist Landscape + Topographic Contours) ── */
 .kerala-3d-bg-layer {
   position: absolute;
   inset: 0;
@@ -36,34 +38,39 @@
   z-index: 1;
 }
 
-/* Subtly visible Kerala landscape: low opacity, gentle mist, very low contrast, lifted shadows */
 .kerala-3d-bg-image {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  background-image: url('/assets/explore-kerala-3d-bg.jpg');
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  opacity: 0.20;
-  filter: saturate(0.52) brightness(1.08) contrast(0.82);
+  opacity: 0.16;
+  filter: saturate(0.55) brightness(1.06) contrast(0.85);
   transform: scale(1.02);
 }
 
-/* Soft ivory-white overlay: gentle misty gradient wash creating bright airy breathing room */
 .kerala-3d-bg-overlay {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   background:
-    radial-gradient(ellipse 90% 80% at 50% 45%, rgba(250, 248, 245, 0.68) 0%, rgba(250, 248, 245, 0.88) 65%, #FAF8F5 100%),
-    linear-gradient(180deg, rgba(250, 248, 245, 0.95) 0%, rgba(250, 248, 245, 0.35) 40%, rgba(250, 248, 245, 0.45) 60%, rgba(250, 248, 245, 0.95) 100%);
-  pointer-events: none;
+    radial-gradient(ellipse 95% 85% at 50% 50%, rgba(250, 248, 245, 0.72) 0%, rgba(250, 248, 245, 0.90) 65%, #FAF8F5 100%),
+    linear-gradient(180deg, rgba(250, 248, 245, 0.96) 0%, rgba(250, 248, 245, 0.40) 35%, rgba(250, 248, 245, 0.45) 65%, rgba(250, 248, 245, 0.98) 100%);
 }
 
-/* Main Container */
+.kerala-contour-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.85;
+}
+
+/* ── Main Wrap ── */
 .kerala-3d-wrap {
   position: relative;
   z-index: 2;
@@ -72,27 +79,21 @@
   margin: 0 auto;
   padding: 0 var(--gutter, clamp(20px, 4vw, 64px));
   box-sizing: border-box;
-}
-
-/* ── 2-Column Balanced Composition: Left Map, Right DepthCarousel ── */
-.kerala-3d-stage {
-  display: grid;
-  grid-template-columns: minmax(310px, 365px) minmax(640px, 1fr);
-  gap: clamp(20px, 2.5vw, 44px);
-  align-items: center;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
 }
 
 /* ══════════════════════════════════════════════════════════════
-   FULL-WIDTH EDITORIAL HEADER (Matching Travel by Type structure)
+   FULL-WIDTH EDITORIAL HEADER (Matching Travel by Type)
    ══════════════════════════════════════════════════════════════ */
 .kerala-3d-editorial-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: clamp(14px, 2vh, 22px);
-  padding-bottom: clamp(12px, 1.6vh, 18px);
-  border-bottom: 1px solid rgba(228, 222, 210, 0.7);
+  margin-bottom: clamp(14px, 1.8vh, 20px);
+  padding-bottom: clamp(12px, 1.5vh, 18px);
+  border-bottom: 1px solid rgba(228, 222, 210, 0.75);
   width: 100%;
   gap: 24px;
 }
@@ -112,12 +113,12 @@
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #B58D5D;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .kerala-3d-eyebrow .dot {
-  width: 5.5px;
-  height: 5.5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: #B58D5D;
   display: inline-block;
@@ -125,21 +126,27 @@
 }
 
 .kerala-3d-title {
-  font-family: var(--f-display, 'Playfair Display', Georgia, serif);
-  font-size: clamp(28px, 3.4vw, 44px);
+  font-family: var(--f-display, 'Fonarto', Georgia, serif);
+  font-size: clamp(28px, 3.2vw, 42px);
   font-weight: 400;
-  line-height: 1.08;
+  line-height: 1.1;
   letter-spacing: -0.015em;
   color: #143323;
   margin: 0;
   max-width: 22ch;
 }
 
-.kerala-3d-title .italic-gold {
-  font-family: var(--f-display, 'Playfair Display', Georgia, serif);
-  font-style: italic;
+.kerala-3d-title .italic-gold,
+.kerala-3d-title .accent-gold {
+  font-family: var(--f-display, 'Fonarto', Georgia, serif);
+  font-style: normal;
   font-weight: 400;
   color: #B58D5D;
+}
+
+.kerala-3d-head-right {
+  display: flex;
+  align-items: flex-end;
 }
 
 .kerala-3d-desc {
@@ -147,294 +154,651 @@
   font-size: clamp(13px, 0.95vw, 14.5px);
   line-height: 1.65;
   color: #4B5A51;
-  max-width: 38ch;
+  max-width: 40ch;
   text-align: right;
   margin: 0;
-  flex-shrink: 0;
 }
 
 /* ══════════════════════════════════════════════════════════════
-   COLUMN 1: 3D KERALAL RELIEF MAP
+   DESTINATION QUICK-FILTER PILLS BAR
    ══════════════════════════════════════════════════════════════ */
-.kerala-3d-left-col {
-  position: relative;
+.kerala-pills-bar {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: clamp(6px, 1vh, 12px) 0 clamp(16px, 2vh, 24px) 0;
   width: 100%;
 }
 
-/* 3D Kerala Relief Canvas Wrap (Responsive sizing & refined balance) */
-.kerala-3d-map-wrap {
-  position: relative;
-  width: 100%;
-  max-width: 365px;
-  height: clamp(510px, 56vh, 560px);
-  margin-top: -22px;
-}
-
-/* Floating District Markers on 3D Map (Reference: 03 Midnight Navy & Antique Gold) */
-.map-floating-pin-pill {
-  position: absolute;
+.kerala-pill-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background: #FFFFFF;
-  padding: 3.5px 9px 3.5px 6.5px;
+  gap: 6px;
+  padding: 6.5px 15px;
   border-radius: 999px;
-  border: 1px solid rgba(214, 182, 111, 0.45);
-  box-shadow: 0 4px 12px rgba(23, 40, 61, 0.10);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(228, 222, 210, 0.85);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #4B5A51;
   cursor: pointer;
-  white-space: nowrap;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   user-select: none;
-  z-index: 5;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(6px);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Fluid spring popup keyframe: drops slightly from top and springs up to resting scale */
-@keyframes mapPinPopUpEntrance {
+.kerala-pill-btn:hover {
+  background: #FFFFFF;
+  border-color: rgba(181, 141, 93, 0.5);
+  color: #143323;
+  transform: translateY(-1px);
+}
+
+.kerala-pill-btn.is-active {
+  background: #143323;
+  border-color: #143323;
+  color: #FAF8F5;
+  box-shadow: 0 4px 14px rgba(20, 51, 35, 0.18);
+}
+
+.kerala-pill-btn .text-gold {
+  color: #B58D5D;
+}
+
+/* Golden progress line on active destination pill */
+.kerala-pill-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2.5px;
+  background: linear-gradient(90deg, #B58D5D, #DFBA85);
+  width: 0%;
+  animation: keralaPillProgress 4s linear forwards;
+  border-radius: 0 0 999px 999px;
+  pointer-events: none;
+}
+
+@keyframes keralaPillProgress {
   0% {
-    opacity: 0;
-    transform: translate(-50%, calc(-50% - 18px)) scale(0.18);
-  }
-  65% {
-    opacity: 1;
-    transform: translate(-50%, calc(-50% + 2px)) scale(1.15);
-  }
-  85% {
-    transform: translate(-50%, calc(-50% - 1px)) scale(0.97);
+    width: 0%;
   }
   100% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
-  }
-}
-
-/* Reveal sequentially from top (Kasaragod) to bottom (Trivandrum) one by one */
-.kerala-3d-map-three-container.is-revealed .map-floating-pin-pill {
-  opacity: 1;
-  pointer-events: auto;
-  animation: mapPinPopUpEntrance 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  animation-delay: calc(0.10s + var(--pin-idx, 0) * 0.075s);
-}
-
-.map-floating-pin-pill .pin-dot {
-  width: 5.5px;
-  height: 5.5px;
-  border-radius: 50%;
-  background: #D6B66F;
-  transition: all 0.2s ease;
-}
-
-.map-floating-pin-pill .pin-text {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: #1B2D45;
-  line-height: 1;
-}
-
-.map-floating-pin-pill:hover {
-  transform: translate(-50%, -50%) scale(1.08) !important;
-  background: #FFFFFF;
-  border-color: #D6B66F;
-  box-shadow: 0 6px 16px rgba(23, 40, 61, 0.16);
-}
-
-.map-floating-pin-pill.is-active,
-.map-floating-pin-pill.is-dest-target {
-  background: linear-gradient(135deg, #F9F2E2 0%, #E6C478 100%);
-  border-color: #D6B66F;
-  transform: translate(-50%, -50%) scale(1.08) !important;
-  box-shadow: 0 6px 18px rgba(214, 182, 111, 0.35);
-}
-
-.map-floating-pin-pill.is-active .pin-dot,
-.map-floating-pin-pill.is-dest-target .pin-dot {
-  background: #FFFFFF;
-  box-shadow: 0 0 0 2px #D6B66F, 0 0 0 4.5px rgba(230, 196, 120, 0.6);
-}
-
-.map-floating-pin-pill.is-active .pin-text,
-.map-floating-pin-pill.is-dest-target .pin-text {
-  color: #1B2D45;
-  font-weight: 800;
-}
-
-/* Floating District Info Tooltip */
-.kerala-3d-district-floating-tooltip {
-  transition: opacity 0.25s ease, transform 0.25s ease;
-}
-
-.district-tooltip-card {
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(214, 182, 111, 0.45);
-  border-radius: 12px;
-  padding: 12px 16px;
-  box-shadow: 0 10px 24px rgba(23, 40, 61, 0.12);
-  max-width: 240px;
-  pointer-events: none;
-}
-
-.district-tooltip-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 5px;
-}
-
-.district-tooltip-badge {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #D6B66F;
-}
-
-.district-tooltip-category {
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #1B2D45;
-  background: rgba(23, 40, 61, 0.08);
-  padding: 2px 6px;
-  border-radius: 999px;
-}
-
-.district-tooltip-name {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: #1B2D45;
-  margin: 0 0 5px 0;
-  line-height: 1.15;
-}
-
-.district-tooltip-desc {
-  font-size: 11px;
-  line-height: 1.45;
-  color: #374B63;
-  margin: 0 0 6px 0;
-}
-
-.district-tooltip-dest {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10.5px;
-  color: #1B2D45;
-  padding-top: 6px;
-  border-top: 1px dashed rgba(214, 182, 111, 0.45);
-}
-
-.district-tooltip-dest .dest-dot {
-  width: 5.5px;
-  height: 5.5px;
-  border-radius: 50%;
-  background-color: #E6C478;
-  box-shadow: 0 0 6px rgba(230, 196, 120, 0.8);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   COLUMN 2: REACT BITS 3D DEPTH CAROUSEL
-   ══════════════════════════════════════════════════════════════ */
-.kerala-3d-carousel-col {
-  position: relative;
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  overflow: visible;
-}
-
-/* ══════════════════════════════════════════════════════════════
-   RESPONSIVE DESIGN (TABLET & MOBILE)
-   ══════════════════════════════════════════════════════════════ */
-@media (max-width: 1140px) {
-  .kerala-3d-stage {
-    grid-template-columns: 1fr;
-    gap: 32px;
-  }
-  .kerala-3d-left-col {
-    align-items: center;
-    text-align: center;
-  }
-  .kerala-3d-map-wrap {
-    max-width: 440px;
-    margin: 0 auto;
-    height: clamp(340px, 45vh, 420px);
-    margin-top: 0;
-  }
-  .kerala-3d-carousel-col {
     width: 100%;
   }
 }
 
-@media (max-width: 900px) {
+.is-paused .kerala-pill-progress-bar {
+  animation-play-state: paused;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7-CARD INVERTED ARCH STAGE CONTAINER
+   ══════════════════════════════════════════════════════════════ */
+.kerala-arch-stage-container {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  height: clamp(600px, 68vh, 730px);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  outline: none;
+  isolation: isolate;
+}
+
+.kerala-arch-stage {
+  position: relative;
+  width: 100%;
+  max-width: 1200px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INDIVIDUAL CARD STYLING & 3D HARDWARE-ACCELERATED TRANSITIONS
+   ══════════════════════════════════════════════════════════════ */
+.kerala-arch-card {
+  --kerala-card-w: 220px;
+  --kerala-card-h: 275px;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--kerala-card-w);
+  height: var(--kerala-card-h);
+  transform: translate3d(calc(-50% + var(--tx, 0px)), calc(-50% + var(--ty, 0px)), 0)
+             rotate(var(--rot, 0deg))
+             scale(var(--scale, 1));
+  transform-origin: center center;
+  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.5s ease,
+              filter 0.5s ease;
+  will-change: transform, box-shadow;
+  pointer-events: auto;
+  cursor: pointer;
+  outline: none;
+}
+
+.kerala-arch-card.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  filter: blur(5px);
+}
+
+/* ── Card Inner Container (Matches user reference screenshot) ── */
+.kerala-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #FFFFFF;
+  border-radius: 24px;
+  padding: 12px 12px 14px 12px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid rgba(228, 222, 210, 0.85);
+  box-shadow:
+    0 10px 30px -8px rgba(20, 51, 35, 0.09),
+    0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+/* Outer card hover lift & shadow enhancement */
+.kerala-arch-card.is-outer-card:hover .kerala-card-inner {
+  border-color: rgba(181, 141, 93, 0.55);
+  box-shadow:
+    0 18px 40px -8px rgba(20, 51, 35, 0.15),
+    0 6px 16px rgba(181, 141, 93, 0.15);
+  transform: translateY(-3px);
+}
+
+.kerala-arch-card.is-outer-card:hover .kerala-card-img {
+  transform: scale(1.05);
+}
+
+.kerala-arch-card.is-outer-card:hover .kerala-card-readmore {
+  color: #B58D5D;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CENTER SPOTLIGHT CARD (Overlapped in Middle, 1.18x Bigger, Highlighted)
+   ══════════════════════════════════════════════════════════════ */
+.kerala-arch-card.is-center-card {
+  --kerala-card-w: 268px;
+  --kerala-card-h: 338px;
+  cursor: default;
+}
+
+.kerala-arch-card.is-center-card .kerala-card-inner {
+  border-radius: 28px;
+  padding: 14px 14px 16px 14px;
+  border: 2px solid rgba(181, 141, 93, 0.78);
+  box-shadow:
+    0 28px 65px -12px rgba(20, 51, 35, 0.25),
+    0 10px 26px -4px rgba(181, 141, 93, 0.25),
+    0 0 0 1px rgba(181, 141, 93, 0.4);
+}
+
+/* ── Luxury Ambient Micro-Animations (Gentle Levitation & Breathing Glow) ── */
+@keyframes keralaCenterBreathing {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes keralaCenterGlowPulse {
+  0%, 100% {
+    box-shadow:
+      0 28px 65px -12px rgba(20, 51, 35, 0.25),
+      0 10px 26px -4px rgba(181, 141, 93, 0.25),
+      0 0 0 1px rgba(181, 141, 93, 0.4);
+  }
+  50% {
+    box-shadow:
+      0 34px 75px -12px rgba(20, 51, 35, 0.32),
+      0 14px 34px -4px rgba(181, 141, 93, 0.38),
+      0 0 0 2px rgba(181, 141, 93, 0.65),
+      0 0 22px rgba(181, 141, 93, 0.22);
+  }
+}
+
+@keyframes keralaFloatStagger1 {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3.5px);
+  }
+}
+
+@keyframes keralaFloatStagger2 {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(3.5px);
+  }
+}
+
+.kerala-arch-card.is-center-card .kerala-card-inner {
+  animation: keralaCenterBreathing 4.5s ease-in-out infinite,
+             keralaCenterGlowPulse 4.5s ease-in-out infinite;
+}
+
+.kerala-arch-card.slot-top-left .kerala-card-inner,
+.kerala-arch-card.slot-bottom-right .kerala-card-inner {
+  animation: keralaFloatStagger1 5.5s ease-in-out infinite;
+}
+
+.kerala-arch-card.slot-top-right .kerala-card-inner,
+.kerala-arch-card.slot-bottom-left .kerala-card-inner {
+  animation: keralaFloatStagger2 6s ease-in-out infinite 0.6s;
+}
+
+.kerala-arch-card.slot-top-center .kerala-card-inner,
+.kerala-arch-card.slot-bottom-center .kerala-card-inner {
+  animation: keralaFloatStagger1 6.5s ease-in-out infinite 1.2s;
+}
+
+.kerala-arch-card.is-outer-card:hover .kerala-card-inner {
+  animation-play-state: paused;
+  transform: translateY(-4px);
+}
+
+/* ── Card Media (Rounded Photo Inside) ── */
+.kerala-card-media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3.3;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #EAE6DE;
+  flex-shrink: 0;
+}
+
+.kerala-arch-card.is-center-card .kerala-card-media {
+  border-radius: 20px;
+  aspect-ratio: 4 / 3.15;
+}
+
+.kerala-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.kerala-card-img-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.15) 100%);
+  pointer-events: none;
+}
+
+/* Center card luxury pill badge */
+.kerala-center-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  padding: 3.5px 9px 3.5px 7px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+  z-index: 2;
+  border: 1px solid rgba(181, 141, 93, 0.35);
+}
+
+.kerala-center-num {
+  font-family: monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #B58D5D;
+  letter-spacing: 0.05em;
+}
+
+.kerala-center-district {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #143323;
+  letter-spacing: 0.02em;
+}
+
+/* ── Card Content ── */
+.kerala-card-content {
+  width: 100%;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  flex: 1;
+  justify-content: center;
+}
+
+.kerala-card-title {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #143323;
+  margin: 0 0 3px 0;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.kerala-arch-card.is-center-card .kerala-card-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #143323;
+  margin-bottom: 5px;
+}
+
+.kerala-card-readmore {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #7A8B7E;
+  letter-spacing: 0.01em;
+  transition: color 0.25s ease;
+}
+
+/* ── Center Card Expanded Content ── */
+.kerala-center-expanded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.kerala-center-tagline {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #4B5A51;
+  margin: 0;
+  max-width: 25ch;
+  text-align: center;
+}
+
+.kerala-center-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #143323;
+  color: #FAF8F5;
+  padding: 6.5px 16px;
+  border-radius: 999px;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 12px rgba(20, 51, 35, 0.18);
+  margin-top: 2px;
+}
+
+.kerala-center-cta:hover {
+  background: #B58D5D;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(181, 141, 93, 0.35);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NAVIGATION CHEVRON ARROWS
+   ══════════════════════════════════════════════════════════════ */
+.kerala-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(228, 222, 210, 0.9);
+  color: #143323;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 30;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kerala-nav-prev {
+  left: clamp(8px, 1.8vw, 36px);
+}
+
+.kerala-nav-next {
+  right: clamp(8px, 1.8vw, 36px);
+}
+
+.kerala-nav-arrow:hover {
+  background: #143323;
+  color: #FAF8F5;
+  border-color: #143323;
+  transform: translateY(-50%) scale(1.08);
+  box-shadow: 0 8px 24px rgba(20, 51, 35, 0.22);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PAGINATION DOTS INDICATOR
+   ══════════════════════════════════════════════════════════════ */
+.kerala-pagination {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 30;
+}
+
+.kerala-dot {
+  position: relative;
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background: rgba(20, 51, 35, 0.2);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.kerala-dot:hover {
+  background: rgba(181, 141, 93, 0.6);
+}
+
+.kerala-dot.is-active {
+  width: 30px;
+  border-radius: 999px;
+  background: rgba(181, 141, 93, 0.28);
+  box-shadow: 0 2px 8px rgba(181, 141, 93, 0.25);
+}
+
+.kerala-dot-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: #B58D5D;
+  border-radius: 999px;
+  animation: keralaDotProgress 4s linear forwards;
+}
+
+@keyframes keralaDotProgress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.kerala-dot-fill.is-paused {
+  animation-play-state: paused;
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .kerala-arch-card,
+  .kerala-card-inner,
+  .kerala-pill-progress-bar,
+  .kerala-dot-fill {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RESPONSIVE DESIGN BREAKPOINTS
+   ══════════════════════════════════════════════════════════════ */
+
+/* Laptop screens (960px - 1180px) */
+@media (max-width: 1180px) {
+  .kerala-arch-card {
+    --kerala-card-w: 195px;
+    --kerala-card-h: 250px;
+  }
+  .kerala-arch-card.is-center-card {
+    --kerala-card-w: 240px;
+    --kerala-card-h: 310px;
+  }
+  .kerala-arch-stage-container {
+    height: clamp(560px, 64vh, 660px);
+  }
+  .kerala-arch-card.slot-top-left,
+  .kerala-arch-card.slot-bottom-left {
+    --tx: -245px !important;
+  }
+  .kerala-arch-card.slot-top-right,
+  .kerala-arch-card.slot-bottom-right {
+    --tx: 245px !important;
+  }
+  .kerala-arch-card.slot-top-left,
+  .kerala-arch-card.slot-top-right {
+    --ty: -155px !important;
+  }
+  .kerala-arch-card.slot-bottom-left,
+  .kerala-arch-card.slot-bottom-right {
+    --ty: 155px !important;
+  }
+  .kerala-arch-card.slot-top-center {
+    --ty: -200px !important;
+  }
+  .kerala-arch-card.slot-bottom-center {
+    --ty: 200px !important;
+  }
+}
+
+/* Tablet screens (768px - 959px) */
+@media (max-width: 959px) {
   .kerala-3d-editorial-head {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    text-align: left;
-  }
-  .kerala-3d-head-left {
-    align-items: flex-start;
-    text-align: left;
   }
   .kerala-3d-desc {
     text-align: left;
-    margin: 0;
     max-width: 100%;
   }
+  .kerala-arch-card {
+    --kerala-card-w: 170px;
+    --kerala-card-h: 225px;
+  }
+  .kerala-arch-card.is-center-card {
+    --kerala-card-w: 220px;
+    --kerala-card-h: 285px;
+  }
+  .kerala-arch-stage-container {
+    height: 520px;
+  }
+  .kerala-arch-card.slot-top-left,
+  .kerala-arch-card.slot-bottom-left {
+    --tx: -205px !important;
+  }
+  .kerala-arch-card.slot-top-right,
+  .kerala-arch-card.slot-bottom-right {
+    --tx: 205px !important;
+  }
+  .kerala-arch-card.slot-top-left,
+  .kerala-arch-card.slot-top-right {
+    --ty: -130px !important;
+  }
+  .kerala-arch-card.slot-bottom-left,
+  .kerala-arch-card.slot-bottom-right {
+    --ty: 130px !important;
+  }
+  .kerala-arch-card.slot-top-center {
+    --ty: -170px !important;
+  }
+  .kerala-arch-card.slot-bottom-center {
+    --ty: 170px !important;
+  }
 }
 
-@media (max-width: 768px) {
-  .kerala-3d-wrap {
-    padding: 0 16px;
+/* Mobile screens (< 768px) */
+@media (max-width: 767px) {
+  .kerala-arch-stage-container.is-mobile-view {
+    height: 470px;
   }
-  .kerala-3d-explorer-section {
-    min-height: auto;
-    padding: 24px 0 clamp(40px, 5vh, 52px) 0;
-    scroll-snap-align: none;
+  .kerala-arch-card {
+    --kerala-card-w: 250px;
+    --kerala-card-h: 330px;
   }
-  .kerala-3d-bg-image {
-    background-position: 40% top;
+  .kerala-arch-card.is-center-card {
+    --kerala-card-w: 260px;
+    --kerala-card-h: 345px;
   }
-  .kerala-3d-stage {
-    gap: 22px;
+  .kerala-pills-bar {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 6px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
-  .kerala-3d-map-wrap {
-    height: 330px;
+  .kerala-pills-bar::-webkit-scrollbar {
+    display: none;
   }
-}
-
-@media (max-width: 540px) {
-  .kerala-3d-explorer-section {
-    padding: 20px 0 42px 0;
+  .kerala-pill-btn {
+    white-space: nowrap;
+    flex-shrink: 0;
   }
-  .kerala-3d-map-wrap {
-    height: 290px;
+  .kerala-nav-prev {
+    left: 4px;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .map-floating-pin-pill {
-    transition: none !important;
-    animation: none !important;
-    opacity: 1 !important;
-    transform: translate(-50%, -50%) !important;
-    pointer-events: auto !important;
+  .kerala-nav-next {
+    right: 4px;
   }
 }

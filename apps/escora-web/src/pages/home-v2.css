@@ -655,7 +655,7 @@ body {
 }
 
 .hero-editorial .sub-kerala {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-size: clamp(30px, 4.2vw, 54px);
   font-weight: 600;
   color: #162019;
@@ -663,7 +663,7 @@ body {
 }
 
 .hero-editorial .sub-yourway {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-style: italic;
   font-weight: 400;
   color: #c59b27;
@@ -914,10 +914,22 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: clamp(10px, 1.4vh, 18px);
-  padding-bottom: clamp(8px, 1.1vh, 14px);
+  margin-bottom: clamp(14px, 1.8vh, 22px);
+  padding-bottom: clamp(12px, 1.5vh, 18px);
   border-bottom: 1px solid var(--line);
   gap: 24px;
+}
+
+.cat-section-head-left {
+  flex-shrink: 0;
+}
+
+.cat-section-head-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  max-width: 660px;
 }
 
 .cat-section-head h2.display-md {
@@ -932,17 +944,93 @@ body {
   line-height: 1.6;
 }
 
-@media (max-width: 768px) {
+.cat-section-head-right p {
+  margin: 0;
+  text-align: right;
+}
+
+/* ─── Travel Personality Filter Bar (Matches Reference Image) ─── */
+.travel-type-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.travel-type-filter-pill {
+  appearance: none;
+  border: 1px solid rgba(19, 156, 184, 0.12);
+  background: #edf5f9;
+  color: #556877;
+  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 7px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  outline: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.travel-type-filter-pill:hover {
+  background: #e1eff5;
+  color: #139cb8;
+  border-color: rgba(19, 156, 184, 0.28);
+  transform: translateY(-1px);
+}
+
+.travel-type-filter-pill.active {
+  background: #139cb8;
+  color: #ffffff;
+  font-weight: 600;
+  border-color: #139cb8;
+  box-shadow: 0 4px 14px rgba(19, 156, 184, 0.35);
+  transform: translateY(-1px);
+}
+
+.travel-type-filter-pill:focus-visible {
+  outline: 2px solid #139cb8;
+  outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
   .cat-section-head {
     flex-direction: column;
     align-items: flex-start;
-    gap: 12px;
+    gap: 16px;
     margin-bottom: 20px;
     padding-bottom: 16px;
   }
-  .cat-section-head p {
+  .cat-section-head-right {
+    align-items: flex-start;
+    width: 100%;
+    max-width: 100%;
+    gap: 12px;
+  }
+  .cat-section-head-right p {
     text-align: left !important;
     max-width: 100% !important;
+  }
+  .travel-type-filter-bar {
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    width: 100%;
+    padding: 2px 2px 8px 2px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .travel-type-filter-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .travel-type-filter-pill {
+    flex-shrink: 0;
   }
 }
 
@@ -1084,7 +1172,7 @@ body {
   top: 24px;
   left: 24px;
   z-index: 4;
-  font-family: 'Melodrama', serif;
+  font-family: var(--f-heading, 'Fonarto', serif);
   font-size: 24px;
   font-weight: 300;
   color: rgba(255, 255, 255, 0.95);
@@ -1139,7 +1227,7 @@ body {
 }
 
 .travel-type-card .card-title {
-  font-family: 'Melodrama', serif;
+  font-family: var(--f-heading, 'Fonarto', serif);
   font-size: clamp(23px, 2.1vw, 29px);
   font-weight: 500;
   line-height: 1.15;
@@ -1462,13 +1550,13 @@ body {
   --mouse-y: 50%;
 }
 
-/* When any card is hovered, elevate it above all neighboring cards so its entire surface is 100% clickable */
-.coverflow-card:hover {
+/* When any explore card is hovered, elevate it above all neighboring cards */
+.explore-coverflow-wrap:not(.travel-type-coverflow-wrap) .coverflow-card:hover {
   z-index: 35 !important;
 }
 
 /* 3D Tilting Inner Card Box */
-.coverflow-card-inner {
+.explore-coverflow-wrap .coverflow-card-inner {
   position: relative;
   width: 100%;
   height: 100%;
@@ -1485,26 +1573,26 @@ body {
 }
 
 /* When mouse is actively moving / hovering over the card or its border - fast smooth follow */
-.coverflow-card.is-tilting .coverflow-card-inner {
+.explore-coverflow-wrap .coverflow-card.is-tilting .coverflow-card-inner {
   transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1),
               border-color 0.3s ease,
               box-shadow 0.3s ease;
 }
 
 /* Hovering over card / border gives glowing border sheen and elevated shadow */
-.coverflow-card:hover .coverflow-card-inner {
+.explore-coverflow-wrap .coverflow-card:hover .coverflow-card-inner {
   border-color: rgba(255, 255, 255, 0.62);
   box-shadow: 0 14px 30px -8px rgba(0, 0, 0, 0.24),
               0 6px 14px -4px rgba(0, 0, 0, 0.12),
               0 0 20px rgba(255, 255, 255, 0.12);
 }
 
-.coverflow-card[data-offset="0"] .coverflow-card-inner {
+.explore-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-card-inner {
   border-color: rgba(255, 255, 255, 0.42);
   box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.22), 0 5px 12px -4px rgba(0, 0, 0, 0.10);
 }
 
-.coverflow-card[data-offset="0"]:hover .coverflow-card-inner {
+.explore-coverflow-wrap .coverflow-card[data-offset="0"]:hover .coverflow-card-inner {
   border-color: rgba(255, 255, 255, 0.72);
   box-shadow: 0 16px 34px -8px rgba(0, 0, 0, 0.26),
               0 6px 16px -4px rgba(0, 0, 0, 0.14),
@@ -1512,7 +1600,7 @@ body {
 }
 
 /* Media wrapper clips the image and scrim to 8px rounded corners while letting 3D contents float */
-.coverflow-card-media {
+.explore-coverflow-wrap .coverflow-card-media {
   position: absolute;
   inset: 0;
   border-radius: 8px;
@@ -1522,7 +1610,7 @@ body {
 }
 
 /* Full-bleed destination photo with recessed depth */
-.coverflow-card-img {
+.explore-coverflow-wrap .coverflow-card-img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -1537,12 +1625,12 @@ body {
   pointer-events: none;
 }
 
-.coverflow-card:hover .coverflow-card-img {
+.explore-coverflow-wrap .coverflow-card:hover .coverflow-card-img {
   transform: translateZ(-12px) scale(1.05);
 }
 
 /* Dark gradient scrim on card */
-.coverflow-card-scrim {
+.explore-coverflow-wrap .coverflow-card-scrim {
   position: absolute;
   inset: 0;
   border-radius: 8px;
@@ -1559,7 +1647,7 @@ body {
 }
 
 /* Dynamic specular border glow following cursor */
-.coverflow-card-border-glow {
+.explore-coverflow-wrap .coverflow-card-border-glow {
   position: absolute;
   inset: 0;
   border-radius: 8px;
@@ -1576,12 +1664,12 @@ body {
   transform: translateZ(8px);
 }
 
-.coverflow-card:hover .coverflow-card-border-glow {
+.explore-coverflow-wrap .coverflow-card:hover .coverflow-card-border-glow {
   opacity: 1;
 }
 
 /* Center (Active) Card: offset 0 — exact 100% scale + subtle 1.04 pop (matches previous 266px look with zero layout reflow) */
-.coverflow-card[data-offset="0"] {
+.explore-coverflow-wrap .coverflow-card[data-offset="0"] {
   transform: translate3d(-50%, -50%, 0) scale(1.04) rotateY(0deg);
   z-index: 30;
   opacity: 1;
@@ -1589,40 +1677,40 @@ body {
 }
 
 /* Adjacent Cards: offset -1 (left) and 1 (right) — exact 10px gap */
-.coverflow-card[data-offset="-1"] {
+.explore-coverflow-wrap .coverflow-card[data-offset="-1"] {
   transform: translate3d(calc(-50% - 252px), -50%, -18px) scale(0.84) rotateY(15deg);
   z-index: 20;
   opacity: 0.94;
 }
 
-.coverflow-card[data-offset="1"] {
+.explore-coverflow-wrap .coverflow-card[data-offset="1"] {
   transform: translate3d(calc(-50% + 252px), -50%, -18px) scale(0.84) rotateY(-15deg);
   z-index: 20;
   opacity: 0.94;
 }
 
 /* Outer Cards: offset -2 (far left) and 2 (far right) — exact 10px gap */
-.coverflow-card[data-offset="-2"] {
+.explore-coverflow-wrap .coverflow-card[data-offset="-2"] {
   transform: translate3d(calc(-50% - 482px), -50%, -36px) scale(0.76) rotateY(21deg);
   z-index: 10;
   opacity: 0.85;
 }
 
-.coverflow-card[data-offset="2"] {
+.explore-coverflow-wrap .coverflow-card[data-offset="2"] {
   transform: translate3d(calc(-50% + 482px), -50%, -36px) scale(0.76) rotateY(-21deg);
   z-index: 10;
   opacity: 0.85;
 }
 
 /* Off-screen exiting/entering cards: offset -3 and 3 — smooth dissolve glide transition */
-.coverflow-card[data-offset="-3"] {
+.explore-coverflow-wrap .coverflow-card[data-offset="-3"] {
   transform: translate3d(calc(-50% - 694px), -50%, -60px) scale(0.68) rotateY(26deg);
   z-index: 2;
   opacity: 0;
   pointer-events: none;
 }
 
-.coverflow-card[data-offset="3"] {
+.explore-coverflow-wrap .coverflow-card[data-offset="3"] {
   transform: translate3d(calc(-50% + 694px), -50%, -60px) scale(0.68) rotateY(-26deg);
   z-index: 2;
   opacity: 0;
@@ -1630,14 +1718,14 @@ body {
 }
 
 /* Hidden cards outside the active transition range */
-.coverflow-card[data-offset="hidden-left"] {
+.explore-coverflow-wrap .coverflow-card[data-offset="hidden-left"] {
   transform: translate3d(calc(-50% - 808px), -50%, -80px) scale(0.60) rotateY(30deg);
   z-index: 1;
   opacity: 0;
   pointer-events: none;
 }
 
-.coverflow-card[data-offset="hidden-right"] {
+.explore-coverflow-wrap .coverflow-card[data-offset="hidden-right"] {
   transform: translate3d(calc(-50% + 808px), -50%, -80px) scale(0.60) rotateY(-30deg);
   z-index: 1;
   opacity: 0;
@@ -1717,7 +1805,7 @@ body {
 }
 
 .coverflow-center-title {
-  font-family: 'Melodrama', 'Cinzel', 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-size: clamp(24px, 2.8vw, 32px);
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -2183,605 +2271,7 @@ body {
   }
 }
 
-/* ==========================================================================
-   Travel by Type 3D Coverflow (Restored Immersive Card Sizes & Reference Design)
-   ========================================================================== */
-
-.travel-type-coverflow-wrap {
-  position: relative;
-  width: 100%;
-  margin-top: clamp(10px, 1.6vh, 20px);
-  user-select: none;
-  outline: none;
-  overflow: visible;
-  padding: 0;
-}
-
-.travel-type-coverflow-wrap .coverflow-stage-container {
-  position: relative;
-  width: 100%;
-  max-width: 1640px;
-  height: clamp(580px, 64vh, 660px);
-  margin: 0 auto;
-}
-
-.travel-type-coverflow-wrap .coverflow-stage {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  perspective: 1200px;
-  transform-style: preserve-3d;
-  pointer-events: none;
-  contain: layout style;
-  isolation: isolate;
-}
-
-/* Base Card Dimensions: Large, immersive proportions matching reference design */
-.travel-type-coverflow-wrap .coverflow-card {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: clamp(285px, 19.5vw, 320px);
-  height: clamp(520px, 58vh, 575px);
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.001);
-  cursor: pointer;
-  pointer-events: auto;
-  user-select: none;
-  -webkit-user-select: none;
-  outline: none;
-  text-decoration: none;
-  will-change: transform, opacity;
-  transition: transform 1.15s cubic-bezier(0.25, 1, 0.35, 1),
-              opacity 1.15s cubic-bezier(0.25, 1, 0.35, 1);
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  --tilt-x: 0deg;
-  --tilt-y: 0deg;
-  --mouse-x: 50%;
-  --mouse-y: 50%;
-}
-
-.travel-type-coverflow-wrap .coverflow-card-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.44), 0 10px 22px -5px rgba(0, 0, 0, 0.22);
-  transform-style: preserve-3d;
-  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateZ(0);
-  transition: transform 0.65s cubic-bezier(0.25, 1, 0.35, 1),
-              border-color 0.4s ease,
-              box-shadow 0.4s ease;
-  will-change: transform;
-}
-
-.travel-type-coverflow-wrap .coverflow-card:hover .coverflow-card-inner {
-  border-color: rgba(212, 169, 79, 0.65);
-  box-shadow: 0 32px 64px -12px rgba(0, 0, 0, 0.55), 0 14px 28px -6px rgba(0, 0, 0, 0.28), 0 0 24px rgba(212, 169, 79, 0.25);
-}
-
-.travel-type-coverflow-wrap .coverflow-card-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 12px;
-  display: block;
-  transform: translateZ(-6px) scale(1);
-  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  pointer-events: none;
-}
-
-.travel-type-coverflow-wrap .coverflow-card:hover .coverflow-card-img {
-  transform: translateZ(-12px) scale(1.05);
-}
-
-.travel-type-coverflow-wrap .coverflow-card-scrim {
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.38) 0%,
-    rgba(0, 0, 0, 0.05) 28%,
-    rgba(0, 0, 0, 0.25) 55%,
-    rgba(0, 0, 0, 0.82) 82%,
-    rgba(0, 0, 0, 0.96) 100%
-  );
-  pointer-events: none;
-  transform: translateZ(2px);
-}
-
-.travel-type-coverflow-wrap .coverflow-card-border-glow {
-  position: absolute;
-  inset: 0;
-  border-radius: 12px;
-  pointer-events: none;
-  opacity: 0;
-  background: radial-gradient(
-    320px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(255, 255, 255, 0.24) 0%,
-    rgba(255, 255, 255, 0.06) 42%,
-    transparent 70%
-  );
-  transition: opacity 0.35s ease;
-  z-index: 3;
-  transform: translateZ(8px);
-}
-
-.travel-type-coverflow-wrap .coverflow-card:hover .coverflow-card-border-glow {
-  opacity: 1;
-}
-
-/* 3D Staged Positions — Restoring tight cohesive spacing from reference screenshot */
-
-/* Active Center Card (Offset 0) — Majestic scale 1.08, ~340px × 605px visual prominence */
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] {
-  transform: translate3d(-50%, -50%, 0) scale(1.08) rotateY(0deg);
-  z-index: 30;
-  opacity: 1;
-  cursor: pointer;
-}
-
-/* Neighboring Cards (Offset -1 & 1) — Substantial scale 0.88, ~277px × 493px, ~8px visual gap */
-.travel-type-coverflow-wrap .coverflow-card[data-offset="-1"] {
-  transform: translate3d(calc(-50% - 312px), -50%, -20px) scale(0.88) rotateY(14deg);
-  z-index: 20;
-  opacity: 0.95;
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="1"] {
-  transform: translate3d(calc(-50% + 312px), -50%, -20px) scale(0.88) rotateY(-14deg);
-  z-index: 20;
-  opacity: 0.95;
-}
-
-/* Outer Visible Cards (Offset -2 & 2) — Immersive scale 0.78, ~246px × 437px */
-.travel-type-coverflow-wrap .coverflow-card[data-offset="-2"] {
-  transform: translate3d(calc(-50% - 580px), -50%, -40px) scale(0.78) rotateY(20deg);
-  z-index: 10;
-  opacity: 0.88;
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="2"] {
-  transform: translate3d(calc(-50% + 580px), -50%, -40px) scale(0.78) rotateY(-20deg);
-  z-index: 10;
-  opacity: 0.88;
-}
-
-/* Off-screen exiting cards (Offset -3 & 3) — smooth fade-glide into wings */
-.travel-type-coverflow-wrap .coverflow-card[data-offset="-3"] {
-  transform: translate3d(calc(-50% - 820px), -50%, -60px) scale(0.68) rotateY(25deg);
-  z-index: 2;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="3"] {
-  transform: translate3d(calc(-50% + 820px), -50%, -60px) scale(0.68) rotateY(-25deg);
-  z-index: 2;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="hidden-left"] {
-  transform: translate3d(calc(-50% - 940px), -50%, -80px) scale(0.60) rotateY(28deg);
-  z-index: 1;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="hidden-right"] {
-  transform: translate3d(calc(-50% + 940px), -50%, -80px) scale(0.60) rotateY(-28deg);
-  z-index: 1;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* --- Center (Active) Card Editorial Content with 3D Depth --- */
-.travel-type-coverflow-wrap .coverflow-center-top {
-  position: absolute;
-  top: clamp(24px, 3.2vh, 34px);
-  left: 0;
-  right: 0;
-  text-align: center;
-  z-index: 10;
-  pointer-events: none;
-  transform-style: preserve-3d;
-  transform: translateZ(36px);
-  opacity: 0;
-  transition: transform 0.9s cubic-bezier(0.25, 1, 0.35, 1),
-              opacity 0.6s cubic-bezier(0.25, 1, 0.35, 1);
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-center-top {
-  opacity: 1;
-}
-
-.travel-type-coverflow-wrap .coverflow-loc-label {
-  font-family: var(--f-mono), monospace;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #ffffff;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.75);
-  display: inline-block;
-}
-
-.travel-type-coverflow-wrap .coverflow-loc-line {
-  display: block;
-  width: 44px;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.65);
-  margin: 8px auto 0 auto;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
-}
-
-.travel-type-coverflow-wrap .coverflow-center-bottom {
-  position: absolute;
-  bottom: clamp(28px, 4vh, 42px);
-  left: 20px;
-  right: 20px;
-  text-align: center;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  pointer-events: none;
-  transform-style: preserve-3d;
-  transform: translateZ(48px);
-  opacity: 0;
-  transition: transform 0.9s cubic-bezier(0.25, 1, 0.35, 1),
-              opacity 0.6s cubic-bezier(0.25, 1, 0.35, 1);
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-center-bottom {
-  opacity: 1;
-}
-
-.travel-type-coverflow-wrap .coverflow-center-title {
-  font-family: 'Melodrama', var(--f-display), Georgia, serif;
-  font-size: clamp(28px, 2.6vw, 36px);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #ffffff;
-  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.5);
-  line-height: 1.08;
-  margin: 0;
-  width: 100%;
-  max-width: 100%;
-  text-align: center;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  text-wrap: balance;
-}
-
-.travel-type-coverflow-wrap .coverflow-center-desc {
-  font-family: var(--f-sans, system-ui, -apple-system, sans-serif);
-  font-size: clamp(12px, 0.9vw, 13.5px);
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  color: rgba(255, 255, 255, 0.92);
-  line-height: 1.55;
-  max-width: 32ch;
-  margin: 12px auto 0 auto;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75);
-  text-align: center;
-}
-
-.travel-type-coverflow-wrap .coverflow-explore-cta {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: 18px;
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.travel-type-coverflow-wrap .coverflow-explore-cta .cta-text {
-  font-family: var(--f-mono), monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
-  transition: color 0.3s ease;
-}
-
-.travel-type-coverflow-wrap .coverflow-explore-cta .cta-gold-line {
-  display: block;
-  width: 52px;
-  height: 1.5px;
-  background: #D4A94F;
-  margin-top: 6px;
-  box-shadow: 0 3px 10px rgba(212, 169, 79, 0.6);
-  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s;
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"]:hover .coverflow-explore-cta .cta-gold-line,
-.travel-type-coverflow-wrap .coverflow-explore-cta:hover .cta-gold-line {
-  width: 68px;
-  box-shadow: 0 4px 14px rgba(212, 169, 79, 0.85);
-}
-
-/* --- Inactive Side Cards: Destination name at bottom-left with gold underline --- */
-.travel-type-coverflow-wrap .coverflow-side-caption {
-  position: absolute;
-  bottom: 24px;
-  left: 22px;
-  right: 22px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  pointer-events: none;
-  transform-style: preserve-3d;
-  transform: translateZ(36px);
-  opacity: 1;
-  transition: transform 0.9s cubic-bezier(0.25, 1, 0.35, 1),
-              opacity 0.6s cubic-bezier(0.25, 1, 0.35, 1);
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-side-caption {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.travel-type-coverflow-wrap .side-dest-name {
-  font-family: var(--f-mono), monospace;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #ffffff;
-  text-shadow: 0 6px 18px rgba(0, 0, 0, 0.85), 0 2px 6px rgba(0, 0, 0, 0.6);
-  display: inline-block;
-  line-height: 1.25;
-}
-
-.travel-type-coverflow-wrap .side-gold-line {
-  display: block;
-  width: 24px;
-  height: 1.5px;
-  background: #D4A94F;
-  margin-top: 6px;
-  box-shadow: 0 3px 10px rgba(212, 169, 79, 0.5);
-  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.travel-type-coverflow-wrap .coverflow-card:hover .side-gold-line {
-  width: 36px;
-}
-
-/* --- Controls: Navigation Buttons --- */
-.travel-type-coverflow-wrap .coverflow-nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #ffffff;
-  color: #17201a;
-  border: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  pointer-events: auto;
-  z-index: 50;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.25s,
-              background-color 0.2s;
-}
-
-.travel-type-coverflow-wrap .coverflow-nav-btn:hover {
-  transform: translateY(-50%) scale(1.08);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
-  background: #ffffff;
-}
-
-.travel-type-coverflow-wrap .coverflow-nav-btn.prev {
-  left: max(16px, calc(50% - 730px));
-}
-
-.travel-type-coverflow-wrap .coverflow-nav-btn.next {
-  right: max(16px, calc(50% - 730px));
-}
-
-/* --- Controls: Pagination Indicators Directly Beneath Active Center Card --- */
-.travel-type-coverflow-wrap .coverflow-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: clamp(14px, 2vh, 22px);
-  z-index: 10;
-  position: relative;
-}
-
-.travel-type-coverflow-wrap .coverflow-dot {
-  height: 3.5px;
-  border-radius: 3px;
-  border: none;
-  padding: 0;
-  background: rgba(30, 42, 33, 0.28);
-  cursor: pointer;
-  transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  width: 12px;
-}
-
-.travel-type-coverflow-wrap .coverflow-dot:hover {
-  background: rgba(30, 42, 33, 0.55);
-}
-
-.travel-type-coverflow-wrap .coverflow-dot.active {
-  width: 28px;
-  background: #D4A94F;
-}
-
-/* --- Responsive Sizing Rules --- */
-
-/* Laptops / Smaller Desktops (<= 1480px) */
-@media (max-width: 1480px) {
-  .travel-type-coverflow-wrap .coverflow-stage-container,
-  .travel-type-coverflow-wrap .coverflow-stage {
-    height: 560px;
-  }
-  .travel-type-coverflow-wrap .coverflow-card {
-    width: 275px;
-    height: 495px;
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="0"] {
-    transform: translate3d(-50%, -50%, 0) scale(1.06) rotateY(0deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="-1"] {
-    transform: translate3d(calc(-50% - 272px), -50%, -18px) scale(0.86) rotateY(14deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="1"] {
-    transform: translate3d(calc(-50% + 272px), -50%, -18px) scale(0.86) rotateY(-14deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="-2"] {
-    transform: translate3d(calc(-50% - 508px), -50%, -36px) scale(0.76) rotateY(20deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="2"] {
-    transform: translate3d(calc(-50% + 508px), -50%, -36px) scale(0.76) rotateY(-20deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-nav-btn.prev {
-    left: max(12px, calc(50% - 635px));
-  }
-  .travel-type-coverflow-wrap .coverflow-nav-btn.next {
-    right: max(12px, calc(50% - 635px));
-  }
-}
-
-/* Medium Screens / Small Laptops (<= 1200px) */
-@media (max-width: 1200px) {
-  .travel-type-coverflow-wrap .coverflow-stage-container,
-  .travel-type-coverflow-wrap .coverflow-stage {
-    height: 520px;
-  }
-  .travel-type-coverflow-wrap .coverflow-card {
-    width: 255px;
-    height: 460px;
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="0"] {
-    transform: translate3d(-50%, -50%, 0) scale(1.05) rotateY(0deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="-1"] {
-    transform: translate3d(calc(-50% - 245px), -50%, -18px) scale(0.85) rotateY(14deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="1"] {
-    transform: translate3d(calc(-50% + 245px), -50%, -18px) scale(0.85) rotateY(-14deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="-2"] {
-    transform: translate3d(calc(-50% - 455px), -50%, -36px) scale(0.75) rotateY(20deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="2"] {
-    transform: translate3d(calc(-50% + 455px), -50%, -36px) scale(0.75) rotateY(-20deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-nav-btn.prev {
-    left: max(10px, calc(50% - 565px));
-  }
-  .travel-type-coverflow-wrap .coverflow-nav-btn.next {
-    right: max(10px, calc(50% - 565px));
-  }
-}
-
-/* Tablets (<= 1023px) — 3 visible cards */
-@media (max-width: 1023px) {
-  .travel-type-coverflow-wrap .coverflow-stage-container,
-  .travel-type-coverflow-wrap .coverflow-stage {
-    height: 490px;
-  }
-  .travel-type-coverflow-wrap .coverflow-card {
-    width: 250px;
-    height: 440px;
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="0"] {
-    transform: translate3d(-50%, -50%, 0) scale(1.04) rotateY(0deg);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="-1"] {
-    transform: translate3d(calc(-50% - 240px), -50%, -20px) scale(0.86) rotateY(15deg);
-    opacity: 0.95;
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="1"] {
-    transform: translate3d(calc(-50% + 240px), -50%, -20px) scale(0.86) rotateY(-15deg);
-    opacity: 0.95;
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="-2"] {
-    transform: translate3d(calc(-50% - 420px), -50%, -40px) scale(0.75) rotateY(21deg);
-    opacity: 0;
-    pointer-events: none;
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="2"] {
-    transform: translate3d(calc(-50% + 420px), -50%, -40px) scale(0.75) rotateY(-21deg);
-    opacity: 0;
-    pointer-events: none;
-  }
-  .travel-type-coverflow-wrap .coverflow-nav-btn.prev {
-    left: 14px;
-  }
-  .travel-type-coverflow-wrap .coverflow-nav-btn.next {
-    right: 14px;
-  }
-}
-
-/* Mobile (<= 640px) */
-@media (max-width: 640px) {
-  .travel-type-coverflow-wrap .coverflow-stage-container,
-  .travel-type-coverflow-wrap .coverflow-stage {
-    height: min(470px, 130vw);
-  }
-  .travel-type-coverflow-wrap .coverflow-card {
-    width: min(275px, 76vw);
-    height: min(440px, 122vw);
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="0"] {
-    transform: translate3d(-50%, -50%, 0) scale(1) rotateY(0deg);
-    opacity: 1;
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="-1"] {
-    transform: translate3d(calc(-50% - 130px), -50%, -30px) scale(0.82) rotateY(12deg);
-    opacity: 0.36;
-    pointer-events: auto;
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="1"] {
-    transform: translate3d(calc(-50% + 130px), -50%, -30px) scale(0.82) rotateY(-12deg);
-    opacity: 0.36;
-    pointer-events: auto;
-  }
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="-2"],
-  .travel-type-coverflow-wrap .coverflow-card[data-offset="2"] {
-    transform: translate3d(calc(-50% - 240px), -50%, -50px) scale(0.70) rotateY(20deg);
-    opacity: 0;
-    pointer-events: none;
-  }
-  .travel-type-coverflow-wrap .coverflow-nav-btn {
-    width: 38px;
-    height: 38px;
-  }
-  .travel-type-coverflow-wrap .coverflow-nav-btn.prev {
-    left: 4px;
-  }
-  .travel-type-coverflow-wrap .coverflow-nav-btn.next {
-    right: 4px;
-  }
-}
+/* Travel by Type 3D Coverflow is styled in TravelTypeCoverflow.css */
 
 .explore-card {
   position: relative;
@@ -4887,7 +4377,7 @@ a.enquiry-contact-val:hover {
 }
 
 .why-esc-heading {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-size: clamp(28px, 3.2vw, 44px);
   font-weight: 400;
   line-height: 1.12;
@@ -4900,7 +4390,7 @@ a.enquiry-contact-val:hover {
 .why-esc-heading-em {
   font-style: italic;
   color: #B08A56;
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
 }
 
 .why-esc-desc {
@@ -5009,7 +4499,7 @@ a.enquiry-contact-val:hover {
 }
 
 .why-esc-card-title {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-size: clamp(15px, 1.1vw, 17.5px);
   font-weight: 500;
   color: #143323;

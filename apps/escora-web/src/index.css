@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Cinzel:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap");
+@import "./fonts/fonarto.css";
 @import "./fonts/melodrama.css";
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -7,7 +8,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-editorial: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+  --font-editorial: 'Fonarto', 'Playfair Display', Georgia, serif;
   --color-background: var(--bg);
   --color-foreground: var(--ink);
   --color-border: var(--line);
@@ -59,9 +60,9 @@
   --color-line-strong: var(--line-strong);
 
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-heading: 'Playfair Display', Georgia, serif;
-  --font-display: 'Playfair Display', Georgia, serif;
+  --font-serif: 'Fonarto', 'Playfair Display', Georgia, serif;
+  --font-heading: 'Fonarto', 'Playfair Display', Georgia, serif;
+  --font-display: 'Fonarto', 'Playfair Display', Georgia, serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   --text-xs: 0.75rem;
@@ -126,9 +127,9 @@
   --hair: #CCD7D2;
   --hair-soft: #DCE5E0;
   --tint: rgba(26, 63, 44, 0.07);
-  --f-display: 'Playfair Display', Georgia, serif;
-  --f-serif: 'Playfair Display', Georgia, serif;
-  --f-heading: 'Playfair Display', Georgia, serif;
+  --f-display: 'Fonarto', 'Playfair Display', Georgia, serif;
+  --f-serif: 'Fonarto', 'Playfair Display', Georgia, serif;
+  --f-heading: 'Fonarto', 'Playfair Display', Georgia, serif;
   --f-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --f-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --f-mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -219,14 +220,15 @@ html, body {
   background-color: #193F2D;
 }
 
-/* Ensure all headings and display classes use Playfair Display */
+/* Ensure all headings and display classes use Fonarto */
 h1, h2, h3, h4, h5, h6,
-.display-xl, .display-lg, .display-md, .display-sm {
-  font-family: var(--f-heading);
+.display-xl, .display-lg, .display-md, .display-sm,
+.font-heading, .heading-font {
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
 }
 
 .font-serif {
-  font-family: 'Playfair Display', Georgia, serif !important;
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
 }
 
 .font-sans {

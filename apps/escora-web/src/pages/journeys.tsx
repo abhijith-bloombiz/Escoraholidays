@@ -161,7 +161,7 @@ export default function Journeys() {
               </p>
               <span className="w-8 h-[1px] bg-[#8C7355]/40 inline-block" />
             </div>
-            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#183628] leading-[1.08] font-normal tracking-tight mb-3 sm:mb-4">
+            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] leading-[1.08] font-normal tracking-tight mb-3 sm:mb-4">
               Immaculate <em className="italic font-light">Journeys</em>
             </h1>
             <p className="font-sans text-[#4A5D53] text-sm sm:text-base leading-relaxed max-w-xl">
@@ -316,7 +316,7 @@ export default function Journeys() {
             </div>
           ) : (
             <div className="text-center py-16 bg-[#EFF4F0] rounded-2xl max-w-xl mx-auto border border-[#E2EAE4] p-8">
-              <p className="font-editorial text-2xl text-[#183628] font-normal">No journeys found for this category.</p>
+              <p className="font-editorial text-2xl text-[#293D1F] font-normal">No journeys found for this category.</p>
               <button 
                 onClick={() => { setActiveFilter("All"); setDurationIdx(0); setDestFilter("All"); }}
                 className="mt-6 font-sans text-xs uppercase tracking-widest text-white bg-[#183628] hover:bg-[#26533A] px-6 py-2.5 rounded-full transition-colors cursor-pointer"

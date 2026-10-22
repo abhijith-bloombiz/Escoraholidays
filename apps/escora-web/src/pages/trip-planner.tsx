@@ -715,7 +715,7 @@ export default function TripPlannerPage() {
               <span>Grounded Slow-Luxury Engine</span>
             </div>
 
-            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-[#193F2D] leading-tight">
+            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-[#293D1F] leading-tight">
               Tailor Your Slow Voyage <br />
               <span className="italic font-normal text-[#758B78]">Across God&apos;s Own Country</span>
             </h1>
@@ -905,7 +905,7 @@ export default function TripPlannerPage() {
                       </span>
                     </div>
 
-                    <h2 className="font-serif text-2xl sm:text-3xl font-medium text-[#193F2D] tracking-tight">
+                    <h2 className="font-serif text-2xl sm:text-3xl font-medium text-[#293D1F] tracking-tight">
                       {currentStep === 1 && "When are you travelling?"}
                       {currentStep === 2 && "Who is travelling with you?"}
                       {currentStep === 3 && "What kind of journey are you envisioning?"}
@@ -1792,7 +1792,7 @@ export default function TripPlannerPage() {
                 <Compass className="h-7 w-7 animate-spin [animation-duration:8s]" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-serif text-lg font-semibold text-[#193F2D]">
+                <h3 className="font-serif text-lg font-semibold text-[#293D1F]">
                   Curating Your Slow-Luxury Passage
                 </h3>
                 <p className="text-xs text-[#56664C] italic font-mono transition-all duration-300">
@@ -1937,7 +1937,7 @@ export default function TripPlannerPage() {
                 <div className="space-y-3 pt-1">
                   <div className="relative inline-block">
                     <h2
-                      className={`font-serif text-2xl sm:text-4xl lg:text-[2.6rem] font-medium text-[#193F2D] leading-[1.2] tracking-tight ${
+                      className={`font-serif text-2xl sm:text-4xl lg:text-[2.6rem] font-medium text-[#293D1F] leading-[1.2] tracking-tight ${
                         isComposing ? "animate-clip-title" : ""
                       }`}
                     >
@@ -2085,7 +2085,7 @@ export default function TripPlannerPage() {
                     <span className="text-[10px] font-mono uppercase tracking-widest text-[#758B78] font-semibold block">
                       Curated Chronicle
                     </span>
-                    <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#193F2D] mt-0.5">
+                    <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#293D1F] mt-0.5">
                       Day-by-Day Journey Arc
                     </h3>
                   </div>
@@ -2122,7 +2122,7 @@ export default function TripPlannerPage() {
                           {/* Day Header */}
                           <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#D5DED7]/50 pb-3">
                             <div className="flex flex-wrap items-baseline gap-2">
-                              <h4 className="font-serif font-medium text-base sm:text-lg text-[#193F2D]">
+                              <h4 className="font-serif font-medium text-base sm:text-lg text-[#293D1F]">
                                 {day.title}
                               </h4>
                               {day.theme && (
@@ -2199,7 +2199,7 @@ export default function TripPlannerPage() {
                   <div className="w-10 h-10 rounded-full bg-white border border-[#D5DED7] flex items-center justify-center mx-auto text-[#193F2D]">
                     <Compass className="h-5 w-5" />
                   </div>
-                  <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#193F2D]">
+                  <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#293D1F]">
                     Bring This Voyage to Life
                   </h3>
                   <p className="text-xs sm:text-sm text-[#56664C] max-w-xl mx-auto leading-relaxed">

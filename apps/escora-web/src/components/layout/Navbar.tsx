@@ -88,33 +88,43 @@ export default function Navbar() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 gap: 16,
-                padding: scrolled ? "11px 24px 11px 30px" : "14px 28px 14px 34px",
-                width: scrolled ? "min(1340px, calc(100vw - 44px))" : "min(1380px, calc(100vw - 44px))",
-                background: scrolled ? "rgba(253, 250, 243, 0.95)" : "transparent",
-                backdropFilter: scrolled ? "blur(20px)" : "none",
-                WebkitBackdropFilter: scrolled ? "blur(20px)" : "none",
-                border: scrolled ? "1px solid rgba(220, 214, 200, 0.7)" : "none",
-                borderRadius: 999,
-                boxShadow: scrolled ? "0 10px 30px rgba(0,0,0,0.06)" : "none",
+                padding: "16px 36px 16px 40px",
+                width: "min(1440px, calc(100vw - 44px))",
+                minHeight: 72,
+                background: scrolled
+                  ? "linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.48) 100%)"
+                  : "linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.26) 100%)",
+                backdropFilter: "blur(20px) saturate(180%)",
+                WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                border: scrolled ? "1.5px solid rgba(255, 255, 255, 0.94)" : "1.5px solid rgba(255, 255, 255, 0.78)",
+                borderRadius: 20,
+                boxShadow: scrolled
+                  ? "0 14px 40px rgba(19, 51, 36, 0.08), 0 3px 10px rgba(0, 0, 0, 0.03), inset 0 1.5px 2px rgba(255, 255, 255, 1)"
+                  : "0 10px 32px rgba(19, 51, 36, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02), inset 0 1px 1.5px rgba(255, 255, 255, 0.95)",
                 transition: "top 0.4s cubic-bezier(0.16,1,0.3,1), background 0.4s, border 0.4s, box-shadow 0.4s, padding 0.4s, width 0.4s",
               }
             : {
                 position: "fixed",
-                top: scrolled ? 12 : 18,
+                top: scrolled ? 14 : 18,
                 left: "50%",
                 transform: "translateX(-50%)",
                 zIndex: 200,
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
-                padding: scrolled ? "11px 24px 11px 30px" : "14px 28px 14px 34px",
-                width: scrolled ? "min(1340px, calc(100vw - 44px))" : "min(1380px, calc(100vw - 44px))",
-                background: scrolled ? "rgba(13, 10, 7, 0.92)" : "rgba(21, 16, 11, 0.62)",
-                backdropFilter: "blur(26px) saturate(150%)",
-                WebkitBackdropFilter: "blur(26px) saturate(150%)",
-                border: `1px solid ${scrolled ? "rgba(232, 220, 196, 0.14)" : "rgba(232, 220, 196, 0.1)"}`,
-                borderRadius: 999,
-                boxShadow: "0 1px 0 rgba(232,220,196,0.06) inset, 0 14px 40px rgba(0,0,0,0.45)",
+                padding: "16px 36px 16px 40px",
+                width: "min(1440px, calc(100vw - 44px))",
+                minHeight: 72,
+                background: scrolled
+                  ? "linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.48) 100%)"
+                  : "linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.26) 100%)",
+                backdropFilter: "blur(20px) saturate(180%)",
+                WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                border: scrolled ? "1.5px solid rgba(255, 255, 255, 0.94)" : "1.5px solid rgba(255, 255, 255, 0.78)",
+                borderRadius: 20,
+                boxShadow: scrolled
+                  ? "0 14px 40px rgba(19, 51, 36, 0.08), 0 3px 10px rgba(0, 0, 0, 0.03), inset 0 1.5px 2px rgba(255, 255, 255, 1)"
+                  : "0 10px 32px rgba(19, 51, 36, 0.06), 0 2px 6px rgba(0, 0, 0, 0.02), inset 0 1px 1.5px rgba(255, 255, 255, 0.95)",
                 transition: "top 0.45s cubic-bezier(0.16,1,0.3,1), background 0.45s, border-color 0.45s, padding 0.4s, width 0.4s",
               }
         }
@@ -125,7 +135,7 @@ export default function Navbar() {
             src={isHome && !menuOpen ? escoraLogoDark : escoraWordmark}
             alt="Escora"
             style={{
-              height: isHome ? (scrolled ? 28 : 34) : (scrolled ? 26 : 30),
+              height: 38,
               width: "auto",
               display: "block",
               transition: "height 0.3s cubic-bezier(0.16,1,0.3,1)",
@@ -330,9 +340,9 @@ export default function Navbar() {
           <a
             href="/plan"
             style={{
-              background: isHome ? "#141f17" : "var(--gold)",
-              color: isHome ? "#ffffff" : "var(--bg)",
-              border: `1px solid ${isHome ? "#141f17" : "var(--gold)"}`,
+              background: "#e8d2ac",
+              color: "#141f17",
+              border: "1px solid #e8d2ac",
               padding: isHome ? "10px 22px" : "9px 18px",
               borderRadius: 999,
               fontFamily: "var(--f-body)",
@@ -348,18 +358,14 @@ export default function Navbar() {
             }}
             onMouseEnter={(e) => {
               const el = e.currentTarget as HTMLElement;
-              if (isHome) {
-                el.style.background = "#c59b27";
-                el.style.borderColor = "#c59b27";
-              } else {
-                el.style.background = "var(--gold-bright)";
-              }
+              el.style.background = "#dec49c";
+              el.style.borderColor = "#dec49c";
               el.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
               const el = e.currentTarget as HTMLElement;
-              el.style.background = isHome ? "#141f17" : "var(--gold)";
-              el.style.borderColor = isHome ? "#141f17" : "var(--gold)";
+              el.style.background = "#e8d2ac";
+              el.style.borderColor = "#e8d2ac";
               el.style.transform = "translateY(0)";
             }}
           >
@@ -583,8 +589,8 @@ export default function Navbar() {
           onClick={() => setMenuOpen(false)}
           style={{
             marginTop: 24,
-            background: "var(--gold)",
-            color: "var(--bg)",
+            background: "#e8d2ac",
+            color: "#141f17",
             padding: "14px 36px",
             borderRadius: 999,
             fontFamily: "var(--f-body)",

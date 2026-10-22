@@ -2,10 +2,8 @@ import { useEffect, useRef } from "react";
 
 export const DEFAULT_HOMEPAGE_SECTIONS = [
   "hero",
-  "the-escora-way",
   "categories",
   "explore-kerala",
-  "dest-360",
   "why-escora",
   "how-it-works",
   "retreat",

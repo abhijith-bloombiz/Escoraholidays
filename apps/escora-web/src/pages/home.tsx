@@ -11,18 +11,16 @@ import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
 import { TravelTypeCoverflow, TravelTypeItem, formatTravelCategoryTitle } from "@/components/TravelTypeCoverflow";
 import { Flower2, SunMedium, Swords, HeartPulse } from "lucide-react";
-import TheEscoraWay from "@/components/TheEscoraWay";
 import Kerala3DDestinationExplorer from "@/components/Kerala3DDestinationExplorer";
-import Destination360Experience from "@/components/Destination360Experience";
 import FromYourIdeaToKerala from "@/components/FromYourIdeaToKerala";
 import TropicalLagoonHero from "@/components/TropicalLagoonHero";
-import whyEscoraBg from "@assets/escora/why-escora-bg.jpeg";
 import typeWildlife from "@assets/escora/collections/nature-wildlife-hero.jpg";
 import typeHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
 import typeHoneymoon from "@assets/escora/collections/honeymoon-hero.jpg";
 import typeAyurveda from "@assets/escora/collections/panchakarma.jpg";
 import typeMedicine from "@assets/escora/collections/medical-tourism.jpeg";
 import { KERALA_DESTINATIONS, DESTINATION_BADGES } from "@/lib/keralaDestinations";
+import EscoraContactCard from "@/components/EscoraContactCard";
 import "./home-v2.css";
 
 const FALLBACK_PACKAGES = [
@@ -385,6 +383,7 @@ export default function Home() {
   const [whyVideoOpen, setWhyVideoOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeCat, setActiveCat] = useState("all");
+  const [activeTravelTypeIndex, setActiveTravelTypeIndex] = useState(1);
   const [enquirySent, setEnquirySent] = useState(false);
   const [enquiryError, setEnquiryError] = useState("");
 
@@ -397,7 +396,20 @@ export default function Home() {
   const packagesRef = useRef<HTMLElement>(null);
   const exploreSectionRef = useRef<HTMLElement>(null);
 
-  const [activeRetreatCard, setActiveRetreatCard] = useState<number>(1);
+  const [activeRetreatCard, setActiveRetreatCard] = useState<number>(0);
+  const [isRetreatPaused, setIsRetreatPaused] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isRetreatPaused) return;
+    const retreatTimer = setInterval(() => {
+      setActiveRetreatCard((prev) => (prev + 1) % ESCORA_RETREAT_CARDS.length);
+    }, 5000);
+    return () => clearInterval(retreatTimer);
+  }, [isRetreatPaused]);
+
+  const handleSelectRetreatCard = (i: number) => {
+    setActiveRetreatCard(i);
+  };
 
   const handleRetreatCardClick = (i: number, e?: React.MouseEvent | React.KeyboardEvent) => {
     setActiveRetreatCard(i);
@@ -587,9 +599,6 @@ export default function Home() {
       {/* ═══════════════════════ TROPICAL LAGOON HERO ═══════════════════════ */}
       <TropicalLagoonHero />
 
-      {/* ═══════════════════════ THE ESCORA WAY ═══════════════════════ */}
-      <TheEscoraWay />
-
       {/* ═══════════════════════ TRAVEL BY TYPE ═══════════════════════ */}
       <section
         className="cat-section"
@@ -598,7 +607,7 @@ export default function Home() {
       >
         <div className="wrap">
           <div className="cat-section-head">
-            <div>
+            <div className="cat-section-head-left">
               <div className="eyebrow rv"><span className="dot" />Travel by Type</div>
               <h2 className="display-md rv d2" style={{ maxWidth: "20ch" }}>
                 {travelTypeItems.length > 0
@@ -607,9 +616,11 @@ export default function Home() {
                 <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kerala</em>.
               </h2>
             </div>
-            <p className="rv d3" style={{ maxWidth: "38ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
-              Choose your travel personality — we'll compose a journey from scratch, entirely around you.
-            </p>
+            <div className="cat-section-head-right">
+              <p className="rv d3" style={{ maxWidth: "44ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
+                Choose your travel personality — we'll compose a journey from scratch, entirely around you.
+              </p>
+            </div>
           </div>
 
           <TravelTypeCoverflow
@@ -628,17 +639,8 @@ export default function Home() {
         destinations={destinationsData}
       />
 
-      {/* ═══════════════════════ 360° DESTINATION EXPERIENCE ═══════════════════════ */}
-      <Destination360Experience destinations={destinationsData} />
-
-
-      {/* ═══════════════════════ WHY ESCORA — LANDSCAPE PANORAMA ═══════════════════════ */}
+      {/* ═══════════════════════ WHY ESCORA — LUXURY EDITORIAL ═══════════════════════ */}
       <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
-        {/* Background landscape */}
-        <div className="why-esc-bg" style={{ backgroundImage: `url(${whyEscoraBg})` }} aria-hidden="true" />
-        {/* Cream overlay for readability */}
-        <div className="why-esc-overlay" aria-hidden="true" />
-
         <div className="why-esc-inner">
           {/* ── Left panel: editorial copy ── */}
           <div className="why-esc-left">
@@ -771,49 +773,12 @@ export default function Home() {
 
       {/* ═══════════════════════ ESCORA RETREAT ════════════════════════════ */}
       <section className="escora-retreat-section" id="retreat" aria-label="Escora Retreat">
-        {/* Decorative botanical leaf line arts in margins */}
-        <svg
-          className="retreat-botanical retreat-botanical-left"
-          viewBox="0 0 160 320"
-          fill="none"
-          stroke="#c59a58"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M10 310 C30 220 50 140 120 20" />
-          <path d="M35 250 C15 235 5 210 20 190 C35 210 38 230 35 250" />
-          <path d="M48 210 C68 195 80 170 70 150 C55 170 50 190 48 210" />
-          <path d="M62 165 C40 145 35 120 50 100 C65 120 65 145 62 165" />
-          <path d="M80 120 C100 100 115 80 105 60 C90 80 82 100 80 120" />
-          <path d="M98 75 C80 55 80 30 95 15 C108 32 102 55 98 75" />
-          <path d="M120 20 C135 10 145 15 140 30 C130 35 125 28 120 20" />
-        </svg>
-
-        <svg
-          className="retreat-botanical retreat-botanical-right"
-          viewBox="0 0 160 320"
-          fill="none"
-          stroke="#c59a58"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M150 10 C130 100 110 180 40 300" />
-          <path d="M125 70 C145 85 155 110 140 130 C125 110 122 90 125 70" />
-          <path d="M112 110 C92 125 80 150 90 170 C105 150 110 130 112 110" />
-          <path d="M98 155 C120 175 125 200 110 220 C95 200 95 175 98 155" />
-          <path d="M80 200 C60 220 45 240 55 260 C70 240 78 220 80 200" />
-          <path d="M62 245 C80 265 80 290 65 305 C52 288 58 265 62 245" />
-        </svg>
-
         <div className="retreat-leaf-shadow-tr" aria-hidden="true" />
         <div className="retreat-leaf-shadow-bl" aria-hidden="true" />
 
         <div className="retreat-container">
-          <div className="retreat-header">
+          {/* Header Row: Left Eyebrow & Title, Right Top Lede */}
+          <div className="retreat-header-row">
             <div className="retreat-header-left">
               <div className="retreat-eyebrow rv">
                 <span className="dot" />
@@ -823,72 +788,128 @@ export default function Home() {
                 Healing, the <em>Kerala</em> way.
               </h2>
             </div>
-            <div className="retreat-header-right rv d2">
-              <p className="retreat-lede">
+            <div className="retreat-header-right">
+              <p className="retreat-lede rv d2">
                 Set on the quiet shore of Vembanad Lake — our NABH-accredited wellness home, where physicians, yogis and kalari masters work as one. Every programme is composed for you alone.
               </p>
             </div>
           </div>
 
-          <div className="retreat-cards-grid">
-            {ESCORA_RETREAT_CARDS.map((card, i) => {
-              const isActive = activeRetreatCard === i;
-              return (
-                <a
-                  key={i}
-                  href="#contact"
-                  className={`retreat-arch-card rv${i > 0 ? ` d${i}` : ""}${isActive ? " is-active" : ""}`}
-                  onClick={(e) => handleRetreatCardClick(i, e)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      handleRetreatCardClick(i, e);
-                    }
-                  }}
-                  aria-label={`Enquire about ${card.name} - Step ${card.step}`}
-                >
-                  {/* Golden Apex Dot on active card */}
-                  {isActive && <div className="retreat-apex-dot" aria-hidden="true" />}
+          <div className="retreat-split-layout">
+            {/* Left Column: Numbered Services List */}
+            <div className="retreat-left-col">
 
-                  <div className="retreat-card-content">
-                    <div className="retreat-card-icon-badge" aria-hidden="true">
-                      {card.icon}
-                    </div>
-                    <h3 className="retreat-card-title">{card.title}</h3>
-                    <p className="retreat-card-desc">{card.desc}</p>
-
-                    <div className="retreat-card-tags">
-                      {card.tags.map((tag, tIdx) => (
-                        <span key={tIdx} className="retreat-card-tag">
-                          {tag}
+              {/* Numbered Retreat Items List */}
+              <div
+                className="retreat-items-list"
+                role="tablist"
+                aria-label="Escora Retreat Offerings"
+                onMouseEnter={() => setIsRetreatPaused(true)}
+                onMouseLeave={() => setIsRetreatPaused(false)}
+              >
+                {ESCORA_RETREAT_CARDS.map((card, i) => {
+                  const isActive = activeRetreatCard === i;
+                  return (
+                    <div
+                      key={card.step}
+                      role="tab"
+                      aria-selected={isActive}
+                      tabIndex={0}
+                      className={`retreat-item${isActive ? " is-active" : ""}`}
+                      onClick={() => handleSelectRetreatCard(i)}
+                      onMouseEnter={() => handleSelectRetreatCard(i)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSelectRetreatCard(i);
+                        }
+                      }}
+                    >
+                      <div className="retreat-item-header">
+                        <span className="retreat-item-num">{card.step}.</span>
+                        <h3 className="retreat-item-title">{card.name}</h3>
+                        <span className="retreat-item-chevron" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
                         </span>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
 
-                  <div className="retreat-card-photo-wrap">
-                    <img
-                      src={card.img}
-                      alt={card.alt}
-                      className="retreat-card-photo"
-                      loading="lazy"
-                    />
-                    <div className="retreat-card-photo-overlay" aria-hidden="true" />
-                    <div className="retreat-card-photo-bottom">
-                      <div className="retreat-card-num">{card.step}</div>
-                      <div
-                        className="retreat-card-action-btn"
-                        aria-hidden="true"
-                      >
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M5 12h14" />
-                          <path d="M12 5l7 7-7 7" />
-                        </svg>
+                      {/* Smooth collapsible accordion popup */}
+                      <div className="retreat-item-collapse" aria-hidden={!isActive}>
+                        <div className="retreat-item-collapse-inner">
+                          <div className="retreat-item-popup-content">
+                            <p className="retreat-item-desc">{card.desc}</p>
+
+                            <div className="retreat-item-tags">
+                              {card.tags.map((tag, tIdx) => (
+                                <span key={tIdx} className="retreat-item-tag">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="retreat-item-cta-row">
+                              <a
+                                href="#contact"
+                                className="retreat-item-enquire-btn"
+                                onClick={(e) => handleRetreatCardClick(i, e)}
+                                tabIndex={isActive ? 0 : -1}
+                              >
+                                <span>Enquire about {card.name}</span>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M5 12h14" />
+                                  <path d="M12 5l7 7-7 7" />
+                                </svg>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </a>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: Fluid Swapping Circular Visual Collage */}
+            <div
+              className="retreat-right-col"
+              onMouseEnter={() => setIsRetreatPaused(true)}
+              onMouseLeave={() => setIsRetreatPaused(false)}
+            >
+              <div className="retreat-collage-wrapper">
+                {ESCORA_RETREAT_CARDS.map((card, i) => {
+                  const slot = (i - activeRetreatCard + ESCORA_RETREAT_CARDS.length) % ESCORA_RETREAT_CARDS.length;
+                  const isHero = slot === 0;
+
+                  return (
+                    <button
+                      key={card.step}
+                      type="button"
+                      className={`retreat-circle-card retreat-card-slot-${slot}${isHero ? " is-hero" : ""}`}
+                      onClick={() => handleSelectRetreatCard(i)}
+                      aria-label={isHero ? `Featured: ${card.name}` : `Select ${card.name}`}
+                      aria-current={isHero ? "true" : undefined}
+                      title={card.name}
+                      tabIndex={0}
+                    >
+                      <img
+                        src={card.img}
+                        alt={card.alt}
+                        className="retreat-circle-card-img"
+                        loading="lazy"
+                      />
+                      <div className="retreat-circle-card-content">
+                        <span className="retreat-circle-card-title">
+                          {card.name}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1100,373 +1121,8 @@ export default function Home() {
           )}
         </div>
       </section>
-      <section className="enquiry-section-v2" id="contact" aria-label="Begin Your Journey">
-        <div className="enquiry-bg-image" style={{ backgroundImage: "url('assets/enquiry-backdrop-munnar.jpg')" }} aria-hidden="true" />
-        <div className="enquiry-bg-gradient" aria-hidden="true" />
-
-        <div className="enquiry-container">
-          <div className="enquiry-grid">
-            {/* Left Column: Heading, description & contact info */}
-            <div className="enquiry-left">
-              <div className="enquiry-eyebrow rv">
-                <span className="dot" />
-                BEGIN YOUR JOURNEY
-              </div>
-              <h2 className="enquiry-title rv d1">
-                Start with a<br />
-                blank <em>canvas.</em>
-              </h2>
-              <p className="enquiry-desc rv d2">
-                Tell us the kind of journey you have in mind. A Kerala curator will write back within 24 hours with three options — yours to refine, reject or rearrange.
-              </p>
-
-              <div className="enquiry-contact-list rv d3">
-                <div className="enquiry-contact-item">
-                  <div className="enquiry-contact-badge">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="enquiry-contact-lbl">WHATSAPP</div>
-                    <a className="enquiry-contact-val" href="https://wa.me/918157003344" target="_blank" rel="noopener noreferrer">
-                      +91 8157 003 344
-                    </a>
-                  </div>
-                </div>
-
-                <div className="enquiry-contact-item">
-                  <div className="enquiry-contact-badge">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect width="20" height="16" x="2" y="4" rx="2" />
-                      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="enquiry-contact-lbl">EMAIL</div>
-                    <a className="enquiry-contact-val" href="mailto:hello@escoraholidays.com">
-                      hello@escoraholidays.com
-                    </a>
-                  </div>
-                </div>
-
-                <div className="enquiry-contact-item">
-                  <div className="enquiry-contact-badge">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-                      <circle cx="12" cy="10" r="3" />
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="enquiry-contact-lbl">OFFICE</div>
-                    <div className="enquiry-contact-val">
-                      1st Floor, Landmark Maple Business Tower, Kozhikode, Kerala 673014
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Warm Ivory Enquiry Panel */}
-            <div className="enquiry-right rv d2">
-              <div className="enquiry-card-panel">
-                <svg
-                  className="enquiry-panel-botanical"
-                  viewBox="0 0 160 160"
-                  fill="none"
-                  stroke="#c59a58"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M160 10 C130 30 100 70 80 140" />
-                  <path d="M140 25 C145 12 158 8 160 10 C155 24 146 28 140 25 Z" />
-                  <path d="M125 45 C115 35 118 20 128 20 C132 30 128 42 125 45 Z" />
-                  <path d="M110 70 C125 65 135 50 130 42 C118 48 112 60 110 70 Z" />
-                  <path d="M98 92 C85 82 86 68 96 66 C102 75 100 87 98 92 Z" />
-                  <path d="M88 115 C102 110 110 96 104 88 C94 94 90 106 88 115 Z" />
-                  <path d="M80 138 C70 126 72 112 82 110 C87 118 84 132 80 138 Z" />
-                </svg>
-
-                {enquirySent ? (
-                  <div className="enquiry-success-view">
-                    <div className="enquiry-success-icon">
-                      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#c59a58" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 13l4 4L19 7" />
-                      </svg>
-                    </div>
-                    <h3 className="enquiry-success-title">
-                      Enquiry <em>received.</em>
-                    </h3>
-                    <p className="enquiry-success-desc">
-                      A Kerala curator will write to you within 24 hours with three curated options. For a faster reply, message us on WhatsApp now.
-                    </p>
-                    <a
-                      className="enquiry-submit-btn enquiry-success-wa"
-                      href={`https://wa.me/918157003344?text=${buildWAMsg()}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <span>Continue on WhatsApp</span>
-                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14" />
-                        <path d="M12 5l7 7-7 7" />
-                      </svg>
-                    </a>
-                  </div>
-                ) : (
-                  <form onSubmit={handleEnquirySubmit} className="enquiry-form">
-                    <div className="enquiry-panel-header">
-                      <div className="enquiry-panel-eyebrow">
-                        <span className="dot" />
-                        SEND AN ENQUIRY
-                      </div>
-                      <p className="enquiry-panel-subtitle">
-                        Share a few details and we'll plan your personalized Kerala journey.
-                      </p>
-                    </div>
-
-                    <div className="enquiry-fields-grid">
-                      <div className="enquiry-field">
-                        <label htmlFor="form-name">YOUR NAME</label>
-                        <div className="enquiry-input-box">
-                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                          </svg>
-                          <input
-                            id="form-name"
-                            type="text"
-                            placeholder="Priya / James…"
-                            value={form.name}
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="enquiry-field">
-                        <label htmlFor="form-phone">PHONE / WHATSAPP</label>
-                        <div className="enquiry-input-box">
-                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-                          </svg>
-                          <input
-                            id="form-phone"
-                            type="tel"
-                            placeholder="+91 …"
-                            value={form.phone}
-                            onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="enquiry-field">
-                        <label htmlFor="form-email">EMAIL</label>
-                        <div className="enquiry-input-box">
-                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <rect width="20" height="16" x="2" y="4" rx="2" />
-                            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                          </svg>
-                          <input
-                            id="form-email"
-                            type="email"
-                            placeholder="you@email.com"
-                            value={form.email}
-                            onChange={(e) => setForm({ ...form, email: e.target.value })}
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="enquiry-field">
-                        <label htmlFor="form-type">TRAVEL TYPE</label>
-                        <div className="enquiry-input-box">
-                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M6 20h12a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-1V4a2 2 0 0 0-2-2h-6a2 2 0 0 0-2 2v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z" />
-                            <path d="M9 2v4h6V2" />
-                            <line x1="12" y1="11" x2="12" y2="15" />
-                          </svg>
-                          <select
-                            id="form-type"
-                            value={form.type}
-                            onChange={(e) => setForm({ ...form, type: e.target.value })}
-                          >
-                            <option value="">— Select journey type —</option>
-                            <option>Honeymoon</option>
-                            <option>Health &amp; Wellness</option>
-                            <option>Nature &amp; Wildlife</option>
-                            <option>Hill Stations</option>
-                            <option>Backwaters</option>
-                            <option>Beaches</option>
-                            <option>Functional Medicine</option>
-                            <option>Historical &amp; Heritage</option>
-                            <option>Not sure yet — help me plan</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="enquiry-field">
-                        <label htmlFor="form-dates">APPROXIMATE DATES</label>
-                        <div className="enquiry-input-box">
-                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                          </svg>
-                          <input
-                            id="form-dates"
-                            type="text"
-                            placeholder="e.g. Nov 2026, 7 nights"
-                            value={form.dates}
-                            onChange={(e) => setForm({ ...form, dates: e.target.value })}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="enquiry-field">
-                        <label htmlFor="form-pax">NUMBER OF TRAVELLERS</label>
-                        <div className="enquiry-input-box">
-                          <svg className="enquiry-input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                          </svg>
-                          <select
-                            id="form-pax"
-                            value={form.pax}
-                            onChange={(e) => setForm({ ...form, pax: e.target.value })}
-                          >
-                            <option>2 adults (couple)</option>
-                            <option>1 adult (solo)</option>
-                            <option>Family with children</option>
-                            <option>Small group (4–8)</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="enquiry-field enquiry-field-full">
-                        <label htmlFor="form-budget">BUDGET ( ₹ INR, APPROX. )</label>
-                        <div className="enquiry-input-box">
-                          <span className="enquiry-currency-icon">₹</span>
-                          <input
-                            id="form-budget"
-                            type="text"
-                            placeholder="e.g. ₹5–10 lakhs"
-                            value={form.budget}
-                            onChange={(e) => setForm({ ...form, budget: e.target.value })}
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="enquiry-note-divider">
-                      <span className="enquiry-divider-line" />
-                      <span>KERALA · INDIA — NABH ACCREDITED RETREAT</span>
-                      <span className="enquiry-divider-line" />
-                    </div>
-
-                    <div className="flex items-start gap-3 py-2 text-left" style={{ marginBottom: "14px" }}>
-                      <input
-                        id="home-enquiry-marketing-consent"
-                        type="checkbox"
-                        checked={Boolean(form.marketingConsent)}
-                        onChange={(e) => setForm({ ...form, marketingConsent: e.target.checked })}
-                        className="mt-1 h-4 w-4 rounded accent-[#c59a58] cursor-pointer shrink-0"
-                      />
-                      <label
-                        htmlFor="home-enquiry-marketing-consent"
-                        className="text-[12px] leading-relaxed cursor-pointer select-none"
-                        style={{ color: "rgba(255, 255, 255, 0.78)" }}
-                      >
-                        I'd like to receive occasional travel inspiration, destination guides, and special offers from Escora Holidays by email. I can unsubscribe at any time.
-                      </label>
-                    </div>
-
-                    {enquiryError && <p className="enquiry-error-msg">{enquiryError}</p>}
-
-                    <div className="enquiry-buttons-row">
-                      <button className="enquiry-submit-btn" type="submit" disabled={createEnquiry.isPending}>
-                        <span>{createEnquiry.isPending ? "SENDING…" : "SEND ENQUIRY"}</span>
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M5 12h14" />
-                          <path d="M12 5l7 7-7 7" />
-                        </svg>
-                      </button>
-
-                      <a
-                        className="enquiry-wa-btn"
-                        href={`https://wa.me/918157003344?text=${encodeURIComponent(
-                          form.name || form.phone
-                            ? `Hello Escora — I'd like to plan a Kerala journey.\nName: ${form.name || "Traveller"}\nPhone: ${form.phone || ""}`
-                            : "Hello Escora — I'd like to plan a Kerala journey."
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
-                        </svg>
-                        <span>WHATSAPP US</span>
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M5 12h14" />
-                          <path d="M12 5l7 7-7 7" />
-                        </svg>
-                      </a>
-                    </div>
-
-                    <div className="enquiry-features-row">
-                      <div className="enquiry-feature-item">
-                        <svg className="enquiry-feature-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#b08745" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="10" />
-                          <polyline points="12 6 12 12 16 14" />
-                        </svg>
-                        <div className="enquiry-feature-text">
-                          <strong>REPLY WITHIN</strong>
-                          <span>24 HOURS</span>
-                        </div>
-                      </div>
-
-                      <div className="enquiry-feature-divider" />
-
-                      <div className="enquiry-feature-item">
-                        <svg className="enquiry-feature-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#b08745" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                          <polyline points="14 2 14 8 20 8" />
-                          <line x1="16" y1="13" x2="8" y2="13" />
-                          <line x1="16" y1="17" x2="8" y2="17" />
-                          <polyline points="10 9 9 9 8 9" />
-                        </svg>
-                        <div className="enquiry-feature-text">
-                          <strong>THREE CURATED</strong>
-                          <span>OPTIONS</span>
-                        </div>
-                      </div>
-
-                      <div className="enquiry-feature-divider" />
-
-                      <div className="enquiry-feature-item">
-                        <svg className="enquiry-feature-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#b08745" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M11 20A7 7 0 0 1 4 13c0-4.42 3.58-8 8-8 1.5 0 2.9.41 4.1 1.13L20 2v4.87c.72 1.2 1.13 2.6 1.13 4.13 0 4.42-3.58 8-8 8h-2.13z" />
-                          <path d="M4 13l8 8" />
-                        </svg>
-                        <div className="enquiry-feature-text">
-                          <strong>YOURS TO REFINE,</strong>
-                          <span>REJECT OR REARRANGE</span>
-                        </div>
-                      </div>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ═══════════════════════ UNIFIED LUXURY ENQUIRY & CONTACT CARD ═══════════════════════ */}
+      <EscoraContactCard id="contact" />
 
     </Layout>
   );

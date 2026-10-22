@@ -145,9 +145,9 @@
 /* Heading: See Kerala from Every Angle. */
 .dest-360-heading {
   font-family: var(--f-display, 'Fonarto', Georgia, serif);
-  font-size: clamp(32px, 3.5vw, 46px);
+  font-size: clamp(30px, 3.8vw, 48px);
   font-weight: 500;
-  line-height: 1.1;
+  line-height: 1.12;
   color: #ffffff;
   margin: 0 0 clamp(10px, 1.5vh, 16px) 0;
   letter-spacing: -0.015em;

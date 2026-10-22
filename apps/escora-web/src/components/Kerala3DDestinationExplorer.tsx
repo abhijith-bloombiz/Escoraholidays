@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Link } from "wouter";
-import { ChevronLeft, ChevronRight, ArrowRight, Sparkles, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight, RotateCw } from "lucide-react";
 import type { Destination } from "@workspace/api-client-react";
+import Destination360Modal from "./Destination360Modal";
 import "./Kerala3DDestinationExplorer.css";
 
 // ── Destination Cover Images ──
@@ -13,7 +14,6 @@ import varkalaImg from "@assets/escora/destinations/varkala.jpg";
 import thekkadyImg from "@assets/escora/destinations/thekkady.jpg";
 import bekalImg from "@assets/escora/destinations/bekal.jpg";
 import kovalamImg from "@assets/escora/destinations/kovalam.jpg";
-import exploreKeralaBg from "@assets/escora/explore-kerala-3d-bg.jpg";
 
 export interface DestinationItem {
   id: string;
@@ -26,7 +26,20 @@ export interface DestinationItem {
   image: string;
   features: { label: string; icon: string }[];
   associatedDistrict: string;
+  panorama?: string;
 }
+
+const DEFAULT_PANORAMAS: Record<string, string> = {
+  munnar: "/assets/360/munnar.jpg",
+  wayanad: "/assets/360/wayanad.jpg",
+  kochi: "/assets/360/alleppey.jpg",
+  "fort-kochi": "/assets/360/alleppey.jpg",
+  alleppey: "/assets/360/alleppey.jpg",
+  varkala: "/assets/360/varkala.jpg",
+  thekkady: "/assets/360/thekkady.jpg",
+  bekal: "/assets/360/kovalam.jpg",
+  kovalam: "/assets/360/kovalam.jpg",
+};
 
 export const KERALA_DESTINATIONS_DATA: DestinationItem[] = [
   {
@@ -247,24 +260,25 @@ interface SlotDef {
 // Bottom row: 3 cards in an inverted downward bowl curve (◡) "like it's upside down"
 const DESKTOP_SLOTS: SlotDef[] = [
   // 0: Center Spotlight (overlapping both rows in the middle)
-  { slotName: "center", x: 0, y: 0, rotate: 0, scale: 1.18, zIndex: 20, isCenter: true, row: "center", col: "center" },
+  { slotName: "center", x: 0, y: 0, rotate: 0, scale: 1.12, zIndex: 20, isCenter: true, row: "center", col: "center" },
   // 1: Top-Right (tilted outward, lower than center apex)
-  { slotName: "top-right", x: 300, y: -180, rotate: 4, scale: 0.95, zIndex: 6, isCenter: false, row: "top", col: "right" },
+  { slotName: "top-right", x: 255, y: -125, rotate: 4, scale: 0.92, zIndex: 6, isCenter: false, row: "top", col: "right" },
   // 2: Bottom-Right (tilted inward, higher than center dip)
-  { slotName: "bottom-right", x: 300, y: 180, rotate: -4, scale: 0.95, zIndex: 6, isCenter: false, row: "bottom", col: "right" },
+  { slotName: "bottom-right", x: 255, y: 125, rotate: -4, scale: 0.92, zIndex: 6, isCenter: false, row: "bottom", col: "right" },
   // 3: Bottom-Center (lowest dip of bottom bowl curve)
-  { slotName: "bottom-center", x: 0, y: 232, rotate: 0, scale: 0.95, zIndex: 4, isCenter: false, row: "bottom", col: "center" },
+  { slotName: "bottom-center", x: 0, y: 160, rotate: 0, scale: 0.88, zIndex: 4, isCenter: false, row: "bottom", col: "center" },
   // 4: Bottom-Left (tilted inward, higher than center dip)
-  { slotName: "bottom-left", x: -300, y: 180, rotate: 4, scale: 0.95, zIndex: 6, isCenter: false, row: "bottom", col: "left" },
+  { slotName: "bottom-left", x: -255, y: 125, rotate: 4, scale: 0.92, zIndex: 6, isCenter: false, row: "bottom", col: "left" },
   // 5: Top-Left (tilted outward, lower than center apex)
-  { slotName: "top-left", x: -300, y: -180, rotate: -4, scale: 0.95, zIndex: 6, isCenter: false, row: "top", col: "left" },
+  { slotName: "top-left", x: -255, y: -125, rotate: -4, scale: 0.92, zIndex: 6, isCenter: false, row: "top", col: "left" },
   // 6: Top-Center (highest apex of top arch curve)
-  { slotName: "top-center", x: 0, y: -232, rotate: 0, scale: 0.95, zIndex: 4, isCenter: false, row: "top", col: "center" },
+  { slotName: "top-center", x: 0, y: -160, rotate: 0, scale: 0.88, zIndex: 4, isCenter: false, row: "top", col: "center" },
 ];
 
 const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestinationExplorerProps>(
   ({ id = "explore-kerala", destinations }, ref) => {
     const [activeIdx, setActiveIdx] = useState(0);
+    const [active360Dest, setActive360Dest] = useState<DestinationItem | null>(null);
     const [isMobile, setIsMobile] = useState(false);
     const [isAutoPlay, setIsAutoPlay] = useState(true);
     const [isHovered, setIsHovered] = useState(false);
@@ -275,8 +289,11 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
     );
     const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
+    const handleOpen360 = useCallback((destItem: DestinationItem) => {
+      setActive360Dest(destItem);
+    }, []);
+
     const stageRef = useRef<HTMLDivElement>(null);
-    const pillsBarRef = useRef<HTMLDivElement>(null);
     const sectionInternalRef = useRef<HTMLElement | null>(null);
     const autoPlayTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -377,6 +394,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
           image: validCoverImage,
           associatedDistrict,
           features: item.features,
+          panorama: DEFAULT_PANORAMAS[item.id] || "/assets/360/munnar.jpg",
         };
       });
     }, [destinations]);
@@ -421,27 +439,6 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
       };
     }, [isAutoPlay, prefersReducedMotion, isInView, isTabVisible, isHovered, isInteracting, handleNext, activeIdx]);
 
-    // Keep active pill scrolled into view strictly inside pills bar container on mobile
-    useEffect(() => {
-      const container = pillsBarRef.current;
-      if (!container) return;
-
-      // Only scroll if the container itself has scrollable overflow (e.g. mobile track)
-      if (container.scrollWidth <= container.clientWidth) return;
-
-      const activeBtn = container.querySelector<HTMLButtonElement>(".kerala-pill-btn.is-active");
-      if (!activeBtn) return;
-
-      const btnLeft = activeBtn.offsetLeft;
-      const btnWidth = activeBtn.offsetWidth;
-      const containerWidth = container.clientWidth;
-      const targetScroll = btnLeft - containerWidth / 2 + btnWidth / 2;
-
-      container.scrollTo({
-        left: Math.max(0, targetScroll),
-        behavior: "smooth",
-      });
-    }, [activeIdx]);
 
     // Keyboard navigation when section is focused / active
     const handleKeyDown = useCallback(
@@ -487,51 +484,6 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
         tabIndex={0}
         onKeyDown={handleKeyDown}
       >
-        {/* ── Background Luxury Landscape & Faint Topographic Lines ── */}
-        <div className="kerala-3d-bg-layer" aria-hidden="true">
-          <div
-            className="kerala-3d-bg-image"
-            style={{ backgroundImage: `url(${exploreKeralaBg})` }}
-          />
-          <div className="kerala-3d-bg-overlay" />
-
-          {/* Faint Organic Topographic Contour Lines */}
-          <svg
-            className="kerala-contour-svg"
-            viewBox="0 0 1440 900"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path
-              d="M-80 220C180 260 320 180 560 210C800 240 920 320 1180 280C1340 250 1460 290 1560 340"
-              stroke="#B58D5D"
-              strokeWidth="1.2"
-              strokeDasharray="4 6"
-              strokeOpacity="0.22"
-            />
-            <path
-              d="M-60 380C210 420 380 340 640 370C900 400 1020 480 1280 430C1420 400 1510 430 1580 470"
-              stroke="#143323"
-              strokeWidth="1"
-              strokeOpacity="0.12"
-            />
-            <path
-              d="M-40 540C240 570 420 510 700 530C980 550 1100 640 1360 590C1460 570 1530 600 1600 630"
-              stroke="#B58D5D"
-              strokeWidth="1.2"
-              strokeDasharray="5 7"
-              strokeOpacity="0.18"
-            />
-            <path
-              d="M-20 700C280 720 460 670 760 690C1060 710 1180 790 1420 750C1500 730 1560 760 1620 780"
-              stroke="#143323"
-              strokeWidth="1"
-              strokeOpacity="0.10"
-            />
-          </svg>
-        </div>
-
         <div className="kerala-3d-wrap wrap">
           {/* ══════════════════════════════════════════════════════════════
               FULL-WIDTH EDITORIAL HEADER
@@ -543,47 +495,9 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
                 EXPLORE KERALA
               </div>
               <h2 className="kerala-3d-title">
-                A land of countless stories,<br />
-                <span className="accent-gold">waiting for yours.</span>
+                Stories, <span className="accent-gold">waiting for yours.</span>
               </h2>
             </div>
-            <div className="kerala-3d-head-right">
-              <p className="kerala-3d-desc">
-                From misty mountain ridges to tranquil backwaters, discover Kerala&apos;s most celebrated destinations. Tap any card to place it in focus.
-              </p>
-            </div>
-          </div>
-
-          {/* ══════════════════════════════════════════════════════════════
-              DESTINATION QUICK-FILTER PILLS BAR
-              ══════════════════════════════════════════════════════════════ */}
-          <div
-            ref={pillsBarRef}
-            className="kerala-pills-bar"
-            role="tablist"
-            aria-label="Kerala destination quick navigation"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-          >
-            {items.map((item, idx) => {
-              const isActive = idx === activeIdx;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`kerala-pill-btn ${isActive ? "is-active" : ""}`}
-                  onClick={() => handleSelectCard(idx)}
-                >
-                  {isActive && <Sparkles className="w-3 h-3 text-gold" />}
-                  <span>{item.name}</span>
-                  {isActive && isAutoPlay && !isEffectivelyPaused && (
-                    <span className="kerala-pill-progress-bar" key={`pill-bar-${activeIdx}`} />
-                  )}
-                </button>
-              );
-            })}
           </div>
 
           {/* ══════════════════════════════════════════════════════════════
@@ -637,7 +551,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
                     slot = {
                       slotName: "hidden",
                       x: 0,
-                      y: -130,
+                      y: -125,
                       rotate: 0,
                       scale: 0.82,
                       zIndex: 2,
@@ -671,7 +585,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
                     role="button"
                     tabIndex={0}
                     aria-label={`${item.name} destination card${isCenter ? ", highlighted in center" : ""}`}
-                    className={`kerala-arch-card ${isCenter ? "is-center-card" : "is-outer-card"} slot-${slot.slotName} ${isHidden ? "is-hidden" : ""}`}
+                    className={`kerala-arch-card ${isCenter ? "is-center-card" : "is-outer-card"} ${slot.row === "bottom" ? "is-bottom-card" : slot.row === "top" ? "is-top-card" : ""} slot-${slot.slotName} ${isHidden ? "is-hidden" : ""}`}
                     style={
                       {
                         "--tx": `${slot.x}px`,
@@ -703,17 +617,13 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
                           className="kerala-card-img"
                           loading="lazy"
                           decoding="async"
+                          onError={(e) => {
+                            const fallback = KERALA_DESTINATIONS_DATA.find((d) => d.id === item.id)?.image;
+                            if (fallback && e.currentTarget.src !== fallback) {
+                              e.currentTarget.src = fallback;
+                            }
+                          }}
                         />
-                        {/* Center Card Luxury Tag Badge */}
-                        {isCenter && (
-                          <div className="kerala-center-badge">
-                            <span className="kerala-center-num">{item.num}</span>
-                            <span className="kerala-center-district">
-                              <MapPin className="w-3 h-3 text-gold" />
-                              {item.associatedDistrict}
-                            </span>
-                          </div>
-                        )}
                         <div className="kerala-card-img-scrim" />
                       </div>
 
@@ -728,14 +638,30 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
                         ) : (
                           <div className="kerala-center-expanded">
                             <p className="kerala-center-tagline">{item.tagline}</p>
-                            <Link
-                              href={`/destinations/${item.slug}`}
-                              className="kerala-center-cta"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <span>Read More</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </Link>
+                            <div className="kerala-center-cta-group">
+                              <button
+                                type="button"
+                                className="kerala-center-360-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpen360(item);
+                                }}
+                                aria-label={`Explore ${item.name} in 360°`}
+                                title={`Explore ${item.name} in interactive 360° view`}
+                              >
+                                <RotateCw className="w-3.5 h-3.5 text-gold" />
+                                <span>360° View</span>
+                              </button>
+                              <Link
+                                href={`/destinations/${item.slug}`}
+                                className="kerala-center-cta"
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label={`Read more about ${item.name}`}
+                                title={`Read more about ${item.name}`}
+                              >
+                                <ArrowRight className="w-4 h-4" />
+                              </Link>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -779,6 +705,22 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
             </div>
           </div>
         </div>
+
+        {/* ── 360° Interactive Panoramic Popup Modal ── */}
+        <Destination360Modal
+          isOpen={Boolean(active360Dest)}
+          destination={active360Dest}
+          destinations={items}
+          onClose={() => setActive360Dest(null)}
+          onSelectDestination={(dest) => {
+            const found = items.find((it) => it.id === dest.id);
+            if (found) {
+              setActive360Dest(found);
+              const foundIdx = items.findIndex((it) => it.id === dest.id);
+              if (foundIdx !== -1) setActiveIdx(foundIdx);
+            }
+          }}
+        />
       </section>
     );
   }

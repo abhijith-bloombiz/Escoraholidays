@@ -54,20 +54,20 @@
 }
 
 .travel-type-coverflow-wrap .tt-badge-pill:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0, 163, 180, 0.45);
-  color: #0A272C;
+  background: #FAF8F5;
+  border-color: #B58D5D;
+  color: #143323;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 163, 180, 0.12);
+  box-shadow: 0 4px 12px rgba(20, 51, 35, 0.12);
 }
 
 .travel-type-coverflow-wrap .tt-badge-pill.active {
-  background: #00A3B4;
-  color: #ffffff;
+  background: #143323;
+  color: #FAF8F5;
   font-weight: 700;
-  border-color: #00A3B4;
+  border-color: #143323;
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(0, 163, 180, 0.38);
+  box-shadow: 0 6px 18px rgba(20, 51, 35, 0.28);
 }
 
 /* ─── 3D Coverflow Stage Container ─── */
@@ -314,14 +314,14 @@
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Active center card: badge highlights in brand teal matching reference */
+/* Active center card: badge highlights in brand forest green matching Escora */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-badge-pill,
 .travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .tt-card-tag-pill {
-  background: #139cb8;
-  color: #ffffff;
+  background: #143323;
+  color: #FAF8F5;
   font-weight: 700;
-  border-color: #139cb8;
-  box-shadow: 0 6px 18px rgba(19, 156, 184, 0.45);
+  border-color: #143323;
+  box-shadow: 0 6px 18px rgba(20, 51, 35, 0.35);
 }
 
 /* ─── Card Content (Center Card Only) ─── */
@@ -404,7 +404,7 @@
 
 .travel-type-coverflow-wrap .tt-card-view-btn:hover {
   background: #ffffff;
-  color: #00A3B4;
+  color: #143323;
   border-color: #ffffff;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
@@ -486,7 +486,7 @@
 
 .travel-type-coverflow-wrap .coverflow-nav-btn:hover {
   background: #ffffff;
-  color: #00A3B4;
+  color: #143323;
   transform: translateY(-50%) scale(1.08);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
 }
@@ -521,15 +521,15 @@
 }
 
 .travel-type-coverflow-wrap .coverflow-dot:hover {
-  background: rgba(0, 163, 180, 0.6);
+  background: rgba(20, 51, 35, 0.6);
   transform: scale(1.2);
 }
 
 .travel-type-coverflow-wrap .coverflow-dot.active {
   width: 26px;
   border-radius: 9999px;
-  background: #00A3B4;
-  box-shadow: 0 2px 8px rgba(0, 163, 180, 0.4);
+  background: #143323;
+  box-shadow: 0 2px 8px rgba(20, 51, 35, 0.3);
 }
 
 /* ==========================================================================

@@ -179,9 +179,9 @@
 /* Main Heading — Elegant Fonarto typography */
 .escora-way-heading {
   font-family: var(--f-heading, 'Fonarto', Georgia, serif);
-  font-size: clamp(42px, 4.2vw, 66px);
+  font-size: clamp(30px, 3.8vw, 48px);
   font-weight: 400;
-  line-height: 1.06;
+  line-height: 1.12;
   letter-spacing: -0.015em;
   color: #143323;
   margin: 0 0 clamp(20px, 2.5vh, 28px) 0;
@@ -193,14 +193,14 @@
 
 .escora-way-heading .italic-green {
   font-family: var(--f-heading, 'Fonarto', Georgia, serif);
-  font-style: italic;
+  font-style: normal;
   font-weight: 400;
   color: #143323;
 }
 
 .escora-way-heading .italic-gold {
   font-family: var(--f-heading, 'Fonarto', Georgia, serif);
-  font-style: italic;
+  font-style: normal;
   font-weight: 400;
   color: #B58D5D;
 }
@@ -585,7 +585,7 @@
     letter-spacing: 0.18em;
   }
   .escora-way-heading {
-    font-size: clamp(30px, 8vw, 40px);
+    font-size: clamp(26px, 6.5vw, 36px);
     line-height: 1.12;
     margin-bottom: 16px;
   }

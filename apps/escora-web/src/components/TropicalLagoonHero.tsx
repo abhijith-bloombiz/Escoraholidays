@@ -162,9 +162,7 @@ export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHer
       onExploreClick();
       return;
     }
-    const nextSection =
-      document.getElementById("the-escora-way") ||
-      document.getElementById("categories");
+    const nextSection = document.getElementById("categories");
     if (nextSection) {
       if ((window as any).__lenis) {
         (window as any).__lenis.scrollTo(nextSection, { offset: 0, duration: 1.4 });
@@ -259,7 +257,7 @@ export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHer
             that stays with you.
           </p>
           <a
-            href="#the-escora-way"
+            href="#categories"
             onClick={handleScrollDown}
             className="tropical-hero-cta"
             aria-label="Explore Kerala private journeys"

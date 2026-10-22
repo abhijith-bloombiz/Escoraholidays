@@ -252,6 +252,28 @@ h1, h2, h3, h4, h5, h6,
   font-style: normal !important;
 }
 
+/* Base heading color: Dark Botanical #293D1F unless explicitly light/white or inside dark themes/elements */
+h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h4:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h5:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h6:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h4:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h5:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h6:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.display-xl:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.display-lg:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.display-md:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.display-sm:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.font-heading:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.heading-font:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) {
+  color: var(--v3-botanical, #293D1F);
+}
+
 /* Remove italic style from any element inside headings */
 h1 *, h2 *, h3 *, h4 *, h5 *, h6 *,
 .h1 *, .h2 *, .h3 *, .h4 *, .h5 *, .h6 *,
@@ -261,6 +283,17 @@ h1 *, h2 *, h3 *, h4 *, h5 *, h6 *,
 [class*="-title"] *,
 [class*="heading"] * {
   font-style: normal !important;
+}
+
+/* Ensure em, accent words, and highlights inside headings also use #293D1F */
+h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em,
+h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em,
+h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em,
+.display-xl em, .display-lg em, .display-md em, .display-sm em,
+.kerala-3d-title em, .kerala-3d-title .accent-gold, .kerala-3d-title .italic-gold,
+.retreat-title em, .testi-title em, .enquiry-title em,
+.escora-way-heading em, .escora-way-heading .italic-gold {
+  color: var(--v3-botanical, #293D1F);
 }
 
 .font-serif {

@@ -399,7 +399,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
                   {/* ─── Bottom Content: Title + Count + 'View All →' Button ─── */}
                   <div className="tt-card-content">
                     <div className="tt-card-info">
-                      <h3 className="tt-card-title">{getCardTitle(item)}</h3>
+                      <h3 className="tt-card-title text-white">{getCardTitle(item)}</h3>
                       <p className="tt-card-count">{item.count}</p>
                       {item.desc && (
                         <div className="tt-card-reveal">
@@ -417,8 +417,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
                       }}
                       aria-label={`View all ${item.label} journeys`}
                     >
-                      <span>View All</span>
-                      <ArrowRight size={13} strokeWidth={2.2} />
+                      <ArrowRight size={16} strokeWidth={2.2} />
                     </a>
                   </div>
                 </div>

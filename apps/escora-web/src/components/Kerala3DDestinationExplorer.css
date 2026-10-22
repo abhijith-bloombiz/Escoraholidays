@@ -20,7 +20,7 @@
   overflow: hidden;
   box-sizing: border-box;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  color: #143323;
+  color: #293D1F;
   outline: none;
 }
 
@@ -83,13 +83,12 @@
 
 .kerala-3d-title {
   font-family: var(--f-display, 'Fonarto', Georgia, serif);
-  font-size: clamp(30px, 3.6vw, 46px);
+  font-size: clamp(36px, 4.5vw, 62px);
   font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: #143323;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: #293D1F;
   margin: 0;
-  white-space: nowrap;
 }
 
 .kerala-3d-title .italic-gold,
@@ -97,7 +96,7 @@
   font-family: var(--f-display, 'Fonarto', Georgia, serif);
   font-style: normal;
   font-weight: 400;
-  color: #B58D5D;
+  color: #293D1F;
 }
 
 .kerala-3d-head-right {
@@ -204,12 +203,198 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
+   STAGE: 2-COLUMN BALANCED COMPOSITION (LEFT 3D MAP + RIGHT ARCH)
+   ══════════════════════════════════════════════════════════════ */
+.kerala-3d-stage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+  gap: clamp(16px, 2.5vw, 44px);
+}
+
+/* ── Column 1: 3D Kerala Relief Map ── */
+.kerala-3d-left-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 clamp(290px, 25vw, 365px);
+  max-width: 380px;
+  width: 100%;
+  z-index: 5;
+}
+
+/* 3D Kerala Relief Canvas Wrap */
+.kerala-3d-map-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 365px;
+  height: clamp(500px, 56vh, 570px);
+}
+
+/* Floating District Markers on 3D Map (Midnight Navy & Antique Gold) */
+.map-floating-pin-pill {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FFFFFF;
+  padding: 3.5px 9px 3.5px 6.5px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 182, 111, 0.45);
+  box-shadow: 0 4px 12px rgba(23, 40, 61, 0.10);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Fluid spring popup keyframe: drops slightly from top and springs up to resting scale */
+@keyframes mapPinPopUpEntrance {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 18px)) scale(0.18);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% + 2px)) scale(1.15);
+  }
+  85% {
+    transform: translate(-50%, calc(-50% - 1px)) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Reveal sequentially from top (Kasaragod) to bottom (Trivandrum) one by one */
+.kerala-3d-map-three-container.is-revealed .map-floating-pin-pill {
+  opacity: 1;
+  pointer-events: auto;
+  animation: mapPinPopUpEntrance 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(0.10s + var(--pin-idx, 0) * 0.075s);
+}
+
+.map-floating-pin-pill .pin-dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  background: #D6B66F;
+  transition: all 0.2s ease;
+}
+
+.map-floating-pin-pill .pin-text {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #1B2D45;
+  line-height: 1;
+}
+
+.map-floating-pin-pill:hover {
+  transform: translate(-50%, -50%) scale(1.08) !important;
+  background: #FFFFFF;
+  border-color: #D6B66F;
+  box-shadow: 0 6px 16px rgba(23, 40, 61, 0.16);
+}
+
+.map-floating-pin-pill.is-active,
+.map-floating-pin-pill.is-dest-target {
+  background: linear-gradient(135deg, #F9F2E2 0%, #E6C478 100%);
+  border-color: #D6B66F;
+  transform: translate(-50%, -50%) scale(1.08) !important;
+  box-shadow: 0 6px 18px rgba(214, 182, 111, 0.35);
+}
+
+.map-floating-pin-pill.is-active .pin-dot,
+.map-floating-pin-pill.is-dest-target .pin-dot {
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px #D6B66F, 0 0 0 4.5px rgba(230, 196, 120, 0.6);
+}
+
+.map-floating-pin-pill.is-active .pin-text,
+.map-floating-pin-pill.is-dest-target .pin-text {
+  color: #1B2D45;
+  font-weight: 800;
+}
+
+/* Floating District Info Tooltip */
+.kerala-3d-district-floating-tooltip {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.district-tooltip-card {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(214, 182, 111, 0.45);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 10px 24px rgba(23, 40, 61, 0.12);
+  max-width: 240px;
+  pointer-events: none;
+}
+
+.district-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.district-tooltip-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #D6B66F;
+}
+
+.district-tooltip-category {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1B2D45;
+  background: rgba(23, 40, 61, 0.08);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.district-tooltip-name {
+  font-family: var(--f-display, 'Playfair Display', Georgia, serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: #1B2D45;
+  margin: 0 0 5px 0;
+  line-height: 1.15;
+}
+
+.district-tooltip-desc {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #374B63;
+  margin: 0 0 6px 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
    7-CARD INVERTED ARCH STAGE CONTAINER
    ══════════════════════════════════════════════════════════════ */
 .kerala-arch-stage-container {
   position: relative;
   width: 100%;
   max-width: 860px;
+  flex: 1 1 auto;
   margin-left: auto;
   margin-right: 0;
   overflow: visible;
@@ -451,7 +636,7 @@
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   font-weight: 700;
-  color: #143323;
+  color: #293D1F;
   margin: 0 0 2px 0;
   letter-spacing: -0.01em;
   line-height: 1.25;
@@ -460,7 +645,7 @@
 .kerala-arch-card.is-center-card .kerala-card-title {
   font-size: 18px;
   font-weight: 800;
-  color: #143323;
+  color: #293D1F;
   margin-bottom: 3px;
 }
 
@@ -731,6 +916,17 @@
 
 /* Laptop screens (960px - 1180px) */
 @media (max-width: 1180px) {
+  .kerala-3d-stage {
+    gap: 20px;
+  }
+  .kerala-3d-left-col {
+    flex: 0 0 310px;
+    max-width: 320px;
+  }
+  .kerala-3d-map-wrap {
+    max-width: 320px;
+    height: 480px;
+  }
   .kerala-arch-card {
     --kerala-card-w: 190px;
     --kerala-card-h: 240px;
@@ -769,6 +965,22 @@
 
 /* Tablet screens (768px - 959px) */
 @media (max-width: 959px) {
+  .kerala-3d-stage {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .kerala-3d-left-col {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  .kerala-3d-map-wrap {
+    max-width: 440px;
+    height: clamp(340px, 45vh, 420px);
+    margin: 0 auto;
+  }
   .kerala-3d-editorial-head {
     flex-direction: column;
     align-items: flex-start;
@@ -822,6 +1034,11 @@
   .kerala-3d-title {
     white-space: normal;
   }
+  .kerala-3d-map-wrap {
+    max-width: 340px;
+    height: 300px;
+    margin: 0 auto;
+  }
   .kerala-arch-stage-container.is-mobile-view {
     max-width: 100%;
     margin: 0 auto;
@@ -854,5 +1071,15 @@
   }
   .kerala-nav-next {
     right: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-floating-pin-pill {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) !important;
+    pointer-events: auto !important;
   }
 }

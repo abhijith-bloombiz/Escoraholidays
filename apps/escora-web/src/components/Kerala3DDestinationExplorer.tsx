@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { ChevronLeft, ChevronRight, ArrowRight, RotateCw } from "lucide-react";
 import type { Destination } from "@workspace/api-client-react";
 import Destination360Modal from "./Destination360Modal";
+import Kerala3DMapCanvas from "./Kerala3DMapCanvas";
 import "./Kerala3DDestinationExplorer.css";
 
 // ── Destination Cover Images ──
@@ -278,6 +279,7 @@ const DESKTOP_SLOTS: SlotDef[] = [
 const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestinationExplorerProps>(
   ({ id = "explore-kerala", destinations }, ref) => {
     const [activeIdx, setActiveIdx] = useState(0);
+    const [selectedDistrict, setSelectedDistrict] = useState<string>("Idukki");
     const [active360Dest, setActive360Dest] = useState<DestinationItem | null>(null);
     const [isMobile, setIsMobile] = useState(false);
     const [isAutoPlay, setIsAutoPlay] = useState(true);
@@ -402,6 +404,34 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
     const total = items.length;
     const currentDest = items[activeIdx] || items[0] || KERALA_DESTINATIONS_DATA[0];
 
+    // Synchronize 3D map selected district whenever current destination changes
+    useEffect(() => {
+      if (currentDest?.associatedDistrict) {
+        setSelectedDistrict(currentDest.associatedDistrict);
+      }
+    }, [currentDest]);
+
+    // Selection handler from 3D map pin or district click
+    const handleSelectDistrict = useCallback(
+      (districtName: string, associatedDestId?: string) => {
+        setSelectedDistrict(districtName);
+
+        if (associatedDestId) {
+          const matchIdx = items.findIndex((d) => d.id === associatedDestId);
+          if (matchIdx !== -1) {
+            setActiveIdx(matchIdx);
+            return;
+          }
+        }
+
+        const districtMatchIdx = items.findIndex((d) => d.associatedDistrict === districtName);
+        if (districtMatchIdx !== -1) {
+          setActiveIdx(districtMatchIdx);
+        }
+      },
+      [items]
+    );
+
     // Navigation callbacks
     const handleNext = useCallback(() => {
       setActiveIdx((prev) => (prev + 1) % total);
@@ -501,14 +531,24 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
           </div>
 
           {/* ══════════════════════════════════════════════════════════════
-              FULL-WIDTH 7-CARD ARCH SHOWCASE STAGE
-              Top row: 3 cards (Arch curve ⌒)
-              Center: 1 card (Spotlight, Overlapped, Bigger 1.18x, Elevated)
-              Bottom row: 3 cards (Inverted Bowl curve ◡ "upside down")
+              2-COLUMN STAGE: LEFT 3D MAP + RIGHT 7-CARD ARCH SHOWCASE
               ══════════════════════════════════════════════════════════════ */}
-          <div
-            ref={stageRef}
-            className={`kerala-arch-stage-container ${isMobile ? "is-mobile-view" : ""}`}
+          <div className="kerala-3d-stage">
+            {/* ── Left Column: 3D Kerala Relief Map ── */}
+            <div className="kerala-3d-left-col">
+              <div className="kerala-3d-map-wrap" aria-label="3D Kerala Relief Model">
+                <Kerala3DMapCanvas
+                  selectedDistrict={selectedDistrict}
+                  activeDestId={currentDest.id}
+                  onSelectDistrict={handleSelectDistrict}
+                />
+              </div>
+            </div>
+
+            {/* ── Right Column: 7-Card Arch Showcase Stage ── */}
+            <div
+              ref={stageRef}
+              className={`kerala-arch-stage-container ${isMobile ? "is-mobile-view" : ""}`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             onTouchStart={handleTouchStart}
@@ -705,6 +745,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
             </div>
           </div>
         </div>
+      </div>
 
         {/* ── 360° Interactive Panoramic Popup Modal ── */}
         <Destination360Modal

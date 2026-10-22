@@ -317,7 +317,7 @@ export default function AiTravelAssistant() {
                 <SparkleIcon className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col justify-center min-w-0">
-                <h2 className="font-['Inter',sans-serif] text-[17px] sm:text-[18px] font-semibold text-[#1F382B] leading-snug tracking-normal truncate">
+                <h2 className="font-['Inter',sans-serif] text-[17px] sm:text-[18px] font-semibold text-[#293D1F] leading-snug tracking-normal truncate">
                   Escora AI Assistant
                 </h2>
                 <p className="font-['Inter',sans-serif] text-[13px] sm:text-[13.5px] font-normal text-[#5A6E62] leading-snug mt-0.5 truncate">

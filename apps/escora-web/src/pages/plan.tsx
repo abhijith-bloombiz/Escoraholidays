@@ -205,8 +205,8 @@ export default function PlanPage() {
           {/* AI Trip Planner Bridge Card */}
           <div className="bg-[#F3F7F4] border border-[#DCE6E0] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
             <div className="space-y-0.5">
-              <div className="font-serif text-sm sm:text-base font-semibold text-[#183628] flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-[#183628]" />
+              <div className="font-serif text-sm sm:text-base font-semibold text-[#293D1F] flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-[#293D1F]" />
                 <span>Looking for an instant AI-designed itinerary?</span>
               </div>
               <p className="text-xs text-[#56664C] leading-relaxed">
@@ -230,7 +230,7 @@ export default function PlanPage() {
             {/* Step 1 — Travel Style */}
             {step === 1 && (
               <div className="animate-in fade-in duration-300">
-                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#293D1F] leading-[1.15] mb-2">
                   How would you like <br />
                   <span className="italic font-normal">to travel?</span>
                 </h1>
@@ -256,7 +256,7 @@ export default function PlanPage() {
                         {/* Top row: Icon and checkmark */}
                         <div className="flex items-center justify-between mb-4">
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-                            isSelected ? "bg-[#183628] text-white" : "bg-[#EFF4F0] text-[#183628]"
+                            isSelected ? "bg-[#183628] text-white" : "bg-[#EFF4F0] text-[#293D1F]"
                           }`}>
                             <IconComponent className="w-4 h-4" />
                           </div>
@@ -269,7 +269,7 @@ export default function PlanPage() {
 
                         {/* Content */}
                         <div className="space-y-1">
-                          <div className="font-serif text-lg font-medium text-[#183628]">
+                          <div className="font-serif text-lg font-medium text-[#293D1F]">
                             {s.label}
                           </div>
                           <p className="text-xs text-[#56664C] leading-relaxed pr-8">
@@ -280,8 +280,8 @@ export default function PlanPage() {
                         {/* Bottom right arrow button */}
                         <div className={`absolute bottom-4 right-4 w-7 h-7 rounded-full border flex items-center justify-center transition-all ${
                           isSelected
-                            ? "border-[#183628] text-[#183628] bg-white"
-                            : "border-[#DCE6E0] text-[#788A63] bg-white group-hover:border-[#183628]/40 group-hover:text-[#183628]"
+                            ? "border-[#183628] text-[#293D1F] bg-white"
+                            : "border-[#DCE6E0] text-[#788A63] bg-white group-hover:border-[#183628]/40 group-hover:text-[#293D1F]"
                         }`}>
                           <ChevronRight className="w-3.5 h-3.5" />
                         </div>
@@ -301,7 +301,7 @@ export default function PlanPage() {
             {/* Step 2 — Destinations */}
             {step === 2 && (
               <div className="animate-in fade-in duration-300">
-                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#293D1F] leading-[1.15] mb-2">
                   Where do you want <br />
                   <span className="italic font-normal">to go?</span>
                 </h1>
@@ -351,7 +351,7 @@ export default function PlanPage() {
                 </div>
 
                 {form.destinations.length > 0 && (
-                  <div className="p-3 bg-[#F4F7F5] rounded-xl border border-[#DCE6E0] text-xs font-mono text-[#183628] mb-8">
+                  <div className="p-3 bg-[#F4F7F5] rounded-xl border border-[#DCE6E0] text-xs font-mono text-[#293D1F] mb-8">
                     <span className="font-semibold">{form.destinations.length} selected:</span>{" "}
                     {form.destinations.join(" · ")}
                   </div>
@@ -364,7 +364,7 @@ export default function PlanPage() {
             {/* Step 3 — Trip Details */}
             {step === 3 && (
               <div className="animate-in fade-in duration-300">
-                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#293D1F] leading-[1.15] mb-2">
                   Tell us about <br />
                   <span className="italic font-normal">your trip.</span>
                 </h1>
@@ -375,18 +375,18 @@ export default function PlanPage() {
                 {/* Arrival & Departure */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   <div>
-                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-2">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#293D1F] font-semibold mb-2">
                       Arrival Date
                     </label>
                     <input
                       type="date"
                       value={form.arrivalDate}
                       onChange={(e) => setForm((f) => ({ ...f, arrivalDate: e.target.value }))}
-                      className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#183628] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
+                      className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#293D1F] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-2">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#293D1F] font-semibold mb-2">
                       Departure Date
                     </label>
                     <input
@@ -394,7 +394,7 @@ export default function PlanPage() {
                       value={form.departureDate}
                       onChange={(e) => setForm((f) => ({ ...f, departureDate: e.target.value }))}
                       min={form.arrivalDate || undefined}
-                      className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#183628] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
+                      className="w-full bg-[#FAF8F5] border border-[#DCE6E0] rounded-xl px-4 py-3 text-sm text-[#293D1F] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#183628] transition-all"
                     />
                   </div>
                 </div>
@@ -403,24 +403,24 @@ export default function PlanPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
                   <div className="bg-[#FAF8F5] border border-[#DCE6E0] rounded-2xl p-4 flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-semibold text-[#183628]">Adults</div>
+                      <div className="text-xs font-semibold text-[#293D1F]">Adults</div>
                       <div className="text-[11px] text-[#788A63]">Ages 12 and above</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, adults: Math.max(1, f.adults - 1) }))}
-                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#183628] hover:bg-[#EFF4F0]"
+                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#293D1F] hover:bg-[#EFF4F0]"
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="w-8 text-center font-serif text-lg font-medium text-[#183628]">
+                      <span className="w-8 text-center font-serif text-lg font-medium text-[#293D1F]">
                         {form.adults}
                       </span>
                       <button
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, adults: f.adults + 1 }))}
-                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#183628] hover:bg-[#EFF4F0]"
+                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#293D1F] hover:bg-[#EFF4F0]"
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>
@@ -429,24 +429,24 @@ export default function PlanPage() {
 
                   <div className="bg-[#FAF8F5] border border-[#DCE6E0] rounded-2xl p-4 flex items-center justify-between">
                     <div>
-                      <div className="text-xs font-semibold text-[#183628]">Children</div>
+                      <div className="text-xs font-semibold text-[#293D1F]">Children</div>
                       <div className="text-[11px] text-[#788A63]">Under 12 years</div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, children: Math.max(0, f.children - 1) }))}
-                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#183628] hover:bg-[#EFF4F0]"
+                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#293D1F] hover:bg-[#EFF4F0]"
                       >
                         <Minus className="w-3.5 h-3.5" />
                       </button>
-                      <span className="w-8 text-center font-serif text-lg font-medium text-[#183628]">
+                      <span className="w-8 text-center font-serif text-lg font-medium text-[#293D1F]">
                         {form.children}
                       </span>
                       <button
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, children: f.children + 1 }))}
-                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#183628] hover:bg-[#EFF4F0]"
+                        className="w-8 h-8 rounded-full bg-white border border-[#DCE6E0] flex items-center justify-center font-bold text-[#293D1F] hover:bg-[#EFF4F0]"
                       >
                         <Plus className="w-3.5 h-3.5" />
                       </button>
@@ -456,7 +456,7 @@ export default function PlanPage() {
 
                 {/* Approximate Budget Per Person */}
                 <div className="space-y-3 mb-8">
-                  <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold">
+                  <label className="block text-xs font-mono uppercase tracking-wider text-[#293D1F] font-semibold">
                     Approximate Budget Per Person
                   </label>
                   <div className="flex flex-wrap gap-2.5">
@@ -487,7 +487,7 @@ export default function PlanPage() {
             {/* Step 4 — Preferences */}
             {step === 4 && (
               <div className="animate-in fade-in duration-300">
-                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#293D1F] leading-[1.15] mb-2">
                   Anything we <br />
                   <span className="italic font-normal">should know?</span>
                 </h1>
@@ -512,7 +512,7 @@ export default function PlanPage() {
             {/* Step 5 — Contact */}
             {step === 5 && (
               <form onSubmit={handleSubmit} className="animate-in fade-in duration-300">
-                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#183628] leading-[1.15] mb-2">
+                <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tight text-[#293D1F] leading-[1.15] mb-2">
                   How can we <br />
                   <span className="italic font-normal">reach you?</span>
                 </h1>
@@ -522,7 +522,7 @@ export default function PlanPage() {
 
                 <div className="space-y-4 mb-8">
                   <div>
-                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#293D1F] font-semibold mb-1.5">
                       Full Name *
                     </label>
                     <input
@@ -536,7 +536,7 @@ export default function PlanPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#293D1F] font-semibold mb-1.5">
                       Email Address *
                     </label>
                     <input
@@ -550,7 +550,7 @@ export default function PlanPage() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold mb-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#293D1F] font-semibold mb-1.5">
                       Phone Number *
                     </label>
                     <input
@@ -569,7 +569,7 @@ export default function PlanPage() {
                       type="checkbox"
                       checked={Boolean(form.marketingConsent)}
                       onChange={(e) => setForm((f) => ({ ...f, marketingConsent: e.target.checked }))}
-                      className="mt-1 h-4 w-4 rounded border-[#DCE6E0] text-[#183628] focus:ring-[#183628] accent-[#183628] cursor-pointer shrink-0"
+                      className="mt-1 h-4 w-4 rounded border-[#DCE6E0] text-[#293D1F] focus:ring-[#183628] accent-[#183628] cursor-pointer shrink-0"
                     />
                     <label
                       htmlFor="plan-marketing-consent"
@@ -582,8 +582,8 @@ export default function PlanPage() {
 
                 {/* Summary Snapshot Card */}
                 <div className="bg-[#FAF8F5] border border-[#DCE6E0] rounded-2xl p-5 sm:p-6 space-y-3 mb-8">
-                  <div className="text-xs font-mono uppercase tracking-wider font-semibold text-[#183628] flex items-center gap-1.5 pb-2 border-b border-[#DCE6E0]/60">
-                    <ShieldCheck className="w-4 h-4 text-[#183628]" />
+                  <div className="text-xs font-mono uppercase tracking-wider font-semibold text-[#293D1F] flex items-center gap-1.5 pb-2 border-b border-[#DCE6E0]/60">
+                    <ShieldCheck className="w-4 h-4 text-[#293D1F]" />
                     <span>Your Itinerary Summary</span>
                   </div>
                   <SummaryRow label="Travel style" value={form.travelStyle || "—"} />
@@ -625,7 +625,7 @@ export default function PlanPage() {
 
                 <p className="text-xs text-[#788A63] mt-4 text-center">
                   We&apos;ll never share your details. By submitting you agree to our{" "}
-                  <Link href="/privacy-policy" className="text-[#183628] underline underline-offset-2">
+                  <Link href="/privacy-policy" className="text-[#293D1F] underline underline-offset-2">
                     privacy policy
                   </Link>.
                 </p>
@@ -714,7 +714,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between items-baseline py-1.5 border-b border-[#DCE6E0]/60 last:border-b-0 text-xs">
       <span className="font-mono text-[11px] uppercase tracking-wider text-[#788A63]">{label}</span>
-      <span className="font-medium text-[#183628] max-w-[65%] text-right">{value}</span>
+      <span className="font-medium text-[#293D1F] max-w-[65%] text-right">{value}</span>
     </div>
   );
 }
@@ -724,10 +724,10 @@ function SuccessScreen({ name }: { name: string }) {
     <Layout>
       <div className="min-h-screen bg-[#FAF8F5] flex items-center justify-center p-6 text-[#293D1F]">
         <div className="bg-white rounded-3xl border border-[#DCE6E0] p-8 sm:p-12 text-center max-w-lg mx-auto shadow-2xs space-y-4">
-          <div className="w-14 h-14 rounded-full bg-[#EFF4F0] flex items-center justify-center text-[#183628] mx-auto">
+          <div className="w-14 h-14 rounded-full bg-[#EFF4F0] flex items-center justify-center text-[#293D1F] mx-auto">
             <Sparkles className="w-7 h-7" />
           </div>
-          <h1 className="font-serif text-2xl sm:text-3xl font-medium text-[#183628]">
+          <h1 className="font-serif text-2xl sm:text-3xl font-medium text-[#293D1F]">
             Your journey begins, {name.split(" ")[0]}.
           </h1>
           <p className="text-xs sm:text-sm text-[#56664C] leading-relaxed">

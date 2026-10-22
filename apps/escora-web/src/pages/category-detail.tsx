@@ -401,7 +401,7 @@ export default function CategoryDetail() {
               <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center justify-center gap-2 mb-3">
                 <span className="text-[#B58D5D]">✦</span> EVERY JOURNEY INCLUDES
               </p>
-              <h2 className="font-editorial text-4xl sm:text-5xl md:text-[3.25rem] text-[#183628] font-normal tracking-tight">
+              <h2 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal tracking-tight leading-[1.08]">
                 What's <em className="italic font-light">Included</em>
               </h2>
             </div>
@@ -426,7 +426,7 @@ export default function CategoryDetail() {
             <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center gap-2 mb-2">
               <span className="text-[#B58D5D]">✦</span> EXPERIENCES
             </p>
-            <h2 className="font-editorial text-4xl sm:text-5xl md:text-[3.25rem] text-[#183628] font-normal tracking-tight">
+            <h2 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal tracking-tight leading-[1.08]">
               Journey <em className="italic font-light">Highlights</em>
             </h2>
           </div>
@@ -490,7 +490,7 @@ export default function CategoryDetail() {
           <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center justify-center gap-2 mb-3">
             <span className="text-[#B58D5D]">✦</span> READY TO BEGIN?
           </p>
-          <h2 className="font-editorial text-4xl sm:text-5xl lg:text-[3.5rem] text-[#183628] font-normal tracking-tight leading-[1.15] max-w-2xl mx-auto mb-5">
+          <h2 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal tracking-tight leading-[1.08] max-w-2xl mx-auto mb-5">
             Let us compose your<br />
             <em className="italic font-light">{data.label}</em> journey
           </h2>

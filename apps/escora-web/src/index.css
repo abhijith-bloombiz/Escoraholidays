@@ -216,6 +216,7 @@
 
 /* ─── Natural Page Scrollbar Styling ─── */
 html, body {
+  overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #758B78 #FAF8F5;

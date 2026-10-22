@@ -76,8 +76,8 @@ export default function Journal() {
       <section className="relative page-hero-top bg-bg border-b border-line">
         <div className="container mx-auto px-6 md:px-12 text-center reveal-up">
           <p className="section-label mb-6 block"><span className="dot" />Travelogue</p>
-          <h1 className="font-serif text-5xl md:text-7xl text-[#293D1F] leading-[1.1] font-light max-w-4xl mx-auto mb-8">
-            The Escora <em className="not-italic text-[#293D1F]">Journal</em>
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl text-ink leading-[1.1] font-light max-w-4xl mx-auto mb-6 sm:mb-8">
+            The Escora <em className="text-gold italic">Journal</em>
           </h1>
           <p className="font-sans text-ink-soft max-w-2xl mx-auto leading-relaxed">
             Stories, reflections, and dispatches from God's Own Country. 

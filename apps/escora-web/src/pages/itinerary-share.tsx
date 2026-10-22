@@ -157,7 +157,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                 {preparingDownload ? "Preparing…" : "Download PDF"}
               </button>
             </div>
-            <h1 className="font-serif text-4xl md:text-6xl text-ink leading-[1.1] mb-6 font-semibold">{itinerary.title}</h1>
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl text-ink leading-[1.1] mb-6 font-semibold">{itinerary.title}</h1>
             <div className="bg-bg-2 border border-gold/30 p-5 flex flex-wrap items-center gap-x-8 gap-y-3 font-mono text-xs uppercase tracking-widest text-ink-soft">
               {itinerary.destination && (
                 <span className="inline-flex items-center gap-2">
@@ -191,7 +191,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                   <AccordionItem
                     key={i}
                     value={`day-${i}`}
-                    className="bg-bg-2 border border-gold/30 border-b-gold/30 p-6 md:p-7 print:break-inside-avoid"
+                    className="bg-bg-2 border border-gold/30 border-b-gold/30 p-5 sm:p-6 md:p-7 print:break-inside-avoid"
                   >
                     <AccordionTrigger className="py-0 hover:no-underline items-start [&>svg]:mt-2 [&>svg]:text-gold [&>svg]:w-[18px] [&>svg]:h-[18px] print:[&>svg]:hidden print:cursor-default">
                       <div className="text-left">
@@ -232,13 +232,13 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
               <h2 className="font-serif text-3xl text-ink mb-11 border-b border-line pb-5 font-semibold">Where You'll Rest</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {stays.map((stay, i) => (
-                  <div key={i} className="bg-bg-2 border border-gold/30 p-7 break-inside-avoid">
+                  <div key={i} className="bg-bg-2 border border-gold/30 p-5 sm:p-7 break-inside-avoid">
                     {stay.location && <span className="font-mono text-gold text-[10px] uppercase tracking-widest block mb-2.5">{stay.location}</span>}
                     <h3 className="font-serif text-xl text-ink mb-1.5 font-semibold">{stay.name}</h3>
                     {stay.roomType && <p className="font-sans text-ink-soft text-sm">{stay.roomType}</p>}
                     {stay.notes && <p className="font-sans text-ink-mute text-xs mt-2">{stay.notes}</p>}
                     {(stay.checkIn || stay.checkOut || stay.nights) && (
-                      <div className="flex gap-8 mt-5 pt-5 border-t border-line/60">
+                      <div className="flex flex-wrap gap-4 sm:gap-8 mt-5 pt-5 border-t border-line/60">
                         <div>
                           <span className="font-mono text-[9px] uppercase tracking-widest text-ink-mute block mb-1.5">Check-in</span>
                           <span className="font-serif text-[17px] text-ink">{formatDate(stay.checkIn) ?? "—"}</span>
@@ -260,7 +260,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
           {(inclusions.length > 0 || exclusions.length > 0) && (
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {inclusions.length > 0 && (
-                <div className="bg-bg-2 border border-gold/30 p-7">
+                <div className="bg-bg-2 border border-gold/30 p-5 sm:p-7">
                   <h3 className="font-serif text-2xl text-ink mb-6 font-semibold">Inclusions</h3>
                   <div className="space-y-3.5">
                     {inclusions.map((inc, i) => (
@@ -273,7 +273,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                 </div>
               )}
               {exclusions.length > 0 && (
-                <div className="bg-bg-2 border border-line p-7">
+                <div className="bg-bg-2 border border-line p-5 sm:p-7">
                   <h3 className="font-serif text-2xl text-ink mb-6 font-semibold">Exclusions</h3>
                   <div className="space-y-3.5">
                     {exclusions.map((exc, i) => (
@@ -292,7 +292,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
             <section>
               <h2 className="font-serif text-3xl text-ink mb-8 border-b border-line pb-5 font-semibold">Pricing</h2>
               <div className="bg-bg-2 border border-gold/30 break-inside-avoid">
-                <div className="divide-y divide-line/60 px-7">
+                <div className="divide-y divide-line/60 px-4 sm:px-7">
                   {pricing.items.map((item, i) => (
                     <div key={i} className="flex items-center justify-between py-4">
                       <span className="font-sans text-sm text-ink-soft">{item.label}</span>
@@ -312,7 +312,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                     </div>
                   )}
                 </div>
-                <div className="flex items-center justify-between py-5 px-7 border-t border-gold/40 bg-bg-3/40">
+                <div className="flex items-center justify-between py-5 px-4 sm:px-7 border-t border-gold/40 bg-bg-3/40">
                   <span className="font-serif text-xl text-gold-bright font-semibold">Total</span>
                   <span className="font-mono text-xl text-gold-bright font-bold">{formatMoney(pricing.total, itinerary.currency)}</span>
                 </div>
@@ -322,7 +322,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
           )}
 
           {!isPackage && pricing.items.length > 0 && (
-            <section className="print:hidden bg-bg-2 border border-gold/30 p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <section className="print:hidden bg-bg-2 border border-gold/30 p-5 sm:p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div>
                 <p className="font-mono text-gold text-xs tracking-[0.25em] uppercase mb-2">Reserve This Journey</p>
                 <p className="font-sans text-ink-soft text-sm max-w-md">

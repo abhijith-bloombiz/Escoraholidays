@@ -1,0 +1,68 @@
+/* ==========================================================================
+   Escora Holidays — Premium Botanical Coconut Palm Animation
+   Balanced fluid organic entrance for Contact Page (~3.2s sweet spot).
+   Graceful, calm, and perfectly paced — neither rushed nor overly slow.
+   Zero initial flash: starts completely invisible via 'both' fill-mode & base styles.
+   ========================================================================== */
+
+.palm-frond-tl {
+  opacity: 0;
+  clip-path: circle(0% at 0% 78%);
+  transform: scale(0.97) rotate(-1.0deg) translate3d(-3px, 2px, 0);
+  transform-origin: 0% 78%;
+  will-change: transform, clip-path, opacity;
+  animation: botanicalFlowTL 3.2s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+.palm-frond-br {
+  opacity: 0;
+  clip-path: circle(0% at 100% 74%);
+  transform: scale(0.97) rotate(0.9deg) translate3d(2px, 2px, 0);
+  transform-origin: 100% 74%;
+  will-change: transform, clip-path, opacity;
+  animation: botanicalFlowBR 3.2s cubic-bezier(0.2, 0.7, 0.3, 1) 0.3s both;
+}
+
+/* Fluid reveal expanding naturally from the stem base across the frond */
+@keyframes botanicalFlowTL {
+  0% {
+    opacity: 0;
+    clip-path: circle(0% at 0% 78%);
+    transform: scale(0.97) rotate(-1.0deg) translate3d(-3px, 2px, 0);
+  }
+  16% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1;
+    clip-path: circle(160% at 0% 78%);
+    transform: scale(1) rotate(0deg) translate3d(0, 0, 0);
+  }
+}
+
+@keyframes botanicalFlowBR {
+  0% {
+    opacity: 0;
+    clip-path: circle(0% at 100% 74%);
+    transform: scale(0.97) rotate(0.9deg) translate3d(2px, 2px, 0);
+  }
+  16% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 1;
+    clip-path: circle(160% at 100% 74%);
+    transform: scale(1) rotate(0deg) translate3d(0, 0, 0);
+  }
+}
+
+/* Accessibility: respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .palm-frond-tl,
+  .palm-frond-br {
+    animation: none !important;
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+}

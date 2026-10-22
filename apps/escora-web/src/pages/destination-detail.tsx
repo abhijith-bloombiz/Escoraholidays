@@ -91,7 +91,7 @@ export default function DestinationDetail() {
   return (
     <Layout>
       {/* Hero */}
-      <section className="relative h-[75dvh] w-full overflow-hidden flex items-end pb-16 pt-24">
+      <section className="relative min-h-[460px] h-auto sm:h-[75dvh] w-full overflow-hidden flex items-end pb-12 sm:pb-16 pt-28 sm:pt-24">
         <div className="absolute inset-0 z-0">
           <img
             src={heroImage}
@@ -103,12 +103,12 @@ export default function DestinationDetail() {
         <div className="relative z-10 container mx-auto px-6 md:px-12">
           <Link
             href="/destinations"
-            className="inline-flex items-center gap-2 font-mono text-[11px] text-white/60 uppercase tracking-[0.2em] hover:text-gold transition-colors mb-8"
+            className="inline-flex items-center gap-2 font-mono text-[11px] text-white/60 uppercase tracking-[0.2em] hover:text-gold transition-colors mb-6 sm:mb-8"
           >
             ← Explore Kerala
           </Link>
-          <p className="font-mono text-gold text-sm tracking-[0.3em] uppercase mb-4">{dest.type} · {dest.region}</p>
-          <h1 className="font-serif text-5xl md:text-7xl text-white leading-[1.05] font-light max-w-3xl">
+          <p className="font-mono text-gold text-xs sm:text-sm tracking-[0.3em] uppercase mb-3 sm:mb-4">{dest.type} · {dest.region}</p>
+          <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl text-white leading-[1.05] font-light max-w-3xl">
             {dest.name}
           </h1>
           {dest.shortDesc && (
@@ -147,13 +147,13 @@ export default function DestinationDetail() {
           </div>
 
           {itineraryTemplate ? (
-            <div className="max-w-4xl mx-auto mt-14 border border-line rounded p-8 md:p-10">
+            <div className="max-w-4xl mx-auto mt-14 border border-line rounded p-5 sm:p-8 md:p-10">
               <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
                 <div>
                   <p className="section-label mb-2">
                     <span className="dot" />{isMultiStop ? "Sample Multi-Destination Itinerary" : "Sample Itinerary"}
                   </p>
-                  <h3 className="font-serif text-2xl md:text-3xl text-ink">{itineraryTemplate.title}</h3>
+                  <h3 className="font-serif text-xl sm:text-2xl md:text-3xl text-ink">{itineraryTemplate.title}</h3>
                   {isMultiStop && itineraryMatch && (
                     <p className="font-sans text-sm text-ink-soft mt-2">
                       {dest.name} features as {itineraryMatch.nightsHere} of the {itineraryTemplate.stays.reduce((sum, s) => sum + (s.nights ?? 0), 0)} nights on this route.

@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useSeo } from "@/hooks/useSeo";
+import { Check, Minus, Plus, ArrowRight, Loader2 } from "lucide-react";
 
 const MOCK_PACKAGES: Partial<Package>[] = [
   { id: 1, name: "The Malabar Escape", durationNights: 5, route: "Kochi · Munnar · Alleppey", category: "Honeymoon", priceFrom: 150000, heroImageUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=2000&q=80", shortDesc: "A five-night journey through Kerala's most iconic backwaters, spice gardens and heritage hotels.", description: "Weave through the lush heartland of Kerala on a private itinerary designed for two. Begin in the colonial lanes of Fort Kochi, ascend to the misty tea estates of Munnar, and finish aboard a traditional ketuvallam houseboat drifting the Alleppey backwaters.", published: true, featured: true, slug: "malabar-escape", itinerary: null, inclusions: null, exclusions: null, accommodations: null, galleryImages: null, season: null, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
@@ -16,9 +17,9 @@ const MOCK_PACKAGES: Partial<Package>[] = [
 ];
 
 const formSchema = z.object({
-  guestName: z.string().min(2, "Name is required"),
-  guestEmail: z.string().email("Invalid email"),
-  guestPhone: z.string().min(10, "Phone is required"),
+  guestName: z.string().min(2, "Please enter your name"),
+  guestEmail: z.string().email("Please enter a valid email address"),
+  guestPhone: z.string().min(10, "Please enter a valid phone number (min 10 digits)"),
   travelDate: z.string().optional(),
   guestCount: z.coerce.number().min(1, "At least 1 guest").optional(),
   specialRequests: z.string().optional()
@@ -54,6 +55,7 @@ export default function JourneyDetail() {
     } : undefined,
   });
 
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const createOrder = useCreateOrder();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -71,8 +73,8 @@ export default function JourneyDetail() {
       } 
     }, {
       onSuccess: () => {
+        setIsSubmitted(true);
         toast({ title: "Booking Enquiry Sent", description: "Our concierge will contact you shortly to confirm details." });
-        form.reset();
       },
       onError: () => {
         toast({ title: "Error", description: "Could not send enquiry.", variant: "destructive" });
@@ -139,23 +141,23 @@ export default function JourneyDetail() {
             <span className="font-mono text-gold text-xs tracking-[0.3em] uppercase mb-4 block bg-bg/50 backdrop-blur inline-block px-4 py-2">
               {pkg.category}
             </span>
-            <h1 className="font-serif text-5xl md:text-7xl text-ink leading-[1.1] mb-8">
+            <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl text-ink leading-[1.1] mb-6 sm:mb-8">
               {pkg.name}
             </h1>
             
-            <div className="flex flex-wrap gap-8 items-center font-mono text-xs uppercase tracking-widest text-ink-soft bg-bg-2/80 backdrop-blur px-8 py-6 border border-line border-l-gold border-l-4">
+            <div className="flex flex-wrap gap-4 sm:gap-8 items-center font-mono text-xs uppercase tracking-widest text-ink-soft bg-bg-2/80 backdrop-blur px-4 py-4 sm:px-8 sm:py-6 border border-line border-l-gold border-l-4">
               <div className="flex flex-col gap-1">
                 <span className="text-ink-mute text-[10px]">Duration</span>
                 <span className="text-ink">{pkg.durationNights} Nights</span>
               </div>
-              <div className="w-[1px] h-8 bg-line" />
+              <div className="w-[1px] h-8 bg-line hidden sm:block" />
               <div className="flex flex-col gap-1">
                 <span className="text-ink-mute text-[10px]">Route</span>
                 <span className="text-ink">{pkg.route}</span>
               </div>
               {pkg.season && (
                 <>
-                  <div className="w-[1px] h-8 bg-line" />
+                  <div className="w-[1px] h-8 bg-line hidden sm:block" />
                   <div className="flex flex-col gap-1">
                     <span className="text-ink-mute text-[10px]">Best Season</span>
                     <span className="text-ink">{pkg.season}</span>
@@ -251,72 +253,210 @@ export default function JourneyDetail() {
 
           {/* Right Col - Sticky Form */}
           <div className="w-full lg:w-1/3">
-            <div className="sticky top-32 bg-bg-2 border border-line p-8 md:p-10 reveal-up">
-              <h3 className="font-serif text-3xl text-ink mb-2">Reserve Your Journey</h3>
-              <p className="font-sans text-ink-soft text-sm mb-8">Our concierge will contact you to finalize dates and details.</p>
-              
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">Name</label>
-                  <input 
-                    {...form.register("guestName")}
-                    className="w-full bg-transparent border-b border-line focus:border-gold py-2 text-ink font-sans outline-none transition-colors"
-                  />
+            <div className="sticky top-28 bg-white border border-[#CCD7D2] rounded-2xl p-6 sm:p-7 shadow-[0_16px_40px_-16px_rgba(26,63,44,0.10)] reveal-up">
+              {/* Header Badge & Starting Price */}
+              <div className="flex items-center justify-between pb-4 mb-5 border-b border-[#CCD7D2]/60">
+                <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-[#183628] font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-[#183628]" />
+                  <span>Reserve Journey</span>
                 </div>
-                
-                <div className="space-y-2">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">Email</label>
-                  <input 
-                    {...form.register("guestEmail")}
-                    type="email"
-                    className="w-full bg-transparent border-b border-line focus:border-gold py-2 text-ink font-sans outline-none transition-colors"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">Phone</label>
-                  <input 
-                    {...form.register("guestPhone")}
-                    className="w-full bg-transparent border-b border-line focus:border-gold py-2 text-ink font-sans outline-none transition-colors"
-                  />
-                </div>
+                {pkg?.priceFrom ? (
+                  <div className="text-right">
+                    <span className="block text-[9.5px] font-mono uppercase tracking-wider text-[#788A63]">Starting from</span>
+                    <span className="font-serif text-lg font-semibold text-[#183628]">₹{pkg.priceFrom.toLocaleString("en-IN")}</span>
+                  </div>
+                ) : null}
+              </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">Travel Date</label>
-                    <input 
-                      {...form.register("travelDate")}
-                      type="date"
-                      className="w-full bg-transparent border-b border-line focus:border-gold py-2 text-ink font-sans outline-none transition-colors"
-                    />
+              <h3 className="font-serif text-2xl sm:text-[28px] text-[#183628] mb-1.5 font-medium leading-tight">
+                Reserve Your Journey
+              </h3>
+              <p className="font-sans text-[#56664C] text-xs sm:text-sm mb-6 leading-relaxed">
+                Our concierge will contact you to finalize bespoke dates, luxury stays, and private arrangements.
+              </p>
+
+              {isSubmitted ? (
+                <div className="text-center py-6 space-y-4 animate-in fade-in zoom-in-95 duration-300">
+                  <div className="w-12 h-12 rounded-full bg-[#183628]/10 border border-[#183628]/30 flex items-center justify-center mx-auto text-[#183628]">
+                    <Check className="w-6 h-6" />
                   </div>
-                  <div className="space-y-2">
-                    <label className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">Guests</label>
-                    <input 
-                      {...form.register("guestCount")}
-                      type="number"
-                      min="1"
-                      className="w-full bg-transparent border-b border-line focus:border-gold py-2 text-ink font-sans outline-none transition-colors"
-                    />
+                  <div>
+                    <h4 className="font-serif text-2xl text-[#183628] font-medium">Enquiry Received</h4>
+                    <p className="text-xs text-[#56664C] leading-relaxed max-w-xs mx-auto mt-2">
+                      Thank you, <strong className="text-[#183628]">{form.getValues("guestName")}</strong>. Our journey concierge is reviewing your request for <strong className="text-[#183628]">{pkg?.name}</strong> and will contact you within 24 hours.
+                    </p>
+                  </div>
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsSubmitted(false);
+                        form.reset();
+                      }}
+                      className="text-xs font-mono text-[#183628] uppercase tracking-wider underline underline-offset-4 hover:opacity-75 cursor-pointer"
+                    >
+                      Make another enquiry
+                    </button>
                   </div>
                 </div>
-                
-                <div className="space-y-2">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">Special Requests</label>
-                  <textarea 
-                    {...form.register("specialRequests")}
-                    className="w-full bg-transparent border-b border-line focus:border-gold py-2 text-ink font-sans outline-none transition-colors resize-none h-20"
-                  />
-                </div>
-                
-                <button 
-                  type="submit"
-                  disabled={createOrder.isPending}
-                  className="w-full bg-gold text-bg font-mono uppercase tracking-widest text-xs py-4 hover:bg-gold-bright transition-colors disabled:opacity-50 mt-4"
-                >
-                  {createOrder.isPending ? "Sending..." : "Request to Book"}
-                </button>
-              </form>
+              ) : (
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  {/* Name */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold">
+                      Full Name *
+                    </label>
+                    <input 
+                      {...form.register("guestName")}
+                      type="text"
+                      placeholder="e.g. Eleanor Vance"
+                      className={`w-full bg-[#FAF8F5] border rounded-xl px-3.5 py-2.5 text-sm text-[#183628] placeholder:text-[#8FA196] focus:bg-white focus:outline-none transition-all ${
+                        form.formState.errors.guestName
+                          ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                          : "border-[#CCD7D2] focus:border-[#183628] focus:ring-1 focus:ring-[#183628]"
+                      }`}
+                    />
+                    {form.formState.errors.guestName && (
+                      <p className="text-[11px] text-red-600 font-sans mt-0.5">
+                        {form.formState.errors.guestName.message}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Email */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold">
+                      Email Address *
+                    </label>
+                    <input 
+                      {...form.register("guestEmail")}
+                      type="email"
+                      placeholder="eleanor@example.com"
+                      className={`w-full bg-[#FAF8F5] border rounded-xl px-3.5 py-2.5 text-sm text-[#183628] placeholder:text-[#8FA196] focus:bg-white focus:outline-none transition-all ${
+                        form.formState.errors.guestEmail
+                          ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                          : "border-[#CCD7D2] focus:border-[#183628] focus:ring-1 focus:ring-[#183628]"
+                      }`}
+                    />
+                    {form.formState.errors.guestEmail && (
+                      <p className="text-[11px] text-red-600 font-sans mt-0.5">
+                        {form.formState.errors.guestEmail.message}
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Phone */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold">
+                      Phone Number *
+                    </label>
+                    <input 
+                      {...form.register("guestPhone")}
+                      type="tel"
+                      placeholder="+91 98765 43210"
+                      className={`w-full bg-[#FAF8F5] border rounded-xl px-3.5 py-2.5 text-sm text-[#183628] placeholder:text-[#8FA196] focus:bg-white focus:outline-none transition-all ${
+                        form.formState.errors.guestPhone
+                          ? "border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                          : "border-[#CCD7D2] focus:border-[#183628] focus:ring-1 focus:ring-[#183628]"
+                      }`}
+                    />
+                    {form.formState.errors.guestPhone && (
+                      <p className="text-[11px] text-red-600 font-sans mt-0.5">
+                        {form.formState.errors.guestPhone.message}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Travel Date & Guests in 2 Cols */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-0.5">
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold">
+                        Travel Date
+                      </label>
+                      <input 
+                        {...form.register("travelDate")}
+                        type="date"
+                        min={new Date().toISOString().split("T")[0]}
+                        className="w-full bg-[#FAF8F5] border border-[#CCD7D2] rounded-xl px-3 py-2 text-sm text-[#183628] focus:bg-white focus:border-[#183628] focus:ring-1 focus:ring-[#183628] focus:outline-none transition-all cursor-pointer h-[42px]"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold">
+                        Guests
+                      </label>
+                      <div className="flex items-center h-[42px] bg-[#FAF8F5] border border-[#CCD7D2] rounded-xl px-2">
+                        <button
+                          type="button"
+                          onClick={() => form.setValue("guestCount", Math.max(1, (form.watch("guestCount") || 2) - 1))}
+                          className="w-7 h-7 rounded-lg bg-white border border-[#DCE6E0] flex items-center justify-center text-[#183628] hover:bg-[#EFF4F0] active:scale-95 transition-all cursor-pointer shadow-2xs"
+                          aria-label="Decrease guests"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="flex-1 text-center font-serif text-base font-semibold text-[#183628] select-none">
+                          {form.watch("guestCount") || 2}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => form.setValue("guestCount", Math.min(20, (form.watch("guestCount") || 2) + 1))}
+                          className="w-7 h-7 rounded-lg bg-white border border-[#DCE6E0] flex items-center justify-center text-[#183628] hover:bg-[#EFF4F0] active:scale-95 transition-all cursor-pointer shadow-2xs"
+                          aria-label="Increase guests"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Special Requests */}
+                  <div className="space-y-1.5 pt-0.5">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold">
+                      Special Requests
+                    </label>
+                    <textarea 
+                      {...form.register("specialRequests")}
+                      rows={3}
+                      placeholder="Celebrations, dietary preferences, pace of travel…"
+                      className="w-full bg-[#FAF8F5] border border-[#CCD7D2] rounded-xl p-3 text-sm text-[#183628] placeholder:text-[#8FA196] focus:bg-white focus:border-[#183628] focus:ring-1 focus:ring-[#183628] focus:outline-none transition-all resize-none leading-relaxed"
+                    />
+                  </div>
+                  
+                  {/* Submit Button */}
+                  <button 
+                    type="submit"
+                    disabled={createOrder.isPending}
+                    className="w-full bg-[#1A3F2C] hover:bg-[#255239] text-white rounded-full py-3.5 px-6 font-mono uppercase tracking-widest text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow active:scale-[0.99] disabled:opacity-50 mt-3 cursor-pointer"
+                  >
+                    {createOrder.isPending ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Sending Request…</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Request to Book</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </>
+                    )}
+                  </button>
+
+                  {/* Trust footer & WhatsApp */}
+                  <div className="pt-3 border-t border-[#CCD7D2]/60 space-y-1.5 text-center">
+                    <p className="text-[11px] text-[#56664C] leading-snug">
+                      No upfront payment required · 100% tailor-made
+                    </p>
+                    <a
+                      href={`https://wa.me/918157003344?text=${encodeURIComponent(`Hi Escora, I would like to reserve "${pkg?.name || 'this journey'}".`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-xs text-[#1A3F2C] hover:text-[#3F5630] font-mono tracking-wide underline underline-offset-4 transition-colors"
+                    >
+                      Prefer to chat? Connect on WhatsApp →
+                    </a>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         </div>

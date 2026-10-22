@@ -29,7 +29,7 @@ export default function About() {
       <div className="about-page bg-[#FAF8F5] text-[#183628]" style={{ overflowX: "hidden" }}>
 
         {/* 1. Hero Section */}
-        <section className="relative pt-10 sm:pt-14 lg:pt-18 pb-16 sm:pb-22 overflow-hidden border-b border-[#E8EEEA]">
+        <section className="relative pt-28 sm:pt-32 lg:pt-36 pb-14 sm:pb-20 overflow-hidden border-b border-[#E8EEEA]">
           {/* Right landscape backwater image fading seamlessly into warm ivory #FAF8F5 */}
           <div 
             className="absolute top-0 right-0 h-full w-full lg:w-[60%] xl:w-[56%] pointer-events-none select-none z-0 opacity-25 lg:opacity-100"
@@ -67,7 +67,7 @@ export default function About() {
                 <span className="w-10 h-[1px] bg-[#8C7355]/50 inline-block" />
               </div>
               <h1
-                className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#183628] font-normal leading-[1.12] mb-6"
+                className="font-editorial text-3xl sm:text-5xl lg:text-[62px] text-[#183628] font-normal leading-[1.12] mb-6"
                 style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
               >
                 Designed for<br />
@@ -109,7 +109,7 @@ export default function About() {
                     <span className="w-10 h-[1px] bg-[#8C7355]/50 inline-block" />
                   </div>
                   <h2
-                    className="font-editorial text-3xl sm:text-4xl lg:text-[42px] text-[#183628] font-normal leading-[1.18] mb-6"
+                    className="font-editorial text-2xl sm:text-4xl lg:text-[42px] text-[#183628] font-normal leading-[1.18] mb-6"
                     style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
                   >
                     Slow travel. Curated access. Honest{" "}

@@ -95,9 +95,9 @@ export default function Contact() {
             className="absolute inset-0 opacity-[0.03] pointer-events-none"
             style={{ backgroundImage: "radial-gradient(circle at 60% 40%, #cbab6e 0%, transparent 60%)" }}
           />
-          <div className="container mx-auto max-w-4xl text-center reveal-up">
+          <div className="container mx-auto px-6 sm:px-8 max-w-4xl text-center reveal-up">
             <p className="section-label mb-6"><span className="dot" />Contact</p>
-            <h1 className="font-serif text-5xl md:text-6xl text-ink font-light leading-[1.1] mb-6">
+            <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl text-ink font-light leading-[1.1] mb-6">
               Start a <em className="italic text-gold">conversation</em>
             </h1>
             <p className="font-sans text-ink-mute text-base leading-relaxed max-w-xl mx-auto">
@@ -107,13 +107,13 @@ export default function Contact() {
           </div>
         </section>
 
-        <div className="container mx-auto max-w-4xl relative z-10">
+        <div className="container mx-auto px-6 sm:px-8 max-w-4xl relative z-10">
           <hr className="page-divider" />
         </div>
 
         {/* Content grid */}
-        <section className="container mx-auto max-w-4xl relative z-10" style={{ paddingBottom: "var(--section-y)" }}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
+        <section className="container mx-auto px-6 sm:px-8 max-w-4xl relative z-10" style={{ paddingBottom: "var(--section-y)" }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
 
           {/* Contact details */}
           <div className="space-y-10 reveal-up">

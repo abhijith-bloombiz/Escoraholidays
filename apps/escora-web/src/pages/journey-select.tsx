@@ -13,7 +13,7 @@ export default function JourneySelectPage() {
 
   return (
     <Layout>
-      <div className="min-h-[85vh] bg-[#FAF8F5] flex flex-col justify-center relative overflow-hidden py-24 sm:py-32 md:py-36">
+      <div className="min-h-[85vh] bg-[#FAF8F5] flex flex-col justify-start sm:justify-center relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-24">
         {/* Soft decorative background tint */}
         <div
           className="absolute inset-0 pointer-events-none opacity-40 select-none"

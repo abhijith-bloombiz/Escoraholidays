@@ -163,7 +163,7 @@ export default function Journeys() {
               </p>
               <span className="w-8 h-[1px] bg-[#8C7355]/40 inline-block" />
             </div>
-            <h1 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#183628] leading-[1.08] font-normal tracking-tight mb-3 sm:mb-4">
+            <h1 className="font-editorial text-3xl sm:text-5xl lg:text-[62px] text-[#183628] leading-[1.08] font-normal tracking-tight mb-3 sm:mb-4">
               Immaculate <em className="italic font-light">Journeys</em>
             </h1>
             <p className="font-sans text-[#4A5D53] text-sm sm:text-base leading-relaxed max-w-xl">
@@ -256,7 +256,7 @@ export default function Journeys() {
                   <Link 
                     key={pkg.id} 
                     href={`/journeys/${pkg.id}`}
-                    className="group relative block overflow-hidden rounded-2xl border border-black/5 bg-[#183628] shadow-sm hover:shadow-xl transition-all duration-500 aspect-[16/10.5] sm:aspect-[16/10]"
+                    className="group relative block overflow-hidden rounded-2xl border border-black/5 bg-[#183628] shadow-sm hover:shadow-xl transition-all duration-500 min-h-[250px] sm:min-h-0 aspect-[16/11] sm:aspect-[16/10]"
                   >
                     {/* Edge to edge background image */}
                     <img 
@@ -286,7 +286,7 @@ export default function Journeys() {
 
                     {/* Card bottom content */}
                     <div className="absolute inset-x-0 bottom-0 p-6 sm:p-7 md:p-8 flex flex-col justify-end text-white z-10">
-                      <h3 className="font-editorial text-3xl sm:text-[2.25rem] font-normal tracking-tight leading-none text-white drop-shadow-sm mb-2 group-hover:text-white/95 transition-colors">
+                      <h3 className="font-editorial text-2xl sm:text-3xl md:text-[2.25rem] font-normal tracking-tight leading-none text-white drop-shadow-sm mb-2 group-hover:text-white/95 transition-colors">
                         {pkg.name}
                       </h3>
 

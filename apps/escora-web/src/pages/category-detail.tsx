@@ -366,7 +366,7 @@ export default function CategoryDetail() {
           >
             <span>✦</span> COLLECTIONS
           </Link>
-          <h1 className="font-editorial text-5xl sm:text-6xl md:text-7xl lg:text-[5.5rem] text-white leading-[1.02] font-normal tracking-tight max-w-4xl drop-shadow-sm">
+          <h1 className="font-editorial text-3xl sm:text-5xl md:text-6xl lg:text-[5.5rem] text-white leading-[1.02] font-normal tracking-tight max-w-4xl drop-shadow-sm">
             {data.label}
           </h1>
           <p className="font-editorial italic text-xl sm:text-2xl md:text-[1.75rem] text-white/95 font-light mt-3 sm:mt-4 max-w-2xl drop-shadow-sm">
@@ -468,7 +468,7 @@ export default function CategoryDetail() {
                 <Link
                   key={i}
                   href={cardUrl}
-                  className="group relative block overflow-hidden rounded-2xl border border-black/5 bg-[#183628] shadow-sm hover:shadow-xl transition-all duration-500 aspect-[16/10.5] sm:aspect-[16/10]"
+                  className="group relative block overflow-hidden rounded-2xl border border-black/5 bg-[#183628] shadow-sm hover:shadow-xl transition-all duration-500 min-h-[250px] sm:min-h-0 aspect-[16/11] sm:aspect-[16/10]"
                 >
                   {/* Edge to edge background image */}
                   <img
@@ -489,7 +489,7 @@ export default function CategoryDetail() {
 
                   {/* Card bottom content */}
                   <div className="absolute inset-x-0 bottom-0 p-6 sm:p-7 md:p-8 flex flex-col justify-end text-white z-10">
-                    <h3 className="font-editorial text-3xl sm:text-[2.25rem] font-normal tracking-tight leading-none text-white drop-shadow-sm">
+                    <h3 className="font-editorial text-2xl sm:text-3xl md:text-[2.25rem] font-normal tracking-tight leading-none text-white drop-shadow-sm">
                       {parsed.main}
                     </h3>
                     {parsed.tracker && (

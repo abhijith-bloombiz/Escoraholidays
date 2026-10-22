@@ -5,12 +5,9 @@ import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
 import { TravelTypeCoverflow, TravelTypeItem } from "@/components/TravelTypeCoverflow";
 import { Flower2, SunMedium, Swords, HeartPulse } from "lucide-react";
-import TheEscoraWay from "@/components/TheEscoraWay";
 import Kerala3DDestinationExplorer from "@/components/Kerala3DDestinationExplorer";
-import Destination360Experience from "@/components/Destination360Experience";
 import FromYourIdeaToKerala from "@/components/FromYourIdeaToKerala";
 import TropicalLagoonHero from "@/components/TropicalLagoonHero";
-import whyEscoraBg from "@assets/escora/why-escora-bg.jpeg";
 import typeWildlife from "@assets/escora/collections/nature-wildlife-hero.jpg";
 import typeHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
 import typeHoneymoon from "@assets/escora/collections/honeymoon-hero.jpg";
@@ -392,7 +389,20 @@ export default function Home() {
   const packagesRef = useRef<HTMLElement>(null);
   const exploreSectionRef = useRef<HTMLElement>(null);
 
-  const [activeRetreatCard, setActiveRetreatCard] = useState<number>(1);
+  const [activeRetreatCard, setActiveRetreatCard] = useState<number>(0);
+  const [isRetreatPaused, setIsRetreatPaused] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isRetreatPaused) return;
+    const retreatTimer = setInterval(() => {
+      setActiveRetreatCard((prev) => (prev + 1) % ESCORA_RETREAT_CARDS.length);
+    }, 5000);
+    return () => clearInterval(retreatTimer);
+  }, [isRetreatPaused]);
+
+  const handleSelectRetreatCard = (i: number) => {
+    setActiveRetreatCard(i);
+  };
 
   const handleRetreatCardClick = (i: number, e?: React.MouseEvent | React.KeyboardEvent) => {
     setActiveRetreatCard(i);
@@ -535,9 +545,6 @@ export default function Home() {
       {/* ═══════════════════════ TROPICAL LAGOON HERO ═══════════════════════ */}
       <TropicalLagoonHero />
 
-      {/* ═══════════════════════ THE ESCORA WAY ═══════════════════════ */}
-      <TheEscoraWay />
-
       {/* ═══════════════════════ TRAVEL BY TYPE ═══════════════════════ */}
       <section
         className="cat-section"
@@ -549,35 +556,13 @@ export default function Home() {
             <div className="cat-section-head-left">
               <div className="eyebrow rv"><span className="dot" />Travel by Type</div>
               <h2 className="display-md rv d2" style={{ maxWidth: "20ch" }}>
-                Eight ways to discover <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kerala</em>.
+                Eight ways to discover <em style={{ fontStyle: "normal", color: "var(--gold-bright)" }}>Kerala</em>.
               </h2>
             </div>
             <div className="cat-section-head-right">
               <p className="rv d3" style={{ maxWidth: "44ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
                 Choose your travel personality — we'll compose a journey from scratch, entirely around you.
               </p>
-              <div
-                className="travel-type-filter-bar rv d4"
-                role="tablist"
-                aria-label="Filter travel personality"
-              >
-                {TRAVEL_TYPE_ITEMS.map((item, idx) => {
-                  const isActive = idx === activeTravelTypeIndex;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      role="tab"
-                      id={`travel-filter-${item.id}`}
-                      aria-selected={isActive}
-                      className={`travel-type-filter-pill ${isActive ? "active" : ""}`}
-                      onClick={() => setActiveTravelTypeIndex(idx)}
-                    >
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
             </div>
           </div>
 
@@ -596,17 +581,8 @@ export default function Home() {
         destinations={destinationsData}
       />
 
-      {/* ═══════════════════════ 360° DESTINATION EXPERIENCE ═══════════════════════ */}
-      <Destination360Experience destinations={destinationsData} />
-
-
-      {/* ═══════════════════════ WHY ESCORA — LANDSCAPE PANORAMA ═══════════════════════ */}
+      {/* ═══════════════════════ WHY ESCORA — LUXURY EDITORIAL ═══════════════════════ */}
       <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
-        {/* Background landscape */}
-        <div className="why-esc-bg" style={{ backgroundImage: `url(${whyEscoraBg})` }} aria-hidden="true" />
-        {/* Cream overlay for readability */}
-        <div className="why-esc-overlay" aria-hidden="true" />
-
         <div className="why-esc-inner">
           {/* ── Left panel: editorial copy ── */}
           <div className="why-esc-left">
@@ -739,49 +715,12 @@ export default function Home() {
 
       {/* ═══════════════════════ ESCORA RETREAT ════════════════════════════ */}
       <section className="escora-retreat-section" id="retreat" aria-label="Escora Retreat">
-        {/* Decorative botanical leaf line arts in margins */}
-        <svg
-          className="retreat-botanical retreat-botanical-left"
-          viewBox="0 0 160 320"
-          fill="none"
-          stroke="#c59a58"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M10 310 C30 220 50 140 120 20" />
-          <path d="M35 250 C15 235 5 210 20 190 C35 210 38 230 35 250" />
-          <path d="M48 210 C68 195 80 170 70 150 C55 170 50 190 48 210" />
-          <path d="M62 165 C40 145 35 120 50 100 C65 120 65 145 62 165" />
-          <path d="M80 120 C100 100 115 80 105 60 C90 80 82 100 80 120" />
-          <path d="M98 75 C80 55 80 30 95 15 C108 32 102 55 98 75" />
-          <path d="M120 20 C135 10 145 15 140 30 C130 35 125 28 120 20" />
-        </svg>
-
-        <svg
-          className="retreat-botanical retreat-botanical-right"
-          viewBox="0 0 160 320"
-          fill="none"
-          stroke="#c59a58"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M150 10 C130 100 110 180 40 300" />
-          <path d="M125 70 C145 85 155 110 140 130 C125 110 122 90 125 70" />
-          <path d="M112 110 C92 125 80 150 90 170 C105 150 110 130 112 110" />
-          <path d="M98 155 C120 175 125 200 110 220 C95 200 95 175 98 155" />
-          <path d="M80 200 C60 220 45 240 55 260 C70 240 78 220 80 200" />
-          <path d="M62 245 C80 265 80 290 65 305 C52 288 58 265 62 245" />
-        </svg>
-
         <div className="retreat-leaf-shadow-tr" aria-hidden="true" />
         <div className="retreat-leaf-shadow-bl" aria-hidden="true" />
 
         <div className="retreat-container">
-          <div className="retreat-header">
+          {/* Header Row: Left Eyebrow & Title, Right Top Lede */}
+          <div className="retreat-header-row">
             <div className="retreat-header-left">
               <div className="retreat-eyebrow rv">
                 <span className="dot" />
@@ -791,72 +730,128 @@ export default function Home() {
                 Healing, the <em>Kerala</em> way.
               </h2>
             </div>
-            <div className="retreat-header-right rv d2">
-              <p className="retreat-lede">
+            <div className="retreat-header-right">
+              <p className="retreat-lede rv d2">
                 Set on the quiet shore of Vembanad Lake — our NABH-accredited wellness home, where physicians, yogis and kalari masters work as one. Every programme is composed for you alone.
               </p>
             </div>
           </div>
 
-          <div className="retreat-cards-grid">
-            {ESCORA_RETREAT_CARDS.map((card, i) => {
-              const isActive = activeRetreatCard === i;
-              return (
-                <a
-                  key={i}
-                  href="#contact"
-                  className={`retreat-arch-card rv${i > 0 ? ` d${i}` : ""}${isActive ? " is-active" : ""}`}
-                  onClick={(e) => handleRetreatCardClick(i, e)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      handleRetreatCardClick(i, e);
-                    }
-                  }}
-                  aria-label={`Enquire about ${card.name} - Step ${card.step}`}
-                >
-                  {/* Golden Apex Dot on active card */}
-                  {isActive && <div className="retreat-apex-dot" aria-hidden="true" />}
+          <div className="retreat-split-layout">
+            {/* Left Column: Numbered Services List */}
+            <div className="retreat-left-col">
 
-                  <div className="retreat-card-content">
-                    <div className="retreat-card-icon-badge" aria-hidden="true">
-                      {card.icon}
-                    </div>
-                    <h3 className="retreat-card-title">{card.title}</h3>
-                    <p className="retreat-card-desc">{card.desc}</p>
-
-                    <div className="retreat-card-tags">
-                      {card.tags.map((tag, tIdx) => (
-                        <span key={tIdx} className="retreat-card-tag">
-                          {tag}
+              {/* Numbered Retreat Items List */}
+              <div
+                className="retreat-items-list"
+                role="tablist"
+                aria-label="Escora Retreat Offerings"
+                onMouseEnter={() => setIsRetreatPaused(true)}
+                onMouseLeave={() => setIsRetreatPaused(false)}
+              >
+                {ESCORA_RETREAT_CARDS.map((card, i) => {
+                  const isActive = activeRetreatCard === i;
+                  return (
+                    <div
+                      key={card.step}
+                      role="tab"
+                      aria-selected={isActive}
+                      tabIndex={0}
+                      className={`retreat-item${isActive ? " is-active" : ""}`}
+                      onClick={() => handleSelectRetreatCard(i)}
+                      onMouseEnter={() => handleSelectRetreatCard(i)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleSelectRetreatCard(i);
+                        }
+                      }}
+                    >
+                      <div className="retreat-item-header">
+                        <span className="retreat-item-num">{card.step}.</span>
+                        <h3 className="retreat-item-title">{card.name}</h3>
+                        <span className="retreat-item-chevron" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M6 9l6 6 6-6" />
+                          </svg>
                         </span>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
 
-                  <div className="retreat-card-photo-wrap">
-                    <img
-                      src={card.img}
-                      alt={card.alt}
-                      className="retreat-card-photo"
-                      loading="lazy"
-                    />
-                    <div className="retreat-card-photo-overlay" aria-hidden="true" />
-                    <div className="retreat-card-photo-bottom">
-                      <div className="retreat-card-num">{card.step}</div>
-                      <div
-                        className="retreat-card-action-btn"
-                        aria-hidden="true"
-                      >
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M5 12h14" />
-                          <path d="M12 5l7 7-7 7" />
-                        </svg>
+                      {/* Smooth collapsible accordion popup */}
+                      <div className="retreat-item-collapse" aria-hidden={!isActive}>
+                        <div className="retreat-item-collapse-inner">
+                          <div className="retreat-item-popup-content">
+                            <p className="retreat-item-desc">{card.desc}</p>
+
+                            <div className="retreat-item-tags">
+                              {card.tags.map((tag, tIdx) => (
+                                <span key={tIdx} className="retreat-item-tag">
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+
+                            <div className="retreat-item-cta-row">
+                              <a
+                                href="#contact"
+                                className="retreat-item-enquire-btn"
+                                onClick={(e) => handleRetreatCardClick(i, e)}
+                                tabIndex={isActive ? 0 : -1}
+                              >
+                                <span>Enquire about {card.name}</span>
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M5 12h14" />
+                                  <path d="M12 5l7 7-7 7" />
+                                </svg>
+                              </a>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </a>
-              );
-            })}
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: Fluid Swapping Circular Visual Collage */}
+            <div
+              className="retreat-right-col"
+              onMouseEnter={() => setIsRetreatPaused(true)}
+              onMouseLeave={() => setIsRetreatPaused(false)}
+            >
+              <div className="retreat-collage-wrapper">
+                {ESCORA_RETREAT_CARDS.map((card, i) => {
+                  const slot = (i - activeRetreatCard + ESCORA_RETREAT_CARDS.length) % ESCORA_RETREAT_CARDS.length;
+                  const isHero = slot === 0;
+
+                  return (
+                    <button
+                      key={card.step}
+                      type="button"
+                      className={`retreat-circle-card retreat-card-slot-${slot}${isHero ? " is-hero" : ""}`}
+                      onClick={() => handleSelectRetreatCard(i)}
+                      aria-label={isHero ? `Featured: ${card.name}` : `Select ${card.name}`}
+                      aria-current={isHero ? "true" : undefined}
+                      title={card.name}
+                      tabIndex={0}
+                    >
+                      <img
+                        src={card.img}
+                        alt={card.alt}
+                        className="retreat-circle-card-img"
+                        loading="lazy"
+                      />
+                      <div className="retreat-circle-card-content">
+                        <span className="retreat-circle-card-title">
+                          {card.name}
+                        </span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1026,9 +1021,6 @@ export default function Home() {
         </div>
       </section>
       <section className="enquiry-section-v2" id="contact" aria-label="Begin Your Journey">
-        <div className="enquiry-bg-image" style={{ backgroundImage: "url('assets/enquiry-backdrop-munnar.jpg')" }} aria-hidden="true" />
-        <div className="enquiry-bg-gradient" aria-hidden="true" />
-
         <div className="enquiry-container">
           <div className="enquiry-grid">
             {/* Left Column: Heading, description & contact info */}

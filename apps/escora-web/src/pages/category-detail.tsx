@@ -17,7 +17,6 @@ import padmanabhapuramPalace from "@assets/escora/collections/padmanabhapuram-pa
 import payyambalamDrivingBeach from "@assets/escora/collections/payyambalam-driving-beach.jpg";
 import fortKochiHeritage from "@assets/escora/collections/fort-kochi-heritage.jpg";
 import fortKochiSunset from "@assets/escora/destinations/fort-kochi.jpg";
-import whyEscoraBg from "@assets/escora/why-escora-bg.jpeg";
 import wayanadForestStay from "@assets/escora/collections/wayanad-forest-stay.jpeg";
 import munnarTeaEstate from "@assets/escora/collections/munnar-tea-estate.jpeg";
 import kovalamBeach from "@assets/escora/collections/kovalam-beach.jpeg";
@@ -377,24 +376,6 @@ export default function CategoryDetail() {
 
       {/* 2. Introduction */}
       <section className="relative bg-[#FAF8F5] py-20 md:py-28 overflow-hidden">
-        {/* Soft botanical palm fronds flanking the sides */}
-        <div className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 -translate-x-12 sm:-translate-x-6 md:translate-x-0 w-44 sm:w-60 md:w-72 lg:w-80 opacity-30 select-none">
-          <img
-            src="/assets/escora-palm-frond-corner.png"
-            alt=""
-            aria-hidden="true"
-            className="w-full h-auto -scale-x-100 object-contain"
-          />
-        </div>
-        <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 translate-x-12 sm:translate-x-6 md:translate-x-0 w-44 sm:w-60 md:w-72 lg:w-80 opacity-30 select-none">
-          <img
-            src="/assets/escora-palm-frond-corner.png"
-            alt=""
-            aria-hidden="true"
-            className="w-full h-auto object-contain"
-          />
-        </div>
-
         <div className="container relative z-10 mx-auto px-6 md:px-12">
           <div className="max-w-3xl mx-auto text-center">
             <p className="font-sans text-[#4A554D] text-base md:text-lg lg:text-[1.125rem] leading-[1.8] font-normal tracking-normal">
@@ -414,16 +395,6 @@ export default function CategoryDetail() {
 
       {/* 3. What's Included */}
       <section className="relative bg-[#EFF4F0] py-20 md:py-24 border-y border-[#E2EAE4] overflow-hidden">
-        {/* Subtle background landscape watermark */}
-        <div className="pointer-events-none absolute inset-0 opacity-[0.14] select-none mix-blend-multiply">
-          <img
-            src={whyEscoraBg}
-            alt=""
-            aria-hidden="true"
-            className="w-full h-full object-cover object-right-bottom"
-          />
-        </div>
-
         <div className="container relative z-10 mx-auto px-6 md:px-12">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12 md:mb-14">
@@ -515,16 +486,6 @@ export default function CategoryDetail() {
 
       {/* 5. Ready to Begin? */}
       <section className="relative bg-[#EFF4F0] py-20 md:py-24 border-t border-[#E2EAE4] overflow-hidden text-center">
-        {/* Subtle background landscape watermark */}
-        <div className="pointer-events-none absolute inset-0 opacity-[0.22] select-none mix-blend-multiply">
-          <img
-            src={whyEscoraBg}
-            alt=""
-            aria-hidden="true"
-            className="w-full h-full object-cover object-bottom"
-          />
-        </div>
-
         <div className="container relative z-10 mx-auto px-6 md:px-12">
           <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center justify-center gap-2 mb-3">
             <span className="text-[#B58D5D]">✦</span> READY TO BEGIN?

@@ -310,6 +310,7 @@ const ESCORA_RETREAT_CARDS = [
 
 const TESTIMONIALS = [
   {
+    id: 1,
     cat: "Honeymoon · Mar 2025",
     quote: '"They moved a sunset for us. Or it felt that way. A boat appeared on a backwater I\'d been told didn\'t exist — and a chef I\'d long admired was on it."',
     av: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80",
@@ -321,6 +322,7 @@ const TESTIMONIALS = [
     delay: "",
   },
   {
+    id: 2,
     cat: "Family · Dec 2024",
     quote: '"Our family of seven, ages 6 to 78. The itinerary anticipated every single one of us."',
     av: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80",
@@ -332,6 +334,7 @@ const TESTIMONIALS = [
     delay: "d1",
   },
   {
+    id: 3,
     cat: "Wellness · Oct 2024",
     quote: '"Escora did not arrange a holiday — they arranged a <em>recovery</em>."',
     av: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
@@ -448,7 +451,7 @@ export default function Home() {
   } = useListTestimonials({ published: true });
 
   const travelTypeItems: TravelTypeItem[] = useMemo(() => {
-    if (!categoriesData) return [];
+    if (!categoriesData || categoriesData.length === 0) return TRAVEL_TYPE_ITEMS;
     return categoriesData.map((c) => ({
       id: c.slug,
       label: c.label,
@@ -463,7 +466,8 @@ export default function Home() {
   }, [categoriesData]);
 
   const testimonials = useMemo(() => {
-    return (testimonialsData || []).map((t) => ({
+    if (!testimonialsData || testimonialsData.length === 0) return TESTIMONIALS;
+    return testimonialsData.map((t) => ({
       id: t.id,
       name: t.name,
       quote: t.quote,
@@ -625,8 +629,8 @@ export default function Home() {
 
           <TravelTypeCoverflow
             items={travelTypeItems}
-            isLoading={isCategoriesLoading}
-            isError={isCategoriesError}
+            isLoading={isCategoriesLoading && travelTypeItems.length === 0}
+            isError={isCategoriesError && travelTypeItems.length === 0}
             onRetry={refetchCategories}
           />
         </div>
@@ -955,7 +959,7 @@ export default function Home() {
         </div>
 
         <div className="testi-carousel-wrapper">
-          {isTestimonialsLoading ? (
+          {isTestimonialsLoading && testimonials.length === 0 ? (
             <div className="flex items-center justify-center py-24 text-center">
               <div className="flex flex-col items-center gap-3">
                 <div className="w-10 h-10 border-2 border-[#c59a58]/30 border-t-[#c59a58] rounded-full animate-spin" />
@@ -964,7 +968,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-          ) : isTestimonialsError ? (
+          ) : isTestimonialsError && testimonials.length === 0 ? (
             <div className="flex items-center justify-center py-20 text-center">
               <div className="flex flex-col items-center gap-3 max-w-sm px-4">
                 <p className="text-xs font-mono uppercase tracking-[0.2em] text-red-400">

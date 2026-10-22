@@ -67,7 +67,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   const [, navigate] = useLocation();
   const [isPaused, setIsPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [entranceState, setEntranceState] = useState<"pending" | "revealing" | "complete">("pending");
+  const [entranceState, setEntranceState] = useState<"pending" | "revealing" | "complete">("complete");
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const pointerStartX = useRef<number | null>(null);
@@ -76,6 +76,13 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   // Track previous offsets of each card to detect circular wrap jumps
   const prevOffsetsRef = useRef<Record<string, number>>({});
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync center card selection when items load dynamically
+  useEffect(() => {
+    if (controlledIndex === undefined && internalIndex === 0 && items.length > 2) {
+      setInternalIndex(2);
+    }
+  }, [items.length, controlledIndex, internalIndex]);
 
   /* Viewport Intersection Observer: Trigger entrance animation when scrolled into view */
   useEffect(() => {
@@ -89,23 +96,11 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.12) {
-          setEntranceState((prev) => {
-            if (prev === "pending") {
-              if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-              revealTimerRef.current = setTimeout(() => {
-                setEntranceState("complete");
-              }, 1200);
-              return "revealing";
-            }
-            return prev;
-          });
-        } else if (!entry.isIntersecting || entry.intersectionRatio <= 0.02) {
-          setEntranceState("pending");
-          if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+        if (entry.isIntersecting) {
+          setEntranceState("complete");
         }
       },
-      { threshold: [0, 0.05, 0.12, 0.35] }
+      { threshold: [0, 0.08] }
     );
 
     observer.observe(el);
@@ -113,7 +108,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
       observer.disconnect();
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     };
-  }, []);
+  }, [isLoading, items.length]);
 
   const total = items.length;
 
@@ -339,7 +334,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
     });
   }, [items]);
 
-  if (isLoading) {
+  if (isLoading && (!items || items.length === 0)) {
     return (
       <div className="travel-type-coverflow-wrap flex items-center justify-center py-24 text-center">
         <div className="flex flex-col items-center gap-3">
@@ -350,7 +345,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
     );
   }
 
-  if (isError) {
+  if (isError && (!items || items.length === 0)) {
     return (
       <div className="travel-type-coverflow-wrap flex items-center justify-center py-20 text-center">
         <div className="flex flex-col items-center gap-3 max-w-sm px-4">

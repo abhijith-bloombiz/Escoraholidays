@@ -542,20 +542,15 @@
    Center card expands 0% -> 100%, side cards fan out from behind sequentially
    ========================================================================== */
 
-/* State 1: Before scrolling into viewport — cards collapsed behind center */
+/* State 1: Smooth initial state before full viewport interaction */
 .travel-type-coverflow-wrap.coverflow-entrance-pending .travel-type-badge-bar,
 .travel-type-coverflow-wrap.coverflow-entrance-pending .coverflow-nav-btn,
 .travel-type-coverflow-wrap.coverflow-entrance-pending .coverflow-pagination {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: none !important;
+  opacity: 0.8;
 }
 
 .travel-type-coverflow-wrap.coverflow-entrance-pending .coverflow-card {
-  transform: translate3d(-50%, -50%, 0) scale(0) !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: none !important;
+  opacity: 0.85;
 }
 
 /* State 2: Scroll Reveal — Center card reveals 0% to 100%, others fan out from behind */

@@ -20,6 +20,8 @@ export interface TravelTypeCoverflowProps {
   isLoading?: boolean;
   isError?: boolean;
   onRetry?: () => void;
+  activeIndex?: number;
+  onActiveIndexChange?: (index: number) => void;
 }
 
 export function formatTravelCategoryTitle(label: string, slug?: string): React.ReactNode {
@@ -56,9 +58,12 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   isLoading,
   isError,
   onRetry,
+  activeIndex: controlledIndex,
+  onActiveIndexChange,
 }) => {
   // Center card initially on index 2 (matching reference design) or 0 if fewer items
-  const [activeIndex, setActiveIndex] = useState(() => (items.length > 2 ? 2 : 0));
+  const [internalIndex, setInternalIndex] = useState(() => (items.length > 2 ? 2 : 0));
+  const activeIndex = controlledIndex !== undefined ? controlledIndex : internalIndex;
   const [, navigate] = useLocation();
   const [isPaused, setIsPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -318,19 +323,11 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
     }
   };
 
-  /* Calculate shortest circular offset from activeIndex */
-  const getOffset = (idx: number) => {
-    let diff = (idx - activeIndex) % total;
-    if (diff > total / 2) diff -= total;
-    if (diff < -total / 2) diff += total;
-    return diff;
-  };
-
   useEffect(() => {
     if (items.length > 0 && activeIndex >= items.length) {
-      setActiveIndex(0);
+      updateIndex(0);
     }
-  }, [items.length, activeIndex]);
+  }, [items.length, activeIndex, updateIndex]);
 
   /* Preload images */
   useEffect(() => {

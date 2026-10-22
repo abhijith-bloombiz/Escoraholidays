@@ -1,10 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
-import EscoraContactCard from "@/components/EscoraContactCard";
-import {
-  BotanicalTopLeft,
-  BotanicalTopRight,
-} from "@/components/BotanicalDecorations";
+import PalmBotanicalAnimation from "@/components/PalmBotanicalAnimation";
 
 export default function Contact() {
   useSeo({
@@ -16,21 +12,35 @@ export default function Contact() {
   return (
     <Layout>
       <div className="relative overflow-hidden bg-bg">
-        {/* Botanical Vector Decorations */}
-        <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden" aria-hidden="true">
-          <BotanicalTopLeft className="absolute -top-4 -left-6 sm:top-0 sm:left-0 w-[240px] h-[250px] sm:w-[320px] sm:h-[340px] opacity-70" />
-          <BotanicalTopRight className="absolute -top-4 -right-6 sm:top-0 sm:right-0 w-[210px] h-[230px] sm:w-[280px] sm:h-[300px] opacity-65" />
+        <PalmBotanicalAnimation />
+
+        {/* Hero */}
+        <section className="relative z-10 page-hero-top bg-transparent overflow-hidden">
+          <div
+            className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{ backgroundImage: "radial-gradient(circle at 60% 40%, #cbab6e 0%, transparent 60%)" }}
+          />
+          <div className="container mx-auto px-6 sm:px-8 max-w-4xl text-center reveal-up">
+            <p className="section-label mb-6"><span className="dot" />Contact</p>
+            <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl text-ink font-light leading-[1.1] mb-6">
+              Start a <em className="italic text-gold">conversation</em>
+            </h1>
+            <p className="font-sans text-ink-mute text-base leading-relaxed max-w-xl mx-auto">
+              Whether you have a specific journey in mind or simply want to explore what's possible,
+              we're here to help. Our team responds within one business day.
+            </p>
+          </div>
+        </section>
+
+        <div className="container mx-auto px-6 sm:px-8 max-w-4xl relative z-10">
+          <hr className="page-divider" />
         </div>
 
-        {/* Unified Luxury Enquiry & Contact Card */}
-        <div className="relative z-10 pt-4 pb-10">
-          <EscoraContactCard id="contact-form" />
-        </div>
-
-        {/* Contact details & Studio Address */}
-        <section className="container mx-auto max-w-5xl relative z-10 pb-20 px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 pt-10 border-t border-line/60">
-            <div>
+        {/* Content grid */}
+        <section className="container mx-auto px-6 sm:px-8 max-w-4xl relative z-10" style={{ paddingBottom: "var(--section-y)" }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+            {/* Direct Lines */}
+            <div className="space-y-4 reveal-up">
               <p className="section-label mb-4"><span className="dot" />Direct Lines</p>
               <div className="space-y-4 font-sans text-sm">
                 {[
@@ -46,7 +56,8 @@ export default function Contact() {
               </div>
             </div>
 
-            <div>
+            {/* Studio Address */}
+            <div className="space-y-4 reveal-up">
               <p className="section-label mb-4"><span className="dot" />Escora Journey Studio</p>
               <p className="font-sans text-ink-mute text-sm leading-relaxed">
                 1st Floor, Landmark Maple Business Tower<br />

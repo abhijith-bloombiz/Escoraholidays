@@ -724,18 +724,18 @@ export default function TripPlannerPage() {
               An intelligent, catalog-grounded itinerary designer rooted exclusively in Escora&apos;s verified Kerala sanctuaries, colonial heritage ports, and private backwater lagoons.
             </p>
 
-            <div className="flex items-center justify-center gap-6 pt-2 text-[11px] font-mono text-[#788A63]">
+            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 pt-2 text-[11px] font-mono text-[#788A63]">
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 text-[#193F2D]" />
-                100% Verified Published Catalog
+                <ShieldCheck className="h-3.5 w-3.5 text-[#193F2D] shrink-0" />
+                <span>100% Verified Published Catalog</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-[#193F2D]" />
-                Realistic Western Ghats Pacing
+                <Clock className="h-3.5 w-3.5 text-[#193F2D] shrink-0" />
+                <span>Realistic Western Ghats Pacing</span>
               </span>
               <span className="flex items-center gap-1.5 hidden sm:flex">
-                <Coins className="h-3.5 w-3.5 text-[#193F2D]" />
-                Honest Indicative Guidance
+                <Coins className="h-3.5 w-3.5 text-[#193F2D] shrink-0" />
+                <span>Honest Indicative Guidance</span>
               </span>
             </div>
           </div>

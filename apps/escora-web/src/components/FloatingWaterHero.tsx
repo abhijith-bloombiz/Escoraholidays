@@ -843,6 +843,9 @@ export default function FloatingWaterHero({
         ref={canvasRef}
         className={`floating-water-canvas ${isReady ? "is-ready" : ""}`}
       />
+
+      {/* Atmospheric Faded Bottom Transition into next section */}
+      <div className="hero-bottom-fade" aria-hidden="true" />
     </div>
   );
 }

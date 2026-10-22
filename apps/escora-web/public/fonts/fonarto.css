@@ -1,0 +1,24 @@
+/**
+ * Fonarto Font Family
+ * Escora Holidays Public Portal Headings
+ */
+
+@font-face {
+  font-family: 'Fonarto';
+  src: url('/fonts/fonarto/Fonarto.woff2') format('woff2'),
+       url('/fonts/fonarto/Fonarto.woff') format('woff'),
+       url('/fonts/fonarto/Fonarto.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Fonarto XT';
+  src: url('/fonts/fonarto/Fonarto-XT.woff2') format('woff2'),
+       url('/fonts/fonarto/Fonarto-XT.woff') format('woff'),
+       url('/fonts/fonarto/Fonarto-XT.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}

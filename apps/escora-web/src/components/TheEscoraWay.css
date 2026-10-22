@@ -18,7 +18,7 @@
   padding: clamp(32px, 4.5vh, 64px) 0;
   box-sizing: border-box;
   overflow: hidden;
-  border-top: 1px solid rgba(228, 222, 210, 0.6);
+  border-top: none;
   scroll-snap-align: none;
   scroll-snap-stop: normal;
 }
@@ -95,7 +95,7 @@
 }
 
 .escora-way-index-num {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-size: 14px;
   font-weight: 500;
   letter-spacing: 0.16em;
@@ -176,14 +176,14 @@
   flex-shrink: 0;
 }
 
-/* Main Heading — Elegant Playfair Display typography matching reference */
+/* Main Heading — Elegant Fonarto typography */
 .escora-way-heading {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: clamp(42px, 4.2vw, 66px);
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
+  font-size: clamp(36px, 4.5vw, 62px);
   font-weight: 400;
-  line-height: 1.06;
-  letter-spacing: -0.015em;
-  color: #143323;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: #293D1F;
   margin: 0 0 clamp(20px, 2.5vh, 28px) 0;
 }
 
@@ -192,17 +192,17 @@
 }
 
 .escora-way-heading .italic-green {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-style: italic;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
+  font-style: normal;
   font-weight: 400;
-  color: #143323;
+  color: #293D1F;
 }
 
 .escora-way-heading .italic-gold {
-  font-family: 'Playfair Display', Georgia, serif;
-  font-style: italic;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
+  font-style: normal;
   font-weight: 400;
-  color: #B58D5D;
+  color: #293D1F;
 }
 
 /* Body Text */
@@ -342,12 +342,12 @@
 }
 
 .escora-way-story-tagline {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-style: italic;
   font-size: clamp(14px, 1.05vw, 15.5px);
   font-weight: 400;
   line-height: 1.3;
-  color: #143323;
+  color: #293D1F;
   margin: 0 0 6px 0;
   white-space: pre-line;
 }
@@ -585,7 +585,7 @@
     letter-spacing: 0.18em;
   }
   .escora-way-heading {
-    font-size: clamp(30px, 8vw, 40px);
+    font-size: clamp(26px, 6.5vw, 36px);
     line-height: 1.12;
     margin-bottom: 16px;
   }

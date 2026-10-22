@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import "./TravelTypeCoverflow.css";
 
 export interface TravelTypeItem {
   id: string;
@@ -14,7 +15,7 @@ export interface TravelTypeItem {
   link: string;
 }
 
-interface TravelTypeCoverflowProps {
+export interface TravelTypeCoverflowProps {
   items: TravelTypeItem[];
   isLoading?: boolean;
   isError?: boolean;
@@ -60,38 +61,105 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   const [activeIndex, setActiveIndex] = useState(() => (items.length > 2 ? 2 : 0));
   const [, navigate] = useLocation();
   const [isPaused, setIsPaused] = useState(false);
-  const touchStartX = useRef<number | null>(null);
-  const touchStartY = useRef<number | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [entranceState, setEntranceState] = useState<"pending" | "revealing" | "complete">("pending");
+
   const carouselRef = useRef<HTMLDivElement>(null);
+  const pointerStartX = useRef<number | null>(null);
+  const pointerCurrentX = useRef<number | null>(null);
+  const didDragRef = useRef(false);
+  // Track previous offsets of each card to detect circular wrap jumps
+  const prevOffsetsRef = useRef<Record<string, number>>({});
+  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  /* Viewport Intersection Observer: Trigger entrance animation when scrolled into view */
+  useEffect(() => {
+    const el = carouselRef.current;
+    if (!el) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setEntranceState("complete");
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.12) {
+          setEntranceState((prev) => {
+            if (prev === "pending") {
+              if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+              revealTimerRef.current = setTimeout(() => {
+                setEntranceState("complete");
+              }, 1200);
+              return "revealing";
+            }
+            return prev;
+          });
+        } else if (!entry.isIntersecting || entry.intersectionRatio <= 0.02) {
+          setEntranceState("pending");
+          if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+        }
+      },
+      { threshold: [0, 0.05, 0.12, 0.35] }
+    );
+
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+    };
+  }, []);
 
   const total = items.length;
 
+  const updateIndex = useCallback(
+    (newIndex: number) => {
+      setInternalIndex(newIndex);
+      onActiveIndexChange?.(newIndex);
+    },
+    [onActiveIndexChange]
+  );
+
   const handleNext = useCallback(() => {
     if (total <= 1) return;
-    setActiveIndex((prev) => (prev + 1) % total);
-  }, [total]);
+    updateIndex((activeIndex + 1) % total);
+  }, [activeIndex, total, updateIndex]);
 
   const handlePrev = useCallback(() => {
     if (total <= 1) return;
-    setActiveIndex((prev) => (prev - 1 + total) % total);
-  }, [total]);
+    updateIndex((activeIndex - 1 + total) % total);
+  }, [activeIndex, total, updateIndex]);
 
-  const handleSelect = useCallback((idx: number) => {
-    setActiveIndex(idx);
-  }, []);
+  const handleSelect = useCallback(
+    (idx: number) => {
+      updateIndex(idx);
+    },
+    [updateIndex]
+  );
 
-  /* Click on any other card smoothly moves it to center. Clicking center card navigates. */
+  /* Calculate shortest circular offset from activeIndex */
+  const getOffset = useCallback(
+    (idx: number) => {
+      let diff = (idx - activeIndex) % total;
+      if (diff > total / 2) diff -= total;
+      if (diff < -total / 2) diff += total;
+      return diff;
+    },
+    [activeIndex, total]
+  );
+
+  /* Card click handling */
   const handleCardClick = (e: React.MouseEvent<HTMLDivElement>, idx: number, link: string) => {
+    // If a drag gesture just finished, ignore the click
+    if (didDragRef.current) {
+      didDragRef.current = false;
+      return;
+    }
+
     e.preventDefault();
     e.stopPropagation();
     const offset = getOffset(idx);
     if (offset !== 0) {
-      const card = e.currentTarget;
-      card.classList.remove("is-tilting");
-      card.style.setProperty("--tilt-x", "0deg");
-      card.style.setProperty("--tilt-y", "0deg");
-      card.style.setProperty("--mouse-x", "50%");
-      card.style.setProperty("--mouse-y", "50%");
       handleSelect(idx);
     } else {
       navigate(link);
@@ -110,96 +178,99 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
     }
   };
 
-  /* Interactive smooth 3D micro-tilt when cursor moves across card */
+  /* Edge-only tilt effect: tilts on Y axis only when hovering near the left or right edges */
   const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
     const rect = card.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) return;
+    if (rect.width === 0) return;
 
     const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const ratio = x / rect.width; // 0 (left edge) to 1 (right edge)
 
-    const px = Math.max(0, Math.min(100, (x / rect.width) * 100));
-    const py = Math.max(0, Math.min(100, (y / rect.height) * 100));
+    const EDGE_ZONE = 0.28; // Outer 28% width on the left and right edges
+    const MAX_TILT = 7.5; // Max tilt in degrees
 
-    const normX = Math.max(-1, Math.min(1, (x / rect.width - 0.5) * 2));
-    const normY = Math.max(-1, Math.min(1, (y / rect.height - 0.5) * 2));
+    let tiltY = 0;
 
-    const maxTilt = 7.5;
-    const tiltX = -normY * maxTilt;
-    const tiltY = normX * maxTilt;
-
-    card.style.setProperty("--tilt-x", `${tiltX.toFixed(2)}deg`);
-    card.style.setProperty("--tilt-y", `${tiltY.toFixed(2)}deg`);
-    card.style.setProperty("--mouse-x", `${px.toFixed(1)}%`);
-    card.style.setProperty("--mouse-y", `${py.toFixed(1)}%`);
-
-    if (!card.classList.contains("is-tilting")) {
-      card.classList.add("is-tilting");
+    if (ratio < EDGE_ZONE) {
+      // Hovering near left edge: tilt to the left (-Y)
+      const factor = (EDGE_ZONE - ratio) / EDGE_ZONE; // 0 at edge boundary, 1 at leftmost border
+      tiltY = -factor * MAX_TILT;
+    } else if (ratio > 1 - EDGE_ZONE) {
+      // Hovering near right edge: tilt to the right (+Y)
+      const factor = (ratio - (1 - EDGE_ZONE)) / EDGE_ZONE; // 0 at edge boundary, 1 at rightmost border
+      tiltY = factor * MAX_TILT;
+    } else {
+      // In the center area (middle 44% of the card): completely flat, zero tilt!
+      tiltY = 0;
     }
+
+    card.style.setProperty("--edge-tilt-y", `${tiltY.toFixed(2)}deg`);
   };
 
   const handleCardMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget;
-    card.classList.remove("is-tilting");
-    card.style.setProperty("--tilt-x", "0deg");
-    card.style.setProperty("--tilt-y", "0deg");
-    card.style.setProperty("--mouse-x", "50%");
-    card.style.setProperty("--mouse-y", "50%");
+    card.style.setProperty("--edge-tilt-y", "0deg");
   };
 
-  const [entranceState, setEntranceState] = useState<"pending" | "revealing" | "complete">("pending");
-  const isScrollingRef = useRef(false);
-  const isPausedRef = useRef(false);
-  const isInViewRef = useRef(false);
-  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /* Pointer / Mouse Drag interactions */
+  const handlePointerDown = (e: React.PointerEvent) => {
+    // Only capture primary mouse click or touch
+    if (e.button !== 0 && e.pointerType === "mouse") return;
+    pointerStartX.current = e.clientX;
+    pointerCurrentX.current = e.clientX;
+    didDragRef.current = false;
+    setIsDragging(true);
+  };
 
-  /* Viewport visibility: reveal entrance when scrolling forward or reverse into exact viewport */
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (pointerStartX.current === null) return;
+    pointerCurrentX.current = e.clientX;
+    const delta = e.clientX - pointerStartX.current;
+    if (Math.abs(delta) > 8) {
+      didDragRef.current = true;
+    }
+  };
+
+  const handlePointerUp = () => {
+    if (pointerStartX.current !== null && pointerCurrentX.current !== null) {
+      const delta = pointerCurrentX.current - pointerStartX.current;
+      const DRAG_THRESHOLD = 36;
+      if (delta < -DRAG_THRESHOLD) {
+        handleNext();
+      } else if (delta > DRAG_THRESHOLD) {
+        handlePrev();
+      }
+    }
+    pointerStartX.current = null;
+    pointerCurrentX.current = null;
+    setIsDragging(false);
+  };
+
+  const handlePointerCancel = () => {
+    pointerStartX.current = null;
+    pointerCurrentX.current = null;
+    setIsDragging(false);
+  };
+
+  /* Auto-play timer */
+  const isScrollingRef = useRef(false);
+  const isInViewRef = useRef(true);
+
   useEffect(() => {
     const el = carouselRef.current;
-    if (!el) return;
-
-    if (typeof IntersectionObserver === "undefined") {
-      isInViewRef.current = true;
-      setEntranceState("complete");
-      return;
-    }
+    if (!el || typeof IntersectionObserver === "undefined") return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        // Enters viewport (either scrolling forward/down or reverse/up)
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.18) {
-          isInViewRef.current = true;
-          setEntranceState((prev) => {
-            if (prev === "pending") {
-              if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-              revealTimerRef.current = setTimeout(() => {
-                setEntranceState("complete");
-              }, 1100);
-              return "revealing";
-            }
-            return prev;
-          });
-        }
-        // Fully leaves viewport (scrolled away up or down)
-        else if (!entry.isIntersecting || entry.intersectionRatio <= 0.02) {
-          isInViewRef.current = false;
-          setEntranceState("pending");
-          if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-        }
+        isInViewRef.current = entry.isIntersecting;
       },
-      { threshold: [0, 0.05, 0.18, 0.4] }
+      { threshold: 0.15 }
     );
-
     observer.observe(el);
-    return () => {
-      observer.disconnect();
-      if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-    };
+    return () => observer.disconnect();
   }, []);
 
-  /* Scroll detection: pause auto-play while the user is actively scrolling */
   useEffect(() => {
     let scrollTimeout: ReturnType<typeof setTimeout> | null = null;
     const onScroll = () => {
@@ -208,18 +279,16 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
       scrollTimeout = setTimeout(() => {
         isScrollingRef.current = false;
         scrollTimeout = null;
-      }, 800);
+      }, 600);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-
     return () => {
       window.removeEventListener("scroll", onScroll);
       if (scrollTimeout) clearTimeout(scrollTimeout);
     };
   }, []);
 
-  /* Auto-play timer */
   useEffect(() => {
     if (total <= 1) return;
 
@@ -230,45 +299,13 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
     if (prefersReducedMotion) return;
 
     const timer = setInterval(() => {
-      if (!isPausedRef.current && !isScrollingRef.current && isInViewRef.current) {
+      if (!isPaused && !isDragging && !isScrollingRef.current && isInViewRef.current) {
         handleNext();
       }
-    }, 4800);
+    }, 5200);
 
     return () => clearInterval(timer);
-  }, [total, handleNext]);
-
-  /* Pause auto-play when tab is hidden */
-  useEffect(() => {
-    const handleVisibility = () => {
-      isPausedRef.current = document.hidden;
-      setIsPaused(document.hidden);
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
-    return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, []);
-
-  /* Touch swipe handling */
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const onTouchEnd = (e: React.TouchEvent) => {
-    if (touchStartX.current === null || touchStartY.current === null) return;
-    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
-    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
-
-    if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY)) {
-      if (deltaX < 0) {
-        handleNext();
-      } else {
-        handlePrev();
-      }
-    }
-    touchStartX.current = null;
-    touchStartY.current = null;
-  };
+  }, [total, isPaused, isDragging, handleNext]);
 
   /* Keyboard arrow navigation */
   const onKeyDown = (e: React.KeyboardEvent) => {
@@ -344,37 +381,30 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
     );
   }
 
-  const entranceClass = `coverflow-entrance-${entranceState}`;
+  if (!items || items.length === 0) return null;
 
   return (
     <div
       ref={carouselRef}
-      className={`explore-coverflow-wrap travel-type-coverflow-wrap ${entranceClass}`}
+      className={`travel-type-coverflow-wrap coverflow-entrance-${entranceState}`}
       tabIndex={0}
       role="region"
       aria-label="Travel by Type 3D Coverflow"
-      onMouseEnter={() => {
-        isPausedRef.current = true;
-        setIsPaused(true);
-      }}
-      onMouseLeave={() => {
-        isPausedRef.current = false;
-        setIsPaused(false);
-      }}
-      onFocus={() => {
-        isPausedRef.current = true;
-        setIsPaused(true);
-      }}
-      onBlur={() => {
-        isPausedRef.current = false;
-        setIsPaused(false);
-      }}
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onFocus={() => setIsPaused(true)}
+      onBlur={() => setIsPaused(false)}
       onKeyDown={onKeyDown}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
     >
-      <div className="coverflow-stage-container">
-        <div className="coverflow-stage">
+      {/* ─── 3D Coverflow Stage Container ─── */}
+      <div
+        className="coverflow-stage-container"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
+        <div className={`coverflow-stage ${isDragging ? "is-dragging" : ""}`}>
           {items.map((item, i) => {
             const offset = getOffset(i);
 
@@ -382,12 +412,18 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
             if (offset < -3) offsetAttr = "hidden-left";
             if (offset > 3) offsetAttr = "hidden-right";
 
+            const prevOffset = prevOffsetsRef.current[item.id];
+            const isWrapping =
+              prevOffset !== undefined && Math.abs(offset - prevOffset) > total / 2;
+
+            const isCenter = offset === 0;
+
             return (
               <div
                 key={item.id}
                 role="button"
                 tabIndex={0}
-                className="coverflow-card"
+                className={`coverflow-card ${isWrapping ? "is-wrapping" : ""}`}
                 data-offset={offsetAttr}
                 aria-label={`Explore ${item.label} journeys in Kerala`}
                 onClick={(e) => handleCardClick(e, i, item.link)}
@@ -396,17 +432,19 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
                 onMouseLeave={handleCardMouseLeave}
               >
                 <div className="coverflow-card-inner">
-                  <div className="coverflow-card-media">
-                    <img
-                      src={item.img}
-                      alt={`${item.label} — Kerala`}
-                      className="coverflow-card-img"
-                      loading="eager"
-                      decoding="async"
-                      draggable={false}
-                    />
-                    <div className="coverflow-card-scrim" />
-                    <div className="coverflow-card-border-glow" />
+                  <img
+                    src={item.img}
+                    alt={`${item.label} — Kerala`}
+                    className="coverflow-card-img"
+                    loading="eager"
+                    decoding="async"
+                    draggable={false}
+                  />
+                  <div className="coverflow-card-scrim" />
+
+                  {/* ─── Top Category Tag / Badge on Each Card (Matches Reference Image) ─── */}
+                  <div className="coverflow-card-badge">
+                    <span className="coverflow-badge-pill">{item.label}</span>
                   </div>
 
                   {/* Center (Active) card editorial content with 3D depth */}
@@ -424,12 +462,18 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
                       <span className="cta-text">EXPLORE →</span>
                       <span className="cta-gold-line" />
                     </div>
-                  </div>
 
-                  {/* Side cards: Destination / category name at bottom-left with gold underline */}
-                  <div className="coverflow-side-caption">
-                    <span className="side-dest-name">{getCardDisplayName(item)}</span>
-                    <span className="side-gold-line" />
+                    <a
+                      href={item.link}
+                      className="tt-card-view-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(item.link);
+                      }}
+                      aria-label={`View all ${item.label} journeys`}
+                    >
+                      <ArrowRight size={16} strokeWidth={2.2} />
+                    </a>
                   </div>
                 </div>
               </div>
@@ -437,27 +481,33 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
           })}
         </div>
 
-        {/* Navigation arrow buttons */}
+        {/* ─── Navigation Chevron Arrows (Accessible Side Controls) ─── */}
         <button
           type="button"
           className="coverflow-nav-btn prev"
-          onClick={handlePrev}
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePrev();
+          }}
           aria-label="Previous journey type"
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft size={22} />
         </button>
 
         <button
           type="button"
           className="coverflow-nav-btn next"
-          onClick={handleNext}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleNext();
+          }}
           aria-label="Next journey type"
         >
-          <ChevronRight size={20} />
+          <ChevronRight size={22} />
         </button>
       </div>
 
-      {/* Pagination indicators */}
+      {/* ─── Pagination Dots ─── */}
       <div className="coverflow-pagination" aria-label="Journey type pagination">
         {items.map((it, idx) => (
           <button

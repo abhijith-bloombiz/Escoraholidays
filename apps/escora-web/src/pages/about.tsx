@@ -67,7 +67,7 @@ export default function About() {
                 <span className="w-10 h-[1px] bg-[#8C7355]/50 inline-block" />
               </div>
               <h1
-                className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#183628] font-normal leading-[1.12] mb-6"
+                className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal leading-[1.12] mb-6"
                 style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
               >
                 Designed for<br />
@@ -109,7 +109,7 @@ export default function About() {
                     <span className="w-10 h-[1px] bg-[#8C7355]/50 inline-block" />
                   </div>
                   <h2
-                    className="font-editorial text-3xl sm:text-4xl lg:text-[42px] text-[#183628] font-normal leading-[1.18] mb-6"
+                    className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal leading-[1.08] tracking-tight mb-6"
                     style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
                   >
                     Slow travel. Curated access. Honest{" "}
@@ -177,10 +177,10 @@ export default function About() {
                         : "md:pl-8 lg:pl-10 pt-8 md:pt-0"
                     }`}
                   >
-                    <div className="text-[#183628] mb-4">
-                      <IconComponent className="w-6 h-6 text-[#183628]" strokeWidth={1.5} />
+                    <div className="text-[#293D1F] mb-4">
+                      <IconComponent className="w-6 h-6 text-[#293D1F]" strokeWidth={1.5} />
                     </div>
-                    <h3 className="font-editorial text-2xl sm:text-[26px] text-[#183628] font-normal mb-3">
+                    <h3 className="font-editorial text-2xl sm:text-[26px] text-[#293D1F] font-normal mb-3">
                       {v.title}
                     </h3>
                     <p className="font-sans text-[#4A5D53] text-[14px] sm:text-[14.5px] leading-relaxed">
@@ -205,7 +205,7 @@ export default function About() {
                 <span className="w-10 h-[1px] bg-[#8C7355]/50 inline-block" />
               </div>
               <h2
-                className="font-editorial text-4xl sm:text-5xl lg:text-[54px] text-[#183628] font-normal leading-[1.12]"
+                className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal leading-[1.08] tracking-tight"
                 style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
               >
                 Rooted in Kerala,<br />
@@ -235,7 +235,7 @@ export default function About() {
                     </p>
                     <span className="text-[#8C7355] text-xs font-mono">-</span>
                   </div>
-                  <h3 className="font-editorial text-3xl sm:text-4xl text-[#183628] font-normal mb-5 leading-tight">
+                  <h3 className="font-editorial text-3xl sm:text-4xl text-[#293D1F] font-normal mb-5 leading-tight">
                     Midhilaj
                   </h3>
                   <div className="space-y-4 font-sans text-[#4A5D53] text-[14.5px] sm:text-[15px] leading-relaxed">
@@ -266,7 +266,7 @@ export default function About() {
                         key={d.label}
                         className="grid grid-cols-[100px_16px_1fr] sm:grid-cols-[110px_20px_1fr] items-baseline text-[13px] sm:text-[13.5px]"
                       >
-                        <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#183628] font-semibold">
+                        <span className="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#293D1F] font-semibold">
                           {d.label}
                         </span>
                         <span className="text-[#8C7355]">:</span>
@@ -283,7 +283,7 @@ export default function About() {
             {/* Journey Design Team */}
             <div className="mt-8 bg-white/70 rounded-2xl p-6 sm:p-8 border border-[#E2EAE4] flex flex-col md:flex-row items-start md:items-center justify-between gap-6 reveal-up">
               <div className="flex items-center gap-5 sm:gap-6 shrink-0">
-                <div className="font-editorial text-4xl sm:text-5xl text-[#183628] font-normal leading-none">
+                <div className="font-editorial text-4xl sm:text-5xl text-[#293D1F] font-normal leading-none">
                   14+
                 </div>
                 <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#8C7355] max-w-[14ch] leading-snug">
@@ -295,7 +295,7 @@ export default function About() {
                 <div className="font-mono text-[11px] uppercase tracking-[0.25em] text-[#8C7355] mb-1">
                   The Journey Design Team
                 </div>
-                <h4 className="font-editorial text-xl sm:text-2xl text-[#183628] font-normal mb-2">
+                <h4 className="font-editorial text-xl sm:text-2xl text-[#293D1F] font-normal mb-2">
                   Keralites. Curators. Storytellers.
                 </h4>
                 <p className="font-sans text-[13.5px] text-[#4A5D53] leading-relaxed">
@@ -330,10 +330,10 @@ export default function About() {
                       : "pt-6 md:pt-0 md:pl-6"
                   }`}
                 >
-                  <div className="font-editorial text-4xl sm:text-5xl text-[#183628] font-normal leading-none mb-2.5">
+                  <div className="font-editorial text-4xl sm:text-5xl text-[#293D1F] font-normal leading-none mb-2.5">
                     {s.number}
                   </div>
-                  <div className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.22em] text-[#183628] font-semibold">
+                  <div className="font-mono text-[11px] sm:text-xs uppercase tracking-[0.22em] text-[#293D1F] font-semibold">
                     {s.label}
                   </div>
                 </div>
@@ -361,7 +361,7 @@ export default function About() {
 
           <div className="relative z-10 container mx-auto px-6 max-w-2xl reveal-up">
             <h2
-              className="font-editorial text-4xl sm:text-5xl lg:text-[52px] text-[#183628] font-normal mb-5 leading-tight"
+              className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal mb-5 leading-[1.08] tracking-tight"
               style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
             >
               Ready to begin?
@@ -381,7 +381,7 @@ export default function About() {
               </Link>
               <Link
                 href="/contact"
-                className="inline-flex items-center justify-center border border-[#183628]/40 bg-[#FAF8F5]/85 backdrop-blur-xs text-[#183628] font-sans text-sm font-medium px-8 py-3.5 rounded-full hover:border-[#183628] hover:bg-[#FAF8F5] transition-colors shadow-sm min-w-[170px]"
+                className="inline-flex items-center justify-center border border-[#183628]/40 bg-[#FAF8F5]/85 backdrop-blur-xs text-[#293D1F] font-sans text-sm font-medium px-8 py-3.5 rounded-full hover:border-[#183628] hover:bg-[#FAF8F5] transition-colors shadow-sm min-w-[170px]"
               >
                 Get in Touch
               </Link>

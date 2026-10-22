@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import escoraLogoLight from "@assets/escora/escora-logo-light.png";
+import emeraldPalmCanopy from "@assets/escora/Emerald Engraved Palm Canopy.png";
 
 export default function FooterV3() {
   const [newsletterEmail, setNewsletterEmail] = useState("");
@@ -45,9 +46,12 @@ export default function FooterV3() {
 
   return (
     <footer className="cinematic-footer" aria-label="Site Footer">
-      {/* Background Aerial Beach Image & Fade Overlay */}
+      {/* Background Emerald Engraved Palm Canopy */}
       <div className="cinematic-footer-bg-wrap" aria-hidden="true">
-        <div className="cinematic-footer-bg-img" />
+        <div
+          className="cinematic-footer-bg-img"
+          style={{ backgroundImage: `url(${emeraldPalmCanopy})` }}
+        />
         <div className="cinematic-footer-bg-mask" />
       </div>
 
@@ -73,15 +77,8 @@ export default function FooterV3() {
               A more meaningful Kerala.
             </p>
 
-            {/* ── Compact Newsletter Signup: Stay Inspired ── */}
-            <div className="cinematic-footer-newsletter" style={{ marginTop: "20px", marginBottom: "22px", maxWidth: "340px" }}>
-              <h4 style={{ fontFamily: "var(--f-mono, monospace)", fontSize: "11px", fontWeight: 600, letterSpacing: "0.22em", textTransform: "uppercase", color: "#c59a58", margin: "0 0 8px 0" }}>
-                Stay Inspired
-              </h4>
-              <p style={{ fontFamily: "var(--f-body, sans-serif)", fontSize: "12.5px", lineHeight: "1.5", color: "rgba(245, 242, 235, 0.75)", margin: "0 0 12px 0" }}>
-                Discover Kerala's hidden places, thoughtful journeys, and occasional special offers from Escora.
-              </p>
-
+            {/* ── Email send field ── */}
+            <div className="cinematic-footer-newsletter" style={{ marginTop: "22px", maxWidth: "340px" }}>
               {newsletterState === "success" ? (
                 <div role="status" aria-live="polite" style={{ background: "rgba(36, 84, 61, 0.5)", border: "1px solid #24543D", borderRadius: "8px", padding: "10px 14px", color: "#A3D9B8", fontSize: "12px", lineHeight: "1.4" }}>
                   ✓ {newsletterMsg}
@@ -140,9 +137,6 @@ export default function FooterV3() {
                       ⚠ {newsletterMsg}
                     </p>
                   )}
-                  <p style={{ fontSize: "10px", color: "rgba(245, 242, 235, 0.45)", margin: "6px 0 0 4px", lineHeight: "1.3" }}>
-                    Marketing communications from Escora. Unsubscribe at any time.
-                  </p>
                 </form>
               )}
             </div>
@@ -248,7 +242,7 @@ export default function FooterV3() {
               <div className="cinematic-footer-nav-col">
                 <h5>DISCOVER</h5>
                 <ul>
-                  <li><a href="/#the-escora-way" className="cinematic-footer-nav-link">The Escora Way</a></li>
+                  <li><Link href="/about" className="cinematic-footer-nav-link">The Escora Way</Link></li>
                   <li><Link href="/about" className="cinematic-footer-nav-link">The Escora Difference</Link></li>
                   <li><a href="/#how-it-works" className="cinematic-footer-nav-link">How It Works</a></li>
                   <li><Link href="/journal" className="cinematic-footer-nav-link">The Journal</Link></li>
@@ -290,59 +284,7 @@ export default function FooterV3() {
               </div>
             </div>
 
-            {/* Bottom Quote & Palm Illustration */}
-            <div className="cinematic-footer-quote-wrap">
-              <p className="cinematic-footer-quote">
-                “Different journeys. A deeper Kerala.”
-              </p>
 
-              <svg
-                className="cinematic-footer-palm-svg"
-                viewBox="0 0 100 130"
-                fill="none"
-                stroke="#c59a58"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M5 125 C25 115 50 125 95 125" strokeWidth="1.2" />
-                <path d="M15 125 C35 118 60 120 85 125" strokeWidth="0.9" opacity="0.7" />
-
-                <path d="M52 122 C51 95 50 65 52 38" strokeWidth="2.2" />
-                <path d="M50.5 110 L53.5 110" strokeWidth="1.4" />
-                <path d="M50.5 98 L53.5 98" strokeWidth="1.4" />
-                <path d="M50.2 86 L53.2 86" strokeWidth="1.4" />
-                <path d="M50.2 74 L53.2 74" strokeWidth="1.4" />
-                <path d="M50.5 62 L53.5 62" strokeWidth="1.4" />
-                <path d="M51 50 L53.5 50" strokeWidth="1.4" />
-
-                <path d="M52 38 C52 20 52 10 52 5" strokeWidth="1.5" />
-                <path d="M52 18 C46 14 43 9 44 6" strokeWidth="1.1" />
-                <path d="M52 18 C58 14 61 9 60 6" strokeWidth="1.1" />
-                <path d="M52 26 C45 22 40 18 42 14" strokeWidth="1.1" />
-                <path d="M52 26 C59 22 64 18 62 14" strokeWidth="1.1" />
-
-                <path d="M52 38 C42 28 25 22 10 26" strokeWidth="1.4" />
-                <path d="M38 29 C32 23 26 21 24 20" strokeWidth="1.1" />
-                <path d="M30 27 C24 23 18 24 16 25" strokeWidth="1.1" />
-                <path d="M52 38 C38 34 22 38 12 50" strokeWidth="1.4" />
-                <path d="M40 37 C32 38 24 43 20 48" strokeWidth="1.1" />
-                <path d="M52 38 C44 45 32 55 22 68" strokeWidth="1.4" />
-                <path d="M42 47 C34 54 28 62 26 66" strokeWidth="1.1" />
-
-                <path d="M52 38 C62 28 79 22 94 26" strokeWidth="1.4" />
-                <path d="M66 29 C72 23 78 21 80 20" strokeWidth="1.1" />
-                <path d="M74 27 C80 23 86 24 88 25" strokeWidth="1.1" />
-                <path d="M52 38 C66 34 82 38 92 50" strokeWidth="1.4" />
-                <path d="M64 37 C72 38 80 43 84 48" strokeWidth="1.1" />
-                <path d="M52 38 C60 45 72 55 82 68" strokeWidth="1.4" />
-                <path d="M62 47 C70 54 76 62 78 66" strokeWidth="1.1" />
-
-                <path d="M52 38 C46 48 38 56 30 62" strokeWidth="1.2" />
-                <path d="M52 38 C58 48 66 56 74 62" strokeWidth="1.2" />
-              </svg>
-            </div>
 
             <div className="cinematic-footer-divider" />
 

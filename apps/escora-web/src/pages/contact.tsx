@@ -38,11 +38,9 @@ export default function Contact() {
 
         {/* Content grid */}
         <section className="container mx-auto px-6 sm:px-8 max-w-4xl relative z-10" style={{ paddingBottom: "var(--section-y)" }}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-
-          {/* Contact details */}
-          <div className="space-y-10 reveal-up">
-            <div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+            {/* Direct Lines */}
+            <div className="space-y-4 reveal-up">
               <p className="section-label mb-4"><span className="dot" />Direct Lines</p>
               <div className="space-y-4 font-sans text-sm">
                 {[
@@ -58,7 +56,8 @@ export default function Contact() {
               </div>
             </div>
 
-            <div>
+            {/* Studio Address */}
+            <div className="space-y-4 reveal-up">
               <p className="section-label mb-4"><span className="dot" />Escora Journey Studio</p>
               <p className="font-sans text-ink-mute text-sm leading-relaxed">
                 1st Floor, Landmark Maple Business Tower<br />

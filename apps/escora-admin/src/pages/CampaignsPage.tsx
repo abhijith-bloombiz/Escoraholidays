@@ -560,6 +560,8 @@ export default function CampaignsPage() {
       return res.json();
     },
     enabled: Boolean(selectedCampaignForPreview && previewModalOpen),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   // 8. Notification HTML preview

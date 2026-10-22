@@ -2,12 +2,7 @@ import Layout from "@/components/layout/Layout";
 import { useState } from "react";
 import { useCreateEnquiry } from "@workspace/api-client-react";
 import { useSeo } from "@/hooks/useSeo";
-import {
-  BotanicalTopLeft,
-  BotanicalTopRight,
-  BotanicalBottomLeft,
-  BotanicalBottomRight,
-} from "@/components/BotanicalDecorations";
+import PalmBotanicalAnimation from "@/components/PalmBotanicalAnimation";
 
 export default function Contact() {
   useSeo({
@@ -43,51 +38,8 @@ export default function Contact() {
 
   return (
     <Layout>
-      <style>{`
-        @keyframes botanicalFloatSlow {
-          0%, 100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(-7px) rotate(0.6deg);
-          }
-        }
-        @keyframes botanicalFloatAlt {
-          0%, 100% {
-            transform: translateY(0px) rotate(0deg);
-          }
-          50% {
-            transform: translateY(6px) rotate(-0.5deg);
-          }
-        }
-        .botanical-anim-slow {
-          animation: botanicalFloatSlow 14s ease-in-out infinite;
-        }
-        .botanical-anim-alt {
-          animation: botanicalFloatAlt 16s ease-in-out infinite;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .botanical-anim-slow,
-          .botanical-anim-alt {
-            animation: none !important;
-          }
-        }
-      `}</style>
       <div className="relative overflow-hidden bg-bg">
-        {/* Botanical Vector Decorations */}
-        <div className="absolute inset-0 pointer-events-none z-0 select-none overflow-hidden" aria-hidden="true">
-          {/* Upper-left botanical spray */}
-          <BotanicalTopLeft className="absolute -top-4 -left-6 sm:top-0 sm:left-0 w-[240px] h-[250px] sm:w-[320px] sm:h-[340px] lg:w-[420px] lg:h-[440px] opacity-70 sm:opacity-80 lg:opacity-90 botanical-anim-slow" />
-
-          {/* Upper-right botanical spray */}
-          <BotanicalTopRight className="absolute -top-4 -right-6 sm:top-0 sm:right-0 w-[210px] h-[230px] sm:w-[280px] sm:h-[300px] lg:w-[380px] lg:h-[400px] opacity-65 sm:opacity-75 lg:opacity-85 botanical-anim-alt" />
-
-          {/* Lower-left botanical spray */}
-          <BotanicalBottomLeft className="absolute bottom-6 -left-6 sm:bottom-10 sm:left-0 w-[200px] h-[220px] sm:w-[260px] sm:h-[280px] lg:w-[350px] lg:h-[370px] opacity-45 sm:opacity-70 lg:opacity-80 botanical-anim-slow" />
-
-          {/* Lower-right botanical spray */}
-          <BotanicalBottomRight className="absolute bottom-2 -right-6 sm:bottom-6 sm:right-0 w-[190px] h-[210px] sm:w-[250px] sm:h-[270px] lg:w-[340px] lg:h-[360px] opacity-45 sm:opacity-70 lg:opacity-80 botanical-anim-alt" />
-        </div>
+        <PalmBotanicalAnimation />
 
         {/* Hero */}
         <section className="relative z-10 page-hero-top bg-transparent overflow-hidden">

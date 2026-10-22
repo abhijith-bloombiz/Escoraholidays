@@ -340,9 +340,9 @@ export default function Navbar() {
           <a
             href="/plan"
             style={{
-              background: isHome ? "#141f17" : "var(--gold)",
-              color: isHome ? "#ffffff" : "var(--bg)",
-              border: `1px solid ${isHome ? "#141f17" : "var(--gold)"}`,
+              background: "#e8d2ac",
+              color: "#141f17",
+              border: "1px solid #e8d2ac",
               padding: isHome ? "10px 22px" : "9px 18px",
               borderRadius: 999,
               fontFamily: "var(--f-body)",
@@ -358,18 +358,14 @@ export default function Navbar() {
             }}
             onMouseEnter={(e) => {
               const el = e.currentTarget as HTMLElement;
-              if (isHome) {
-                el.style.background = "#c59b27";
-                el.style.borderColor = "#c59b27";
-              } else {
-                el.style.background = "var(--gold-bright)";
-              }
+              el.style.background = "#dec49c";
+              el.style.borderColor = "#dec49c";
               el.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
               const el = e.currentTarget as HTMLElement;
-              el.style.background = isHome ? "#141f17" : "var(--gold)";
-              el.style.borderColor = isHome ? "#141f17" : "var(--gold)";
+              el.style.background = "#e8d2ac";
+              el.style.borderColor = "#e8d2ac";
               el.style.transform = "translateY(0)";
             }}
           >
@@ -593,8 +589,8 @@ export default function Navbar() {
           onClick={() => setMenuOpen(false)}
           style={{
             marginTop: 24,
-            background: "var(--gold)",
-            color: "var(--bg)",
+            background: "#e8d2ac",
+            color: "#141f17",
             padding: "14px 36px",
             borderRadius: 999,
             fontFamily: "var(--f-body)",

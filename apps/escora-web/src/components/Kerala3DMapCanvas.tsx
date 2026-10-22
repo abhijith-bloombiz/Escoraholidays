@@ -114,7 +114,7 @@ const DISTRICT_TOPOGRAPHY: Record<string, { depth: number; color: number }> = {
 // Reference-matched key map pins with accurate geographic coordinates
 // Arranged North to South (top of Kerala down to bottom)
 const MAP_PINS = [
-  { id: "Kasaragod", label: "Kasaragod", district: "Kasaragod", lon: 75.00, lat: 12.50 },
+  { id: "Kasaragod", label: "Kasaragod", district: "Kasaragod", lon: 75.00, lat: 12.50, associatedDestId: "bekal" },
   { id: "Kannur", label: "Kannur", district: "Kannur", lon: 75.37, lat: 11.87 },
   { id: "Wayanad", label: "Wayanad", district: "Wayanad", lon: 76.13, lat: 11.68, associatedDestId: "wayanad" },
   { id: "Kozhikode", label: "Kozhikode", district: "Kozhikode", lon: 75.78, lat: 11.25 },
@@ -124,7 +124,7 @@ const MAP_PINS = [
   { id: "Thekkady", label: "Thekkady", district: "Idukki", lon: 77.16, lat: 9.60, associatedDestId: "thekkady" },
   { id: "Alleppey", label: "Alleppey", district: "Alappuzha", lon: 76.33, lat: 9.49, associatedDestId: "alleppey" },
   { id: "Varkala", label: "Varkala", district: "Thiruvananthapuram", lon: 76.71, lat: 8.73, associatedDestId: "varkala" },
-  { id: "Trivandrum", label: "Trivandrum", district: "Thiruvananthapuram", lon: 76.93, lat: 8.50 },
+  { id: "Trivandrum", label: "Trivandrum", district: "Thiruvananthapuram", lon: 76.93, lat: 8.50, associatedDestId: "kovalam" },
 ];
 
 // 14 Kerala districts sorted strictly North to South (top of Kerala map down to bottom)
@@ -693,6 +693,14 @@ export default function Kerala3DMapCanvas({
       { threshold: [0, 0.05, 0.12, 0.18, 0.30] }
     );
     observer.observe(container);
+
+    // Initial check in case section is already in viewport on mount
+    const initialRect = container.getBoundingClientRect();
+    if (initialRect.top < window.innerHeight && initialRect.bottom > 0) {
+      isVisible = true;
+      triggerReveal();
+      wakeLoop();
+    }
 
     // ── Resize Handler ──
     const handleResize = () => {

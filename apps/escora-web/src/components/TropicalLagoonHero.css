@@ -1,77 +1,39 @@
 /* ============================================================
-   ESCORA TROPICAL LAGOON HERO
-   Editorial Luxury Kerala Composition (Water, Typography, Houseboat)
+   ESCORA HOLIDAYS — CINEMATIC DESTINATION SLIDESHOW HERO
+   Bespoke luxury Kerala travel hero section with seamless crossfades,
+   Ken Burns slow zoom, and animated destination typography.
    ============================================================ */
 
-/* ────────────────────────────────────────────────────────────
-   ESCORA HEADLINE MANUAL CONTROL PANEL
-   Easily tweak position, alignment, size, weight, stretch, color, and gradient
-──────────────────────────────────────────────────────────── */
-:root {
-  /* 1. TYPOGRAPHY & FONT (Preserved for global & component serif styling) */
-  --escora-font-family: 'Dusk Oracular Serif', serif;
-  --escora-font-size: clamp(105px, 22.5vw, 320px);
-  --escora-font-weight: 400;
-  --escora-line-height: 0.78;
-
-  /* 2. SPACING & KERNING */
-  --escora-letter-spacing: clamp(-0.01em, 0.005em, 0.02em);
-  --escora-char-gap: clamp(2px, 0.45vw, 10px);
-
-  /* 3. WORDMARK POSITION & ALIGNMENT */
-  --escora-pos-y: 0%;
-  /* Vertical shift: negative = UP, positive = DOWN */
-  --escora-pos-x: 0px;
-  /* Horizontal shift: negative = LEFT, positive = RIGHT */
-  --escora-align-justify: center;
-  /* center | flex-start | flex-end | space-between */
-
-  /* 4. WORDMARK SIZING (PNG NATURAL 2172x724 ASPECT RATIO) */
-  --escora-wordmark-width: clamp(340px, 80vw, 1280px);
-
-  /* 5. COLOUR & DEPTH */
-  --escora-color: #163826;
-  --escora-shadow: 0 10px 28px rgba(12, 38, 22, 0.09);
-
-  /* 6. HOUSEBOAT CONTROLS (SIZE & POSITION) */
-  --boat-scale: 0.80;
-  /* Multiplier: 0.85 = 15% smaller, 0.75 = 25% smaller, 1.1 = 10% bigger */
-  --boat-width: clamp(280px, 54vw, 860px);
-  /* Base width span */
-  --boat-pos-y: 50%;
-  /* Vertical position: lower % = UP, higher % = DOWN (e.g. 48% or 53%) */
-  --boat-pos-x: 50%;
-  /* Horizontal position: 50% = centered */
-  --boat-rotate: 0deg;
-  /* Rotation angle if you want subtle natural drift angle */
-}
-
-.tropical-hero-pin-container {
+.esh-outer-container {
   position: relative;
   width: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #0d1a12;
 }
 
-.tropical-hero-root {
+.esh-root {
   position: relative;
   width: 100%;
   height: 100vh;
   height: 100dvh;
   min-height: 640px;
   overflow: hidden;
-  background-color: #f3efe6;
-  color: #173727;
+  color: #FAF7F2 !important;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-end;
+  justify-content: flex-start;
   margin: 0;
-  padding: 0;
+  padding: 0 0 clamp(48px, 8vh, 84px) clamp(28px, 6.5vw, 96px);
   box-sizing: border-box;
+  background-color: #0b1810;
+  user-select: none;
 }
 
 /* ────────────────────────────────────────────────────────────
-   LAYER 1: FULL-BLEED AERIAL LAGOON BACKGROUND
+   LAYER 1: CINEMATIC DESTINATION SLIDESHOW (6 SUPPLIED IMAGES)
 ──────────────────────────────────────────────────────────── */
-.tropical-hero-bg-layer {
+.esh-slides-layer {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -79,381 +41,488 @@
   z-index: 1;
   pointer-events: none;
   overflow: hidden;
+  background-color: #0b1810;
 }
 
-.tropical-hero-bg-img {
+.esh-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1), visibility 1.4s;
+  will-change: transform, opacity;
+  z-index: 1;
+}
+
+.esh-slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  z-index: 2;
+}
+
+.esh-slide.is-previous {
+  opacity: 0;
+  visibility: visible;
+  z-index: 1;
+}
+
+/* Subtle, cinematic slow zoom (Ken Burns) */
+.esh-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center center;
+  object-position: var(--pos-desktop, center center);
   display: block;
-  transform: translateZ(0);
-}
-
-/* Subtle soft ambient tone to harmonize highlights */
-.tropical-hero-lighting-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 50%,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(240, 245, 240, 0.02) 60%,
-      rgba(14, 38, 25, 0.06) 100%);
-  pointer-events: none;
-}
-
-/* ────────────────────────────────────────────────────────────
-   CENTERPIECE CONTAINER: TYPOGRAPHY + BOAT COMPOSITION
-──────────────────────────────────────────────────────────── */
-.tropical-hero-centerpiece {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 2;
-}
-
-/* ── DUSK ORACULAR SERIF LOCAL FONT DECLARATION ── */
-@font-face {
-  font-family: 'Dusk Oracular Serif';
-  src: url('/fonts/dusk-oracular/Dusk-Oracular-Serif.ttf') format('truetype');
-  font-weight: 300 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* ── Eyebrow above the 'E' in ESCORA ── */
-.tropical-hero-eyebrow-container {
-  position: absolute;
-  top: clamp(18%, 23vh, 26%);
-  left: clamp(4%, 6.5vw, 9%);
-  z-index: 4;
-  pointer-events: none;
-}
-
-.tropical-hero-eyebrow {
-  display: block;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: clamp(10px, 0.72vw, 11.5px);
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #163826;
-  opacity: 0.85;
-}
-
-/* ── MOTION WRAPPERS (ISOLATE GSAP TRANSFORMS FROM CSS LAYOUT) ── */
-.tropical-hero-heading-motion-wrapper {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  will-change: transform, opacity;
-}
-
-.tropical-hero-boat-scroll-wrapper {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 3;
-  pointer-events: none;
+  transform: scale(1.0) translate3d(0, 0, 0);
+  transition: transform 6.5s cubic-bezier(0.25, 1, 0.5, 1);
   will-change: transform;
 }
 
-.tropical-hero-boat-entrance-wrapper {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  will-change: transform;
+.esh-slide.is-active .esh-img {
+  transform: scale(1.045) translate3d(0, 0, 0);
 }
 
-/* ── LAYER 2: OVERSIZED 'ESCORA' WORDMARK IMAGE (Z-INDEX 2, BEHIND BOAT) ── */
-.tropical-hero-wordmark-layer {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: var(--escora-align-justify, center);
-  pointer-events: none;
-  transform: translate(var(--escora-pos-x, 0px), var(--escora-pos-y, 0%));
-}
-
-.tropical-hero-wordmark-img {
-  display: block;
-  width: var(--escora-wordmark-width, clamp(340px, 80vw, 1280px));
-  max-width: 92vw;
-  height: auto;
-  aspect-ratio: 2172 / 724;
-  object-fit: contain;
-  pointer-events: none;
-  user-select: none;
-  -webkit-user-drag: none;
-  transform: translateZ(0);
-}
-
-/* Fallback & legacy typography rules */
-.tropical-hero-typography-layer {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: var(--escora-align-justify, center);
-  pointer-events: none;
-}
-
-.tropical-hero-brand-title {
-  display: none;
-}
-
-.hero-char {
-  display: inline-block;
-}
-
-/* ── LAYER 3: TOP-DOWN HOUSEBOAT (Z-INDEX 3, IN FRONT OF TEXT) ── */
-.tropical-hero-boat-layer {
-  position: absolute;
-  top: var(--boat-pos-y, 50.5%);
-  left: var(--boat-pos-x, 50%);
-  transform: translate(-50%, -50%) rotate(var(--boat-rotate, 0deg)) scale(var(--boat-scale, 1));
-  z-index: 3;
-  width: var(--boat-width, clamp(320px, 62vw, 980px));
-  max-width: 88vw;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-.tropical-hero-boat-img {
-  width: 100%;
-  height: auto;
-  max-height: 52vh;
-  object-fit: contain;
-  display: block;
-  /* Multi-layered soft drop shadow casting realistic boat depth over water and typography */
-  filter: drop-shadow(0 26px 44px rgba(10, 36, 22, 0.42)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
-  transform: translateZ(0);
-}
 
 /* ────────────────────────────────────────────────────────────
-   LAYER 4: BOTTOM-LEFT EDITORIAL DESCRIPTION & CTA
+   LAYER 3: HERO CONTENT & ANIMATED DESTINATION NAME
 ──────────────────────────────────────────────────────────── */
-.tropical-hero-bottom-left {
-  position: absolute;
-  bottom: clamp(32px, 6.5vh, 68px);
-  left: clamp(24px, 7.6vw, 108px);
+.esh-content-wrap {
+  position: relative;
   z-index: 10;
-  max-width: min(390px, 86vw);
+  max-width: min(560px, 86vw);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   pointer-events: auto;
 }
 
-.tropical-hero-description {
-  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
-  font-size: clamp(17px, 1.35vw, 21px);
-  font-weight: 400;
-  line-height: 1.5;
-  color: #163826;
-  letter-spacing: -0.01em;
-  margin: 0 0 clamp(16px, 2.4vh, 24px) 0;
-  text-shadow: 0 1px 6px rgba(255, 255, 255, 0.5);
+/* Eyebrow Tagline */
+.esh-eyebrow-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: clamp(12px, 1.8vh, 18px);
 }
 
-.tropical-hero-cta {
+.esh-eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #C59B27;
+  box-shadow: 0 0 10px rgba(197, 155, 39, 0.85);
+  display: inline-block;
+}
+
+.esh-eyebrow {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-size: clamp(10.5px, 0.75vw, 12.5px);
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #E8D5B5 !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.75);
+}
+
+/* Prominent Destination Name Stage */
+.esh-title-stage {
+  position: relative;
+  width: 100%;
+  min-height: clamp(64px, 9.5vw, 120px);
+  display: flex;
+  align-items: center;
+  margin-bottom: clamp(14px, 2vh, 22px);
+  overflow: visible;
+}
+
+.esh-title-motion {
+  display: block;
+  animation: eshTitleFadeUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes eshTitleFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.esh-title {
+  margin: 0;
+  padding: 0;
+  font-family: 'Fonarto', 'Playfair Display', 'Cormorant Garamond', Georgia, serif !important;
+  font-size: clamp(56px, 8.2vw, 108px) !important;
+  font-weight: 400 !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.018em !important;
+  color: #FAF7F2 !important;
+  text-shadow:
+    0 4px 32px rgba(0, 0, 0, 0.7),
+    0 2px 6px rgba(0, 0, 0, 0.9) !important;
+}
+
+.esh-title-text {
+  display: inline-block;
+  color: #FAF7F2 !important;
+}
+
+/* Preserved Editorial Description */
+.esh-description {
+  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif !important;
+  font-size: clamp(17px, 1.3vw, 21px) !important;
+  font-weight: 400 !important;
+  line-height: 1.5 !important;
+  color: rgba(250, 247, 242, 0.94) !important;
+  letter-spacing: -0.005em !important;
+  margin: 0 0 clamp(20px, 3vh, 30px) 0 !important;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.75) !important;
+}
+
+/* Preserved Primary CTA Button */
+.esh-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.esh-cta {
   display: inline-flex;
   align-items: center;
   gap: 13px;
   text-decoration: none;
   cursor: pointer;
-  group: cta;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.tropical-hero-cta-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1.5px solid #163826;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #163826;
-  background: rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  padding: 4px 20px 4px 4px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.tropical-hero-cta:hover .tropical-hero-cta-icon {
-  background-color: #163826;
-  color: #FAF7F1;
-  transform: translateX(4px);
-  border-color: #163826;
-  box-shadow: 0 8px 20px rgba(22, 56, 38, 0.25);
+.esh-cta-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #173727;
+  background: #FAF7F2;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.tropical-hero-cta-label {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 13.5px;
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  color: #163826;
+.esh-cta-label {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  color: #FAF7F2 !important;
   transition: color 0.3s ease;
 }
 
-.tropical-hero-cta:hover .tropical-hero-cta-label {
-  color: #C59B27;
+.esh-cta:hover {
+  background: rgba(41, 61, 31, 0.9);
+  border-color: #C59B27;
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45);
+}
+
+.esh-cta:hover .esh-cta-icon {
+  background: #C59B27;
+  color: #FAF7F2;
+  transform: translateX(4px);
+}
+
+.esh-cta:hover .esh-cta-label {
+  color: #FAF7F2;
 }
 
 /* ────────────────────────────────────────────────────────────
-   LAYER 5: RIGHT-SIDE VERTICAL LABELS & MILESTONE INDICATORS
+   LAYER 4: SLIDESHOW CONTROLS & PROGRESS BAR
 ──────────────────────────────────────────────────────────── */
-.tropical-hero-right-panel {
+.esh-nav-controls {
   position: absolute;
-  right: clamp(24px, 4.5vw, 76px);
-  top: clamp(130px, 17vh, 180px);
-  bottom: clamp(40px, 7.5vh, 80px);
+  bottom: clamp(48px, 8vh, 84px);
+  right: clamp(28px, 6vw, 92px);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background: rgba(8, 20, 14, 0.52);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.38);
+}
+
+.esh-nav-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #FAF7F2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.esh-nav-arrow:hover {
+  background: rgba(197, 155, 39, 0.9);
+  border-color: #C59B27;
+  color: #0b1810;
+  transform: scale(1.08);
+}
+
+.esh-counter {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.06em !important;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(250, 247, 242, 0.7) !important;
+  min-width: 44px;
+  justify-content: center;
+}
+
+.esh-counter-current {
+  color: #FAF7F2 !important;
+  font-weight: 700 !important;
+}
+
+.esh-counter-sep {
+  opacity: 0.4;
+}
+
+.esh-counter-total {
+  opacity: 0.6;
+}
+
+/* Subtle Progress Bar */
+.esh-progress-track {
+  width: 52px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+}
+
+.esh-progress-bar {
+  height: 100%;
+  background: #C59B27;
+  width: 0%;
+  animation: eshProgressFill linear forwards;
+}
+
+.esh-progress-bar.is-paused {
+  animation-play-state: paused;
+}
+
+@keyframes eshProgressFill {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────
+   LAYER 5: RIGHT-SIDE VERTICAL CATEGORIES & MILESTONES
+──────────────────────────────────────────────────────────── */
+.esh-right-panel {
+  position: absolute;
+  right: clamp(28px, 6vw, 92px);
+  top: clamp(140px, 18vh, 190px);
   z-index: 10;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: flex-end;
-  pointer-events: none;
+  gap: 36px;
+  pointer-events: auto;
 }
 
-.tropical-hero-categories {
+.esh-categories {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 7px;
-  text-align: left;
+  align-items: flex-end;
+  gap: 8px;
+  text-align: right;
 }
 
-.hero-cat-tag {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: clamp(9px, 0.65vw, 10.5px);
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(22, 56, 38, 0.72);
-  user-select: none;
-  transition: color 0.25s, transform 0.25s;
+.esh-cat-tag {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-size: clamp(9px, 0.65vw, 10.5px) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: rgba(250, 247, 242, 0.45) !important;
+  transition: all 0.3s ease;
 }
 
-.tropical-hero-milestones {
+.esh-cat-tag.active {
+  color: #C59B27 !important;
+  transform: translateX(-4px);
+  text-shadow: 0 0 12px rgba(197, 155, 39, 0.65);
+}
+
+.esh-milestones {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.esh-milestone-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+  display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: auto;
-  user-select: none;
+  transition: all 0.25s ease;
 }
 
-.hero-milestone-number {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  color: rgba(22, 56, 38, 0.45);
+.esh-milestone-number {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.08em !important;
+  color: rgba(250, 247, 242, 0.45) !important;
+  transition: color 0.25s ease;
 }
 
-.hero-milestone-number.active {
-  color: #163826;
-  font-weight: 600;
+.esh-milestone-btn.is-active .esh-milestone-number {
+  color: #FAF7F2 !important;
+  font-weight: 700 !important;
 }
 
-.hero-milestone-line {
-  width: 1.5px;
-  height: 38px;
-  background-color: #183628;
-  border-radius: 2px;
+.esh-milestone-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #C59B27;
+  box-shadow: 0 0 8px rgba(197, 155, 39, 0.85);
+}
+
+.esh-milestone-btn:hover .esh-milestone-number {
+  color: #C59B27 !important;
 }
 
 /* ────────────────────────────────────────────────────────────
-   RESPONSIVE MEDIA QUERIES
+   RESPONSIVE BEHAVIOUR
 ──────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .tropical-hero-eyebrow-container {
-    top: 22%;
-    left: 6%;
+  .esh-root {
+    padding: 0 0 clamp(40px, 7vh, 64px) clamp(24px, 5vw, 48px);
   }
 
-  .tropical-hero-wordmark-img {
-    width: clamp(300px, 86vw, 920px);
+  .esh-img {
+    object-position: var(--pos-mobile, center center);
   }
 
-  .tropical-hero-boat-layer {
-    width: clamp(280px, 70vw, 760px);
-    top: 50%;
+  .esh-right-panel {
+    display: none;
   }
 
-  .tropical-hero-brand-title {
-    font-size: clamp(80px, 20vw, 220px);
-    gap: clamp(2px, 0.4vw, 8px);
-  }
-
-  .tropical-hero-right-panel {
-    right: 28px;
+  .esh-nav-controls {
+    bottom: clamp(40px, 7vh, 64px);
+    right: clamp(24px, 5vw, 48px);
   }
 }
 
 @media (max-width: 768px) {
-  .tropical-hero-root {
-    min-height: 100vh;
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+  .esh-root {
+    min-height: 600px;
+    padding: 0 24px clamp(132px, 18vh, 155px) 24px;
+    align-items: flex-end;
   }
 
-  .tropical-hero-eyebrow-container {
-    top: 17%;
-    left: 20px;
+  .esh-content-wrap {
+    max-width: 100%;
+    margin-bottom: 0;
+    padding-bottom: 8px;
   }
 
-  .tropical-hero-wordmark-img {
-    width: 92vw;
-    max-width: 94vw;
+  .esh-eyebrow-row {
+    margin-bottom: 10px;
   }
 
-  .tropical-hero-brand-title {
-    font-size: clamp(52px, 16vw, 96px);
-    gap: 2px;
+  .esh-title-stage {
+    min-height: 52px;
+    margin-bottom: 12px;
   }
 
-  .tropical-hero-boat-layer {
-    width: 86vw;
-    top: 48%;
+  .esh-title {
+    font-size: clamp(42px, 11vw, 58px) !important;
   }
 
-  .tropical-hero-right-panel {
-    display: none;
+  .esh-description {
+    font-size: 15.5px !important;
+    line-height: 1.45 !important;
+    margin-bottom: 20px !important;
   }
 
-  .tropical-hero-bottom-left {
-    bottom: 28px;
-    left: 20px;
+  .esh-cta {
+    margin-left: 4px;
+  }
+
+  .esh-nav-controls {
+    bottom: auto;
+    top: clamp(96px, 13vh, 128px);
     right: 20px;
-    max-width: none;
+    padding: 5px 12px;
+    gap: 8px;
+    background: rgba(8, 20, 14, 0.6);
   }
 
-  .tropical-hero-description {
-    font-size: 14.5px;
-    margin-bottom: 14px;
+  .esh-nav-arrow {
+    width: 28px;
+    height: 28px;
   }
 
-  .tropical-hero-cta-icon {
-    width: 38px;
-    height: 38px;
+  .esh-counter {
+    font-size: 12px !important;
+  }
+
+  .esh-progress-track {
+    width: 32px;
+  }
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .esh-slide {
+    transition: opacity 0.4s ease;
+  }
+  .esh-img,
+  .esh-slide.is-active .esh-img {
+    transform: none !important;
+    transition: none !important;
+  }
+  .esh-title-motion {
+    animation: none !important;
+    transform: none !important;
+  }
+  .esh-progress-bar {
+    animation: none !important;
   }
 }

@@ -14,6 +14,52 @@ export interface Enquiry {
   message: string;
   status: string;
   /** @nullable */
+  packageId?: number | null;
+  /** @nullable */
+  packageName?: string | null;
+  /** @nullable */
+  travelStyle?: string | null;
+  /** @nullable */
+  destinations?: string | null;
+  /** @nullable */
+  travelDate?: string | null;
+  /** @nullable */
+  departureDate?: string | null;
+  /** @nullable */
+  guestCount?: number | null;
+  /** @nullable */
+  budgetRange?: string | null;
+  /** @nullable */
+  currency?: string | null;
+  /** @nullable */
+  specialRequests?: string | null;
+  /** @nullable */
+  ipAddress?: string | null;
+  /** @nullable */
+  userAgent?: string | null;
+  /** @nullable */
+  referrerUrl?: string | null;
+  /** @nullable */
+  landingPage?: string | null;
+  /** @nullable */
+  utmSource?: string | null;
+  /** @nullable */
+  utmMedium?: string | null;
+  /** @nullable */
+  utmCampaign?: string | null;
+  /** @nullable */
+  browserLanguage?: string | null;
+  /** @nullable */
+  screenResolution?: string | null;
+  /** @nullable */
+  timezone?: string | null;
+  /** @nullable */
+  geoCountry?: string | null;
+  /** @nullable */
+  geoRegion?: string | null;
+  /** @nullable */
+  geoCity?: string | null;
+  /** @nullable */
   bookingId?: number | null;
   /** @nullable */
   bookingReference?: string | null;

@@ -10,18 +10,17 @@ let isTestingResendClient = false;
 const FROM = config.emailFrom || "onboarding@resend.dev";
 const ADMIN_EMAIL = config.adminEmail;
 
-export type EmailProviderType = "gmail" | "resend" | "mock";
+export type EmailProviderType = "gmail" | "resend" | "none";
 
 /**
  * Resolves the currently active email dispatch provider based on environment variables.
- * Priority: Test client injection > Explicit EMAIL_PROVIDER > Gmail credentials present > Resend API key present > mock
+ * Priority: Test client injection > Explicit EMAIL_PROVIDER > Gmail credentials present > Resend API key present > none
  */
 export function getEffectiveEmailProvider(): EmailProviderType {
-  if (isForcedUnconfigured) return "mock";
+  if (isForcedUnconfigured) return "none";
   if (isTestingResendClient && resendInstance) return "resend";
   if (config.emailProvider === "gmail") return "gmail";
   if (config.emailProvider === "resend") return "resend";
-  if (config.emailProvider === "mock") return "mock";
 
   // Auto mode: If GMAIL_APP_PASSWORD is set, prioritize genuine Gmail SMTP authentication
   if (config.gmailUser && config.gmailAppPassword && config.gmailAppPassword.trim().length > 0) {
@@ -30,7 +29,7 @@ export function getEffectiveEmailProvider(): EmailProviderType {
   if (config.resendApiKey && config.resendApiKey.trim().length > 0) {
     return "resend";
   }
-  return "mock";
+  return "none";
 }
 
 /**
@@ -62,7 +61,7 @@ export function getAuthenticatedSender(): {
     email: config.emailFrom,
     name: "Escora Journeys",
     fullFrom: config.emailFrom || "onboarding@resend.dev",
-    provider: isConfigured ? "resend" : "mock",
+    provider: isConfigured ? "resend" : "none",
     isConfigured,
   };
 }
@@ -143,13 +142,13 @@ export async function verifyEmailTransport(): Promise<{
   }
 
   if (provider === "resend") {
-    if (!config.resendApiKey) {
+    if (!config.resendApiKey && !isTestingResendClient) {
       return { success: false, provider: "resend", message: "RESEND_API_KEY is not configured" };
     }
     return { success: true, provider: "resend", message: "Resend API key configured" };
   }
 
-  return { success: false, provider: "mock", message: "No live email provider is configured" };
+  return { success: false, provider: "none", message: "No live email provider is configured. Please configure Gmail credentials or Resend API key in .env." };
 }
 
 function sanitizeError(msg?: string): string {
@@ -186,7 +185,7 @@ async function send(to: string, subject: string, html: string): Promise<void> {
 
 export interface EmailSendResult {
   success: boolean;
-  status: "accepted" | "simulated" | "delivered" | "failed";
+  status: "accepted" | "delivered" | "failed";
   messageId?: string;
   error?: string;
   provider: EmailProviderType;
@@ -245,28 +244,26 @@ export async function sendEmailWithStatus(options: {
   const textContent = options.text || htmlToPlainText(options.html);
 
   // -------------------------------------------------------------
-  // PROVIDER 0: MOCK / SIMULATION MODE
+  // NO PROVIDER CONFIGURED — FAIL SAFELY WITH ACTIONABLE ERROR
   // -------------------------------------------------------------
-  if (provider === "mock") {
-    const mockId = `simulated_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    logger.info({ to: options.to, mockId }, "[Email] Simulation mode dispatch (no live email sent)");
+  if (provider === "none") {
+    const errorMsg = "No email provider is configured. Please configure Gmail SMTP credentials (GMAIL_USER and GMAIL_APP_PASSWORD) or RESEND_API_KEY in your environment.";
+    logger.error({ to: options.to }, `[Email] Sending failed: ${errorMsg}`);
     return {
-      success: true,
-      status: "simulated",
-      messageId: mockId,
-      provider: "mock",
+      success: false,
+      status: "failed",
+      error: errorMsg,
+      provider: "none",
       from: fromAddress,
-      providerResponse: "Mock provider simulation (zero network transmission)",
-      acceptedRecipients: [options.to],
-      rejectedRecipients: [],
-      sentAt: new Date(),
+      acceptedRecipients: [],
+      rejectedRecipients: [options.to],
     };
   }
 
   // -------------------------------------------------------------
   // PROVIDER 1: GMAIL SMTP (GENUINE GOOGLE ACCOUNT AUTHENTICATION)
   // -------------------------------------------------------------
-  if (provider === "gmail" || config.emailProvider === "gmail") {
+  if (provider === "gmail") {
     const transporter = getGmailTransporter();
     if (!transporter) {
       return {
@@ -371,7 +368,7 @@ export async function sendEmailWithStatus(options: {
     return {
       success: false,
       status: "failed",
-      provider: "mock",
+      provider: "none",
       error: "No email provider is configured. Please configure GMAIL_USER and GMAIL_APP_PASSWORD, or RESEND_API_KEY in your environment.",
     };
   }

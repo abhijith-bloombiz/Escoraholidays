@@ -1,8 +1,29 @@
 @import url("https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Cinzel:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap");
+@import "./fonts/fonarto.css";
 @import "./fonts/melodrama.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @plugin "@tailwindcss/typography";
+
+@font-face {
+  font-family: 'Fonarto';
+  src: url('/fonts/fonarto/Fonarto.woff2') format('woff2'),
+       url('/fonts/fonarto/Fonarto.woff') format('woff'),
+       url('/fonts/fonarto/Fonarto.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Fonarto XT';
+  src: url('/fonts/fonarto/Fonarto-XT.woff2') format('woff2'),
+       url('/fonts/fonarto/Fonarto-XT.woff') format('woff'),
+       url('/fonts/fonarto/Fonarto-XT.ttf') format('truetype');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -220,11 +241,60 @@ html, body {
   background-color: #193F2D;
 }
 
-/* Ensure all headings and display classes use Fonarto */
+/* Ensure all headings and display classes use Fonarto and NEVER italic */
 h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6,
 .display-xl, .display-lg, .display-md, .display-sm,
-.font-heading, .heading-font {
+.font-heading, .heading-font,
+.site-title,
+[class*="-title"],
+[class*="heading"] {
   font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
+  font-style: normal !important;
+}
+
+/* Base heading color: Dark Botanical #293D1F unless explicitly light/white or inside dark themes/elements */
+h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h4:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h5:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+h6:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h4:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h5:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.h6:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.display-xl:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.display-lg:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.display-md:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.display-sm:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.font-heading:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+.heading-font:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) {
+  color: var(--v3-botanical, #293D1F);
+}
+
+/* Remove italic style from any element inside headings */
+h1 *, h2 *, h3 *, h4 *, h5 *, h6 *,
+.h1 *, .h2 *, .h3 *, .h4 *, .h5 *, .h6 *,
+.display-xl *, .display-lg *, .display-md *, .display-sm *,
+.font-heading *, .heading-font *,
+.site-title *,
+[class*="-title"] *,
+[class*="heading"] * {
+  font-style: normal !important;
+}
+
+/* Ensure em, accent words, and highlights inside headings also use #293D1F */
+h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em,
+h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em,
+h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em,
+.display-xl em, .display-lg em, .display-md em, .display-sm em,
+.kerala-3d-title em, .kerala-3d-title .accent-gold, .kerala-3d-title .italic-gold,
+.retreat-title em, .testi-title em, .enquiry-title em,
+.escora-way-heading em, .escora-way-heading .italic-gold {
+  color: var(--v3-botanical, #293D1F);
 }
 
 .font-serif {

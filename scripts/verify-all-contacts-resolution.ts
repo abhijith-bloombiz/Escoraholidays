@@ -318,32 +318,52 @@ async function run() {
 
     const preview = await previewCampaignAudience(camp1.id);
     report(
-      "6. Preview counts distinguish total audience membership from eligible recipients",
+      "6. Preview counts distinguish total audience membership from eligible recipients (subscribed contacts only)",
       preview.totalSelected > preview.eligibleRecipients &&
         preview.eligibleRecipients === preview.activeSubscribers &&
-        preview.excludedNotSubscribed > 0,
-      `totalSelected: ${preview.totalSelected}, eligible: ${preview.eligibleRecipients}, notSubscribed: ${preview.excludedNotSubscribed}`
+        preview.notSubscribedCount > 0 &&
+        preview.excludedUnsubscribed > 0 &&
+        preview.excludedSuppressed > 0,
+      `totalSelected: ${preview.totalSelected}, eligible: ${preview.eligibleRecipients}, activeSubscribers: ${preview.activeSubscribers}, notSubscribed: ${preview.notSubscribedCount}, unsubscribed: ${preview.excludedUnsubscribed}, suppressed: ${preview.excludedSuppressed}`
     );
 
     // =========================================================================
-    // Test 7: Not Subscribed contacts are excluded from actual marketing delivery
+    // Test 7: All Contacts includes not_subscribed enquiry/booking contacts in audience but excludes them from delivery
     // =========================================================================
-    console.log("\nScenario 7: Not Subscribed Contacts Gated From Delivery");
-    const preSendAudit = await validateCampaignPreSend(camp1.id);
-    const notSubExclusion = preSendAudit.exclusionReasons.find((e) => e.email === emailEnquiryNoConsent);
+    console.log("\nScenario 7: All Contacts Delivery Eligibility Safeguard");
+    const preSendAuditAll = await validateCampaignPreSend(camp1.id);
+    const notSubExclusionAll = preSendAuditAll.exclusionReasons.find((e) => e.email === emailEnquiryNoConsent);
 
     report(
-      "7. Not Subscribed contacts are excluded from marketing delivery in pre-send audit",
-      Boolean(notSubExclusion && notSubExclusion.code === "NOT_SUBSCRIBED"),
-      `Exclusion code: ${notSubExclusion?.code}, reason: ${notSubExclusion?.reason}`
+      "7a. All Contacts strictly excludes not_subscribed contacts from delivery (excluded with NOT_SUBSCRIBED)",
+      Boolean(notSubExclusionAll && notSubExclusionAll.code === "NOT_SUBSCRIBED"),
+      `Found exclusion in all_contacts: ${Boolean(notSubExclusionAll)}, code: ${notSubExclusionAll?.code}`
+    );
+
+    // Test that an Audience Group with non-consented members excludes them with code NOT_SUBSCRIBED
+    const campGrp = await createCampaign({
+      name: `Test Camp Group ${runId}`,
+      subject: "Group Kerala Getaways",
+      contentHtml: "<p>Hello {{name}}</p>",
+      targetAudience: { type: "audience_group", groupId: grpId },
+    });
+    cleanupIds.campaigns.push(campGrp.id);
+
+    const preSendAuditGrp = await validateCampaignPreSend(campGrp.id);
+    const notSubExclusionGrp = preSendAuditGrp.exclusionReasons.find((e) => e.email === emailGroupMember);
+
+    report(
+      "7b. Consent-gated audiences (e.g. Audience Group) strictly exclude not_subscribed members with code NOT_SUBSCRIBED",
+      Boolean(notSubExclusionGrp && notSubExclusionGrp.code === "NOT_SUBSCRIBED"),
+      `Exclusion code in group: ${notSubExclusionGrp?.code}`
     );
 
     // =========================================================================
     // Test 8: Unsubscribed and Suppressed contacts excluded from every audience
     // =========================================================================
     console.log("\nScenario 8: Unsubscribed and Suppressed Contact Exclusion");
-    const unsubExclusion = preSendAudit.exclusionReasons.find((e) => e.email === emailUnsubscribed);
-    const suppExclusion = preSendAudit.exclusionReasons.find((e) => e.email === emailSuppressed);
+    const unsubExclusion = preSendAuditAll.exclusionReasons.find((e) => e.email === emailUnsubscribed);
+    const suppExclusion = preSendAuditAll.exclusionReasons.find((e) => e.email === emailSuppressed);
 
     report(
       "8. Unsubscribed contacts are excluded with code UNSUBSCRIBED",
@@ -479,8 +499,8 @@ async function run() {
     // Verify campaign status was NOT transitioned to 'sent'
     const finalZeroCamp = await CampaignModel.findOne({ id: zeroCamp.id }).lean();
     report(
-      "13c. Campaign status remains 'approved' and was NOT falsely transitioned to 'sent'",
-      finalZeroCamp?.status === "approved",
+      "13c. Campaign status was NOT falsely transitioned to 'sent' (returned to draft/held)",
+      finalZeroCamp?.status !== "sent" && (finalZeroCamp?.status === "draft" || finalZeroCamp?.status === "approved"),
       `Final status: ${finalZeroCamp?.status}`
     );
   } finally {

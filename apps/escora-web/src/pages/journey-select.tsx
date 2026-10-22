@@ -31,7 +31,7 @@ export default function JourneySelectPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-[#758B78]" />
               Plan a Journey
             </div>
-            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-[#193F2D] font-normal leading-[1.18] tracking-tight mb-4">
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-5xl text-[#293D1F] font-normal leading-[1.18] tracking-tight mb-4">
               Choose Your Journey
             </h1>
             <p className="font-sans text-[#5A7360] text-base sm:text-lg leading-relaxed">
@@ -57,7 +57,7 @@ export default function JourneySelectPage() {
                   </span>
                 </div>
 
-                <h2 className="font-serif text-2xl sm:text-[1.75rem] text-[#193F2D] font-normal leading-tight mb-3">
+                <h2 className="font-serif text-2xl sm:text-[1.75rem] text-[#293D1F] font-normal leading-tight mb-3">
                   AI Trip Planner
                 </h2>
 
@@ -107,7 +107,7 @@ export default function JourneySelectPage() {
                   </span>
                 </div>
 
-                <h2 className="font-serif text-2xl sm:text-[1.75rem] text-[#193F2D] font-normal leading-tight mb-3">
+                <h2 className="font-serif text-2xl sm:text-[1.75rem] text-[#293D1F] font-normal leading-tight mb-3">
                   Custom Trip Planner
                 </h2>
 

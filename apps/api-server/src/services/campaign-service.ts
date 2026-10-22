@@ -14,7 +14,7 @@ import {
   type ISubscriberConsent,
 } from "@workspace/db";
 import { config } from "../config/env";
-import { sendEmailWithStatus } from "../lib/email";
+import { sendEmailWithStatus, getEffectiveEmailProvider } from "../lib/email";
 import { logger } from "../lib/logger";
 import {
   resolveMergeTags,
@@ -33,6 +33,9 @@ export interface RecipientAudienceItem {
   isSuppressed?: boolean;
   suppressionReason?: string | null;
   consentStatus?: "subscribed" | "not_subscribed" | "unsubscribed" | "suppressed";
+  isEligible: boolean;
+  eligibilityReason?: string;
+  exclusionReason?: string;
   token: string;
   destination?: string;
   travelStyle?: string;
@@ -50,6 +53,15 @@ export class CampaignError extends Error {
 }
 
 /**
+ * Generates a cryptographic HMAC-SHA256 unsubscribe token deterministically from an email address
+ * when a persistent record does not exist in SubscriberConsentModel.
+ */
+export function generateDeterministicToken(email: string): string {
+  const secret = process.env.SESSION_SECRET || config.sessionSecret || "escora-deterministic-token-salt-32chars";
+  return crypto.createHmac("sha256", secret).update((email || "").toLowerCase().trim()).digest("hex");
+}
+
+/**
  * Resolves the target recipient list for a campaign, deduplicating contacts
  * and cross-referencing with authoritative subscriber consent status.
  */
@@ -57,20 +69,40 @@ export async function resolveAudience(targetAudience: {
   type: CampaignAudienceType;
   destinations?: string[];
   travelStyle?: string | null;
-  groupId?: number | null;
-  groupIds?: number[];
+  groupId?: number | string | null;
+  groupIds?: Array<number | string>;
 }): Promise<{
   eligible: RecipientAudienceItem[];
   totalSelected: number;
   eligibleRecipients: number;
   eligibleCount: number;
   activeSubscribers: number;
+  subscribedCount: number;
+  notSubscribedCount: number;
   unsubscribedCount: number;
+  suppressedCount: number;
   excludedNotSubscribed: number;
   excludedUnsubscribed: number;
   excludedSuppressed: number;
 }> {
-  // 0. Safeguard for retired 'custom_segment': Return 0 recipients to prevent accidental dispatch
+  // 0. Validate supported audience type
+  const validAudienceTypes: CampaignAudienceType[] = [
+    "all_contacts",
+    "enquiries_only",
+    "confirmed_guests",
+    "subscribed_contacts",
+    "audience_group",
+    "custom_segment",
+  ];
+  if (!targetAudience?.type || !validAudienceTypes.includes(targetAudience.type)) {
+    throw new CampaignError(
+      `Invalid audience segment type "${targetAudience?.type}". Expected one of: all_contacts, enquiries_only, confirmed_guests, subscribed_contacts, audience_group.`,
+      400,
+      "INVALID_AUDIENCE_TYPE"
+    );
+  }
+
+  // 0b. Safeguard for retired 'custom_segment': Return 0 recipients to prevent accidental dispatch
   if ((targetAudience.type as string) === "custom_segment") {
     return {
       eligible: [],
@@ -78,7 +110,10 @@ export async function resolveAudience(targetAudience: {
       eligibleRecipients: 0,
       eligibleCount: 0,
       activeSubscribers: 0,
+      subscribedCount: 0,
+      notSubscribedCount: 0,
       unsubscribedCount: 0,
+      suppressedCount: 0,
       excludedNotSubscribed: 0,
       excludedUnsubscribed: 0,
       excludedSuppressed: 0,
@@ -180,24 +215,9 @@ export async function resolveAudience(targetAudience: {
     }
   }
 
-  // 3b. For 'all_contacts', also include active newsletter subscribers who haven't submitted enquiries or orders yet
+  // 3b. For 'all_contacts', also include registered subscribers and contacts who haven't submitted enquiries or orders yet
   if (targetAudience.type === "all_contacts") {
-    const subscribers = await SubscriberConsentModel.find({
-      suppressed: { $ne: true },
-      unsubscribedAt: null,
-      $or: [
-        { status: "subscribed" },
-        {
-          subscribed: true,
-          status: { $nin: ["not_subscribed", "unsubscribed", "suppressed"] },
-          $or: [
-            { consentDate: { $ne: null } },
-            { source: { $regex: /newsletter|consent|opt_in|form/i } },
-            { doubleOptInConfirmed: true },
-          ],
-        },
-      ],
-    }).lean();
+    const subscribers = await SubscriberConsentModel.find().lean();
     for (const sub of subscribers) {
       const email = (sub.email || "").trim().toLowerCase();
       if (!email || !email.includes("@")) continue;
@@ -205,7 +225,7 @@ export async function resolveAudience(targetAudience: {
         emailMap.set(email, {
           name: (sub.name || "Valued Subscriber").trim(),
           email,
-          source: sub.source || "newsletter",
+          source: sub.source || "subscriber",
         });
       }
     }
@@ -218,9 +238,16 @@ export async function resolveAudience(targetAudience: {
     (targetAudience.groupIds && targetAudience.groupIds.length > 0)
   ) {
     const groupIds: number[] = [];
-    if (targetAudience.groupId) groupIds.push(targetAudience.groupId);
+    if (targetAudience.groupId != null && !Number.isNaN(Number(targetAudience.groupId))) {
+      groupIds.push(Number(targetAudience.groupId));
+    }
     if (Array.isArray(targetAudience.groupIds)) {
-      groupIds.push(...targetAudience.groupIds);
+      for (const gid of targetAudience.groupIds) {
+        const num = Number(gid);
+        if (!Number.isNaN(num) && !groupIds.includes(num)) {
+          groupIds.push(num);
+        }
+      }
     }
 
     const groupFilter: any = { isArchived: { $ne: true } };
@@ -251,8 +278,8 @@ export async function resolveAudience(targetAudience: {
         const statusList: string[] = Array.isArray(rawStatus)
           ? rawStatus.map((s: any) => String(s).toLowerCase().trim())
           : typeof rawStatus === "string" && (rawStatus as string).trim()
-          ? [(rawStatus as string).toLowerCase().trim()]
-          : [];
+            ? [(rawStatus as string).toLowerCase().trim()]
+            : [];
 
         const includesAll = statusList.length === 0 || statusList.includes("all");
         const includesEnquiries =
@@ -376,13 +403,16 @@ export async function resolveAudience(targetAudience: {
   }
 
   // 4b. Filter by minBookings if specified in dynamic rules
-  if (targetAudience.type === "audience_group" && targetAudience.groupId) {
-    const grp = await AudienceGroupModel.findOne({ id: targetAudience.groupId }).lean();
-    if (grp?.type === "dynamic" && grp.rules?.minBookings && grp.rules.minBookings > 1) {
-      for (const [email] of emailMap.entries()) {
-        const orderCount = ordersByEmail.get(email)?.length || 0;
-        if (orderCount < grp.rules.minBookings) {
-          emailMap.delete(email);
+  if (targetAudience.type === "audience_group" && targetAudience.groupId != null) {
+    const grpId = Number(targetAudience.groupId);
+    if (!Number.isNaN(grpId)) {
+      const grp = await AudienceGroupModel.findOne({ id: grpId }).lean();
+      if (grp?.type === "dynamic" && grp.rules?.minBookings && grp.rules.minBookings > 1) {
+        for (const [email] of emailMap.entries()) {
+          const orderCount = ordersByEmail.get(email)?.length || 0;
+          if (orderCount < grp.rules.minBookings) {
+            emailMap.delete(email);
+          }
         }
       }
     }
@@ -434,10 +464,10 @@ export async function resolveAudience(targetAudience: {
     });
   }
 
-  // 6. Build audience items with accurate 4-state consent classification
+  // 6. Build audience items with accurate 4-state consent classification and eligibility
   const eligible: RecipientAudienceItem[] = [];
   let activeSubscribers = 0;
-  let excludedNotSubscribed = 0;
+  let notSubscribedCount = 0;
   let excludedUnsubscribed = 0;
   let excludedSuppressed = 0;
 
@@ -449,25 +479,39 @@ export async function resolveAudience(targetAudience: {
       consent = {
         status: "not_subscribed",
         subscribed: false,
-        token: "",
+        token: generateDeterministicToken(email),
         suppressed: false,
         suppressionReason: null,
       };
     }
 
-    const isSuppressed = consent.status === "suppressed";
-    const isSubscribed = consent.status === "subscribed";
-    const isUnsubscribed = consent.status === "unsubscribed";
+    const isSuppressed = Boolean(consent.status === "suppressed" || consent.suppressed);
+    const isSubscribed = Boolean(consent.status === "subscribed");
+    const isUnsubscribed = Boolean(consent.status === "unsubscribed");
 
-    if (isSubscribed) {
-      activeSubscribers++;
-    } else if (isSuppressed) {
+    let isEligible = false;
+    let eligibilityReason: string | undefined;
+    let exclusionReason: string | undefined;
+
+    if (isSuppressed) {
       excludedSuppressed++;
+      isEligible = false;
+      exclusionReason = consent.suppressionReason || "Recipient suppressed from marketing delivery";
     } else if (isUnsubscribed) {
       excludedUnsubscribed++;
+      isEligible = false;
+      exclusionReason = "Recipient opted out of marketing communications (Unsubscribed)";
+    } else if (isSubscribed) {
+      activeSubscribers++;
+      isEligible = true;
+      eligibilityReason = "Subscribed with marketing consent";
     } else {
-      excludedNotSubscribed++;
+      notSubscribedCount++;
+      isEligible = false;
+      exclusionReason = "Missing verified marketing consent";
     }
+
+    const token = consent.token || generateDeterministicToken(email);
 
     eligible.push({
       ...info,
@@ -475,20 +519,32 @@ export async function resolveAudience(targetAudience: {
       isSuppressed,
       suppressionReason: consent.suppressionReason,
       consentStatus: consent.status,
-      token: consent.token,
+      isEligible,
+      eligibilityReason,
+      exclusionReason,
+      token,
     });
   }
 
   const totalSelected = emailMap.size;
   const unsubscribedCount = excludedUnsubscribed;
 
+  // Subscribed contacts are eligible only when valid marketing consent exists and they are not suppressed.
+  // Not-subscribed contacts are not treated as having consent across all audience types.
+  const eligibleRecipients = activeSubscribers;
+  const eligibleCount = eligibleRecipients;
+  const excludedNotSubscribed = notSubscribedCount;
+
   return {
     eligible,
     totalSelected,
-    eligibleRecipients: activeSubscribers,
-    eligibleCount: activeSubscribers,
+    eligibleRecipients,
+    eligibleCount,
     activeSubscribers,
+    subscribedCount: activeSubscribers,
+    notSubscribedCount,
     unsubscribedCount,
+    suppressedCount: excludedSuppressed,
     excludedNotSubscribed,
     excludedUnsubscribed,
     excludedSuppressed,
@@ -550,19 +606,47 @@ export async function createCampaign(input: {
     type?: CampaignAudienceType;
     destinations?: string[];
     travelStyle?: string | null;
-    groupId?: number | null;
-    groupIds?: number[];
+    groupId?: number | string | null;
+    groupIds?: Array<number | string>;
   };
 }): Promise<ICampaign> {
   if ((input.targetAudience?.type as string) === "custom_segment") {
     throw new CampaignError(
-      "The 'Custom Destination Segment' audience option has been retired. Please select one of the four supported audience segments: All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, or Audience Group.",
+      "The 'Custom Destination Segment' audience option has been retired. Please select one of the five supported audience segments: All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, Subscribed Contacts Only, or Audience Group.",
       400,
       "RETIRED_AUDIENCE_SEGMENT"
     );
   }
 
+  const validTypes: CampaignAudienceType[] = [
+    "all_contacts",
+    "enquiries_only",
+    "confirmed_guests",
+    "subscribed_contacts",
+    "audience_group",
+  ];
+  if (input.targetAudience?.type && !validTypes.includes(input.targetAudience.type)) {
+    throw new CampaignError(
+      `Invalid audience segment type "${input.targetAudience.type}". Expected one of: all_contacts, enquiries_only, confirmed_guests, subscribed_contacts, audience_group.`,
+      400,
+      "INVALID_AUDIENCE_TYPE"
+    );
+  }
+
   const id = await getNextSequence("campaigns");
+
+  const parsedGroupId =
+    input.targetAudience?.groupId != null &&
+    input.targetAudience.groupId !== "" &&
+    !Number.isNaN(Number(input.targetAudience.groupId))
+      ? Number(input.targetAudience.groupId)
+      : null;
+
+  const parsedGroupIds = Array.isArray(input.targetAudience?.groupIds)
+    ? input.targetAudience.groupIds.map(Number).filter((n) => !Number.isNaN(n))
+    : parsedGroupId !== null
+      ? [parsedGroupId]
+      : [];
 
   const campaign = await CampaignModel.create({
     id,
@@ -574,8 +658,8 @@ export async function createCampaign(input: {
       type: input.targetAudience?.type || "all_contacts",
       destinations: input.targetAudience?.destinations || [],
       travelStyle: input.targetAudience?.travelStyle || null,
-      groupId: input.targetAudience?.groupId ?? null,
-      groupIds: input.targetAudience?.groupIds || [],
+      groupId: parsedGroupId,
+      groupIds: parsedGroupIds,
     },
     status: "draft",
     stats: {
@@ -609,8 +693,8 @@ export async function updateCampaign(
       type: CampaignAudienceType;
       destinations?: string[];
       travelStyle?: string | null;
-      groupId?: number | null;
-      groupIds?: number[];
+      groupId?: number | string | null;
+      groupIds?: Array<number | string>;
     };
   }>
 ): Promise<ICampaign> {
@@ -650,17 +734,55 @@ export async function updateCampaign(
   if (data.targetAudience !== undefined) {
     if ((data.targetAudience.type as string) === "custom_segment") {
       throw new CampaignError(
-        "The 'Custom Destination Segment' audience option has been retired. Please select one of the four supported audience segments: All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, or Audience Group.",
+        "The 'Custom Destination Segment' audience option has been retired. Please select one of the five supported audience segments: All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, Subscribed Contacts Only, or Audience Group.",
         400,
         "RETIRED_AUDIENCE_SEGMENT"
       );
     }
+
+    const validTypes: CampaignAudienceType[] = [
+      "all_contacts",
+      "enquiries_only",
+      "confirmed_guests",
+      "subscribed_contacts",
+      "audience_group",
+    ];
+    if (data.targetAudience.type && !validTypes.includes(data.targetAudience.type)) {
+      throw new CampaignError(
+        `Invalid audience segment type "${data.targetAudience.type}". Expected one of: all_contacts, enquiries_only, confirmed_guests, subscribed_contacts, audience_group.`,
+        400,
+        "INVALID_AUDIENCE_TYPE"
+      );
+    }
+
+    const parsedGroupId =
+      data.targetAudience.groupId !== undefined
+        ? (data.targetAudience.groupId != null &&
+           data.targetAudience.groupId !== "" &&
+           !Number.isNaN(Number(data.targetAudience.groupId))
+            ? Number(data.targetAudience.groupId)
+            : null)
+        : campaign.targetAudience.groupId;
+
+    const parsedGroupIds =
+      data.targetAudience.groupIds !== undefined
+        ? (Array.isArray(data.targetAudience.groupIds)
+            ? data.targetAudience.groupIds.map(Number).filter((n) => !Number.isNaN(n))
+            : [])
+        : (campaign.targetAudience.groupIds || []);
+
     campaign.targetAudience = {
       type: data.targetAudience.type || campaign.targetAudience.type,
-      destinations: data.targetAudience.destinations !== undefined ? data.targetAudience.destinations : campaign.targetAudience.destinations,
-      travelStyle: data.targetAudience.travelStyle !== undefined ? data.targetAudience.travelStyle : campaign.targetAudience.travelStyle,
-      groupId: data.targetAudience.groupId !== undefined ? data.targetAudience.groupId : campaign.targetAudience.groupId,
-      groupIds: data.targetAudience.groupIds !== undefined ? data.targetAudience.groupIds : (campaign.targetAudience.groupIds || []),
+      destinations:
+        data.targetAudience.destinations !== undefined
+          ? data.targetAudience.destinations
+          : campaign.targetAudience.destinations,
+      travelStyle:
+        data.targetAudience.travelStyle !== undefined
+          ? data.targetAudience.travelStyle
+          : campaign.targetAudience.travelStyle,
+      groupId: parsedGroupId,
+      groupIds: parsedGroupIds,
     };
   }
 
@@ -679,82 +801,6 @@ export async function updateCampaign(
   }
 
   await campaign.save();
-  return campaign.toObject();
-}
-
-/**
- * Submits a draft or rejected campaign for staff review and approval.
- */
-export async function submitCampaignForApproval(id: number): Promise<ICampaign> {
-  const campaign = await CampaignModel.findOne({ id });
-  if (!campaign) {
-    throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
-  }
-
-  if (campaign.status === "sending" || campaign.status === "sent") {
-    throw new CampaignError(
-      `Cannot submit campaign #${id} in status "${campaign.status}"`,
-      400,
-      "INVALID_STATE"
-    );
-  }
-
-  if (!campaign.name.trim() || !campaign.subject.trim() || !campaign.contentHtml.trim()) {
-    throw new CampaignError(
-      "Campaign must have a name, subject line, and email content before submission",
-      400,
-      "VALIDATION_ERROR"
-    );
-  }
-
-  if ((campaign.targetAudience?.type as string) === "custom_segment") {
-    throw new CampaignError(
-      "The 'Custom Destination Segment' audience option has been retired. Please edit this campaign and select a supported audience segment before requesting approval.",
-      400,
-      "RETIRED_AUDIENCE_SEGMENT"
-    );
-  }
-
-  campaign.status = "pending_approval";
-  campaign.submittedForApprovalAt = new Date();
-  campaign.rejectionReason = null;
-  await campaign.save();
-
-  logger.info({ campaignId: id }, "[Campaign] Campaign submitted for approval");
-  return campaign.toObject();
-}
-
-/**
- * Rejects a campaign with a recorded reason.
- */
-export async function rejectCampaign(
-  id: number,
-  staffUsername: string,
-  reason: string
-): Promise<ICampaign> {
-  const campaign = await CampaignModel.findOne({ id });
-  if (!campaign) {
-    throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
-  }
-
-  if (campaign.status === "sending" || campaign.status === "sent") {
-    throw new CampaignError(
-      `Cannot reject campaign #${id} in status "${campaign.status}"`,
-      400,
-      "INVALID_STATE"
-    );
-  }
-
-  campaign.status = "rejected";
-  campaign.rejectedBy = staffUsername;
-  campaign.rejectedAt = new Date();
-  campaign.rejectionReason = reason.trim() || "Changes requested by reviewer";
-  campaign.approvedBy = null;
-  campaign.approvedAt = null;
-  campaign.scheduledAt = null;
-  await campaign.save();
-
-  logger.info({ campaignId: id, staffUsername, reason }, "[Campaign] Campaign rejected with reason");
   return campaign.toObject();
 }
 
@@ -826,7 +872,10 @@ export async function previewCampaignAudience(id: number) {
     eligibleRecipients: result.eligibleRecipients,
     eligibleCount: result.eligibleCount,
     activeSubscribers: result.activeSubscribers,
+    subscribedCount: result.subscribedCount,
+    notSubscribedCount: result.notSubscribedCount,
     unsubscribedCount: result.unsubscribedCount,
+    suppressedCount: result.suppressedCount,
     excludedNotSubscribed: result.excludedNotSubscribed,
     excludedUnsubscribed: result.excludedUnsubscribed,
     excludedSuppressed: result.excludedSuppressed,
@@ -837,6 +886,9 @@ export async function previewCampaignAudience(id: number) {
       isSubscribed: r.isSubscribed,
       isSuppressed: r.isSuppressed,
       consentStatus: r.consentStatus,
+      isEligible: r.isEligible,
+      eligibilityReason: r.eligibilityReason,
+      exclusionReason: r.exclusionReason,
       destination: r.destination,
       hasDestination: Boolean(r.destination),
     })),
@@ -909,14 +961,20 @@ export async function validateCampaignPreSend(id: number): Promise<PreSendValida
       continue;
     }
 
-    if (!recipient.isSubscribed) {
-      const isOptedOut = recipient.consentStatus === "unsubscribed";
+    if (recipient.consentStatus === "unsubscribed") {
       exclusionReasons.push({
         email: recipient.email,
-        reason: isOptedOut
-          ? "Recipient has opted out of marketing communications (Unsubscribed)"
-          : "Recipient has no verified marketing consent (Not Subscribed)",
-        code: isOptedOut ? "UNSUBSCRIBED" : "NOT_SUBSCRIBED",
+        reason: "Recipient has opted out of marketing communications (Unsubscribed)",
+        code: "UNSUBSCRIBED",
+      });
+      continue;
+    }
+
+    if (!recipient.isSubscribed || recipient.consentStatus !== "subscribed") {
+      exclusionReasons.push({
+        email: recipient.email,
+        reason: "Missing verified marketing consent",
+        code: "NOT_SUBSCRIBED",
       });
       continue;
     }
@@ -989,16 +1047,16 @@ export async function validateCampaignPreSend(id: number): Promise<PreSendValida
     },
     unresolvedTags: Array.from(unresolvedTagsSet),
     malformedTags: Array.from(malformedTagsSet),
-    exclusionReasons: exclusionReasons.slice(0, 50),
+    exclusionReasons: exclusionReasons.slice(0, 250),
     sampleRecipients,
     blockReason:
       readyToSend === 0
         ? "This campaign has 0 eligible marketing recipients. All selected contacts are either not subscribed, unsubscribed, or suppressed."
         : unresolvedTagsSet.size > 0
-        ? `Unresolved merge tags found: ${Array.from(unresolvedTagsSet).join(", ")}`
-        : malformedTagsSet.size > 0
-        ? `Malformed merge tags found: ${Array.from(malformedTagsSet).join(", ")}`
-        : null,
+          ? `Unresolved merge tags found: ${Array.from(unresolvedTagsSet).join(", ")}`
+          : malformedTagsSet.size > 0
+            ? `Malformed merge tags found: ${Array.from(malformedTagsSet).join(", ")}`
+            : null,
   };
 }
 
@@ -1038,7 +1096,7 @@ export async function approveCampaign(id: number, staffUsername: string): Promis
 }
 
 /**
- * Schedules an approved campaign for future dispatch.
+ * Schedules a campaign for future dispatch directly from draft or scheduled state.
  */
 export async function scheduleCampaign(id: number, scheduledAtStr: string): Promise<ICampaign> {
   const campaign = await CampaignModel.findOne({ id });
@@ -1054,30 +1112,29 @@ export async function scheduleCampaign(id: number, scheduledAtStr: string): Prom
     );
   }
 
-  // Approval safeguard: MUST be approved before scheduling
-  if (campaign.status !== "approved") {
+  if (campaign.status !== "draft" && campaign.status !== "scheduled" && campaign.status !== "approved") {
     throw new CampaignError(
-      "Campaign must receive explicit staff approval before it can be scheduled",
+      `Campaign #${id} in status "${campaign.status}" cannot be scheduled. Only draft or scheduled campaigns can be scheduled.`,
       400,
-      "APPROVAL_REQUIRED"
+      "INVALID_STATE"
     );
   }
 
   const targetDate = new Date(scheduledAtStr);
-  if (Number.isNaN(targetDate.getTime())) {
-    throw new CampaignError("Invalid scheduledAt timestamp provided", 400, "INVALID_DATE");
+  if (Number.isNaN(targetDate.getTime()) || targetDate.getTime() <= Date.now()) {
+    throw new CampaignError("Scheduled time must be a valid future timestamp", 400, "INVALID_DATE");
   }
 
   campaign.status = "scheduled";
   campaign.scheduledAt = targetDate;
   await campaign.save();
 
-  logger.info({ campaignId: id, scheduledAt: targetDate }, "[Campaign] Campaign scheduled");
+  logger.info({ campaignId: id, scheduledAt: targetDate }, "[Campaign] Campaign scheduled directly by Admin");
   return campaign.toObject();
 }
 
 /**
- * Cancels a scheduled or approved campaign.
+ * Cancels a scheduled campaign and returns it to draft.
  */
 export async function cancelCampaign(id: number): Promise<ICampaign> {
   const campaign = await CampaignModel.findOne({ id });
@@ -1085,24 +1142,25 @@ export async function cancelCampaign(id: number): Promise<ICampaign> {
     throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
   }
 
-  if (campaign.status === "sent") {
-    throw new CampaignError("Cannot cancel a campaign that has already been sent", 400, "INVALID_STATE");
+  if (campaign.status === "sent" || campaign.status === "sending") {
+    throw new CampaignError(`Cannot cancel a campaign in status "${campaign.status}"`, 400, "INVALID_STATE");
   }
 
-  campaign.status = "cancelled";
+  campaign.status = "draft";
   campaign.scheduledAt = null;
   await campaign.save();
 
-  logger.info({ campaignId: id }, "[Campaign] Campaign cancelled");
+  logger.info({ campaignId: id }, "[Campaign] Campaign unscheduled and returned to draft");
   return campaign.toObject();
 }
 
 /**
  * Executes controlled campaign dispatch with consent safeguards and delivery tracking.
+ * Directly callable by Admin without approval gates. Never simulates sending in production.
  */
 export async function sendCampaign(
   id: number,
-  options?: { mock?: boolean; alreadyClaimed?: boolean }
+  options?: { alreadyClaimed?: boolean }
 ): Promise<ICampaign> {
   const existingCheck = await CampaignModel.findOne({ id }).lean();
   if (!existingCheck) {
@@ -1130,8 +1188,7 @@ export async function sendCampaign(
     campaign = await CampaignModel.findOneAndUpdate(
       {
         id,
-        status: { $in: ["approved", "scheduled"] },
-        approvedBy: { $ne: null },
+        status: { $in: ["draft", "scheduled", "approved"] },
       },
       {
         $set: { status: "sending" },
@@ -1143,20 +1200,6 @@ export async function sendCampaign(
       const existing = await CampaignModel.findOne({ id }).lean();
       if (!existing) {
         throw new CampaignError(`Campaign #${id} not found`, 404, "NOT_FOUND");
-      }
-      if (!existing.approvedBy) {
-        throw new CampaignError(
-          `Campaign #${id} lacks authorized staff approval metadata`,
-          400,
-          "APPROVAL_REQUIRED"
-        );
-      }
-      if (existing.status !== "approved" && existing.status !== "scheduled") {
-        throw new CampaignError(
-          `Campaign #${id} cannot be sent because it has not been approved by staff (current status: "${existing.status}")`,
-          400,
-          "APPROVAL_REQUIRED"
-        );
       }
       throw new CampaignError(
         `Campaign #${id} cannot be sent in status "${existing.status}"`,
@@ -1175,50 +1218,17 @@ export async function sendCampaign(
     );
   }
 
-  // 2. Resolve audience
+  // 3. Resolve audience
   const { eligible } = await resolveAudience(campaign.targetAudience);
 
-  // 3. Determine if live delivery is permissible
-  // Safe sending default: Never send real emails unless explicitly enabled via env AND API key is present AND not in mock mode
-  if (options?.mock === false) {
-    if (config.campaignSendingEnabled !== true) {
-      throw new CampaignError(
-        "Live bulk campaign sending is disabled in server configuration (CAMPAIGN_SENDING_ENABLED is false). Keep Simulation Mode checked to run a dry-run test.",
-        400,
-        "CAMPAIGN_SENDING_DISABLED"
-      );
-    }
-    if (!config.resendApiKey || config.resendApiKey.trim().length === 0) {
-      throw new CampaignError(
-        "Bulk campaign sending requires RESEND_API_KEY to be configured. Keep Simulation Mode checked for dry-run testing or configure Resend for live delivery.",
-        400,
-        "RESEND_KEY_MISSING"
-      );
-    }
-  }
-
-  const isLiveDelivery =
-    config.campaignSendingEnabled === true &&
-    Boolean(config.resendApiKey && config.resendApiKey.trim().length > 0) &&
-    options?.mock !== true;
-
-  logger.info(
-    {
-      campaignId: id,
-      totalRecipients: eligible.length,
-      isLiveDelivery,
-      mockOption: options?.mock,
-    },
-    "[Campaign] Beginning campaign delivery dispatch"
-  );
-
-  // 3b. Safeguard: Prevent empty/misleading dispatch when zero recipients are eligible
+  // 4. Safeguard: Prevent empty/misleading dispatch when zero recipients are eligible
   const eligibleRecipientsList = eligible.filter(
-    (r) => r.isSubscribed && !r.isSuppressed && r.consentStatus === "subscribed"
+    (r) => r.isSubscribed && r.consentStatus === "subscribed" && !r.isSuppressed
   );
+
   if (eligibleRecipientsList.length === 0) {
     if (!options?.alreadyClaimed) {
-      await CampaignModel.updateOne({ id }, { $set: { status: "approved" } });
+      await CampaignModel.updateOne({ id }, { $set: { status: "draft" } });
     }
     throw new CampaignError(
       "Campaign has 0 eligible marketing recipients with verified explicit consent. Dispatch blocked to prevent misleading empty dispatch.",
@@ -1226,6 +1236,39 @@ export async function sendCampaign(
       "ZERO_ELIGIBLE_RECIPIENTS"
     );
   }
+
+  // 5. Verify sending flags and email provider availability
+  if (config.campaignSendingEnabled !== true) {
+    if (!options?.alreadyClaimed) {
+      await CampaignModel.updateOne({ id }, { $set: { status: "draft" } });
+    }
+    throw new CampaignError(
+      "Live campaign sending is disabled in server configuration (CAMPAIGN_SENDING_ENABLED is false).",
+      400,
+      "CAMPAIGN_SENDING_DISABLED"
+    );
+  }
+
+  const effectiveProvider = getEffectiveEmailProvider();
+  if (effectiveProvider === "none") {
+    if (!options?.alreadyClaimed) {
+      await CampaignModel.updateOne({ id }, { $set: { status: "draft" } });
+    }
+    throw new CampaignError(
+      "No email provider is configured. Please configure Gmail credentials or Resend API key.",
+      400,
+      "PROVIDER_MISSING"
+    );
+  }
+
+  logger.info(
+    {
+      campaignId: id,
+      totalRecipients: eligible.length,
+      provider: effectiveProvider,
+    },
+    "[Campaign] Beginning live campaign delivery dispatch"
+  );
 
   // Existing deliveries map for restart recovery and duplicate prevention
   const existingDeliveryMap = new Map(
@@ -1274,15 +1317,23 @@ export async function sendCampaign(
     }).lean();
 
     const isSuppressed = Boolean(latestConsent?.suppressed || latestConsent?.status === "suppressed");
-    const isUnsubscribed = Boolean(latestConsent?.status === "unsubscribed" || (!latestConsent?.subscribed && latestConsent?.unsubscribedAt));
+    const isUnsubscribed = Boolean(
+      latestConsent?.status === "unsubscribed" || (!latestConsent?.subscribed && latestConsent?.unsubscribedAt)
+    );
     const isExplicitlySubscribed = Boolean(
       !isSuppressed &&
       !isUnsubscribed &&
-      (latestConsent?.status === "subscribed" || (latestConsent?.subscribed && (latestConsent?.consentDate || latestConsent?.source?.includes("newsletter") || latestConsent?.source?.includes("consent"))))
+      (latestConsent?.status === "subscribed" ||
+        (latestConsent?.subscribed &&
+          (latestConsent?.consentDate ||
+            latestConsent?.source?.includes("newsletter") ||
+            latestConsent?.source?.includes("consent"))))
     );
 
-    if (!isExplicitlySubscribed || isSuppressed) {
-      let errorMsg = "Recipient has no verified marketing consent (Not Subscribed)";
+    const isEligibleForDispatch = Boolean(isExplicitlySubscribed && !isSuppressed && !isUnsubscribed);
+
+    if (!isEligibleForDispatch) {
+      let errorMsg = "Missing verified marketing consent";
       if (isSuppressed) {
         errorMsg = `Recipient suppressed from marketing communications (${latestConsent?.suppressionReason || "Suppression rule active"})`;
       } else if (isUnsubscribed) {
@@ -1302,7 +1353,7 @@ export async function sendCampaign(
     }
 
     // 5. Pre-send validation & merge tag resolution
-    const recipientToken = latestConsent?.token || recipient.token;
+    const recipientToken = latestConsent?.token || recipient.token || generateDeterministicToken(recipient.email);
     if (!recipientToken) {
       finalDeliveries.push({
         recipientEmail: recipient.email,
@@ -1340,82 +1391,67 @@ export async function sendCampaign(
 
     const unsubscribeUrl = buildUnsubscribeUrl(recipientToken, recipient.email, config.publicUrl);
 
-    if (isLiveDelivery) {
-      // Deterministic idempotency key: avoids duplicate sends even after ambiguous network disconnects
-      const idempotencyKey = `escora-camp-${campaign.id}-${crypto.createHash("sha256").update(normalizedEmail).digest("hex").slice(0, 16)}`;
+    // Deterministic idempotency key: avoids duplicate sends even after ambiguous network disconnects
+    const idempotencyKey = `escora-camp-${campaign.id}-${crypto.createHash("sha256").update(normalizedEmail).digest("hex").slice(0, 16)}`;
 
-      try {
-        const sendResult = await sendEmailWithStatus({
-          to: recipient.email,
-          subject: rendered.renderedSubject,
-          html: rendered.renderedHtml,
-          idempotencyKey,
-          headers: {
-            "List-Unsubscribe": `<${unsubscribeUrl}>`,
-            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-          },
+    try {
+      const sendResult = await sendEmailWithStatus({
+        to: recipient.email,
+        subject: rendered.renderedSubject,
+        html: rendered.renderedHtml,
+        idempotencyKey,
+        headers: {
+          "List-Unsubscribe": `<${unsubscribeUrl}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+        },
+      });
+
+      if (sendResult.success) {
+        const effStatus = sendResult.status === "delivered" ? "delivered" : "accepted";
+        finalDeliveries.push({
+          recipientEmail: recipient.email,
+          recipientName: recipient.name,
+          status: effStatus,
+          deliveryStatus: effStatus,
+          sentAt: sendResult.sentAt || new Date(),
+          messageId: sendResult.messageId || null,
+          provider: sendResult.provider,
+          smtpResponse: sendResult.smtpResponse || null,
+          providerResponse: sendResult.providerResponse || null,
+          acceptedRecipients: sendResult.acceptedRecipients || [recipient.email],
+          rejectedRecipients: sendResult.rejectedRecipients || [],
         });
-
-        if (sendResult.success) {
-          const effStatus = sendResult.status === "simulated" ? "simulated" : "accepted";
-          finalDeliveries.push({
-            recipientEmail: recipient.email,
-            recipientName: recipient.name,
-            status: effStatus,
-            deliveryStatus: effStatus,
-            sentAt: sendResult.sentAt || new Date(),
-            messageId: sendResult.messageId || null,
-            provider: sendResult.provider,
-            smtpResponse: sendResult.smtpResponse || null,
-            providerResponse: sendResult.providerResponse || null,
-            acceptedRecipients: sendResult.acceptedRecipients || [recipient.email],
-            rejectedRecipients: sendResult.rejectedRecipients || [],
-          });
-          sentCount++;
-        } else {
-          finalDeliveries.push({
-            recipientEmail: recipient.email,
-            recipientName: recipient.name,
-            status: "failed",
-            deliveryStatus: "failed",
-            sentAt: new Date(),
-            error: sendResult.error || "Delivery provider rejected email",
-            provider: sendResult.provider,
-            smtpResponse: sendResult.smtpResponse || null,
-            providerResponse: sendResult.providerResponse || null,
-            acceptedRecipients: sendResult.acceptedRecipients || [],
-            rejectedRecipients: sendResult.rejectedRecipients || [recipient.email],
-          });
-          failedCount++;
-        }
-      } catch (err: any) {
+        sentCount++;
+      } else {
         finalDeliveries.push({
           recipientEmail: recipient.email,
           recipientName: recipient.name,
           status: "failed",
           deliveryStatus: "failed",
           sentAt: new Date(),
-          error: err?.message || "Delivery exception",
+          error: sendResult.error || "Delivery provider rejected email",
+          provider: sendResult.provider,
+          smtpResponse: sendResult.smtpResponse || null,
+          providerResponse: sendResult.providerResponse || null,
+          acceptedRecipients: sendResult.acceptedRecipients || [],
+          rejectedRecipients: sendResult.rejectedRecipients || [recipient.email],
         });
         failedCount++;
       }
-    } else {
-      // 6. Safe Mock / Simulation Mode: Zero outbound calls to provider
+    } catch (err: any) {
       finalDeliveries.push({
         recipientEmail: recipient.email,
         recipientName: recipient.name,
-        status: "simulated",
-        deliveryStatus: "simulated",
+        status: "failed",
+        deliveryStatus: "failed",
         sentAt: new Date(),
-        messageId: `mock_resend_msg_simulated_${crypto.randomUUID()}`,
-        provider: "mock",
-        providerResponse: "Simulation mode - zero outbound mail sent",
+        error: err?.message || "Delivery exception",
       });
-      sentCount++;
+      failedCount++;
     }
   }
 
-  // 7. Update statistics and finalize campaign status atomically
+  // 6. Update statistics and finalize campaign status atomically
   const sentAt = new Date();
   const stats = {
     totalRecipients: eligible.length,
@@ -1432,7 +1468,7 @@ export async function sendCampaign(
         sentAt,
         stats,
         deliveries: finalDeliveries,
-        deliveryMode: isLiveDelivery ? "live" : "simulated",
+        deliveryMode: "live",
         updatedAt: new Date(),
       },
     }
@@ -1471,12 +1507,14 @@ export async function handleUnsubscribe(
     throw new CampaignError("Email and unsubscribe token are required", 400, "INVALID_INPUT");
   }
 
-  const consent = await SubscriberConsentModel.findOne({
+  let consent = await SubscriberConsentModel.findOne({
     email: normalizedEmail,
-    token: normalizedToken,
   });
 
-  if (!consent) {
+  const expectedDeterministic = generateDeterministicToken(normalizedEmail);
+  const isMatch = (consent && consent.token === normalizedToken) || normalizedToken === expectedDeterministic;
+
+  if (!isMatch) {
     throw new CampaignError(
       "Invalid or expired unsubscribe link. Please verify the link in your email.",
       400,
@@ -1484,9 +1522,24 @@ export async function handleUnsubscribe(
     );
   }
 
+  if (!consent) {
+    consent = new SubscriberConsentModel({
+      email: normalizedEmail,
+      token: normalizedToken,
+      source: "unsubscribe_link",
+    });
+  }
+
   consent.status = "unsubscribed";
   consent.subscribed = false;
   consent.unsubscribedAt = new Date();
+  if (!consent.auditLog) consent.auditLog = [];
+  consent.auditLog.push({
+    action: "unsubscribed",
+    performedBy: "customer",
+    timestamp: new Date(),
+    reason: "One-click unsubscribe link activated",
+  });
   await consent.save();
 
   logger.info({ email: normalizedEmail }, "[Consent] Guest unsubscribed successfully");
@@ -1504,11 +1557,11 @@ export async function listSubscribers(
   filter?:
     | boolean
     | {
-        subscribed?: boolean;
-        suppressed?: boolean;
-        status?: "subscribed" | "not_subscribed" | "unsubscribed" | "suppressed";
-        search?: string;
-      }
+      subscribed?: boolean;
+      suppressed?: boolean;
+      status?: "subscribed" | "not_subscribed" | "unsubscribed" | "suppressed";
+      search?: string;
+    }
 ) {
   const query: any = {};
   if (typeof filter === "boolean") {
@@ -2314,8 +2367,11 @@ export async function previewAudienceGroup(id: number) {
     totalMatching: totalSelected,
     totalSelected,
     activeSubscribers,
+    subscribedCount: activeSubscribers,
+    notSubscribedCount: excludedNotSubscribed,
     unsubscribedCount,
     unsubscribedExcluded: unsubscribedCount,
+    suppressedCount: excludedSuppressed,
     excludedNotSubscribed,
     excludedUnsubscribed,
     excludedSuppressed,
@@ -2326,7 +2382,34 @@ export async function previewAudienceGroup(id: number) {
       isSubscribed: r.isSubscribed,
       isSuppressed: r.isSuppressed,
       consentStatus: r.consentStatus,
+      isEligible: r.isEligible,
+      eligibilityReason: r.eligibilityReason,
+      exclusionReason: r.exclusionReason,
     })),
   };
 }
+
+/**
+ * Migrates legacy campaign approval states (pending_approval, approved, rejected) to draft.
+ * Safely resolves obsolete states without accidentally triggering sends.
+ */
+export async function migrateLegacyCampaignApprovalStates(): Promise<number> {
+  const result = await CampaignModel.updateMany(
+    { status: { $in: ["pending_approval", "approved", "rejected"] } },
+    {
+      $set: {
+        status: "draft",
+        updatedAt: new Date(),
+      },
+    }
+  );
+  if (result.modifiedCount > 0) {
+    logger.info(
+      { modifiedCount: result.modifiedCount },
+      "[Campaign] Migrated legacy pending_approval/approved/rejected campaigns safely to draft"
+    );
+  }
+  return result.modifiedCount;
+}
+
 

@@ -158,32 +158,23 @@ export function getPlainTiming(auto: AutomationItem): string {
 
 export function getSimpleCampaignStatus(
   status: string,
-  deliveryMode?: "simulated" | "live" | null
+  _deliveryMode?: "simulated" | "live" | null
 ): { label: string; badgeClass: string } {
-  if (deliveryMode === "simulated" && (status === "sent" || status === "completed")) {
-    return {
-      label: "Simulated (Mock)",
-      badgeClass: "bg-purple-50 text-purple-800 border-purple-200 dark:bg-purple-950/30 dark:text-purple-300 dark:border-purple-800",
-    };
-  }
   switch (status) {
     case "draft":
-      return { label: "Draft", badgeClass: "bg-stone-100 text-stone-700 border-stone-200" };
     case "pending_approval":
-      return { label: "Awaiting Approval", badgeClass: "bg-amber-50 text-amber-800 border-amber-200" };
     case "approved":
-      return { label: "Approved", badgeClass: "bg-blue-50 text-blue-700 border-blue-200" };
+    case "rejected":
+      return { label: "Draft", badgeClass: "bg-stone-100 text-stone-700 border-stone-200" };
     case "scheduled":
       return { label: "Scheduled", badgeClass: "bg-purple-50 text-purple-700 border-purple-200" };
     case "sending":
       return { label: "Sending...", badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-300 animate-pulse" };
     case "sent":
     case "completed":
-      return { label: "Sent (Live)", badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200" };
+      return { label: "Sent", badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200" };
     case "failed":
       return { label: "Failed", badgeClass: "bg-red-50 text-red-700 border-red-200" };
-    case "rejected":
-      return { label: "Needs Review", badgeClass: "bg-red-50 text-red-700 border-red-200" };
     case "cancelled":
       return { label: "Cancelled", badgeClass: "bg-stone-100 text-stone-600 border-stone-200" };
     default:
@@ -205,16 +196,16 @@ interface CampaignItem {
     groupIds?: string[];
   };
   status:
-    | "draft"
-    | "pending_approval"
-    | "approved"
-    | "rejected"
-    | "scheduled"
-    | "sending"
-    | "sent"
-    | "completed"
-    | "cancelled"
-    | "failed";
+  | "draft"
+  | "pending_approval"
+  | "approved"
+  | "rejected"
+  | "scheduled"
+  | "sending"
+  | "sent"
+  | "completed"
+  | "cancelled"
+  | "failed";
   scheduledAt?: string | null;
   approvedBy?: string | null;
   approvedAt?: string | null;
@@ -231,14 +222,14 @@ interface CampaignItem {
     recipientEmail: string;
     recipientName: string;
     status:
-      | "sent"
-      | "simulated"
-      | "accepted"
-      | "delivered"
-      | "bounced"
-      | "failed"
-      | "skipped_unsubscribed"
-      | "complained";
+    | "sent"
+    | "simulated"
+    | "accepted"
+    | "delivered"
+    | "bounced"
+    | "failed"
+    | "skipped_unsubscribed"
+    | "complained";
     deliveryStatus?: string | null;
     sentAt?: string;
     messageId?: string | null;
@@ -279,17 +270,17 @@ interface NotificationItem {
   recipientName: string;
   subject: string;
   status:
-    | "pending"
-    | "pending_approval"
-    | "sending"
-    | "sent"
-    | "accepted"
-    | "delivered"
-    | "simulated"
-    | "bounced"
-    | "failed"
-    | "cancelled"
-    | "skipped";
+  | "pending"
+  | "pending_approval"
+  | "sending"
+  | "sent"
+  | "accepted"
+  | "delivered"
+  | "simulated"
+  | "bounced"
+  | "failed"
+  | "cancelled"
+  | "skipped";
   requiresApproval?: boolean;
   approvedBy?: string | null;
   approvedAt?: string | null;
@@ -311,7 +302,10 @@ interface AudiencePreviewData {
   eligibleRecipients: number;
   eligibleCount?: number;
   activeSubscribers: number;
+  subscribedCount?: number;
+  notSubscribedCount?: number;
   unsubscribedCount: number;
+  suppressedCount?: number;
   excludedNotSubscribed?: number;
   excludedUnsubscribed?: number;
   excludedSuppressed?: number;
@@ -320,7 +314,11 @@ interface AudiencePreviewData {
     email: string;
     source: string;
     isSubscribed: boolean;
+    isSuppressed?: boolean;
     consentStatus?: string;
+    isEligible?: boolean;
+    eligibilityReason?: string;
+    exclusionReason?: string;
   }>;
 }
 
@@ -353,7 +351,7 @@ export default function CampaignsPage() {
   const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
   const [statusConfirmEditCampaign, setStatusConfirmEditCampaign] = useState<{
     campaign: CampaignItem;
-    type: "approved" | "pending_approval" | "scheduled" | "sent";
+    type: "scheduled" | "sent";
   } | null>(null);
   const [isStatusActionLoading, setIsStatusActionLoading] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -363,7 +361,6 @@ export default function CampaignsPage() {
   const [scheduleDateTime, setScheduleDateTime] = useState("");
   const [sendDialogOpen, setSendDialogOpen] = useState(false);
   const [selectedCampaignForSend, setSelectedCampaignForSend] = useState<CampaignItem | null>(null);
-  const [sendMockMode, setSendMockMode] = useState(true);
 
   // Test Email dialog state
   const [testEmailDialogOpen, setTestEmailDialogOpen] = useState(false);
@@ -374,11 +371,6 @@ export default function CampaignsPage() {
   const [audienceModalOpen, setAudienceModalOpen] = useState(false);
   const [audienceModalGroupId, setAudienceModalGroupId] = useState<number | string | null>(null);
   const [audienceModalStartCreate, setAudienceModalStartCreate] = useState(false);
-
-  // Campaign Rejection dialog
-  const [rejectCampaignDialogOpen, setRejectCampaignDialogOpen] = useState(false);
-  const [selectedCampaignForReject, setSelectedCampaignForReject] = useState<CampaignItem | null>(null);
-  const [campaignRejectReason, setCampaignRejectReason] = useState("");
 
   // Automation delay configuration dialog
   const [delayConfigDialogOpen, setDelayConfigDialogOpen] = useState(false);
@@ -602,7 +594,7 @@ export default function CampaignsPage() {
 
   // 10. Authenticated Email Config Query
   const { data: emailConfig } = useQuery<{
-    provider: "gmail" | "resend" | "mock";
+    provider: "gmail" | "resend" | "none";
     senderEmail: string;
     senderName: string;
     fullFrom: string;
@@ -635,6 +627,17 @@ export default function CampaignsPage() {
 
   const createMutation = useMutation({
     mutationFn: async (payload: any) => {
+      const parsedGroupId =
+        payload.groupId !== undefined && payload.groupId !== "" && !isNaN(Number(payload.groupId))
+          ? Number(payload.groupId)
+          : undefined;
+      const parsedGroupIds =
+        Array.isArray(payload.groupIds) && payload.groupIds.length > 0
+          ? payload.groupIds.map(Number).filter((n: number) => !isNaN(n))
+          : parsedGroupId !== undefined
+            ? [parsedGroupId]
+            : undefined;
+
       const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -646,8 +649,8 @@ export default function CampaignsPage() {
           contentHtml: payload.contentHtml,
           targetAudience: {
             type: payload.audienceType,
-            groupId: payload.groupId,
-            groupIds: payload.groupIds,
+            groupId: parsedGroupId,
+            groupIds: parsedGroupIds,
           },
         }),
       });
@@ -669,6 +672,17 @@ export default function CampaignsPage() {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, payload }: { id: number; payload: any }) => {
+      const parsedGroupId =
+        payload.groupId !== undefined && payload.groupId !== "" && !isNaN(Number(payload.groupId))
+          ? Number(payload.groupId)
+          : undefined;
+      const parsedGroupIds =
+        Array.isArray(payload.groupIds) && payload.groupIds.length > 0
+          ? payload.groupIds.map(Number).filter((n: number) => !isNaN(n))
+          : parsedGroupId !== undefined
+            ? [parsedGroupId]
+            : undefined;
+
       const res = await fetch(`/api/campaigns/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -680,8 +694,8 @@ export default function CampaignsPage() {
           contentHtml: payload.contentHtml,
           targetAudience: {
             type: payload.audienceType,
-            groupId: payload.groupId ? Number(payload.groupId) : undefined,
-            groupIds: payload.groupIds ? payload.groupIds.map(Number) : undefined,
+            groupId: parsedGroupId,
+            groupIds: parsedGroupIds,
           },
         }),
       });
@@ -719,83 +733,7 @@ export default function CampaignsPage() {
     },
   });
 
-  // Approval Workflow Mutations
-  const submitCampaignApprovalMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await fetch(`/api/campaigns/${id}/submit-approval`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to submit for approval");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      invalidateAll();
-      toast({
-        title: "Submitted for Approval",
-        description: "Campaign is now awaiting administrator review.",
-      });
-    },
-    onError: (err: any) => {
-      toast({ title: "Submission Failed", description: err.message, variant: "destructive" });
-    },
-  });
 
-  const approveMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const res = await fetch(`/api/campaigns/${id}/approve`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to approve campaign");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      invalidateAll();
-      toast({
-        title: "Campaign Approved",
-        description: "Campaign marked as approved. Ready for scheduling or immediate send.",
-      });
-    },
-    onError: (err: any) => {
-      toast({ title: "Approval Failed", description: err.message, variant: "destructive" });
-    },
-  });
-
-  const rejectCampaignMutation = useMutation({
-    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
-      const res = await fetch(`/api/campaigns/${id}/reject`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ reason }),
-      });
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to reject campaign");
-      }
-      return res.json();
-    },
-    onSuccess: () => {
-      invalidateAll();
-      setRejectCampaignDialogOpen(false);
-      setSelectedCampaignForReject(null);
-      setCampaignRejectReason("");
-      toast({
-        title: "Campaign Rejected",
-        description: "Campaign marked as rejected. Staff can revise and re-submit.",
-      });
-    },
-    onError: (err: any) => {
-      toast({ title: "Rejection Failed", description: err.message, variant: "destructive" });
-    },
-  });
 
   const duplicateCampaignMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -846,12 +784,11 @@ export default function CampaignsPage() {
   });
 
   const sendMutation = useMutation({
-    mutationFn: async ({ id, mock }: { id: number; mock: boolean }) => {
+    mutationFn: async (id: number) => {
       const res = await fetch(`/api/campaigns/${id}/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ mock }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -901,7 +838,7 @@ export default function CampaignsPage() {
     },
     onSuccess: (data) => {
       setTestEmailDialogOpen(false);
-      const title = data.status === "simulated" ? "Test Email Simulated (Mock)" : "Test Email Accepted for Relay";
+      const title = "Test Email Accepted for Relay";
       const desc = data.message || `Dispatched to ${data.to} from ${data.from}. Message ID: ${data.messageId}`;
       toast({
         title,
@@ -1550,8 +1487,8 @@ export default function CampaignsPage() {
           n.type === "campaign_test_email"
             ? "Campaign Test Email"
             : n.category === "manual"
-            ? "Manual Admin"
-            : "System Automation",
+              ? "Manual Admin"
+              : "System Automation",
         recipientEmail: n.recipientEmail,
         recipientName: n.recipientName,
         subject: n.subject,
@@ -1595,16 +1532,12 @@ export default function CampaignsPage() {
           if (item.status !== "delivered") return false;
         } else if (auditStatusFilter === "accepted") {
           if (item.status !== "accepted" && item.status !== "sent") return false;
-        } else if (auditStatusFilter === "simulated") {
-          if (item.status !== "simulated") return false;
         } else if (auditStatusFilter === "bounced") {
           if (item.status !== "bounced" && item.status !== "complained") return false;
         } else if (auditStatusFilter === "failed") {
           if (item.status !== "failed") return false;
         } else if (auditStatusFilter === "pending") {
           if (item.status !== "pending") return false;
-        } else if (auditStatusFilter === "pending_approval") {
-          if (item.status !== "pending_approval") return false;
         } else if (item.status !== auditStatusFilter) {
           return false;
         }
@@ -1673,15 +1606,7 @@ export default function CampaignsPage() {
       setStatusConfirmEditCampaign({ campaign: camp, type: "scheduled" });
       return;
     }
-    if (camp.status === "approved") {
-      setStatusConfirmEditCampaign({ campaign: camp, type: "approved" });
-      return;
-    }
-    if (camp.status === "pending_approval") {
-      setStatusConfirmEditCampaign({ campaign: camp, type: "pending_approval" });
-      return;
-    }
-    // draft, rejected, cancelled -> directly fetch full campaign and open builder
+    // draft, cancelled, or legacy statuses -> directly fetch full campaign and open builder
     fetchAndOpenBuilder(camp.id);
   };
 
@@ -1692,25 +1617,10 @@ export default function CampaignsPage() {
   const getCampaignStatusBadge = (camp: CampaignItem) => {
     switch (camp.status) {
       case "draft":
-        return <Badge variant="outline" className="border-zinc-400 text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 text-[11px]">Draft</Badge>;
       case "pending_approval":
-        return (
-          <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 gap-1 text-[11px] font-semibold">
-            <Clock className="h-3 w-3" /> Pending Approval
-          </Badge>
-        );
       case "rejected":
-        return (
-          <Badge variant="outline" className="border-red-500/50 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 gap-1 text-[11px]">
-            <XCircle className="h-3 w-3" /> Rejected
-          </Badge>
-        );
       case "approved":
-        return (
-          <Badge variant="outline" className="border-emerald-500/40 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 gap-1 text-[11px]">
-            <CheckCircle2 className="h-3 w-3" /> Approved
-          </Badge>
-        );
+        return <Badge variant="outline" className="border-zinc-400 text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 text-[11px]">Draft</Badge>;
       case "scheduled":
         return (
           <Badge variant="outline" className="border-purple-500/40 text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 gap-1 text-[11px]">
@@ -1725,36 +1635,26 @@ export default function CampaignsPage() {
         );
       case "sent":
       case "completed": {
-        const isSimulated =
-          camp.deliveryMode === "simulated" ||
-          camp.deliveries?.some(
-            (d) =>
-              d.deliveryStatus === "simulated" ||
-              d.status === "simulated" ||
-              d.messageId?.startsWith("mock_") ||
-              d.messageId?.startsWith("simulated_")
-          );
         const allDelivered =
-          !isSimulated &&
           (camp.deliveries || []).length > 0 &&
           (camp.deliveries || []).every((d) => d.status === "delivered");
         return (
           <Badge
             variant="outline"
             className={`text-[11px] ${
-              isSimulated
-                ? "border-purple-500/40 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/30"
-                : allDelivered
+              allDelivered
                 ? "border-emerald-600/40 text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/30"
                 : "border-sky-500/40 text-sky-800 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/30"
             }`}
           >
-            {isSimulated ? "Simulated (Mock)" : allDelivered ? "Delivered (Confirmed)" : "Accepted / Sent (Live)"}
+            {allDelivered ? "Delivered (Confirmed)" : "Accepted / Sent"}
           </Badge>
         );
       }
       case "cancelled":
         return <Badge variant="outline" className="border-zinc-400 text-zinc-500 text-[11px]">Cancelled</Badge>;
+      case "failed":
+        return <Badge variant="outline" className="border-red-500/50 text-red-700 bg-red-50 text-[11px]">Failed</Badge>;
       default:
         return <Badge variant="outline" className="text-[11px]">{camp.status}</Badge>;
     }
@@ -1992,11 +1892,8 @@ export default function CampaignsPage() {
                 >
                   <option value="all">All Campaigns ({campaigns.length})</option>
                   <option value="draft">Drafts</option>
-                  <option value="pending_approval">Awaiting Approval</option>
-                  <option value="approved">Approved</option>
                   <option value="scheduled">Scheduled</option>
                   <option value="sent">Sent / Delivered</option>
-                  <option value="rejected">Needs Review</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
               </div>
@@ -2031,30 +1928,7 @@ export default function CampaignsPage() {
                     key={camp.id}
                     className="p-5 rounded-xl border border-[#E5DDD0] bg-white dark:bg-card shadow-xs hover:border-[#24543D]/40 transition-colors space-y-3"
                   >
-                    {/* Rejection Alert Banner if rejected */}
-                    {camp.status === "rejected" && (
-                      <div className="p-3 rounded-lg border border-red-200 bg-red-50/70 dark:bg-red-950/20 text-xs text-red-800 dark:text-red-300 flex items-start gap-2.5">
-                        <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-semibold block">Campaign Needs Review:</span>
-                          <span>{camp.rejectionReason || "Please review message copy and audience criteria."}</span>
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Pending Approval Notice if pending */}
-                    {camp.status === "pending_approval" && (
-                      <div className="p-3 rounded-lg border border-amber-200 bg-amber-50/60 dark:bg-amber-950/20 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
-                        <Clock className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                        <div>
-                          <span className="font-semibold block">Awaiting Administrator Approval:</span>
-                          <span>
-                            Submitted {camp.submittedForApprovalAt ? new Date(camp.submittedForApprovalAt).toLocaleDateString() : "recently"}.
-                            Authorized staff must review content before scheduling or delivery.
-                          </span>
-                        </div>
-                      </div>
-                    )}
 
                     {/* Main Row */}
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -2088,8 +1962,16 @@ export default function CampaignsPage() {
                               <span className="text-amber-700 dark:text-amber-400 font-medium inline-flex items-center gap-1">
                                 <AlertTriangle className="h-3 w-3 inline" /> Custom Destination Segment (Retired — Action Required)
                               </span>
+                            ) : camp.targetAudience?.type === "enquiries_only" ? (
+                              "Inquiries Prospects Only"
+                            ) : camp.targetAudience?.type === "confirmed_guests" ? (
+                              "Confirmed Journey Guests Only"
+                            ) : camp.targetAudience?.type === "subscribed_contacts" ? (
+                              "Only Subscribed (Marketing Consent Required)"
+                            ) : camp.targetAudience?.type === "audience_group" ? (
+                              "Audience Group (Custom Segment)"
                             ) : (
-                              camp.targetAudience?.type?.replace(/_/g, " ") || "All contacts"
+                              "All Contacts (Subscribers, Enquiries & Bookings)"
                             )}
                           </span>
                         </div>
@@ -2115,23 +1997,18 @@ export default function CampaignsPage() {
                           size="sm"
                           onClick={() => handleInitiateEdit(camp)}
                           disabled={camp.status === "sending" || loadingEditId === camp.id}
-                          className={`text-xs h-8 border-[#E5DDD0] gap-1 ${
-                            camp.status === "sending"
+                          className={`text-xs h-8 border-[#E5DDD0] gap-1 ${camp.status === "sending"
                               ? "opacity-50 cursor-not-allowed text-muted-foreground"
                               : "text-foreground hover:bg-[#FAF7F1]"
-                          }`}
+                            }`}
                           title={
                             camp.status === "sending"
                               ? "Campaign is currently sending and cannot be edited"
                               : camp.status === "sent"
-                              ? "Sent campaigns are locked. Click to duplicate and edit."
-                              : camp.status === "scheduled"
-                              ? "Scheduled campaign. Click to unschedule and edit."
-                              : camp.status === "approved"
-                              ? "Approved campaign. Editing will invalidate approval."
-                              : camp.status === "pending_approval"
-                              ? "Pending approval. Editing will withdraw from review queue."
-                              : "Edit Campaign"
+                                ? "Sent campaigns are locked. Click to duplicate and edit."
+                                : camp.status === "scheduled"
+                                  ? "Scheduled campaign. Click to unschedule and edit."
+                                  : "Edit Campaign"
                           }
                           data-testid={`button-edit-campaign-${camp.id}`}
                         >
@@ -2142,54 +2019,6 @@ export default function CampaignsPage() {
                           )}
                           Edit
                         </Button>
-
-                        {camp.status === "draft" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              if (camp.targetAudience?.type === "custom_segment") {
-                                toast({
-                                  title: "Audience Reassignment Required",
-                                  description:
-                                    "The 'Custom Destination Segment' option has been retired. Please edit the campaign and select a supported audience segment before requesting approval.",
-                                  variant: "destructive",
-                                });
-                                return;
-                              }
-                              submitCampaignApprovalMutation.mutate(camp.id);
-                            }}
-                            className="text-xs h-8 border-amber-300 text-amber-800 bg-amber-50/50 hover:bg-amber-100"
-                          >
-                            Request Approval
-                          </Button>
-                        )}
-
-                        {camp.status === "pending_approval" && (
-                          <Button
-                            size="sm"
-                            className="text-xs h-8 bg-emerald-700 hover:bg-emerald-800 text-white gap-1"
-                            onClick={() => approveMutation.mutate(camp.id)}
-                            disabled={approveMutation.isPending}
-                          >
-                            <CheckCircle2 className="h-3 w-3" /> Approve
-                          </Button>
-                        )}
-
-                        {camp.status === "pending_approval" && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs h-8 border-red-300 text-red-700 hover:bg-red-50 gap-1"
-                            onClick={() => {
-                              setSelectedCampaignForReject(camp);
-                              setCampaignRejectReason("");
-                              setRejectCampaignDialogOpen(true);
-                            }}
-                          >
-                            <XCircle className="h-3 w-3" /> Reject
-                          </Button>
-                        )}
 
                         <Button
                           variant="outline"
@@ -2206,7 +2035,7 @@ export default function CampaignsPage() {
                           Send Test
                         </Button>
 
-                        {camp.status === "approved" && (
+                        {camp.status === "draft" && (
                           <Button
                             variant="outline"
                             size="sm"
@@ -2221,7 +2050,7 @@ export default function CampaignsPage() {
                           </Button>
                         )}
 
-                        {camp.status === "approved" && (
+                        {camp.status === "draft" && (
                           <Button
                             size="sm"
                             onClick={() => {
@@ -2229,9 +2058,28 @@ export default function CampaignsPage() {
                               setSendDialogOpen(true);
                             }}
                             className="text-xs h-8 bg-[#24543D] hover:bg-[#1b3f2e] text-white gap-1"
+                            data-testid={`button-send-campaign-${camp.id}`}
                           >
                             <Send className="h-3 w-3" />
                             Send Now
+                          </Button>
+                        )}
+
+                        {camp.status === "scheduled" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (confirm(`Unschedule campaign "${camp.name}"? It will return to Draft state.`)) {
+                                cancelMutation.mutate(camp.id);
+                              }
+                            }}
+                            disabled={cancelMutation.isPending}
+                            className="text-xs h-8 border-amber-300 text-amber-800 bg-amber-50/50 hover:bg-amber-100 gap-1"
+                            title="Stop automatic dispatch and return to Draft"
+                          >
+                            <Calendar className="h-3 w-3 text-amber-600" />
+                            Unschedule
                           </Button>
                         )}
 
@@ -2398,11 +2246,10 @@ export default function CampaignsPage() {
                       {/* Left: Status & Plain Details */}
                       <div className="flex items-start gap-3.5 min-w-0">
                         <div
-                          className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${
-                            isEnabled
+                          className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 ${isEnabled
                               ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
                               : "bg-stone-100 text-stone-500 border border-stone-200"
-                          }`}
+                            }`}
                         >
                           <Zap className="h-5 w-5" />
                         </div>
@@ -2619,22 +2466,20 @@ export default function CampaignsPage() {
             <button
               type="button"
               onClick={() => setCustomerGroupsSubTab("groups")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                customerGroupsSubTab === "groups"
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${customerGroupsSubTab === "groups"
                   ? "bg-[#24543D] text-white"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               Customer Groups ({audienceGroups.length})
             </button>
             <button
               type="button"
               onClick={() => setCustomerGroupsSubTab("registry")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                customerGroupsSubTab === "registry"
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${customerGroupsSubTab === "registry"
                   ? "bg-[#24543D] text-white"
                   : "text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               Consent & Unsubscribe Registry ({subscribers.length})
             </button>
@@ -2805,149 +2650,149 @@ export default function CampaignsPage() {
                         const isSubscribed = sub.status === "subscribed" || (sub.subscribed && !isSuppressed && sub.status !== "unsubscribed" && sub.status !== "not_subscribed");
                         const isUnsubscribed = sub.status === "unsubscribed" || (!sub.subscribed && !isSuppressed && Boolean(sub.unsubscribedAt));
                         return (
-                        <tr key={sub.email} className="hover:bg-muted/10">
-                          <td className="py-3 px-4 font-medium text-foreground">{sub.name || "—"}</td>
-                          <td className="py-3 px-4 font-mono text-[11px] text-foreground">{sub.email}</td>
-                          <td className="py-3 px-4">
-                            {isSuppressed ? (
-                              <div className="space-y-0.5">
-                                <Badge variant="outline" className="bg-red-950/10 text-red-800 border-red-300 font-semibold text-[11px] gap-1">
-                                  <Ban className="h-3 w-3 text-red-600" /> Suppressed
-                                </Badge>
-                                {sub.suppressionReason && (
-                                  <div className="text-[10px] text-red-700 truncate max-w-[150px]" title={sub.suppressionReason}>
-                                    {sub.suppressionReason}
-                                  </div>
-                                )}
-                              </div>
-                            ) : isSubscribed ? (
-                              <div className="flex items-center gap-1.5 flex-wrap">
-                                <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200 text-[11px]">
-                                  Subscribed
-                                </Badge>
-                                {sub.doubleOptInConfirmed && (
-                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] py-0 px-1.5">
-                                    Double Opt-In
+                          <tr key={sub.email} className="hover:bg-muted/10">
+                            <td className="py-3 px-4 font-medium text-foreground">{sub.name || "—"}</td>
+                            <td className="py-3 px-4 font-mono text-[11px] text-foreground">{sub.email}</td>
+                            <td className="py-3 px-4">
+                              {isSuppressed ? (
+                                <div className="space-y-0.5">
+                                  <Badge variant="outline" className="bg-red-950/10 text-red-800 border-red-300 font-semibold text-[11px] gap-1">
+                                    <Ban className="h-3 w-3 text-red-600" /> Suppressed
                                   </Badge>
-                                )}
-                              </div>
-                            ) : isUnsubscribed ? (
-                              <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 text-[11px]">
-                                Unsubscribed {sub.unsubscribedAt ? `(${new Date(sub.unsubscribedAt).toLocaleDateString()})` : ""}
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-[11px]">
-                                Not Subscribed
-                              </Badge>
-                            )}
-                          </td>
-                          <td className="py-3 px-4 text-muted-foreground">
-                            <div className="capitalize font-medium text-foreground text-[11px]">{sub.source || "System"}</div>
-                            {sub.consentMethod && (
-                              <div className="text-[10px] text-muted-foreground capitalize">
-                                {sub.consentMethod.replace(/_/g, " ")}
-                              </div>
-                            )}
-                          </td>
-                          <td className="py-3 px-4 text-muted-foreground text-[11px]">
-                            {new Date(sub.consentDate || sub.createdAt).toLocaleDateString()}
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-muted cursor-pointer">
-                                  <span className="sr-only">Open contact actions</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="w-52 text-xs">
-                                {/* 1. Unsubscribe from Marketing (only if currently subscribed & not suppressed) */}
-                                {sub.subscribed && !sub.suppressed && (
+                                  {sub.suppressionReason && (
+                                    <div className="text-[10px] text-red-700 truncate max-w-[150px]" title={sub.suppressionReason}>
+                                      {sub.suppressionReason}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : isSubscribed ? (
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <Badge variant="outline" className="bg-emerald-50 text-emerald-800 border-emerald-200 text-[11px]">
+                                    Subscribed
+                                  </Badge>
+                                  {sub.doubleOptInConfirmed && (
+                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px] py-0 px-1.5">
+                                      Double Opt-In
+                                    </Badge>
+                                  )}
+                                </div>
+                              ) : isUnsubscribed ? (
+                                <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 text-[11px]">
+                                  Unsubscribed {sub.unsubscribedAt ? `(${new Date(sub.unsubscribedAt).toLocaleDateString()})` : ""}
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-[11px]">
+                                  Not Subscribed
+                                </Badge>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-muted-foreground">
+                              <div className="capitalize font-medium text-foreground text-[11px]">{sub.source || "System"}</div>
+                              {sub.consentMethod && (
+                                <div className="text-[10px] text-muted-foreground capitalize">
+                                  {sub.consentMethod.replace(/_/g, " ")}
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-3 px-4 text-muted-foreground text-[11px]">
+                              {new Date(sub.consentDate || sub.createdAt).toLocaleDateString()}
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 hover:bg-muted cursor-pointer">
+                                    <span className="sr-only">Open contact actions</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-52 text-xs">
+                                  {/* 1. Unsubscribe from Marketing (only if currently subscribed & not suppressed) */}
+                                  {sub.subscribed && !sub.suppressed && (
+                                    <DropdownMenuItem
+                                      className="text-amber-800 dark:text-amber-400 cursor-pointer gap-2"
+                                      onClick={() => {
+                                        setSelectedContactForUnsub(sub);
+                                        setUnsubReasonInput("");
+                                        setUnsubscribeDialogOpen(true);
+                                      }}
+                                    >
+                                      <UserX className="h-3.5 w-3.5 text-amber-600" />
+                                      Unsubscribe from Marketing
+                                    </DropdownMenuItem>
+                                  )}
+
+                                  {/* 2. Record Subscription Consent (if opted out or suppressed) */}
+                                  {(!sub.subscribed || sub.suppressed) && (
+                                    <DropdownMenuItem
+                                      className="text-emerald-800 dark:text-emerald-400 cursor-pointer gap-2"
+                                      onClick={() => {
+                                        setSelectedContactForConsent(sub);
+                                        setConsentNameInput(sub.name || "");
+                                        setConsentSourceInput("Customer Written Request");
+                                        setConsentMethodInput("written_request");
+                                        setConsentDateInput(new Date().toISOString().split("T")[0]);
+                                        setDoubleOptInInput(false);
+                                        setConsentNotesInput("");
+                                        setRecordConsentDialogOpen(true);
+                                      }}
+                                    >
+                                      <UserCheck className="h-3.5 w-3.5 text-emerald-600" />
+                                      Record Subscription Consent
+                                    </DropdownMenuItem>
+                                  )}
+
+                                  {/* 3. Suppress Email Address (if not currently suppressed) */}
+                                  {!sub.suppressed && (
+                                    <DropdownMenuItem
+                                      className="text-red-700 dark:text-red-400 cursor-pointer gap-2"
+                                      onClick={() => {
+                                        setSelectedContactForSuppress(sub);
+                                        setSuppressCategoryInput("spam_complaint");
+                                        setSuppressDetailsInput("");
+                                        setSuppressDialogOpen(true);
+                                      }}
+                                    >
+                                      <Ban className="h-3.5 w-3.5 text-red-600" />
+                                      Suppress Email Address
+                                    </DropdownMenuItem>
+                                  )}
+
+                                  {/* 3b. Lift Suppression (if currently suppressed) */}
+                                  {sub.suppressed && (
+                                    <DropdownMenuItem
+                                      className="text-blue-700 dark:text-blue-400 cursor-pointer gap-2"
+                                      onClick={() => {
+                                        setSelectedContactForUnsuppress(sub);
+                                        setUnsuppressReasonInput("");
+                                        setUnsuppressDialogOpen(true);
+                                      }}
+                                    >
+                                      <RotateCcw className="h-3.5 w-3.5 text-blue-600" />
+                                      Lift Email Suppression
+                                    </DropdownMenuItem>
+                                  )}
+
+                                  <DropdownMenuSeparator />
+
+                                  {/* 4. Remove Contact Record, where safe */}
                                   <DropdownMenuItem
-                                    className="text-amber-800 dark:text-amber-400 cursor-pointer gap-2"
+                                    className="text-red-600 dark:text-red-400 cursor-pointer gap-2"
                                     onClick={() => {
-                                      setSelectedContactForUnsub(sub);
-                                      setUnsubReasonInput("");
-                                      setUnsubscribeDialogOpen(true);
+                                      setSelectedContactForDelete(sub);
+                                      setDeleteInspectionData(null);
+                                      fetchDeleteInspection(sub.email);
+                                      setDeleteContactDialogOpen(true);
                                     }}
                                   >
-                                    <UserX className="h-3.5 w-3.5 text-amber-600" />
-                                    Unsubscribe from Marketing
+                                    <Trash2 className="h-3.5 w-3.5 text-red-600" />
+                                    Remove Contact Record...
                                   </DropdownMenuItem>
-                                )}
-
-                                {/* 2. Record Subscription Consent (if opted out or suppressed) */}
-                                {(!sub.subscribed || sub.suppressed) && (
-                                  <DropdownMenuItem
-                                    className="text-emerald-800 dark:text-emerald-400 cursor-pointer gap-2"
-                                    onClick={() => {
-                                      setSelectedContactForConsent(sub);
-                                      setConsentNameInput(sub.name || "");
-                                      setConsentSourceInput("Customer Written Request");
-                                      setConsentMethodInput("written_request");
-                                      setConsentDateInput(new Date().toISOString().split("T")[0]);
-                                      setDoubleOptInInput(false);
-                                      setConsentNotesInput("");
-                                      setRecordConsentDialogOpen(true);
-                                    }}
-                                  >
-                                    <UserCheck className="h-3.5 w-3.5 text-emerald-600" />
-                                    Record Subscription Consent
-                                  </DropdownMenuItem>
-                                )}
-
-                                {/* 3. Suppress Email Address (if not currently suppressed) */}
-                                {!sub.suppressed && (
-                                  <DropdownMenuItem
-                                    className="text-red-700 dark:text-red-400 cursor-pointer gap-2"
-                                    onClick={() => {
-                                      setSelectedContactForSuppress(sub);
-                                      setSuppressCategoryInput("spam_complaint");
-                                      setSuppressDetailsInput("");
-                                      setSuppressDialogOpen(true);
-                                    }}
-                                  >
-                                    <Ban className="h-3.5 w-3.5 text-red-600" />
-                                    Suppress Email Address
-                                  </DropdownMenuItem>
-                                )}
-
-                                {/* 3b. Lift Suppression (if currently suppressed) */}
-                                {sub.suppressed && (
-                                  <DropdownMenuItem
-                                    className="text-blue-700 dark:text-blue-400 cursor-pointer gap-2"
-                                    onClick={() => {
-                                      setSelectedContactForUnsuppress(sub);
-                                      setUnsuppressReasonInput("");
-                                      setUnsuppressDialogOpen(true);
-                                    }}
-                                  >
-                                    <RotateCcw className="h-3.5 w-3.5 text-blue-600" />
-                                    Lift Email Suppression
-                                  </DropdownMenuItem>
-                                )}
-
-                                <DropdownMenuSeparator />
-
-                                {/* 4. Remove Contact Record, where safe */}
-                                <DropdownMenuItem
-                                  className="text-red-600 dark:text-red-400 cursor-pointer gap-2"
-                                  onClick={() => {
-                                    setSelectedContactForDelete(sub);
-                                    setDeleteInspectionData(null);
-                                    fetchDeleteInspection(sub.email);
-                                    setDeleteContactDialogOpen(true);
-                                  }}
-                                >
-                                  <Trash2 className="h-3.5 w-3.5 text-red-600" />
-                                  Remove Contact Record...
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </td>
-                        </tr>
-                      );
-                    })}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -3027,11 +2872,9 @@ export default function CampaignsPage() {
                 <option value="all">All Delivery Results</option>
                 <option value="delivered">Delivered (Confirmed)</option>
                 <option value="accepted">Accepted / Relayed</option>
-                <option value="simulated">Simulated (Mock)</option>
                 <option value="bounced">Bounced</option>
                 <option value="failed">Failed / Undelivered</option>
                 <option value="pending">Queued / Scheduled</option>
-                <option value="pending_approval">Pending Approval</option>
               </select>
             </div>
 
@@ -3101,8 +2944,8 @@ export default function CampaignsPage() {
                             </div>
                           )}
                           {isSimulated && (
-                            <Badge variant="outline" className="bg-purple-50 text-purple-800 border-purple-200 text-[11px]" title="Simulated dispatch. No outbound mail sent.">
-                              Simulated (Mock)
+                            <Badge variant="outline" className="bg-purple-50 text-purple-800 border-purple-200 text-[11px]" title="Historical record from simulation mode.">
+                              Simulated (Historical)
                             </Badge>
                           )}
                           {isBounced && (
@@ -3131,7 +2974,7 @@ export default function CampaignsPage() {
                           )}
                           {isPending && (
                             <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200 text-[11px]">
-                              {log.status === "pending_approval" ? "Awaiting Approval" : "Queued"}
+                              Queued
                             </Badge>
                           )}
                         </td>
@@ -3219,18 +3062,6 @@ export default function CampaignsPage() {
         <DialogContent className="max-w-md bg-[#FFFDF9] dark:bg-card border-[#E5DDD0]">
           <DialogHeader>
             <DialogTitle className="font-serif text-lg flex items-center gap-2">
-              {statusConfirmEditCampaign?.type === "approved" && (
-                <>
-                  <AlertTriangle className="h-5 w-5 text-amber-600" />
-                  Edit Approved Campaign #{statusConfirmEditCampaign.campaign.id}
-                </>
-              )}
-              {statusConfirmEditCampaign?.type === "pending_approval" && (
-                <>
-                  <Clock className="h-5 w-5 text-blue-600" />
-                  Withdraw & Edit Campaign #{statusConfirmEditCampaign.campaign.id}
-                </>
-              )}
               {statusConfirmEditCampaign?.type === "scheduled" && (
                 <>
                   <Calendar className="h-5 w-5 text-purple-600" />
@@ -3245,16 +3076,6 @@ export default function CampaignsPage() {
               )}
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground pt-2 space-y-2">
-              {statusConfirmEditCampaign?.type === "approved" && (
-                <span>
-                  Campaign <strong>"{statusConfirmEditCampaign.campaign.name}"</strong> has already been approved. Modifying its content or audience will automatically <strong>invalidate the approval</strong> and return it to <strong>Draft</strong> status. It will need to be reviewed and approved again before live sending.
-                </span>
-              )}
-              {statusConfirmEditCampaign?.type === "pending_approval" && (
-                <span>
-                  Campaign <strong>"{statusConfirmEditCampaign.campaign.name}"</strong> is currently awaiting staff review. Opening and modifying this campaign will <strong>withdraw it from the review queue</strong> and return it to <strong>Draft</strong> status.
-                </span>
-              )}
               {statusConfirmEditCampaign?.type === "scheduled" && (
                 <span>
                   Campaign <strong>"{statusConfirmEditCampaign.campaign.name}"</strong> is currently scheduled for dispatch. To prevent accidental modification of queued dispatches, the campaign must first be <strong>unscheduled</strong> and returned to Draft status.
@@ -3279,38 +3100,6 @@ export default function CampaignsPage() {
             >
               Cancel
             </Button>
-
-            {statusConfirmEditCampaign?.type === "approved" && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={async () => {
-                  const campId = statusConfirmEditCampaign.campaign.id;
-                  setStatusConfirmEditCampaign(null);
-                  await fetchAndOpenBuilder(campId);
-                }}
-                className="bg-[#24543D] hover:bg-[#1a3d2c] text-[#FAF7F1] text-xs h-9 gap-1.5"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-                Continue to Editor
-              </Button>
-            )}
-
-            {statusConfirmEditCampaign?.type === "pending_approval" && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={async () => {
-                  const campId = statusConfirmEditCampaign.campaign.id;
-                  setStatusConfirmEditCampaign(null);
-                  await fetchAndOpenBuilder(campId);
-                }}
-                className="bg-[#24543D] hover:bg-[#1a3d2c] text-[#FAF7F1] text-xs h-9 gap-1.5"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-                Withdraw & Edit
-              </Button>
-            )}
 
             {statusConfirmEditCampaign?.type === "scheduled" && (
               <Button
@@ -3405,53 +3194,6 @@ export default function CampaignsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* 3. Campaign Rejection Reason Dialog */}
-      <Dialog open={rejectCampaignDialogOpen} onOpenChange={setRejectCampaignDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-serif text-lg text-red-600 flex items-center gap-2">
-              <XCircle className="h-5 w-5 text-red-600" />
-              Reject Campaign #{selectedCampaignForReject?.id}
-            </DialogTitle>
-            <DialogDescription className="text-xs">
-              Provide feedback for the campaign author explaining what changes are needed before resubmission.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3 py-2">
-            <label className="text-xs font-semibold uppercase tracking-wider block">
-              Rejection Reason <span className="text-red-500">*</span>
-            </label>
-            <Textarea
-              placeholder="e.g. Please update discount terms and verify image licensing..."
-              value={campaignRejectReason}
-              onChange={(e) => setCampaignRejectReason(e.target.value)}
-              className="text-xs h-24 border-[#E5DDD0] resize-none"
-            />
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setRejectCampaignDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              variant="destructive"
-              disabled={rejectCampaignMutation.isPending || !campaignRejectReason.trim()}
-              onClick={() => {
-                if (!selectedCampaignForReject) return;
-                rejectCampaignMutation.mutate({
-                  id: selectedCampaignForReject.id,
-                  reason: campaignRejectReason.trim(),
-                });
-              }}
-            >
-              Confirm Rejection
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* 4. Automation Delay Configuration Dialog */}
       <Dialog open={delayConfigDialogOpen} onOpenChange={setDelayConfigDialogOpen}>
         <DialogContent className="max-w-md">
@@ -3523,50 +3265,99 @@ export default function CampaignsPage() {
                   <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
                   <div>
                     <span className="font-semibold block">Retired Audience Option</span>
-                    This campaign currently uses the retired <strong>Custom Destination Segment</strong>. It resolves 0 recipients. Please edit the campaign and reassign its audience to one of the four supported segments before approval or dispatch.
+                    This campaign currently uses the retired <strong>Custom Destination Segment</strong>. It resolves 0 recipients. Please edit the campaign and reassign its audience to one of the five supported segments before scheduling or dispatch.
                   </div>
                 </div>
               )}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 text-center">
-                <div className="p-3 rounded-lg bg-[#FAF7F1] border border-[#E5DDD0]">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-center">
+                <div className="p-2.5 rounded-lg bg-[#FAF7F1] border border-[#E5DDD0]">
                   <span className="text-xl font-bold font-serif text-foreground block tabular-nums">
-                    {audiencePreview.totalSelected ?? (audiencePreview.eligibleRecipients + (audiencePreview.excludedNotSubscribed || 0) + (audiencePreview.excludedUnsubscribed || 0) + (audiencePreview.excludedSuppressed || 0))}
+                    {audiencePreview.totalSelected ?? 0}
                   </span>
                   <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">
                     Total Selected
                   </span>
                 </div>
-                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200">
                   <span className="text-xl font-bold font-serif text-emerald-800 block tabular-nums">
                     {audiencePreview.eligibleRecipients}
                   </span>
-                  <span className="text-[10px] text-emerald-700 uppercase tracking-wider font-medium">
-                    Eligible Marketing
+                  <span className="text-[10px] text-emerald-700 uppercase tracking-wider font-semibold">
+                    Eligible Delivery
                   </span>
                 </div>
-                <div className="p-3 rounded-lg bg-slate-50 border border-slate-200">
+                <div className="p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-200/80">
+                  <span className="text-xl font-bold font-serif text-emerald-700 block tabular-nums">
+                    {audiencePreview.subscribedCount ?? audiencePreview.activeSubscribers ?? 0}
+                  </span>
+                  <span className="text-[10px] text-emerald-600 uppercase tracking-wider font-medium">
+                    Subscribed
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200">
                   <span className="text-xl font-bold font-serif text-slate-700 block tabular-nums">
-                    {audiencePreview.excludedNotSubscribed ?? 0}
+                    {audiencePreview.notSubscribedCount ?? 0}
                   </span>
                   <span className="text-[10px] text-slate-600 uppercase tracking-wider font-medium">
                     Not Subscribed
                   </span>
                 </div>
-                <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200">
                   <span className="text-xl font-bold font-serif text-amber-800 block tabular-nums">
-                    {audiencePreview.excludedUnsubscribed ?? audiencePreview.unsubscribedCount}
+                    {audiencePreview.unsubscribedCount ?? 0}
                   </span>
                   <span className="text-[10px] text-amber-700 uppercase tracking-wider font-medium">
                     Unsubscribed
                   </span>
                 </div>
-                <div className="p-3 rounded-lg bg-red-50 border border-red-200">
+                <div className="p-2.5 rounded-lg bg-red-50 border border-red-200">
                   <span className="text-xl font-bold font-serif text-red-700 block tabular-nums">
-                    {audiencePreview.excludedSuppressed ?? 0}
+                    {audiencePreview.suppressedCount ?? 0}
                   </span>
                   <span className="text-[10px] text-red-600 uppercase tracking-wider font-medium">
                     Suppressed
                   </span>
+                </div>
+              </div>
+
+              {/* Count Reconciliation & Delivery Policy Explanation */}
+              <div className="p-3.5 rounded-lg bg-[#FAF7F1] border border-[#E5DDD0] text-[11px] leading-relaxed text-muted-foreground space-y-2.5">
+                <div className="flex items-center justify-between font-medium text-foreground">
+                  <span className="font-semibold text-xs text-foreground uppercase tracking-wider">Count Reconciliation & Delivery Eligibility</span>
+                  <span className="text-emerald-700 font-semibold tabular-nums">
+                    {audiencePreview.eligibleRecipients} Eligible / {audiencePreview.totalSelected} Selected
+                  </span>
+                </div>
+                <div className="space-y-1.5 bg-white/70 dark:bg-card/70 p-2.5 rounded border border-[#E5DDD0]/70">
+                  <div className="font-semibold text-foreground text-[11px] flex items-center justify-between">
+                    <span>1. Selected Audience Membership</span>
+                    <span className="font-mono">{audiencePreview.totalSelected} Total</span>
+                  </div>
+                  <div>
+                    Subscribed ({audiencePreview.subscribedCount ?? audiencePreview.activeSubscribers ?? 0}) + Not Subscribed ({audiencePreview.notSubscribedCount ?? 0}) + Unsubscribed ({audiencePreview.unsubscribedCount ?? 0}) + Suppressed ({audiencePreview.suppressedCount ?? 0}) = <strong>{audiencePreview.totalSelected} Total Selected Contacts</strong>.
+                  </div>
+                </div>
+
+                <div className="space-y-1.5 bg-white/70 dark:bg-card/70 p-2.5 rounded border border-[#E5DDD0]/70">
+                  <div className="font-semibold text-foreground text-[11px] flex items-center justify-between">
+                    <span>2. Campaign Email Delivery Status</span>
+                    <span className="font-mono text-emerald-700 font-bold">{audiencePreview.eligibleRecipients} Deliverable</span>
+                  </div>
+                  <div className="text-[11px] space-y-0.5">
+                    <div>
+                      • <strong className="text-emerald-700">{audiencePreview.eligibleRecipients} Eligible Recipients:</strong> Contacts with verified marketing consent.
+                    </div>
+                    <div>
+                      • <strong className="text-slate-700">{((audiencePreview.totalSelected ?? 0) - audiencePreview.eligibleRecipients)} Excluded from Delivery:</strong>
+                      {" "}{audiencePreview.notSubscribedCount ?? 0} withheld (missing verified marketing consent), {audiencePreview.unsubscribedCount ?? 0} blocked (unsubscribed), {audiencePreview.suppressedCount ?? 0} blocked (suppressed).
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-[10px] text-muted-foreground/80">
+                  {selectedCampaignForPreview?.targetAudience?.type === "subscribed_contacts"
+                    ? "Audience Policy: Only Subscribed audience strictly excludes contacts without active marketing consent."
+                    : "Audience Policy: All matching contacts are included in the audience selection. Delivery eligibility is safely restricted to contacts with active, verified marketing consent."}
                 </div>
               </div>
 
@@ -3577,37 +3368,57 @@ export default function CampaignsPage() {
                 <div className="rounded-lg border border-[#E5DDD0] overflow-hidden divide-y divide-[#E5DDD0] max-h-60 overflow-y-auto">
                   {audiencePreview.sampleRecipients.map((r, i) => {
                     const isSub = r.consentStatus === "subscribed" || (r.isSubscribed && r.consentStatus !== "not_subscribed" && r.consentStatus !== "unsubscribed" && r.consentStatus !== "suppressed");
-                    const isNotSub = r.consentStatus === "not_subscribed";
                     const isUnsub = r.consentStatus === "unsubscribed";
-                    const isSupp = r.consentStatus === "suppressed";
+                    const isSupp = Boolean(r.isSuppressed || r.consentStatus === "suppressed");
+                    const isEligible = typeof r.isEligible === "boolean" ? r.isEligible : Boolean(isSub && !isSupp && !isUnsub);
+
+                    const deliveryReason = isSupp
+                      ? (r.exclusionReason || "Recipient suppressed from marketing delivery")
+                      : isUnsub
+                        ? (r.exclusionReason || "Recipient opted out of marketing communications (Unsubscribed)")
+                        : isEligible
+                          ? (r.eligibilityReason || "Subscribed with marketing consent")
+                          : (r.exclusionReason || "Missing verified marketing consent");
 
                     return (
-                      <div key={i} className="p-2.5 flex items-center justify-between bg-white dark:bg-card">
-                        <div>
-                          <span className="font-semibold text-foreground">{r.name}</span>{" "}
-                          <span className="text-muted-foreground font-mono text-[11px]">({r.email})</span>
+                      <div key={i} className="p-2.5 flex items-center justify-between gap-2 bg-white dark:bg-card">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-foreground truncate">{r.name}</span>
+                            <span className="text-muted-foreground font-mono text-[11px] truncate">({r.email})</span>
+                            {r.source && (
+                              <Badge variant="secondary" className="text-[9px] px-1.5 py-0 capitalize">
+                                {r.source.replace("group:", "Group: ").replace("dynamic:", "Dynamic: ")}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                            {isEligible ? (
+                              <span className="text-emerald-700 font-medium">✓ {deliveryReason}</span>
+                            ) : (
+                              <span className="text-muted-foreground font-normal">✕ Delivery withheld: {deliveryReason}</span>
+                            )}
+                          </div>
                         </div>
-                        {isSub ? (
-                          <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50">
-                            Eligible · Subscribed
-                          </Badge>
-                        ) : isNotSub ? (
-                          <Badge variant="outline" className="text-[10px] border-slate-300 text-slate-700 bg-slate-50">
-                            Excluded · Not Subscribed
-                          </Badge>
-                        ) : isUnsub ? (
-                          <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700 bg-amber-50">
-                            Excluded · Unsubscribed
-                          </Badge>
-                        ) : isSupp ? (
-                          <Badge variant="outline" className="text-[10px] border-red-300 text-red-700 bg-red-50">
-                            Excluded · Suppressed
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] border-slate-300 text-slate-700 bg-slate-50">
-                            Excluded
-                          </Badge>
-                        )}
+                        <div className="shrink-0">
+                          {isSupp ? (
+                            <Badge variant="outline" className="text-[10px] border-red-300 text-red-700 bg-red-50">
+                              Ineligible · Suppressed
+                            </Badge>
+                          ) : isUnsub ? (
+                            <Badge variant="outline" className="text-[10px] border-amber-300 text-amber-700 bg-amber-50">
+                              Ineligible · Unsubscribed
+                            </Badge>
+                          ) : isEligible ? (
+                            <Badge variant="outline" className="text-[10px] border-emerald-300 text-emerald-700 bg-emerald-50">
+                              Eligible · Subscribed
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] border-slate-300 text-slate-700 bg-slate-50">
+                              Ineligible · Missing Consent
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
@@ -3756,27 +3567,6 @@ export default function CampaignsPage() {
               </ul>
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg border border-[#E5DDD0] bg-stone-50/50">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-semibold text-foreground block">Simulation Mode</span>
-                  <Badge variant="outline" className={sendMockMode ? "bg-purple-50 text-purple-700 border-purple-200 text-[10px]" : "bg-emerald-50 text-emerald-700 border-emerald-200 text-[10px]"}>
-                    {sendMockMode ? "Dry Run (Zero Mail Sent)" : "Live Outbound Dispatch"}
-                  </Badge>
-                </div>
-                <span className="text-[11px] text-muted-foreground block">
-                  {sendMockMode
-                    ? "Dry run only. Generates delivery records in database without contacting recipient mailboxes."
-                    : "Live mode. Dispatches actual emails to recipient mailboxes (requires live marketing provider configuration)."}
-                </span>
-              </div>
-              <input
-                type="checkbox"
-                checked={sendMockMode}
-                onChange={(e) => setSendMockMode(e.target.checked)}
-                className="h-4 w-4 accent-[#24543D]"
-              />
-            </div>
           </div>
 
           <DialogFooter>
@@ -3787,15 +3577,12 @@ export default function CampaignsPage() {
               size="sm"
               onClick={() => {
                 if (!selectedCampaignForSend) return;
-                sendMutation.mutate({
-                  id: selectedCampaignForSend.id,
-                  mock: sendMockMode,
-                });
+                sendMutation.mutate(selectedCampaignForSend.id);
               }}
               disabled={sendMutation.isPending || (presendValidationQuery.data && !presendValidationQuery.data.canSend)}
               className="bg-[#24543D] hover:bg-[#1b3f2e] text-white"
             >
-              {sendMutation.isPending ? "Dispatching..." : sendMockMode ? "Run Simulation Dispatch" : "Confirm Live Dispatch"}
+              {sendMutation.isPending ? "Dispatching..." : "Confirm Live Dispatch"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -3988,12 +3775,12 @@ export default function CampaignsPage() {
                     {selectedNotifDetails.status === "delivered"
                       ? "Delivered (Confirmed)"
                       : selectedNotifDetails.status === "accepted" || selectedNotifDetails.status === "sent"
-                      ? "Accepted (Relayed)"
-                      : selectedNotifDetails.status === "simulated"
-                      ? "Simulated (Mock)"
-                      : selectedNotifDetails.status === "bounced"
-                      ? "Bounced"
-                      : selectedNotifDetails.status}
+                        ? "Accepted (Relayed)"
+                        : selectedNotifDetails.status === "simulated"
+                          ? "Simulated (Historical)"
+                          : selectedNotifDetails.status === "bounced"
+                            ? "Bounced"
+                            : selectedNotifDetails.status}
                   </span>
                 </div>
                 <div>
@@ -4046,8 +3833,8 @@ export default function CampaignsPage() {
 
               {selectedNotifDetails.status === "simulated" && (
                 <div className="p-3 rounded-lg border border-purple-200 bg-purple-50 text-purple-900 text-[11px] leading-relaxed">
-                  <strong className="block font-semibold mb-1 text-purple-950">Simulation Mode:</strong>
-                  This dispatch was recorded in mock / simulation mode. No live email was dispatched to the external mail network.
+                  <strong className="block font-semibold mb-1 text-purple-950">Historical Record:</strong>
+                  This historical dispatch was recorded in simulation mode prior to live provider configuration. No live email was dispatched.
                 </div>
               )}
 

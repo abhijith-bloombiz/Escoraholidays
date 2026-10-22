@@ -8,23 +8,27 @@ import journalRouter from "./journal";
 import mediaRouter from "./media";
 import dashboardRouter from "./dashboard";
 import travelCategoriesRouter from "./travel-categories";
+import testimonialsRouter from "./testimonials";
 import enquiriesRouter from "./enquiries";
 import itinerariesRouter from "./itineraries";
+import itineraryTemplatesRouter from "./itinerary-templates";
 import invoicesRouter from "./invoices";
 import campaignsRouter from "./campaigns";
 import notificationsRouter from "./notifications";
 import whatsappRouter from "./whatsapp";
 import whatsappWebhookRouter from "./whatsapp-webhook";
 import aiRouter from "./ai";
+import currencyRouter from "./currency";
 import { requireAuth } from "../middleware/auth";
 import { notFoundHandler } from "../middleware/not-found";
 
 const router: IRouter = Router();
 
-// Public: health + auth + AI foundation + campaign unsubscribe
+// Public: health + auth + AI foundation + currency + campaign unsubscribe
 router.use(healthRouter);
 router.use(authRouter);
 router.use(aiRouter);
+router.use(currencyRouter);
 router.get("/campaigns/unsubscribe", campaignsRouter);
 router.post("/campaigns/unsubscribe", campaignsRouter);
 router.post("/campaigns/newsletter", campaignsRouter);
@@ -55,8 +59,8 @@ router.post("/journal", requireAuth, journalRouter);
 router.patch("/journal/:id", requireAuth, journalRouter);
 router.delete("/journal/:id", requireAuth, journalRouter);
 
-// Orders: POST is public (enquiry from customer site), rest needs auth
-router.post("/orders", ordersRouter);
+// Orders: Admin only (manual booking creation & management)
+router.post("/orders", requireAuth, ordersRouter);
 router.get("/orders/export", requireAuth, ordersRouter);
 router.get("/orders", requireAuth, ordersRouter);
 router.get("/orders/:id", requireAuth, ordersRouter);
@@ -82,6 +86,13 @@ router.get("/itineraries/:id", requireAuth, itinerariesRouter);
 router.patch("/itineraries/:id", requireAuth, itinerariesRouter);
 router.delete("/itineraries/:id", requireAuth, itinerariesRouter);
 
+// Itinerary Templates: Admin only
+router.get("/itinerary-templates", requireAuth, itineraryTemplatesRouter);
+router.post("/itinerary-templates", requireAuth, itineraryTemplatesRouter);
+router.get("/itinerary-templates/:id", requireAuth, itineraryTemplatesRouter);
+router.patch("/itinerary-templates/:id", requireAuth, itineraryTemplatesRouter);
+router.delete("/itinerary-templates/:id", requireAuth, itineraryTemplatesRouter);
+
 // Invoices: admin only
 router.get("/invoices", requireAuth, invoicesRouter);
 router.post("/invoices", requireAuth, invoicesRouter);
@@ -95,6 +106,13 @@ router.get("/travel-categories/:id", travelCategoriesRouter);
 router.post("/travel-categories", requireAuth, travelCategoriesRouter);
 router.patch("/travel-categories/:id", requireAuth, travelCategoriesRouter);
 router.delete("/travel-categories/:id", requireAuth, travelCategoriesRouter);
+
+// Testimonials: public GETs, protected writes
+router.get("/testimonials", testimonialsRouter);
+router.get("/testimonials/:id", testimonialsRouter);
+router.post("/testimonials", requireAuth, testimonialsRouter);
+router.patch("/testimonials/:id", requireAuth, testimonialsRouter);
+router.delete("/testimonials/:id", requireAuth, testimonialsRouter);
 
 // Media: uploaded files must be publicly servable
 router.get("/media/files/:name", mediaRouter);

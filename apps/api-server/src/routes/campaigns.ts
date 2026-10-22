@@ -24,10 +24,7 @@ import {
   deleteCampaign,
   resolveAudience,
   previewCampaignAudience,
-  submitCampaignForApproval,
-  rejectCampaign,
   duplicateCampaign,
-  approveCampaign,
   scheduleCampaign,
   cancelCampaign,
   sendCampaign,
@@ -661,8 +658,8 @@ router.post(
         const recipients: string[] = Array.isArray(event?.data?.to)
           ? event.data.to
           : typeof event?.data?.to === "string"
-          ? [event.data.to]
-          : [];
+            ? [event.data.to]
+            : [];
 
         for (const rEmail of recipients) {
           if (rEmail && rEmail.includes("@")) {
@@ -907,8 +904,8 @@ router.get(
           provider === "gmail"
             ? "Gmail SMTP (Google App Password / 2FA)"
             : provider === "resend"
-            ? "Resend API (Domain / Onboarding)"
-            : "Simulation / Mock (Credentials Missing)",
+              ? "Resend API (Domain / Onboarding)"
+              : "Unconfigured (Credentials Missing)",
         smtpHost: provider === "gmail" ? config.gmailSmtpHost : undefined,
         smtpPort: provider === "gmail" ? config.gmailSmtpPort : undefined,
       });
@@ -1007,7 +1004,7 @@ router.post(
 
       // Persist test email audit record into NotificationModel so it appears in Email History
       const notifId = await getNextSequence("notifications");
-      const notifStatus = result.status === "simulated" ? "simulated" : (result.success ? "accepted" : "failed");
+      const notifStatus = result.success ? "accepted" : "failed";
       await NotificationModel.create({
         id: notifId,
         type: "campaign_test_email",
@@ -1048,10 +1045,7 @@ router.post(
         return;
       }
 
-      const statusMessage =
-        result.status === "simulated"
-          ? `Test email simulated (mock mode). No live message was dispatched to ${recipientEmail}.`
-          : `Test email accepted by ${result.provider === "gmail" ? "Gmail SMTP relay" : "provider"} for delivery to ${recipientEmail}. Note: Final delivery to inbox depends on recipient spam filters.`;
+      const statusMessage = `Test email accepted by ${result.provider === "gmail" ? "Gmail SMTP relay" : "provider"} for delivery to ${recipientEmail}. Note: Final delivery to inbox depends on recipient spam filters.`;
 
       res.json({
         success: true,
@@ -1219,20 +1213,58 @@ router.post(
   "/campaigns/audience-estimate",
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const targetAudience = req.body?.targetAudience || {
-        type: req.body?.type || "all_contacts",
-        destinations: req.body?.destinations,
-        travelStyle: req.body?.travelStyle,
-      };
+      const raw = req.body?.targetAudience || req.body || {};
+      const type = raw.type;
 
-      if (targetAudience.type === "custom_segment") {
+      if (!type) {
+        res.status(400).json({
+          error: "Audience type is required.",
+          code: "INVALID_AUDIENCE_TYPE",
+        });
+        return;
+      }
+
+      if (type === "custom_segment") {
         res.status(400).json({
           error:
-            "The 'Custom Destination Segment' audience option has been retired. Please select one of the supported audience segments.",
+            "The 'Custom Destination Segment' audience option has been retired. Please select one of the five supported audience segments: All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, Subscribed Contacts Only, or Audience Group.",
           code: "RETIRED_AUDIENCE_SEGMENT",
         });
         return;
       }
+
+      const validAudienceTypes = [
+        "all_contacts",
+        "enquiries_only",
+        "confirmed_guests",
+        "subscribed_contacts",
+        "audience_group",
+      ];
+      if (!validAudienceTypes.includes(type)) {
+        res.status(400).json({
+          error: `Invalid audience segment type "${type}". Expected one of: all_contacts, enquiries_only, confirmed_guests, subscribed_contacts, audience_group.`,
+          code: "INVALID_AUDIENCE_TYPE",
+        });
+        return;
+      }
+
+      const parsedGroupId =
+        raw.groupId !== undefined && raw.groupId !== null && raw.groupId !== "" && !Number.isNaN(Number(raw.groupId))
+          ? Number(raw.groupId)
+          : null;
+      const parsedGroupIds = Array.isArray(raw.groupIds)
+        ? raw.groupIds.map(Number).filter((n: number) => !Number.isNaN(n))
+        : parsedGroupId !== null
+          ? [parsedGroupId]
+          : [];
+
+      const targetAudience = {
+        type,
+        destinations: Array.isArray(raw.destinations) ? raw.destinations : undefined,
+        travelStyle: raw.travelStyle || null,
+        groupId: parsedGroupId,
+        groupIds: parsedGroupIds,
+      };
 
       const result = await resolveAudience(targetAudience);
       res.json({
@@ -1240,7 +1272,10 @@ router.post(
         eligibleRecipients: result.eligibleRecipients,
         eligibleCount: result.eligibleCount,
         activeSubscribers: result.activeSubscribers,
+        subscribedCount: result.subscribedCount,
+        notSubscribedCount: result.notSubscribedCount,
         unsubscribedCount: result.unsubscribedCount,
+        suppressedCount: result.suppressedCount,
         excludedNotSubscribed: result.excludedNotSubscribed,
         excludedUnsubscribed: result.excludedUnsubscribed,
         excludedSuppressed: result.excludedSuppressed,
@@ -1251,6 +1286,11 @@ router.post(
           isSubscribed: r.isSubscribed,
           isSuppressed: r.isSuppressed,
           consentStatus: r.consentStatus,
+          isEligible: r.isEligible,
+          eligibilityReason: r.eligibilityReason,
+          exclusionReason: r.exclusionReason,
+          destination: r.destination,
+          hasDestination: Boolean(r.destination),
         })),
       });
     } catch (err: any) {
@@ -1292,86 +1332,7 @@ router.post(
   }
 );
 
-/**
- * POST /api/campaigns/:id/approve
- * Explicit staff approval gate. Admin only.
- */
-router.post(
-  "/campaigns/:id/approve",
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
-        res.status(400).json({ error: "Invalid campaign ID" });
-        return;
-      }
 
-      const staffUsername = (req.session as any)?.user?.username || "Admin Staff";
-      const approved = await approveCampaign(id, staffUsername);
-      res.json(approved);
-    } catch (err: any) {
-      if (err instanceof CampaignError) {
-        res.status(err.statusCode).json({ error: err.message, code: err.code });
-        return;
-      }
-      next(err);
-    }
-  }
-);
-
-/**
- * POST /api/campaigns/:id/submit-approval
- * Submits a draft or rejected campaign for approval.
- */
-router.post(
-  "/campaigns/:id/submit-approval",
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
-        res.status(400).json({ error: "Invalid campaign ID" });
-        return;
-      }
-
-      const submitted = await submitCampaignForApproval(id);
-      res.json(submitted);
-    } catch (err: any) {
-      if (err instanceof CampaignError) {
-        res.status(err.statusCode).json({ error: err.message, code: err.code });
-        return;
-      }
-      next(err);
-    }
-  }
-);
-
-/**
- * POST /api/campaigns/:id/reject
- * Rejects a campaign with a reason. Admin only.
- */
-router.post(
-  "/campaigns/:id/reject",
-  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
-        res.status(400).json({ error: "Invalid campaign ID" });
-        return;
-      }
-
-      const reason = req.body?.reason || "Campaign rejected by reviewer";
-      const staffUsername = (req.session as any)?.user?.username || "Admin Staff";
-      const rejected = await rejectCampaign(id, staffUsername, reason);
-      res.json(rejected);
-    } catch (err: any) {
-      if (err instanceof CampaignError) {
-        res.status(err.statusCode).json({ error: err.message, code: err.code });
-        return;
-      }
-      next(err);
-    }
-  }
-);
 
 /**
  * POST /api/campaigns/:id/duplicate
@@ -1433,7 +1394,7 @@ router.post(
 
 /**
  * POST /api/campaigns/:id/send
- * Initiates controlled delivery with approval and consent safeguards. Admin only.
+ * Initiates controlled delivery with consent safeguards. Admin only.
  */
 router.post(
   "/campaigns/:id/send",
@@ -1445,10 +1406,7 @@ router.post(
         return;
       }
 
-      const parsed = SendCampaignBody.safeParse(req.body || {});
-      const mock = parsed.success ? parsed.data?.mock : undefined;
-
-      const sent = await sendCampaign(id, { mock });
+      const sent = await sendCampaign(id);
       res.json(sent);
     } catch (err: any) {
       if (err instanceof CampaignError) {

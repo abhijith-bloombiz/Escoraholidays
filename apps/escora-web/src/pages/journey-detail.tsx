@@ -1,5 +1,5 @@
 import Layout from "@/components/layout/Layout";
-import { useGetPackage, getGetPackageQueryKey, useCreateOrder, type Package } from "@workspace/api-client-react";
+import { useGetPackage, getGetPackageQueryKey, useCreateEnquiry, type Package } from "@workspace/api-client-react";
 import { useParams, Link } from "wouter";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -65,12 +65,19 @@ export default function JourneyDetail() {
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     const bookingPackageId = pkg?.id ?? (isNumeric ? Number(rawId) : undefined);
-    createOrder.mutate({ 
+    createEnquiry.mutate({ 
       data: { 
-        ...data, 
+        name: data.guestName,
+        email: data.guestEmail,
+        phone: data.guestPhone,
         packageId: bookingPackageId, 
-        packageName: pkg?.name 
-      } 
+        packageName: pkg?.name,
+        destinations: pkg?.route || pkg?.name,
+        travelDate: data.travelDate || undefined,
+        guestCount: data.guestCount,
+        specialRequests: data.specialRequests || undefined,
+        travelStyle: pkg?.category || "Curated Journey",
+      } as any
     }, {
       onSuccess: () => {
         setIsSubmitted(true);

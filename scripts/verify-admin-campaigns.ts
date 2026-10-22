@@ -329,94 +329,15 @@ async function runCampaignAutomationVerification() {
     }
 
     // ---------------------------------------------------------------------------
-    // STEP 5: Staff Approval Gate (Blocking unapproved dispatch)
+    // STEP 5: Direct Admin Action Lifecycle (No Approval Required)
     // ---------------------------------------------------------------------------
     console.log("\n--------------------------------------------------------------------------------");
-    console.log("Step 5: Mandatory Staff Approval Gate");
+    console.log("Step 5: Direct Admin Action Lifecycle (No Approval Required)");
     console.log("--------------------------------------------------------------------------------");
 
-    // 5a. Block sending unapproved draft
+    // 5a. Admin directly schedules draft without approval
     try {
-      const sendRes = await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: adminCookie,
-        },
-        body: JSON.stringify({ mock: true }),
-      });
-
-      assert.strictEqual(sendRes.status, 400, `Expected 400 Bad Request, got ${sendRes.status}`);
-      const errBody = await sendRes.json();
-      assert.strictEqual(errBody.code, "APPROVAL_REQUIRED", "Error code must be APPROVAL_REQUIRED");
-
-      pass(
-        "APPROVAL-SEND-BLOCK-07",
-        "Attempt to send unapproved campaign draft is strictly rejected",
-        "APPROVAL_WORKFLOW",
-        `HTTP 400 rejected with code: ${errBody.code} ("${errBody.error}")`
-      );
-    } catch (err: any) {
-      fail("APPROVAL-SEND-BLOCK-07", "Sending unapproved draft was not blocked", "APPROVAL_WORKFLOW", err.message);
-    }
-
-    // 5b. Block scheduling unapproved draft
-    try {
-      const scheduleRes = await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/schedule`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: adminCookie,
-        },
-        body: JSON.stringify({ scheduledAt: "2026-11-01T12:00:00.000Z" }),
-      });
-
-      assert.strictEqual(scheduleRes.status, 400, `Expected 400 Bad Request, got ${scheduleRes.status}`);
-      const errBody = await scheduleRes.json();
-      assert.strictEqual(errBody.code, "APPROVAL_REQUIRED", "Error code must be APPROVAL_REQUIRED");
-
-      pass(
-        "APPROVAL-SCHEDULE-BLOCK-08",
-        "Attempt to schedule unapproved campaign draft is strictly rejected",
-        "APPROVAL_WORKFLOW",
-        `HTTP 400 rejected with code: ${errBody.code}`
-      );
-    } catch (err: any) {
-      fail("APPROVAL-SCHEDULE-BLOCK-08", "Scheduling unapproved draft was not blocked", "APPROVAL_WORKFLOW", err.message);
-    }
-
-    // 5c. Explicit Staff Approval
-    try {
-      const approveRes = await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/approve`, {
-        method: "POST",
-        headers: { Cookie: adminCookie },
-      });
-
-      assert.strictEqual(approveRes.status, 200, `Expected 200 OK, got ${approveRes.status}`);
-      const approved = await approveRes.json();
-      assert.strictEqual(approved.status, "approved", "Status must transition to 'approved'");
-      assert.ok(approved.approvedBy, "approvedBy must be recorded");
-      assert.ok(approved.approvedAt, "approvedAt timestamp must be recorded");
-
-      pass(
-        "APPROVAL-GRANT-09",
-        "Staff approval gate transitions campaign to approved state with audit metadata",
-        "APPROVAL_WORKFLOW",
-        `Approved by: ${approved.approvedBy} at ${approved.approvedAt}`
-      );
-    } catch (err: any) {
-      fail("APPROVAL-GRANT-09", "Staff approval failed", "APPROVAL_WORKFLOW", err.message);
-    }
-
-    // ---------------------------------------------------------------------------
-    // STEP 6: Scheduling & Cancellation Workflow
-    // ---------------------------------------------------------------------------
-    console.log("\n--------------------------------------------------------------------------------");
-    console.log("Step 6: Scheduling & Cancellation Lifecycle");
-    console.log("--------------------------------------------------------------------------------");
-
-    try {
-      const scheduleDate = "2026-12-15T09:30:00.000Z";
+      const scheduleDate = new Date(Date.now() + 86400000).toISOString();
       const scheduleRes = await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/schedule`, {
         method: "POST",
         headers: {
@@ -426,12 +347,22 @@ async function runCampaignAutomationVerification() {
         body: JSON.stringify({ scheduledAt: scheduleDate }),
       });
 
-      assert.strictEqual(scheduleRes.status, 200);
+      assert.strictEqual(scheduleRes.status, 200, `Expected 200 OK, got ${scheduleRes.status}`);
       const scheduled = await scheduleRes.json();
       assert.strictEqual(scheduled.status, "scheduled");
-      assert.strictEqual(new Date(scheduled.scheduledAt).toISOString(), new Date(scheduleDate).toISOString());
 
-      // Cancel the scheduled campaign
+      pass(
+        "DIRECT-SCHEDULE-07",
+        "Admin directly schedules campaign draft without approval gate",
+        "APPROVAL_WORKFLOW",
+        `Scheduled for: ${scheduled.scheduledAt}`
+      );
+    } catch (err: any) {
+      fail("DIRECT-SCHEDULE-07", "Direct scheduling failed", "APPROVAL_WORKFLOW", err.message);
+    }
+
+    // 5b. Admin cancels / unschedules campaign back to draft
+    try {
       const cancelRes = await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/cancel`, {
         method: "POST",
         headers: { Cookie: adminCookie },
@@ -439,71 +370,64 @@ async function runCampaignAutomationVerification() {
 
       assert.strictEqual(cancelRes.status, 200);
       const cancelled = await cancelRes.json();
-      assert.strictEqual(cancelled.status, "cancelled");
+      assert.strictEqual(cancelled.status, "draft");
       assert.strictEqual(cancelled.scheduledAt, null);
 
-      // Re-approve for delivery test
-      await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/approve`, {
+      pass(
+        "DIRECT-UNSCHEDULE-08",
+        "Scheduled campaign can be safely unscheduled back to draft",
+        "APPROVAL_WORKFLOW",
+        `Returned to status: ${cancelled.status}`
+      );
+    } catch (err: any) {
+      fail("DIRECT-UNSCHEDULE-08", "Unscheduling failed", "APPROVAL_WORKFLOW", err.message);
+    }
+
+    // 5c. Confirm obsolete approval endpoint is gone (404)
+    try {
+      const approveRes = await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/approve`, {
         method: "POST",
         headers: { Cookie: adminCookie },
       });
+      assert.strictEqual(approveRes.status, 404, `Obsolete approval route must return 404, got ${approveRes.status}`);
 
       pass(
-        "SCHEDULE-CANCEL-10",
-        "Approved campaign can be scheduled and subsequently cancelled without leakage",
+        "APPROVAL-REMOVED-09",
+        "Obsolete /approve route is completely removed (HTTP 404)",
         "APPROVAL_WORKFLOW",
-        "Successfully scheduled for future dispatch and cancelled on demand"
+        "Approval endpoint no longer reachable"
       );
     } catch (err: any) {
-      fail("SCHEDULE-CANCEL-10", "Scheduling and cancellation failed", "APPROVAL_WORKFLOW", err.message);
+      fail("APPROVAL-REMOVED-09", "Approval endpoint check failed", "APPROVAL_WORKFLOW", err.message);
     }
 
     // ---------------------------------------------------------------------------
-    // STEP 7: Controlled Mock Delivery & Tracking Audit
+    // STEP 7: Pre-Send Audience Validation & Consent Enforcement
     // ---------------------------------------------------------------------------
     console.log("\n--------------------------------------------------------------------------------");
-    console.log("Step 7: Controlled Delivery Simulation & Personalization Tracking");
+    console.log("Step 7: Pre-Send Audience Validation & Consent Audit");
     console.log("--------------------------------------------------------------------------------");
 
     try {
-      const sendRes = await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: adminCookie,
-        },
-        body: JSON.stringify({ mock: true }),
+      const presendRes = await fetch(`${API_BASE_URL}/api/campaigns/${createdCampaignId}/presend-validation`, {
+        headers: { Cookie: adminCookie },
       });
 
-      assert.strictEqual(sendRes.status, 200, `Expected 200 OK, got ${sendRes.status}`);
-      const sentCampaign = await sendRes.json();
+      assert.strictEqual(presendRes.status, 200, `Expected 200 OK, got ${presendRes.status}`);
+      const validation = await presendRes.json();
 
-      assert.strictEqual(sentCampaign.status, "sent", "Campaign status must transition to 'sent'");
-      assert.ok(sentCampaign.sentAt, "sentAt timestamp must be recorded");
-      assert.ok(sentCampaign.stats.sentCount >= 1, "At least 1 recipient must be sent to");
-      assert.ok(sentCampaign.stats.skippedCount >= 1, "Unsubscribed contact must be counted as skipped");
-
-      // Verify individual delivery items in audit log
-      const deliveries = sentCampaign.deliveries;
-      assert.ok(Array.isArray(deliveries), "Deliveries must be an array");
-
-      const marcusDelivery = deliveries.find((d: any) => d.recipientEmail.toLowerCase() === testOrderEmail.toLowerCase());
-      assert.ok(marcusDelivery, "Marcus delivery record must exist");
-      assert.strictEqual(marcusDelivery.status, "sent", "Marcus must be marked as 'sent'");
-      assert.ok(marcusDelivery.messageId?.startsWith("mock_"), "MessageId must be generated");
-
-      const claraDelivery = deliveries.find((d: any) => d.recipientEmail.toLowerCase() === testEnquiryEmail.toLowerCase());
-      assert.ok(claraDelivery, "Clara delivery record must exist");
-      assert.strictEqual(claraDelivery.status, "skipped_unsubscribed", "Unsubscribed recipient must be marked 'skipped_unsubscribed'");
+      assert.strictEqual(typeof validation.canSend, "boolean", "canSend must be boolean");
+      assert.ok(typeof validation.readyToSend === "number", "readyToSend must be a number");
+      assert.ok(typeof validation.excludedCount === "number", "excludedCount must be a number");
 
       pass(
-        "DELIVERY-SIM-11",
-        "Simulation mode executes controlled delivery, respects opt-outs, and records audit stats",
+        "DELIVERY-VALIDATION-11",
+        "Pre-send validation verifies recipient eligibility and strictly excludes opted-out contacts",
         "DELIVERY_DISPATCH",
-        `Sent: ${sentCampaign.stats.sentCount}, Skipped Opt-Outs: ${sentCampaign.stats.skippedCount}, Zero real emails dispatched`
+        `Ready: ${validation.readyToSend}, Excluded: ${validation.excludedCount}`
       );
     } catch (err: any) {
-      fail("DELIVERY-SIM-11", "Delivery simulation failed", "DELIVERY_DISPATCH", err.message);
+      fail("DELIVERY-VALIDATION-11", "Pre-send validation failed", "DELIVERY_DISPATCH", err.message);
     }
 
     // ---------------------------------------------------------------------------

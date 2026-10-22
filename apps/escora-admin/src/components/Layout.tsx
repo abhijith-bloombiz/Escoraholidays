@@ -14,6 +14,8 @@ import {
   Mail,
   ReceiptText,
   MessageCircle,
+  Compass,
+  Quote,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -23,14 +25,16 @@ import { useAuth } from "@/hooks/useAuth";
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/destinations", label: "Destinations", icon: MapPin },
+  { href: "/categories", label: "Travel Types", icon: Compass },
   { href: "/packages", label: "Journeys", icon: Package },
   { href: "/itineraries", label: "Itineraries", icon: NotebookText },
-  { href: "/invoices", label: "Invoices", icon: ReceiptText },
-  { href: "/orders", label: "Bookings", icon: ShoppingBag },
   { href: "/enquiries", label: "Inbox", icon: MessageSquare },
+  { href: "/orders", label: "Bookings", icon: ShoppingBag },
+  { href: "/invoices", label: "Invoices", icon: ReceiptText },
   { href: "/campaigns", label: "Campaigns", icon: Mail },
   { href: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
   { href: "/journal", label: "Journal", icon: BookOpen },
+  { href: "/testimonials", label: "Testimonials", icon: Quote },
   { href: "/media", label: "Media", icon: Image },
 ];
 
@@ -157,7 +161,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6 md:p-8">
+        <main className="flex-1 overflow-auto p-6 md:p-8 relative">
           {children}
         </main>
       </div>

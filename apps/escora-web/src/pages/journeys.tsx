@@ -77,16 +77,14 @@ const PACKAGE_IMAGES: Record<string, string> = {
 };
 
 function resolvePackageImage(pkg: { slug?: string; heroImageUrl?: string | null }): string {
+  if (
+    pkg.heroImageUrl &&
+    !pkg.heroImageUrl.includes("photo-1556470478-98bd74cfc940") &&
+    !pkg.heroImageUrl.includes("photo-1623864703759-4509539ab8ee")
+  ) {
+    return pkg.heroImageUrl;
+  }
   if (pkg.slug && PACKAGE_IMAGES[pkg.slug]) {
-    // If the image is empty or the known broken unsplash URLs, use the verified local asset
-    if (
-      !pkg.heroImageUrl ||
-      pkg.heroImageUrl.includes("photo-1556470478-98bd74cfc940") ||
-      pkg.heroImageUrl.includes("photo-1623864703759-4509539ab8ee")
-    ) {
-      return PACKAGE_IMAGES[pkg.slug];
-    }
-    // High-resolution authentic local collections asset takes priority
     return PACKAGE_IMAGES[pkg.slug];
   }
   return pkg.heroImageUrl || fortKochiSunset;
@@ -318,7 +316,7 @@ export default function Journeys() {
             </div>
           ) : (
             <div className="text-center py-16 bg-[#EFF4F0] rounded-2xl max-w-xl mx-auto border border-[#E2EAE4] p-8">
-              <p className="font-editorial text-2xl text-[#183628] font-normal">No journeys found for this category.</p>
+              <p className="font-editorial text-2xl text-[#293D1F] font-normal">No journeys found for this category.</p>
               <button 
                 onClick={() => { setActiveFilter("All"); setDurationIdx(0); setDestFilter("All"); }}
                 className="mt-6 font-sans text-xs uppercase tracking-widest text-white bg-[#183628] hover:bg-[#26533A] px-6 py-2.5 rounded-full transition-colors cursor-pointer"

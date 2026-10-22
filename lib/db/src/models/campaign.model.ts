@@ -126,7 +126,7 @@ const campaignSchema = new Schema<ICampaign>(
         type: String,
         required: true,
         default: "all_contacts",
-        enum: ["all_contacts", "enquiries_only", "confirmed_guests", "custom_segment", "audience_group"],
+        enum: ["all_contacts", "enquiries_only", "confirmed_guests", "subscribed_contacts", "custom_segment", "audience_group"],
       },
       destinations: { type: [String], default: [] },
       travelStyle: { type: String, default: null },

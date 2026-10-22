@@ -3,6 +3,7 @@ import { config, validateProductionConfig } from "./config/env";
 import { logger } from "./lib/logger";
 import { connectDB, disconnectDB } from "@workspace/db";
 import { startCampaignScheduler, stopCampaignScheduler } from "./services/campaign-scheduler";
+import { migrateLegacyCampaignApprovalStates } from "./services/campaign-service";
 
 async function bootstrap() {
   validateProductionConfig(config);
@@ -14,6 +15,12 @@ async function bootstrap() {
   try {
     await connectDB();
     logger.info("Connected to MongoDB successfully");
+
+    // Automatically migrate any legacy pending_approval/approved/rejected campaigns safely to draft
+    await migrateLegacyCampaignApprovalStates().catch((err) => {
+      logger.warn({ err: err?.message }, "[Migration] Legacy campaign approval state migration failed");
+    });
+
     // Start reliable background campaign scheduler
     startCampaignScheduler();
   } catch (err) {

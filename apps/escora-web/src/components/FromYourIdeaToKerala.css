@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════════════════
    HOW IT WORKS — "FROM YOUR IDEA TO KERALA"
-   Exact architectural arch cards + continuous sculptural panel silhouette
+   Architectural Arch Grid: 1(bigger), 2(top/bottom), 2(top/bottom), 1(bigger)
+   Contents INSIDE the Image Card + Sequential Looping Reveal + Non-Italic Fonarto
    ══════════════════════════════════════════════════════════════════════════════ */
 
 .how-it-works-section {
@@ -13,22 +14,28 @@
   min-height: 100vh;
   min-height: 100dvh;
   min-height: 100svh;
-  height: auto;
-  max-height: none;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(28px, 3.6vh, 46px) 0 clamp(20px, 2.6vh, 32px);
-  overflow: visible;
+  padding: clamp(14px, 2vh, 24px) 0 clamp(10px, 1.5vh, 18px);
+  overflow: hidden;
   color: #102B1D;
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  border-top: 1px solid rgba(197, 160, 105, 0.22);
-  scroll-snap-align: none;
-  scroll-snap-stop: normal;
+  border-top: none;
+  border-bottom: none;
   box-sizing: border-box;
 }
 
-/* Subtle botanical shadow casting in corners (matching reference) */
+@media (min-width: 1025px) and (min-height: 600px) {
+  .how-it-works-section {
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+}
+
+/* Subtle botanical shadow casting in corners */
 .how-palm-shadow-tr {
   position: absolute;
   top: -80px;
@@ -67,24 +74,25 @@
   padding: 0 var(--gutter, clamp(16px, 2.5vw, 40px));
   box-sizing: border-box;
   width: 100%;
-  min-height: 100%;
+  height: 100%;
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  gap: clamp(14px, 2.4vh, 26px);
 }
 
-/* ─── Header: Matching Travel by Type editorial specifications ─── */
+/* ─── Header: Fonarto non-italic typography ─── */
 .how-header {
   position: relative;
-  top: -22px;
   z-index: 2;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: clamp(8px, 1.2vh, 16px);
-  padding-bottom: clamp(8px, 1.1vh, 14px);
-  border-bottom: 1px solid rgba(228, 222, 210, 0.7);
-  gap: 24px;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  gap: 20px;
   width: 100%;
   flex-shrink: 0;
 }
@@ -100,12 +108,12 @@
   align-items: center;
   gap: 9px;
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #B58D5D;
-  margin-bottom: clamp(4px, 0.6vh, 6px);
+  margin-bottom: 4px;
 }
 
 .how-eyebrow .dot {
@@ -118,126 +126,117 @@
 }
 
 .how-title {
-  font-family: var(--f-display, 'Fonarto', Georgia, serif);
-  font-size: clamp(28px, 3.4vw, 44px);
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
+  font-style: normal !important;
+  font-size: clamp(36px, 4.5vw, 62px);
   font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: #143323;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: #293D1F;
   margin: 0;
   max-width: 20ch;
 }
 
 .how-title-em {
-  font-family: var(--f-display, 'Fonarto', Georgia, serif);
-  font-style: italic;
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
+  font-style: normal !important;
   color: var(--gold-bright, #B58D5D);
+}
+
+.how-header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  flex-shrink: 0;
 }
 
 .how-intro {
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-size: clamp(12.5px, 0.95vw, 14px);
-  line-height: 1.65;
+  font-size: clamp(12px, 0.88vw, 13.5px);
+  line-height: 1.5;
   color: var(--ink-mute, #5A6D60);
   max-width: 38ch;
   text-align: right;
   margin: 0;
 }
 
-/* ─── Continuous Sculptural Journey Stage ─── */
+/* ─── Journey Stage & 4-Column Grid ─── */
 .how-journey-stage {
-  --panel-gap: clamp(18px, 2.4vh, 28px);
-  --cards-gap: clamp(6px, 0.65vw, 10px);
-  --total-cols: 6;
-  --stride: calc((100% + var(--cards-gap)) / var(--total-cols));
-  --card-w: calc((100% - (var(--total-cols) - 1) * var(--cards-gap)) / var(--total-cols));
-  --card-l: calc(var(--active-step, 1) * var(--stride));
-  --card-r: calc(var(--card-l) + var(--card-w));
-  --panel-border-left-w: max(0px, calc(var(--card-l) - var(--panel-gap)));
-  --panel-border-right-w: max(0px, calc(100% - var(--card-r) - var(--panel-gap)));
   position: relative;
-  top: -4px;
   width: 100%;
   display: flex;
   flex-direction: column;
-  margin-top: 0;
-  margin-bottom: clamp(10px, 1.4vh, 18px);
+  margin: 0;
+  flex: 1 1 auto;
   min-height: 0;
+  justify-content: center;
 }
 
-.how-journey-stage.active-is-0 {
-  --active-step: 0;
-}
-
-.how-journey-stage.active-is-1 {
-  --active-step: 1;
-}
-
-.how-journey-stage.active-is-2 {
-  --active-step: 2;
-}
-
-.how-journey-stage.active-is-3 {
-  --active-step: 3;
-}
-
-.how-journey-stage.active-is-4 {
-  --active-step: 4;
-}
-
-.how-journey-stage.active-is-5 {
-  --active-step: 5;
-}
-
-/* Subtle connecting wave spline across cards */
-.how-spline-bg {
-  position: absolute;
-  top: clamp(145px, 17vh, 175px);
-  left: 2%;
-  width: 96%;
-  height: 60px;
-  pointer-events: none;
-  z-index: 1;
-  transform: translateY(-50%);
-  opacity: 0.65;
-}
-
-/* 6-Card Grid on Desktop */
-.how-cards-grid {
-  position: relative;
-  z-index: 3;
+/* ─── 4-Column Architectural Grid: 1(bigger), 2(top/bottom), 2(top/bottom), 1(bigger) ─── */
+.how-cards-stage {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: var(--cards-gap, clamp(6px, 0.65vw, 10px));
-  align-items: stretch;
+  grid-template-columns: 1.18fr 1fr 1fr 1.18fr;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(12px, 1.3vw, 18px);
   width: 100%;
-  min-height: clamp(250px, 28vh, 305px);
-  margin-bottom: 0;
+  height: 100%;
+  min-height: clamp(380px, 48vh, 460px);
+  max-height: clamp(420px, 58vh, 560px);
+  box-sizing: border-box;
+  flex: 1 1 auto;
 }
 
-/* ─── Individual Architectural Arch Card ─── */
+/* Column Placements */
+.card-col-1-big {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.card-col-2-top {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.card-col-2-btm {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.card-col-3-top {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.card-col-3-btm {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.card-col-4-big {
+  grid-column: 4;
+  grid-row: 1 / 3;
+}
+
+/* ─── Card Button (NO OUTER BOX / CONTAINER) ─── */
 .how-card {
   position: relative;
-  outline: none;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  max-height: 100%;
+  padding: 0;
+  margin: 0;
   border: none;
   background: transparent;
   cursor: pointer;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0 auto;
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  padding: 0;
+  outline: none;
+  overflow: visible;
   box-sizing: border-box;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: 2;
-}
-
-.how-card:not(.is-active):hover {
-  transform: translateY(-4px);
+  text-align: left;
 }
 
 .how-card:focus-visible {
@@ -245,379 +244,309 @@
   outline-offset: 4px;
 }
 
-/* Outer arch frame (tall architectural arch silhouette) */
-.how-arch-frame {
-  width: 100%;
-  border-radius: 999px 999px 0 0;
-  box-sizing: border-box;
-  transition: all 0.35s ease;
-  margin: 0 auto;
-  flex-shrink: 0;
+/* ─── Distinct Architectural Arch Shapes (Reduced 2x for refined elegance) ─── */
+/* Shape 1 & 6: Arched Arch (Both ends curved with refined 64px radius - 2x reduced from 9999px) */
+.shape-capsule,
+.shape-capsule .how-card-arch-frame {
+  border-radius: 64px;
 }
 
-/* Inactive cards: Ivory frame around image */
-.how-card:not(.is-active) .how-arch-frame {
-  background: #EBE3D7;
-  border: 1px solid rgba(197, 160, 105, 0.28);
-  border-bottom: none;
-  padding: clamp(5px, 0.45vw, 6.5px) clamp(5px, 0.45vw, 6.5px) 0 clamp(5px, 0.45vw, 6.5px);
-  box-shadow:
-    inset 0 2px 4px rgba(20, 51, 35, 0.04),
-    0 4px 14px rgba(20, 51, 35, 0.04);
+/* Shape 2 (Col 2 Top): Top-Right Leaf Arch (Reduced 2x from 130px/24px) */
+.shape-leaf-tr,
+.shape-leaf-tr .how-card-arch-frame {
+  border-radius: 65px 65px 65px 12px;
 }
 
-/* Inner photo arch */
-.how-arch-img-wrap {
-  width: 100%;
-  aspect-ratio: 0.81;
-  border-radius: 999px 999px 0 0;
-  overflow: hidden;
+/* Shape 3 (Col 2 Bottom): Bottom-Left Leaf Arch (Reduced 2x from 130px/24px) */
+.shape-leaf-bl,
+.shape-leaf-bl .how-card-arch-frame {
+  border-radius: 65px 12px 65px 65px;
+}
+
+/* Shape 4 (Col 3 Top): Top-Left Leaf Arch (Reduced 2x from 130px/24px) */
+.shape-leaf-tl,
+.shape-leaf-tl .how-card-arch-frame {
+  border-radius: 65px 65px 12px 65px;
+}
+
+/* Shape 5 (Col 3 Bottom): Bottom-Right Leaf Arch (Reduced 2x from 24px/130px) */
+.shape-leaf-br,
+.shape-leaf-br .how-card-arch-frame {
+  border-radius: 12px 65px 65px 65px;
+}
+
+/* ─── Image Arch Frame (The Card ITSELF) ─── */
+.how-card-arch-frame {
   position: relative;
-  background: #DFD7CA;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  border: 1.5px solid rgba(197, 160, 105, 0.4);
+  box-shadow: 0 6px 20px rgba(16, 43, 29, 0.08);
+  transition: border-color 0.35s ease,
+              box-shadow 0.35s ease;
+}
+
+.how-card:hover .how-card-arch-frame {
+  border-color: rgba(197, 160, 105, 0.85);
+  box-shadow: 0 10px 28px rgba(16, 43, 29, 0.16);
+}
+
+.how-card.is-active .how-card-arch-frame {
+  border-color: #C5A069;
+  box-shadow: 0 12px 32px rgba(10, 33, 22, 0.22);
 }
 
 .how-card-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.how-card:hover .how-card-img {
-  transform: scale(1.04);
+.how-card:hover .how-card-img,
+.how-card.is-active .how-card-img {
+  transform: scale(1.08);
 }
 
-/* Overlapping circular step badge */
-.how-badge-wrap {
-  position: relative;
+/* ─── Dark Gradient Scrim Removed ─── */
+.how-card-scrim {
+  display: none !important;
+}
+
+/* ─── Contents INSIDE the Image Card (Centered Layout) ─── */
+.how-card-inner-content {
+  position: absolute;
+  inset: 0;
+  padding: clamp(14px, 1.8vw, 24px);
   z-index: 3;
-  margin-top: -14px;
-  margin-bottom: 2px;
-  flex-shrink: 0;
-}
-
-.how-step-badge {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #FAF6EF;
-  border: 1px solid rgba(197, 160, 105, 0.5);
-  font-family: 'Playfair Display', Georgia, serif;
-  font-size: 11px;
-  font-weight: 600;
-  color: #B58E58;
-  box-shadow: 0 3px 8px rgba(16, 43, 29, 0.08);
-  transition: all 0.3s ease;
-}
-
-/* Card typography */
-.how-card-text {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 3px;
-  padding: 0 4px;
-  width: 100%;
-  margin-top: 0;
-}
-
-.how-card-title {
-  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
-  font-size: clamp(12px, 0.95vw, 14.5px);
-  font-weight: 500;
-  line-height: 1.2;
-  color: #102B1D;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  transition: color 0.3s ease;
-}
-
-.how-card-desc {
-  font-size: clamp(10px, 0.76vw, 11.5px);
-  line-height: 1.35;
-  color: #5D7064;
-  margin: 0;
-  max-width: 22ch;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
   text-align: center;
-  transition: color 0.3s ease;
-}
-
-/* ─── ACTIVE CARD (FLOWS SEAMLESSLY INTO PANEL AS ONE CONTINUOUS SHAPE) ─── */
-.how-card.is-active {
-  background: #0E291C;
-  border-top: 1.2px solid rgba(197, 160, 105, 0.55);
-  border-left: 1.2px solid rgba(197, 160, 105, 0.55);
-  border-right: 1.2px solid rgba(197, 160, 105, 0.55);
-  border-bottom: none;
-  border-radius: 999px 999px 0 0;
-  padding: clamp(5px, 0.45vw, 6.5px) clamp(5px, 0.45vw, 6.5px) 12px clamp(5px, 0.45vw, 6.5px);
-  margin-bottom: 0;
-  box-shadow: 0 -8px 28px rgba(10, 33, 22, 0.2);
-  z-index: 5;
-}
-
-/* Architectural connecting base bridging the active arch seamlessly into the panel */
-.how-card.is-active::after {
-  content: "";
-  position: absolute;
-  top: calc(100% - 1px);
-  left: -1.2px;
-  right: -1.2px;
-  height: calc(var(--panel-gap, clamp(20px, 2.6vh, 32px)) + 2px);
-  background: #0E291C;
-  border: none;
+  justify-content: center;
   pointer-events: none;
-  z-index: 5;
-}
-
-/* For Step 01: flush outer left vertical connection */
-.how-journey-stage.active-is-0 .how-card.is-active::after {
-  left: -0.5px;
-  border-left: 1.2px solid rgba(197, 160, 105, 0.55);
-}
-
-/* For Step 06: flush outer right vertical connection */
-.how-journey-stage.active-is-5 .how-card.is-active::after {
-  right: -0.5px;
-  border-right: 1.2px solid rgba(197, 160, 105, 0.55);
-}
-
-.how-card.is-active .how-arch-frame {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-}
-
-.how-card.is-active .how-arch-img-wrap {
-  border: 1px solid rgba(197, 160, 105, 0.28);
-}
-
-.how-card.is-active .how-step-badge {
-  background: #0E291C;
-  border: 1.5px solid #C5A069;
-  color: #F4E8D4;
-  box-shadow: 0 4px 14px rgba(14, 41, 28, 0.35), 0 0 0 2px rgba(197, 160, 105, 0.25);
-}
-
-.how-card.is-active .how-card-title {
-  color: #FFFFFF;
-  font-weight: 500;
-}
-
-.how-card.is-active .how-card-desc {
-  color: #CCDCD2;
-}
-
-/* Sculptural fillets connecting the active card to the bottom panel */
-.how-fillet {
-  position: absolute;
-  top: calc(100% - 1px);
-  width: var(--panel-gap, clamp(20px, 2.6vh, 32px));
-  height: calc(var(--panel-gap, clamp(20px, 2.6vh, 32px)) + 1.6px);
-  z-index: 6;
-  pointer-events: none;
-  overflow: visible;
-}
-
-.how-fillet-left {
-  right: calc(100% + 0.6px);
-}
-
-.how-fillet-right {
-  left: calc(100% + 0.6px);
-}
-
-/* ─── Bottom Information Panel ─── */
-.how-info-panel {
-  position: relative;
-  background: linear-gradient(180deg, #0E291C 0%, #0A2116 100%);
-  border-radius: 20px;
-  border-left: 1.2px solid rgba(197, 160, 105, 0.55);
-  border-right: 1.2px solid rgba(197, 160, 105, 0.55);
-  border-bottom: 1.2px solid rgba(197, 160, 105, 0.55);
-  border-top: none;
-  margin-top: var(--panel-gap, clamp(20px, 2.6vh, 32px));
-  width: 100%;
-  padding: clamp(23px, 3.2vh, 32px) clamp(24px, 2.4vw, 36px);
-  color: #FFFFFF;
-  box-shadow: 0 16px 40px rgba(10, 33, 22, 0.24);
-  overflow: hidden;
   box-sizing: border-box;
-  z-index: 2;
-  flex-shrink: 0;
-  transition: border-radius 0.25s ease;
 }
 
-/* Two separate top gold border segments flanking the active arch */
-.how-info-panel::before,
-.how-info-panel::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  height: 1.2px;
-  background: rgba(197, 160, 105, 0.55);
-  pointer-events: none;
-  z-index: 4;
+.card-col-1-big .how-card-inner-content,
+.card-col-4-big .how-card-inner-content {
+  padding: clamp(20px, 2.5vw, 32px);
 }
 
-.how-info-panel::before {
-  left: 0;
-  width: var(--panel-border-left-w, 0px);
-}
-
-.how-info-panel::after {
-  right: 0;
-  width: var(--panel-border-right-w, 0px);
-}
-
-/* When Step 01 is active, flush vertical connection on outer left edge */
-.how-journey-stage.active-is-0 .how-info-panel {
-  border-top-left-radius: 0;
-}
-
-/* When Step 06 is active, flush vertical connection on outer right edge */
-.how-journey-stage.active-is-5 .how-info-panel {
-  border-top-right-radius: 0;
-}
-
-/* Atmospheric right-side backdrop reflection */
-.how-panel-ambience {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 44%;
-  height: 100%;
-  background: radial-gradient(ellipse at 88% 50%,
-      rgba(197, 160, 105, 0.08) 0%,
-      rgba(14, 41, 28, 0) 72%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.how-panel-body {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.35fr) auto;
-  gap: clamp(16px, 2.2vw, 36px);
-  align-items: center;
-}
-
-/* Left: active step details */
-.how-panel-left {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.how-panel-step-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #B58E58;
-  margin-bottom: 4px;
-}
-
-.how-panel-step-line {
-  display: inline-block;
-  width: 22px;
-  height: 1px;
-  background: #B58E58;
-}
-
-.how-panel-title {
-  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
-  font-size: clamp(18px, 1.6vw, 24px);
-  font-weight: 400;
-  line-height: 1.15;
-  letter-spacing: -0.01em;
-  color: #FFFFFF;
-  margin: 0 0 6px 0;
-}
-
-.how-panel-desc {
-  font-size: clamp(11.5px, 0.85vw, 13px);
-  line-height: 1.55;
-  color: #C0D3C7;
-  margin: 0;
-  max-width: 48ch;
-}
-
-/* Middle: 3 compact supporting features */
-.how-panel-features {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(12px, 1.4vw, 22px);
-  border-left: 1px solid rgba(197, 160, 105, 0.24);
-  padding-left: clamp(14px, 1.8vw, 26px);
-  align-items: center;
-}
-
-.how-feature-item {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-
-.how-feature-icon {
+/* Step Badge inside Image Card - Blurry Frosted Glass Container */
+.how-card-badge-wrap {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  color: #C5A069;
-  flex-shrink: 0;
+  margin-bottom: clamp(6px, 1vh, 10px);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.how-feature-icon svg {
-  width: 18px;
-  height: 18px;
+.how-step-badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(14, 38, 26, 0.45);
+  border: 1.5px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), inset 0 1px 1.5px rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(14px) saturate(180%);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s ease,
+              border-color 0.4s ease,
+              background 0.4s ease;
 }
 
-.how-feature-content {
+.card-col-1-big .how-step-badge,
+.card-col-4-big .how-step-badge {
+  width: 42px;
+  height: 42px;
+}
+
+.how-step-num {
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
+  font-style: normal !important;
+  font-size: 13px;
+  font-weight: 700;
+  color: #FFFFFF !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+  line-height: 1;
+  z-index: 2;
+}
+
+.card-col-1-big .how-step-num,
+.card-col-4-big .how-step-num {
+  font-size: 14.5px;
+}
+
+.how-card.is-active .how-step-badge {
+  transform: scale(1.08);
+  background: rgba(14, 38, 26, 0.65);
+  border-color: #DEC49C;
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.5),
+    0 0 0 2px rgba(222, 196, 156, 0.75);
+}
+
+/* SVG loop progress ring on active badge */
+.how-badge-ring {
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  width: 42px;
+  height: 42px;
+  transform: rotate(-90deg);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.card-col-1-big .how-badge-ring,
+.card-col-4-big .how-badge-ring {
+  width: 48px;
+  height: 48px;
+  top: -3px;
+  left: -3px;
+}
+
+.how-badge-ring-circle {
+  fill: none;
+  stroke: #DEC49C;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 113.1;
+  stroke-dashoffset: 113.1;
+  animation: loopBadgeFill 4s linear infinite;
+}
+
+@keyframes loopBadgeFill {
+  0% {
+    stroke-dashoffset: 113.1;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ─── Centered Card Heading - Always Visible & Pure White ─── */
+.how-card-title {
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
+  font-style: normal !important;
+  font-size: clamp(14px, 1.05vw, 17px);
+  font-weight: 700;
+  line-height: 1.22;
+  color: #FFFFFF !important;
+  margin: 0;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 3px 10px rgba(0, 0, 0, 0.85),
+    0 6px 20px rgba(0, 0, 0, 0.7);
+  max-width: 22ch;
+  transition: transform 0.3s ease;
+}
+
+.card-col-1-big .how-card-title,
+.card-col-4-big .how-card-title {
+  font-size: clamp(18px, 1.4vw, 22px);
+  max-width: 18ch;
+}
+
+.how-card.is-active .how-card-title {
+  color: #FFFFFF !important;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 1),
+    0 3px 12px rgba(0, 0, 0, 0.95),
+    0 8px 24px rgba(0, 0, 0, 0.85);
+}
+
+/* ─── Details container (Description & Indicator) - Reveals on active / hover ─── */
+.how-card-details {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-}
-
-.how-feature-title {
-  font-family: var(--f-heading, 'Fonarto', Georgia, serif);
-  font-size: clamp(11.5px, 0.85vw, 13px);
-  font-weight: 500;
-  line-height: 1.2;
-  color: #FFFFFF;
-  margin: 0;
-}
-
-.how-feature-desc {
-  font-size: 10.5px;
-  line-height: 1.35;
-  color: #8DA597;
-  margin: 0;
-}
-
-/* Right: Gold CTA button */
-.how-panel-action {
-  display: flex;
   align-items: center;
-  justify-content: flex-end;
+  text-align: center;
+  width: 100%;
+}
+
+.how-card:not(.is-active) .how-card-details {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  overflow: hidden;
+  margin: 0;
+  transition:
+    opacity 0.35s ease,
+    max-height 0.4s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    margin 0.35s ease;
+}
+
+.how-card.is-active .how-card-details {
+  opacity: 1;
+  max-height: 140px;
+  transform: translateY(0);
+  pointer-events: auto;
+  margin-top: clamp(6px, 1vh, 10px);
+  transition:
+    opacity 0.45s ease,
+    max-height 0.45s ease,
+    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    margin 0.4s ease;
+}
+
+.how-card-desc {
+  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: clamp(10.5px, 0.78vw, 12px);
+  line-height: 1.42;
+  color: #FFFFFF !important;
+  margin: 0;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.85);
+  max-width: 32ch;
+}
+
+.card-col-1-big .how-card-desc,
+.card-col-4-big .how-card-desc {
+  font-size: clamp(12px, 0.9vw, 13.5px);
+  line-height: 1.48;
+  max-width: 34ch;
+}
+
+/* Active indicator underline bar inside card */
+.how-card-indicator {
+  width: 0;
+  height: 2.5px;
+  background: #DEC49C;
+  border-radius: 999px;
+  margin: 6px auto 0 auto;
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.how-card.is-active .how-card-indicator {
+  width: 32px;
+}
+
+/* ─── Centered CTA Button under the cards ─── */
+.how-cta-center-wrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: clamp(14px, 2vh, 26px);
+  flex-shrink: 0;
+  z-index: 2;
 }
 
 .how-cta-btn {
@@ -628,8 +557,8 @@
   color: #0E291C;
   text-decoration: none;
   border-radius: 9999px;
-  padding: 10px 18px;
-  font-size: 10px;
+  padding: 10px 22px;
+  font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -647,7 +576,7 @@
 }
 
 .how-cta-btn:focus-visible {
-  outline: 2px solid #FFFFFF;
+  outline: 2px solid #B58E58;
   outline-offset: 4px;
 }
 
@@ -667,154 +596,73 @@
   transform: translateX(2px);
 }
 
-/* ─── Footer caption bar ─── */
-.how-footer-bar {
-  position: relative;
-  top: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0;
-  padding-top: clamp(8px, 1vh, 12px);
-  border-top: 1px solid rgba(197, 160, 105, 0.15);
-  font-size: 9.5px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #6C8274;
-  flex-shrink: 0;
-}
-
-.how-footer-left {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.how-footer-line {
-  display: inline-block;
-  width: 24px;
-  height: 1px;
-  background: rgba(181, 142, 88, 0.6);
-}
-
-.how-footer-right {
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.how-progress-pips {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.how-progress-pip {
-  display: inline-block;
-  width: 20px;
-  height: 2px;
-  background: rgba(181, 142, 88, 0.28);
-  border-radius: 1px;
-  transition: background-color 0.3s ease, width 0.3s ease;
-}
-
-.how-progress-pip.is-active {
-  background: #B58E58;
-  width: 28px;
-}
-
-.how-progress-counter {
-  color: #8A9E92;
-}
-
 /* ─── Responsive adaptations ─── */
-@media (max-width: 1080px) {
+@media (max-width: 1024px) {
   .how-it-works-section {
     height: auto;
-    min-height: auto;
+    min-height: 100vh;
     max-height: none;
-    padding: clamp(48px, 6vh, 64px) 0;
+    overflow: visible;
+    padding: clamp(36px, 5vh, 48px) 0 clamp(28px, 4vh, 36px);
   }
 
   .how-container {
     height: auto;
+    max-height: none;
     display: block;
   }
 
-  .how-header {
-    margin-bottom: 12px;
-    padding-bottom: 12px;
-  }
-
-  .how-journey-stage {
-    display: block;
-    top: 0;
-    margin-top: 0;
-    margin-bottom: 24px;
-  }
-
-  .how-cards-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    min-height: auto;
-  }
-
-  .how-footer-bar {
-    top: 0;
-    margin-top: 18px;
+  .how-cards-stage {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto;
+    height: auto;
+    max-height: none;
+    gap: 16px;
   }
 
   .how-card {
-    margin: 0 auto;
-    padding: 0;
-    min-height: auto;
+    min-height: 300px;
+    overflow: visible;
   }
 
-  .how-card.is-active {
-    border-radius: 999px 999px 18px 18px;
-    border-bottom: 1.2px solid rgba(197, 160, 105, 0.55);
-    padding: clamp(5px, 0.45vw, 6.5px) clamp(5px, 0.45vw, 6.5px) clamp(10px, 1.2vh, 14px) clamp(5px, 0.45vw, 6.5px);
-    margin-bottom: 0;
+  .how-card-arch-frame {
+    min-height: 300px;
   }
 
-  .how-card.is-active::after {
-    display: none;
+  .card-col-1-big {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 350px;
   }
 
-  .how-info-panel {
-    margin-top: 18px;
-    border-radius: 24px !important;
-    border-top: 1.2px solid rgba(197, 160, 105, 0.55);
+  .card-col-2-top {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 350px;
   }
 
-  .how-info-panel::before,
-  .how-info-panel::after {
-    display: none;
+  .card-col-2-btm {
+    grid-column: 1;
+    grid-row: 2;
+    min-height: 300px;
   }
 
-  .how-panel-body {
-    grid-template-columns: 1fr;
-    gap: 20px;
+  .card-col-3-top {
+    grid-column: 2;
+    grid-row: 2;
+    min-height: 300px;
   }
 
-  .how-panel-features {
-    border-left: none;
-    border-top: 1px solid rgba(197, 160, 105, 0.24);
-    padding-left: 0;
-    padding-top: 16px;
+  .card-col-3-btm {
+    grid-column: 1;
+    grid-row: 3;
+    min-height: 300px;
   }
 
-  .how-panel-action {
-    justify-content: flex-start;
-  }
-
-  .how-fillet {
-    display: none;
-  }
-
-  .how-spline-bg {
-    display: none;
+  .card-col-4-big {
+    grid-column: 2;
+    grid-row: 3;
+    min-height: 350px;
   }
 }
 
@@ -823,8 +671,12 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
-    margin-bottom: 10px;
-    padding-bottom: 14px;
+  }
+
+  .how-header-right {
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
   }
 
   .how-intro {
@@ -832,46 +684,42 @@
     max-width: 100% !important;
   }
 
-  .how-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-}
-
-@media (max-width: 540px) {
-  .how-it-works-section {
-    padding: 44px 0 36px;
-  }
-
-  .how-cards-grid {
+  .how-cards-stage {
     grid-template-columns: 1fr;
     gap: 14px;
+    height: auto;
+    max-height: none;
   }
 
-  .how-cta-btn {
-    width: 100%;
-    justify-content: space-between;
+  .card-col-1-big,
+  .card-col-2-top,
+  .card-col-2-btm,
+  .card-col-3-top,
+  .card-col-3-btm,
+  .card-col-4-big {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    min-height: 260px;
   }
 
-  .how-panel-features {
-    grid-template-columns: 1fr;
-    gap: 12px;
+  .how-card {
+    min-height: 260px;
   }
 
-  .how-footer-bar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+  .how-card-arch-frame {
+    min-height: 260px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-
   .how-card,
+  .how-card-arch-frame,
   .how-card-img,
   .how-cta-btn,
-  .how-step-badge {
+  .how-step-badge,
+  .how-badge-ring-circle {
     transition: none !important;
+    animation: none !important;
     transform: none !important;
   }
 }

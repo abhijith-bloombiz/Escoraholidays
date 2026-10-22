@@ -5,8 +5,11 @@ import { useSeo } from "@/hooks/useSeo";
 import {
   useGenerateTripPlan,
   useListDestinations,
+  useGetCurrencyRates,
+  getGetCurrencyRatesQueryKey,
   type TripPlanInput,
   type TripItinerary,
+  type CurrencyRatesResponse,
 } from "@workspace/api-client-react";
 import {
   Sparkles,
@@ -107,17 +110,25 @@ export interface CurrencyConfig {
   code: SupportedCurrency;
   symbol: string;
   name: string;
-  inrPerUnit: number;
 }
 
 export const SUPPORTED_CURRENCIES: SupportedCurrency[] = ["INR", "USD", "EUR", "GBP", "AED"];
 
 export const CURRENCY_CONFIGS: Record<SupportedCurrency, CurrencyConfig> = {
-  INR: { code: "INR", symbol: "₹", name: "Indian Rupee", inrPerUnit: 1 },
-  USD: { code: "USD", symbol: "$", name: "US Dollar", inrPerUnit: 83.5 },
-  EUR: { code: "EUR", symbol: "€", name: "Euro", inrPerUnit: 91.0 },
-  GBP: { code: "GBP", symbol: "£", name: "British Pound", inrPerUnit: 106.0 },
-  AED: { code: "AED", symbol: "د.إ", name: "UAE Dirham", inrPerUnit: 22.75 },
+  INR: { code: "INR", symbol: "₹", name: "Indian Rupee" },
+  USD: { code: "USD", symbol: "$", name: "US Dollar" },
+  EUR: { code: "EUR", symbol: "€", name: "Euro" },
+  GBP: { code: "GBP", symbol: "£", name: "British Pound" },
+  AED: { code: "AED", symbol: "د.إ", name: "UAE Dirham" },
+};
+
+// Conservative reference fallback rates when live rates are initializing
+export const DEFAULT_FALLBACK_RATES: Record<SupportedCurrency, number> = {
+  INR: 1.0,
+  USD: 0.01055,
+  EUR: 0.00941,
+  GBP: 0.00788,
+  AED: 0.01055 * 3.6725,
 };
 
 export interface BudgetTier {
@@ -129,7 +140,7 @@ export interface BudgetTier {
   desc: string;
 }
 
-const BUDGET_TIERS: BudgetTier[] = [
+export const BUDGET_TIERS: BudgetTier[] = [
   {
     tier: "Conscious Explorer",
     minInr: 0,
@@ -154,31 +165,43 @@ const BUDGET_TIERS: BudgetTier[] = [
   },
 ];
 
-function formatCurrencyAmount(inrAmount: number, currency: SupportedCurrency): string {
-  const config = CURRENCY_CONFIGS[currency] || CURRENCY_CONFIGS.INR;
+export function formatCurrencyAmount(
+  inrAmount: number,
+  currency: SupportedCurrency,
+  dynamicRates?: Record<SupportedCurrency, number>
+): string {
   if (currency === "INR") {
     const lakhs = inrAmount / 100000;
     return `₹${lakhs % 1 === 0 ? lakhs.toFixed(0) : lakhs.toFixed(1)}L`;
   }
 
-  const rawConverted = inrAmount / config.inrPerUnit;
+  const rate = dynamicRates?.[currency] || DEFAULT_FALLBACK_RATES[currency] || 1;
+  const rawConverted = inrAmount * rate;
+
   let rounded: number;
   if (rawConverted >= 10000) {
-    rounded = Math.round(rawConverted / 500) * 500;
-  } else if (rawConverted >= 2000) {
     rounded = Math.round(rawConverted / 100) * 100;
-  } else {
+  } else if (rawConverted >= 2000) {
     rounded = Math.round(rawConverted / 50) * 50;
+  } else if (rawConverted >= 500) {
+    rounded = Math.round(rawConverted / 10) * 10;
+  } else {
+    rounded = Math.round(rawConverted / 5) * 5;
   }
 
   const formattedNum = rounded.toLocaleString("en-US");
   if (currency === "AED") {
     return `د.إ ${formattedNum}`;
   }
-  return `${config.symbol}${formattedNum}`;
+  const symbol = CURRENCY_CONFIGS[currency]?.symbol || "";
+  return `${symbol}${formattedNum}`;
 }
 
-export function getBudgetTierDisplay(b: BudgetTier, currency: string): string {
+export function getBudgetTierDisplay(
+  b: BudgetTier,
+  currency: string,
+  dynamicRates?: Record<SupportedCurrency, number>
+): string {
   const curr = (SUPPORTED_CURRENCIES.includes(currency as SupportedCurrency)
     ? currency
     : "INR") as SupportedCurrency;
@@ -188,17 +211,68 @@ export function getBudgetTierDisplay(b: BudgetTier, currency: string): string {
   const inrRange = b.minInr === 0 ? `Under ${inrMax}` : `${inrMin} – ${inrMax}`;
 
   if (curr === "INR") {
-    const usdMin = formatCurrencyAmount(b.minInr, "USD");
-    const usdMax = formatCurrencyAmount(b.maxInr, "USD");
-    const usdPart = b.minInr === 0 ? `~${usdMax}` : b.isPlus ? `~${usdMin}+` : `~${usdMin} – ${usdMax}`;
+    const usdMax = formatCurrencyAmount(b.maxInr, "USD", dynamicRates);
+    let usdPart: string;
+    if (b.minInr === 0) {
+      usdPart = `~${usdMax}`;
+    } else {
+      const usdMin = formatCurrencyAmount(b.minInr, "USD", dynamicRates);
+      usdPart = b.isPlus ? `~${usdMin} – ${usdMax}+` : `~${usdMin} – ${usdMax}`;
+    }
     return `${inrRange} / ${usdPart}`;
   }
 
-  const currMin = formatCurrencyAmount(b.minInr, curr);
-  const currMax = `${formatCurrencyAmount(b.maxInr, curr)}${b.isPlus ? "+" : ""}`;
-  const currRange = b.minInr === 0 ? `Under ${currMax}` : `${currMin} – ${currMax}`;
+  // Selected currency is foreign (USD, EUR, GBP, AED)
+  const currMax = `${formatCurrencyAmount(b.maxInr, curr, dynamicRates)}${b.isPlus ? "+" : ""}`;
+  let currRange: string;
+  if (b.minInr === 0) {
+    currRange = `Under ${currMax}`;
+  } else {
+    const currMin = formatCurrencyAmount(b.minInr, curr, dynamicRates);
+    currRange = `${currMin} – ${currMax}`;
+  }
 
-  return `${currRange} / ~${inrRange}`;
+  // Reference in INR: ensure "Under" is not duplicated as "Under Under"
+  const refPart = b.minInr === 0 ? `~${inrMax}` : `~${inrRange}`;
+  return `${currRange} / ${refPart}`;
+}
+
+export function getDynamicBudgetGuidance(
+  itinerary: TripItinerary | null,
+  targetCurrency: string,
+  dynamicRates?: Record<SupportedCurrency, number>
+): string {
+  if (!itinerary) return "";
+  const curr = (SUPPORTED_CURRENCIES.includes(targetCurrency as SupportedCurrency)
+    ? targetCurrency
+    : "INR") as SupportedCurrency;
+
+  const budget = itinerary.budget;
+  if (!budget) {
+    return itinerary.budgetGuidance;
+  }
+
+  const { minInr, maxInr, isPlus } = budget.canonicalInr;
+  const rate = dynamicRates?.[curr] || (budget.rateSnapshot?.rate && curr === budget.currency ? budget.rateSnapshot.rate : (DEFAULT_FALLBACK_RATES[curr] || 1));
+  const minConverted = minInr * rate;
+  const maxConverted = maxInr * rate;
+
+  const inrMinFormatted = minInr === 0 ? "" : formatCurrencyAmount(minInr, "INR");
+  const inrMaxFormatted = `${formatCurrencyAmount(maxInr, "INR")}${isPlus ? "+" : ""}`;
+  const inrRangeFormatted = minInr === 0 ? `Under ${inrMaxFormatted}` : `${inrMinFormatted} – ${inrMaxFormatted}`;
+
+  const durationLabel = `${itinerary.durationDays} days`;
+  const inclusions = "Covers private chauffeur-driven vehicle, curated boutique stays, daily artisanal breakfast, and signature slow-travel experiences.";
+
+  if (curr === "INR") {
+    const minDisp = minInr === 0 ? "Up to" : `₹${minInr.toLocaleString("en-IN")} –`;
+    const maxDisp = `₹${maxInr.toLocaleString("en-IN")}${isPlus ? "+" : ""}`;
+    return `Indicative slow-luxury estimate: ${minDisp} ${maxDisp} (${durationLabel}). ${inclusions}`;
+  }
+
+  const minDisp = minInr === 0 ? "Up to" : `${formatCurrencyAmount(minConverted, curr, dynamicRates)} –`;
+  const maxDisp = `${formatCurrencyAmount(maxConverted, curr, dynamicRates)}${isPlus ? "+" : ""}`;
+  return `Indicative slow-luxury estimate: ${minDisp} ${maxDisp} (~${inrRangeFormatted}) (${durationLabel}). ${inclusions}`;
 }
 
 const INTERESTS = [
@@ -356,13 +430,20 @@ export default function TripPlannerPage() {
   const [budgetTier, setBudgetTier] = useState(BUDGET_TIERS[1].tier);
   const [currency, setCurrency] = useState("INR");
 
+  const { data: currencyRatesData } = useGetCurrencyRates({
+    query: {
+      queryKey: getGetCurrencyRatesQueryKey(),
+      staleTime: 30 * 60 * 1000,
+      refetchOnWindowFocus: false,
+    },
+  });
+  const dynamicRates = currencyRatesData?.rates as Record<SupportedCurrency, number> | undefined;
+
   // Step 8: Special Requests state
   const [additionalNotes, setAdditionalNotes] = useState("");
 
   // Result state
   const [itinerary, setItinerary] = useState<TripItinerary | null>(null);
-  const [refinementSuggestions, setRefinementSuggestions] = useState<string[]>([]);
-  const [refinementInput, setRefinementInput] = useState("");
   const [copiedLink, setCopiedLink] = useState(false);
 
   // Composition animation state
@@ -567,48 +648,6 @@ export default function TripPlannerPage() {
       {
         onSuccess: (data) => {
           setItinerary(data.itinerary);
-          setRefinementSuggestions(data.refinementSuggestions || []);
-          setTimeout(() => {
-            itineraryRef.current?.scrollIntoView({ behavior: "smooth" });
-          }, 200);
-        },
-      }
-    );
-  }
-
-  function handleRefineItinerary(promptText: string) {
-    if (!promptText.trim() || !itinerary || planMutation.isPending) return;
-
-    setRefinementInput("");
-
-    let formattedDates = seasonOrDates;
-    if (dateMode === "fixed" && startDate && endDate) {
-      formattedDates = `Fixed dates: ${startDate} to ${endDate}`;
-    } else if (dateMode === "unsure") {
-      formattedDates = "Flexible dates / Suggest best season";
-    }
-
-    const payload: TripPlanInput = {
-      durationDays: itinerary.durationDays || durationDays,
-      seasonOrDates: formattedDates,
-      startLocation,
-      travelersCount,
-      travelerType,
-      budgetTier,
-      currency,
-      interests: selectedInterests,
-      pace,
-      additionalNotes: additionalNotes.trim() || undefined,
-      refinementPrompt: promptText.trim(),
-      currentItinerary: itinerary as any,
-    };
-
-    planMutation.mutate(
-      { data: payload },
-      {
-        onSuccess: (data) => {
-          setItinerary(data.itinerary);
-          setRefinementSuggestions(data.refinementSuggestions || []);
           setTimeout(() => {
             itineraryRef.current?.scrollIntoView({ behavior: "smooth" });
           }, 200);
@@ -621,7 +660,11 @@ export default function TripPlannerPage() {
     if (!itinerary) return;
 
     const destinationsList = itinerary.verifiedDestinations?.map((d) => d.name) || itinerary.routeSequence || [];
-    const notesSummary = `AI Trip Plan Reference: "${itinerary.title}"\nRoute: ${itinerary.routeSequence?.join(" → ")}\nDuration: ${itinerary.durationDays} Days / ${itinerary.durationNights} Nights\nPace: ${itinerary.pace}\nEstimated Budget Guidance: ${itinerary.budgetGuidance}`;
+    const currentGuidance = getDynamicBudgetGuidance(itinerary, currency, dynamicRates);
+    const selectedTierObj = BUDGET_TIERS.find((b) => b.tier === budgetTier) || BUDGET_TIERS[1];
+    const budgetDisplay = getBudgetTierDisplay(selectedTierObj, currency, dynamicRates);
+
+    const notesSummary = `AI Trip Plan Reference: "${itinerary.title}"\nRoute: ${itinerary.routeSequence?.join(" → ")}\nDuration: ${itinerary.durationDays} Days / ${itinerary.durationNights} Nights\nPace: ${itinerary.pace}\nCurrency: ${currency}\nEstimated Budget Guidance: ${currentGuidance}`;
 
     try {
       sessionStorage.setItem("escora_ai_trip_plan", JSON.stringify({
@@ -629,6 +672,8 @@ export default function TripPlannerPage() {
         duration: itinerary.durationDays,
         destinations: destinationsList,
         budget: budgetTier,
+        budgetRange: budgetDisplay,
+        currency,
         style: travelerType,
         notes: notesSummary,
       }));
@@ -637,7 +682,7 @@ export default function TripPlannerPage() {
     }
 
     const firstDest = destinationsList[0] || "Munnar";
-    setLocation(`/plan?destination=${encodeURIComponent(firstDest)}&from=trip-planner`);
+    setLocation(`/plan?destination=${encodeURIComponent(firstDest)}&from=trip-planner&currency=${currency}&budget=${encodeURIComponent(budgetTier)}`);
   }
 
   function handleShareWhatsApp() {
@@ -670,7 +715,7 @@ export default function TripPlannerPage() {
               <span>Grounded Slow-Luxury Engine</span>
             </div>
 
-            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-[#193F2D] leading-tight">
+            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-[#293D1F] leading-tight">
               Tailor Your Slow Voyage <br />
               <span className="italic font-normal text-[#758B78]">Across God&apos;s Own Country</span>
             </h1>
@@ -860,7 +905,7 @@ export default function TripPlannerPage() {
                       </span>
                     </div>
 
-                    <h2 className="font-serif text-2xl sm:text-3xl font-medium text-[#193F2D] tracking-tight">
+                    <h2 className="font-serif text-2xl sm:text-3xl font-medium text-[#293D1F] tracking-tight">
                       {currentStep === 1 && "When are you travelling?"}
                       {currentStep === 2 && "Who is travelling with you?"}
                       {currentStep === 3 && "What kind of journey are you envisioning?"}
@@ -1575,6 +1620,26 @@ export default function TripPlannerPage() {
                         </div>
                       </div>
 
+                      {/* Transparent Exchange Rate Caption (Requirement 7) */}
+                      {currencyRatesData && (
+                        <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#D5DED7]/70 text-[11px] font-mono text-[#56664C] flex flex-wrap items-center justify-between gap-2">
+                          <span>
+                            Indicative reference exchange rates · Reference date:{" "}
+                            <span className="font-semibold text-[#193F2D]">{currencyRatesData.referenceDate}</span>{" "}
+                            ({currencyRatesData.status === "live" ? "Live ECB reference" : currencyRatesData.status === "cached" ? "Daily cached reference" : "Indicative reference"}). Final pricing is confirmed with your dedicated Escora travel designer.
+                          </span>
+                          <a
+                            href="https://frankfurter.dev"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[#758B78] hover:text-[#193F2D] underline inline-flex items-center gap-1 shrink-0"
+                          >
+                            <span>ECB via Frankfurter</span>
+                            <ExternalLink className="h-2.5 w-2.5" />
+                          </a>
+                        </div>
+                      )}
+
                       {/* Budget Tiers */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
                         {BUDGET_TIERS.map((b) => {
@@ -1593,7 +1658,7 @@ export default function TripPlannerPage() {
                               <div>
                                 <div className="font-semibold text-xs sm:text-sm">{b.tier}</div>
                                 <div className={`text-xs font-mono mt-1 ${isSelected ? "text-[#E8F0EA] font-semibold" : "text-[#193F2D] font-semibold"}`}>
-                                  {getBudgetTierDisplay(b, currency)}
+                                  {getBudgetTierDisplay(b, currency, dynamicRates)}
                                 </div>
                                 <p className={`text-[11px] mt-2 leading-relaxed ${isSelected ? "text-white/85" : "text-[#56664C]"}`}>
                                   {b.desc}
@@ -1665,7 +1730,7 @@ export default function TripPlannerPage() {
                             <span className="text-[10px] font-mono text-[#788A63] block uppercase">Budget Tier</span>
                             <span className="font-semibold text-[#193F2D] block truncate">{budgetTier} ({currency})</span>
                             <span className="text-[10px] font-mono text-[#56664C] block truncate">
-                              {getBudgetTierDisplay(BUDGET_TIERS.find((b) => b.tier === budgetTier) || BUDGET_TIERS[1], currency)}
+                              {getBudgetTierDisplay(BUDGET_TIERS.find((b) => b.tier === budgetTier) || BUDGET_TIERS[1], currency, dynamicRates)}
                             </span>
                           </div>
                         </div>
@@ -1727,7 +1792,7 @@ export default function TripPlannerPage() {
                 <Compass className="h-7 w-7 animate-spin [animation-duration:8s]" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-serif text-lg font-semibold text-[#193F2D]">
+                <h3 className="font-serif text-lg font-semibold text-[#293D1F]">
                   Curating Your Slow-Luxury Passage
                 </h3>
                 <p className="text-xs text-[#56664C] italic font-mono transition-all duration-300">
@@ -1872,7 +1937,7 @@ export default function TripPlannerPage() {
                 <div className="space-y-3 pt-1">
                   <div className="relative inline-block">
                     <h2
-                      className={`font-serif text-2xl sm:text-4xl lg:text-[2.6rem] font-medium text-[#193F2D] leading-[1.2] tracking-tight ${
+                      className={`font-serif text-2xl sm:text-4xl lg:text-[2.6rem] font-medium text-[#293D1F] leading-[1.2] tracking-tight ${
                         isComposing ? "animate-clip-title" : ""
                       }`}
                     >
@@ -1961,12 +2026,36 @@ export default function TripPlannerPage() {
                     </span>
                     <span className="font-semibold text-[#193F2D]">{itinerary.idealSeason}</span>
                   </div>
-                  <div className="space-y-0.5">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-[#758B78] block">
-                      Comfort Range
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-[#758B78] block">
+                        Comfort Range
+                      </span>
+                      {/* Currency switcher buttons */}
+                      <div className="flex items-center gap-0.5 no-print">
+                        {SUPPORTED_CURRENCIES.map((curr) => (
+                          <button
+                            key={curr}
+                            type="button"
+                            onClick={() => setCurrency(curr)}
+                            className={`px-1.5 py-0.5 rounded text-[9px] font-semibold transition-all ${
+                              currency === curr
+                                ? "bg-[#193F2D] text-white shadow-2xs"
+                                : "bg-white text-[#56664C] border border-[#D5DED7] hover:bg-[#E8F0EA] hover:text-[#193F2D]"
+                            }`}
+                            data-testid={`itinerary-currency-${curr}`}
+                            title={`Display amounts in ${curr}`}
+                          >
+                            {curr}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <span className="font-semibold text-[#193F2D] block">
+                      {budgetTier}
                     </span>
-                    <span className="font-semibold text-[#193F2D] line-clamp-1">
-                      {budgetTier} ({currency})
+                    <span className="text-[11px] font-mono font-medium text-[#193F2D] block truncate">
+                      {getBudgetTierDisplay(BUDGET_TIERS.find((b) => b.tier === budgetTier) || BUDGET_TIERS[1], currency, dynamicRates)}
                     </span>
                   </div>
                 </div>
@@ -1996,7 +2085,7 @@ export default function TripPlannerPage() {
                     <span className="text-[10px] font-mono uppercase tracking-widest text-[#758B78] font-semibold block">
                       Curated Chronicle
                     </span>
-                    <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#193F2D] mt-0.5">
+                    <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#293D1F] mt-0.5">
                       Day-by-Day Journey Arc
                     </h3>
                   </div>
@@ -2033,7 +2122,7 @@ export default function TripPlannerPage() {
                           {/* Day Header */}
                           <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[#D5DED7]/50 pb-3">
                             <div className="flex flex-wrap items-baseline gap-2">
-                              <h4 className="font-serif font-medium text-base sm:text-lg text-[#193F2D]">
+                              <h4 className="font-serif font-medium text-base sm:text-lg text-[#293D1F]">
                                 {day.title}
                               </h4>
                               {day.theme && (
@@ -2102,164 +2191,15 @@ export default function TripPlannerPage() {
                 </div>
               </div>
 
-              {/* C. Practical Travel Information & Verified Escora Catalog Alignment */}
-              <div className="border-t border-[#D5DED7]/70 p-6 sm:p-10 space-y-6">
-                <div>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-[#758B78] font-semibold block">
-                    Catalog Grounding
-                  </span>
-                  <h3 className="font-serif text-xl sm:text-2xl font-medium text-[#193F2D] mt-0.5">
-                    Verified Escora Catalog Alignment
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {/* Verified Destinations */}
-                  <div className="bg-[#FAF8F5] rounded-2xl p-5 border border-[#D5DED7] space-y-3">
-                    <span className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
-                      Verified Destinations Included
-                    </span>
-                    <div className="space-y-2">
-                      {itinerary.verifiedDestinations?.map((dest, i) => (
-                        <Link
-                          key={i}
-                          href={dest.url}
-                          className="block p-3 rounded-xl bg-white border border-[#D5DED7]/70 hover:border-[#193F2D] hover:bg-[#E8F0EA]/40 transition-all group"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-serif font-semibold text-xs text-[#193F2D] group-hover:text-[#758B78] transition-colors">
-                              {dest.name}
-                            </span>
-                            <ExternalLink className="h-3 w-3 text-[#788A63] group-hover:text-[#193F2D]" />
-                          </div>
-                          <p className="text-[11px] text-[#56664C] mt-1 line-clamp-1">
-                            {dest.highlightsOrRoute}
-                          </p>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Verified Curated Journeys */}
-                  <div className="bg-[#FAF8F5] rounded-2xl p-5 border border-[#D5DED7] space-y-3">
-                    <span className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
-                      Related Curated Journeys
-                    </span>
-                    <div className="space-y-2">
-                      {itinerary.verifiedJourneys?.map((pkg, i) => (
-                        <Link
-                          key={i}
-                          href={pkg.url}
-                          className="block p-3 rounded-xl bg-white border border-[#D5DED7]/70 hover:border-[#193F2D] hover:bg-[#E8F0EA]/40 transition-all group"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-serif font-semibold text-xs text-[#193F2D] group-hover:text-[#758B78] transition-colors">
-                              {pkg.name}
-                            </span>
-                            <ExternalLink className="h-3 w-3 text-[#788A63] group-hover:text-[#193F2D]" />
-                          </div>
-                          <p className="text-[11px] text-[#56664C] mt-1 line-clamp-1 font-mono">
-                            Route: {pkg.highlightsOrRoute}
-                          </p>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* D. Important Notes, Guidance & Recommendations */}
-              <div className="border-t border-[#D5DED7]/70 p-6 sm:p-10 space-y-5 bg-[#FAF8F5]/50">
-                {/* Practical Slow-Travel Tips */}
-                {itinerary.practicalAdvice && itinerary.practicalAdvice.length > 0 && (
-                  <div className="p-5 rounded-2xl bg-white border border-[#D5DED7] space-y-3">
-                    <span className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
-                      Sensory & Practical Travel Notes
-                    </span>
-                    <ul className="space-y-2 text-xs text-[#293D1F]">
-                      {itinerary.practicalAdvice.map((advice, i) => (
-                        <li key={i} className="flex items-start gap-2.5">
-                          <span className="text-[#758B78] font-bold text-sm leading-none shrink-0">✦</span>
-                          <span className="leading-relaxed">{advice}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Indicative Budget Guidance Box */}
-                <div className="p-5 rounded-2xl bg-white border border-[#D5DED7] space-y-2">
-                  <span className="text-xs font-mono uppercase tracking-wider text-[#193F2D] font-semibold block">
-                    Indicative Budget & Transparent Guidance
-                  </span>
-                  <p className="text-xs text-[#56664C] leading-relaxed">
-                    {itinerary.budgetGuidance}
-                  </p>
-                  <p className="text-[11px] text-[#788A63] italic pt-1 border-t border-[#D5DED7]/50 font-mono">
-                    {itinerary.catalogueNotice}
-                  </p>
-                </div>
-              </div>
-
-              {/* E. Bespoke Refinement & Final Actions */}
+              {/* Closing Action Area: Handcraft with Escora Travel Designer */}
               <div className="border-t border-[#D5DED7]/70 p-6 sm:p-10 space-y-8 bg-white no-print">
-                {/* Refinement Section */}
-                <div className="bg-[#FAF8F5] rounded-2xl p-5 sm:p-6 border border-[#D5DED7] space-y-4">
-                  <div className="space-y-1">
-                    <h4 className="font-serif font-semibold text-base text-[#193F2D] flex items-center gap-2">
-                      <RotateCcw className="h-4 w-4 text-[#758B78]" />
-                      <span>Refine & Personalize This Itinerary</span>
-                    </h4>
-                    <p className="text-xs text-[#56664C]">
-                      Want more unhurried days, specific Ayurvedic healing, or a different balance of sea and tea hills? Request a bespoke refinement:
-                    </p>
-                  </div>
-
-                  {/* 1-Click Refinement Suggestions */}
-                  {refinementSuggestions.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {refinementSuggestions.map((sug, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => handleRefineItinerary(sug)}
-                          disabled={planMutation.isPending}
-                          className="text-xs px-3 py-1.5 rounded-full border border-[#D5DED7] bg-white hover:bg-[#193F2D] hover:text-white hover:border-[#193F2D] text-[#293D1F] transition-all flex items-center gap-1.5"
-                        >
-                          <Sparkles className="h-3 w-3 text-[#758B78]" />
-                          <span>{sug}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Freeform Refinement Prompt */}
-                  <div className="flex gap-2 pt-1">
-                    <input
-                      type="text"
-                      value={refinementInput}
-                      onChange={(e) => setRefinementInput(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleRefineItinerary(refinementInput)}
-                      placeholder="e.g., Make the pace slower with 3 nights in Munnar and less driving..."
-                      className="flex-1 rounded-xl border border-[#D5DED7] px-3.5 py-2.5 text-xs bg-white text-[#293D1F] focus:outline-none focus:ring-1 focus:ring-[#193F2D] transition-all"
-                      disabled={planMutation.isPending}
-                    />
-                    <Button
-                      onClick={() => handleRefineItinerary(refinementInput)}
-                      disabled={!refinementInput.trim() || planMutation.isPending}
-                      className="rounded-xl bg-[#193F2D] text-white hover:bg-[#255239] text-xs px-4"
-                    >
-                      Refine
-                    </Button>
-                  </div>
-                </div>
 
                 {/* Designer Handcraft Closing Area */}
                 <div className="p-6 sm:p-8 rounded-2xl bg-[#E8F0EA]/60 border border-[#D5DED7] text-center space-y-4">
                   <div className="w-10 h-10 rounded-full bg-white border border-[#D5DED7] flex items-center justify-center mx-auto text-[#193F2D]">
                     <Compass className="h-5 w-5" />
                   </div>
-                  <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#193F2D]">
+                  <h3 className="font-serif text-2xl sm:text-3xl font-medium text-[#293D1F]">
                     Bring This Voyage to Life
                   </h3>
                   <p className="text-xs sm:text-sm text-[#56664C] max-w-xl mx-auto leading-relaxed">

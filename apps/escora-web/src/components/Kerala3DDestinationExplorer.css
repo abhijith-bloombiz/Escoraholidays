@@ -16,58 +16,12 @@
   flex-direction: column;
   justify-content: center;
   background-color: #FAF8F5;
-  padding: clamp(32px, 4vh, 52px) 0 clamp(44px, 5.5vh, 68px) 0;
+  padding: clamp(18px, 2.2vh, 28px) 0 clamp(20px, 2.5vh, 32px) 0;
   overflow: hidden;
   box-sizing: border-box;
-  border-top: 1px solid rgba(228, 222, 210, 0.6);
-  border-bottom: 1px solid rgba(228, 222, 210, 0.6);
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  color: #143323;
+  color: #293D1F;
   outline: none;
-}
-
-/* ── Luxury Background Layer (Mist Landscape + Topographic Contours) ── */
-.kerala-3d-bg-layer {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  pointer-events: none;
-  user-select: none;
-  z-index: 1;
-}
-
-.kerala-3d-bg-image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  opacity: 0.16;
-  filter: saturate(0.55) brightness(1.06) contrast(0.85);
-  transform: scale(1.02);
-}
-
-.kerala-3d-bg-overlay {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background:
-    radial-gradient(ellipse 95% 85% at 50% 50%, rgba(250, 248, 245, 0.72) 0%, rgba(250, 248, 245, 0.90) 65%, #FAF8F5 100%),
-    linear-gradient(180deg, rgba(250, 248, 245, 0.96) 0%, rgba(250, 248, 245, 0.40) 35%, rgba(250, 248, 245, 0.45) 65%, rgba(250, 248, 245, 0.98) 100%);
-}
-
-.kerala-contour-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.85;
 }
 
 /* ── Main Wrap ── */
@@ -85,15 +39,15 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
-   FULL-WIDTH EDITORIAL HEADER (Matching Travel by Type)
+   FULL-WIDTH EDITORIAL HEADER
    ══════════════════════════════════════════════════════════════ */
 .kerala-3d-editorial-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-bottom: clamp(14px, 1.8vh, 20px);
-  padding-bottom: clamp(12px, 1.5vh, 18px);
-  border-bottom: 1px solid rgba(228, 222, 210, 0.75);
+  margin-bottom: clamp(16px, 2vh, 24px);
+  padding-bottom: 0;
+  border-bottom: none;
   width: 100%;
   gap: 24px;
 }
@@ -101,6 +55,8 @@
 .kerala-3d-head-left {
   display: flex;
   flex-direction: column;
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
 .kerala-3d-eyebrow {
@@ -127,13 +83,12 @@
 
 .kerala-3d-title {
   font-family: var(--f-display, 'Fonarto', Georgia, serif);
-  font-size: clamp(28px, 3.2vw, 42px);
+  font-size: clamp(36px, 4.5vw, 62px);
   font-weight: 400;
-  line-height: 1.1;
-  letter-spacing: -0.015em;
-  color: #143323;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: #293D1F;
   margin: 0;
-  max-width: 22ch;
 }
 
 .kerala-3d-title .italic-gold,
@@ -141,20 +96,25 @@
   font-family: var(--f-display, 'Fonarto', Georgia, serif);
   font-style: normal;
   font-weight: 400;
-  color: #B58D5D;
+  color: #293D1F;
 }
 
 .kerala-3d-head-right {
   display: flex;
+  flex-direction: column;
   align-items: flex-end;
+  gap: 10px;
+  flex: 1 1 auto;
+  max-width: 840px;
+  min-width: 0;
 }
 
 .kerala-3d-desc {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-size: clamp(13px, 0.95vw, 14.5px);
-  line-height: 1.65;
+  font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
+  font-size: clamp(12.5px, 0.95vw, 14px);
+  line-height: 1.6;
   color: #4B5A51;
-  max-width: 40ch;
+  max-width: 48ch;
   text-align: right;
   margin: 0;
 }
@@ -165,74 +125,266 @@
 .kerala-pills-bar {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: clamp(6px, 1vh, 12px) 0 clamp(16px, 2vh, 24px) 0;
+  justify-content: flex-end;
+  justify-content: safe flex-end;
+  gap: 5.5px;
+  flex-wrap: nowrap;
+  margin: 0;
   width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px;
+}
+
+.kerala-pills-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .kerala-pill-btn {
+  appearance: none;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6.5px 15px;
+  justify-content: center;
+  padding: 5.5px 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(228, 222, 210, 0.85);
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #4B5A51;
+  background: #FFFFFF;
+  border: 1px solid rgba(20, 51, 35, 0.14);
+  color: #2D4036;
+  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.01em;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+  flex-shrink: 0;
   user-select: none;
-  backdrop-filter: blur(6px);
-  position: relative;
-  overflow: hidden;
+  -webkit-user-select: none;
+  outline: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(20, 51, 35, 0.04);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.kerala-pill-btn:hover {
-  background: #FFFFFF;
-  border-color: rgba(181, 141, 93, 0.5);
+.kerala-pill-btn:hover:not(.is-active):not(.active) {
+  background: #FAF8F5;
+  border-color: #B58D5D;
   color: #143323;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 51, 35, 0.08);
+}
+
+.kerala-pill-btn.is-active,
+.kerala-pill-btn.active {
+  background: #143323;
+  color: #FAF8F5;
+  font-weight: 600;
+  border-color: #143323;
+  box-shadow: 0 4px 14px rgba(20, 51, 35, 0.24), 0 1px 3px rgba(20, 51, 35, 0.12);
   transform: translateY(-1px);
 }
 
-.kerala-pill-btn.is-active {
-  background: #143323;
-  border-color: #143323;
-  color: #FAF8F5;
-  box-shadow: 0 4px 14px rgba(20, 51, 35, 0.18);
+.kerala-pill-btn.is-active:hover,
+.kerala-pill-btn.active:hover {
+  background: #0D2217;
+  border-color: #0D2217;
+  color: #FFFFFF;
+  box-shadow: 0 6px 18px rgba(20, 51, 35, 0.32);
 }
 
-.kerala-pill-btn .text-gold {
-  color: #B58D5D;
+.kerala-pill-btn:focus-visible {
+  outline: 2px solid #B58D5D;
+  outline-offset: 2px;
 }
 
-/* Golden progress line on active destination pill */
-.kerala-pill-progress-bar {
+/* ══════════════════════════════════════════════════════════════
+   STAGE: 2-COLUMN BALANCED COMPOSITION (LEFT 3D MAP + RIGHT ARCH)
+   ══════════════════════════════════════════════════════════════ */
+.kerala-3d-stage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  position: relative;
+  gap: clamp(16px, 2.5vw, 44px);
+}
+
+/* ── Column 1: 3D Kerala Relief Map ── */
+.kerala-3d-left-col {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 clamp(290px, 25vw, 365px);
+  max-width: 380px;
+  width: 100%;
+  z-index: 5;
+}
+
+/* 3D Kerala Relief Canvas Wrap */
+.kerala-3d-map-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 365px;
+  height: clamp(500px, 56vh, 570px);
+}
+
+/* Floating District Markers on 3D Map (Midnight Navy & Antique Gold) */
+.map-floating-pin-pill {
   position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 2.5px;
-  background: linear-gradient(90deg, #B58D5D, #DFBA85);
-  width: 0%;
-  animation: keralaPillProgress 4s linear forwards;
-  border-radius: 0 0 999px 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #FFFFFF;
+  padding: 3.5px 9px 3.5px 6.5px;
+  border-radius: 999px;
+  border: 1px solid rgba(214, 182, 111, 0.45);
+  box-shadow: 0 4px 12px rgba(23, 40, 61, 0.10);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Fluid spring popup keyframe: drops slightly from top and springs up to resting scale */
+@keyframes mapPinPopUpEntrance {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, calc(-50% - 18px)) scale(0.18);
+  }
+  65% {
+    opacity: 1;
+    transform: translate(-50%, calc(-50% + 2px)) scale(1.15);
+  }
+  85% {
+    transform: translate(-50%, calc(-50% - 1px)) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Reveal sequentially from top (Kasaragod) to bottom (Trivandrum) one by one */
+.kerala-3d-map-three-container.is-revealed .map-floating-pin-pill {
+  opacity: 1;
+  pointer-events: auto;
+  animation: mapPinPopUpEntrance 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation-delay: calc(0.10s + var(--pin-idx, 0) * 0.075s);
+}
+
+.map-floating-pin-pill .pin-dot {
+  width: 5.5px;
+  height: 5.5px;
+  border-radius: 50%;
+  background: #D6B66F;
+  transition: all 0.2s ease;
+}
+
+.map-floating-pin-pill .pin-text {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #1B2D45;
+  line-height: 1;
+}
+
+.map-floating-pin-pill:hover {
+  transform: translate(-50%, -50%) scale(1.08) !important;
+  background: #FFFFFF;
+  border-color: #D6B66F;
+  box-shadow: 0 6px 16px rgba(23, 40, 61, 0.16);
+}
+
+.map-floating-pin-pill.is-active,
+.map-floating-pin-pill.is-dest-target {
+  background: linear-gradient(135deg, #F9F2E2 0%, #E6C478 100%);
+  border-color: #D6B66F;
+  transform: translate(-50%, -50%) scale(1.08) !important;
+  box-shadow: 0 6px 18px rgba(214, 182, 111, 0.35);
+}
+
+.map-floating-pin-pill.is-active .pin-dot,
+.map-floating-pin-pill.is-dest-target .pin-dot {
+  background: #FFFFFF;
+  box-shadow: 0 0 0 2px #D6B66F, 0 0 0 4.5px rgba(230, 196, 120, 0.6);
+}
+
+.map-floating-pin-pill.is-active .pin-text,
+.map-floating-pin-pill.is-dest-target .pin-text {
+  color: #1B2D45;
+  font-weight: 800;
+}
+
+/* Floating District Info Tooltip */
+.kerala-3d-district-floating-tooltip {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.district-tooltip-card {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(214, 182, 111, 0.45);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 10px 24px rgba(23, 40, 61, 0.12);
+  max-width: 240px;
   pointer-events: none;
 }
 
-@keyframes keralaPillProgress {
-  0% {
-    width: 0%;
-  }
-  100% {
-    width: 100%;
-  }
+.district-tooltip-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
 }
 
-.is-paused .kerala-pill-progress-bar {
-  animation-play-state: paused;
+.district-tooltip-badge {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #D6B66F;
+}
+
+.district-tooltip-category {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1B2D45;
+  background: rgba(23, 40, 61, 0.08);
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.district-tooltip-name {
+  font-family: var(--f-display, 'Playfair Display', Georgia, serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: #1B2D45;
+  margin: 0 0 5px 0;
+  line-height: 1.15;
+}
+
+.district-tooltip-desc {
+  font-size: 11px;
+  line-height: 1.45;
+  color: #374B63;
+  margin: 0 0 6px 0;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -241,10 +393,12 @@
 .kerala-arch-stage-container {
   position: relative;
   width: 100%;
-  max-width: 100%;
-  overflow: hidden;
-  height: clamp(600px, 68vh, 730px);
-  margin: 0 auto;
+  max-width: 860px;
+  flex: 1 1 auto;
+  margin-left: auto;
+  margin-right: 0;
+  overflow: visible;
+  height: clamp(530px, 62vh, 595px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -256,7 +410,6 @@
 .kerala-arch-stage {
   position: relative;
   width: 100%;
-  max-width: 1200px;
   height: 100%;
   display: flex;
   align-items: center;
@@ -268,8 +421,8 @@
    INDIVIDUAL CARD STYLING & 3D HARDWARE-ACCELERATED TRANSITIONS
    ══════════════════════════════════════════════════════════════ */
 .kerala-arch-card {
-  --kerala-card-w: 220px;
-  --kerala-card-h: 275px;
+  --kerala-card-w: 205px;
+  --kerala-card-h: 255px;
 
   position: absolute;
   top: 50%;
@@ -302,16 +455,16 @@
   width: 100%;
   height: 100%;
   background: #FFFFFF;
-  border-radius: 24px;
-  padding: 12px 12px 14px 12px;
+  border-radius: 22px;
+  padding: 11px 11px 13px 11px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   border: 1px solid rgba(228, 222, 210, 0.85);
   box-shadow:
-    0 10px 30px -8px rgba(20, 51, 35, 0.09),
-    0 4px 12px rgba(0, 0, 0, 0.03);
+    0 10px 24px -8px rgba(20, 51, 35, 0.08),
+    0 4px 10px rgba(0, 0, 0, 0.03);
   transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
 }
@@ -334,22 +487,40 @@
 }
 
 /* ══════════════════════════════════════════════════════════════
-   CENTER SPOTLIGHT CARD (Overlapped in Middle, 1.18x Bigger, Highlighted)
+   CENTER SPOTLIGHT CARD (Overlapped in Middle, 1.12x Bigger, Highlighted)
    ══════════════════════════════════════════════════════════════ */
 .kerala-arch-card.is-center-card {
-  --kerala-card-w: 268px;
-  --kerala-card-h: 338px;
+  --kerala-card-w: 254px;
+  --kerala-card-h: 325px;
   cursor: default;
 }
 
 .kerala-arch-card.is-center-card .kerala-card-inner {
-  border-radius: 28px;
-  padding: 14px 14px 16px 14px;
-  border: 2px solid rgba(181, 141, 93, 0.78);
+  border-radius: 26px;
+  padding: 12px 14px 18px 14px;
+  border: none !important;
+  outline: none !important;
   box-shadow:
-    0 28px 65px -12px rgba(20, 51, 35, 0.25),
-    0 10px 26px -4px rgba(181, 141, 93, 0.25),
-    0 0 0 1px rgba(181, 141, 93, 0.4);
+    0 24px 50px -10px rgba(20, 51, 35, 0.22),
+    0 8px 20px -4px rgba(20, 51, 35, 0.12);
+}
+
+.kerala-arch-card.is-center-card:hover .kerala-card-inner {
+  border: none !important;
+  outline: none !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INVERTED BOTTOM CARDS (Image on bottom, Text on top)
+   ══════════════════════════════════════════════════════════════ */
+.kerala-arch-card.is-bottom-card .kerala-card-inner {
+  flex-direction: column-reverse;
+  padding: 13px 11px 11px 11px;
+}
+
+.kerala-arch-card.is-bottom-card .kerala-card-content {
+  padding-top: 0;
+  padding-bottom: 8px;
 }
 
 /* ── Luxury Ambient Micro-Animations (Gentle Levitation & Breathing Glow) ── */
@@ -365,16 +536,13 @@
 @keyframes keralaCenterGlowPulse {
   0%, 100% {
     box-shadow:
-      0 28px 65px -12px rgba(20, 51, 35, 0.25),
-      0 10px 26px -4px rgba(181, 141, 93, 0.25),
-      0 0 0 1px rgba(181, 141, 93, 0.4);
+      0 24px 50px -10px rgba(20, 51, 35, 0.22),
+      0 8px 20px -4px rgba(20, 51, 35, 0.12);
   }
   50% {
     box-shadow:
-      0 34px 75px -12px rgba(20, 51, 35, 0.32),
-      0 14px 34px -4px rgba(181, 141, 93, 0.38),
-      0 0 0 2px rgba(181, 141, 93, 0.65),
-      0 0 22px rgba(181, 141, 93, 0.22);
+      0 32px 65px -10px rgba(20, 51, 35, 0.28),
+      0 12px 26px -4px rgba(20, 51, 35, 0.16);
   }
 }
 
@@ -425,16 +593,16 @@
 .kerala-card-media {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3.3;
-  border-radius: 18px;
+  aspect-ratio: 4 / 3.05;
+  border-radius: 16px;
   overflow: hidden;
   background: #EAE6DE;
   flex-shrink: 0;
 }
 
 .kerala-arch-card.is-center-card .kerala-card-media {
-  border-radius: 20px;
-  aspect-ratio: 4 / 3.15;
+  border-radius: 18px;
+  aspect-ratio: 4 / 2.75;
 }
 
 .kerala-card-img {
@@ -452,45 +620,10 @@
   pointer-events: none;
 }
 
-/* Center card luxury pill badge */
-.kerala-center-badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(8px);
-  padding: 3.5px 9px 3.5px 7px;
-  border-radius: 999px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
-  z-index: 2;
-  border: 1px solid rgba(181, 141, 93, 0.35);
-}
-
-.kerala-center-num {
-  font-family: monospace;
-  font-size: 10px;
-  font-weight: 700;
-  color: #B58D5D;
-  letter-spacing: 0.05em;
-}
-
-.kerala-center-district {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 10px;
-  font-weight: 700;
-  color: #143323;
-  letter-spacing: 0.02em;
-}
-
 /* ── Card Content ── */
 .kerala-card-content {
   width: 100%;
-  padding-top: 10px;
+  padding-top: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -501,24 +634,24 @@
 
 .kerala-card-title {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: #143323;
-  margin: 0 0 3px 0;
+  color: #293D1F;
+  margin: 0 0 2px 0;
   letter-spacing: -0.01em;
   line-height: 1.25;
 }
 
 .kerala-arch-card.is-center-card .kerala-card-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
-  color: #143323;
-  margin-bottom: 5px;
+  color: #293D1F;
+  margin-bottom: 3px;
 }
 
 .kerala-card-readmore {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: #7A8B7E;
   letter-spacing: 0.01em;
@@ -530,43 +663,99 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
 }
 
 .kerala-center-tagline {
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-size: 11.5px;
-  line-height: 1.45;
+  font-size: 11px;
+  line-height: 1.4;
   color: #4B5A51;
   margin: 0;
   max-width: 25ch;
   text-align: center;
 }
 
+.kerala-center-cta-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 5px;
+  margin-bottom: 0;
+}
+
+/* 360 View Button: Frosted Glass Effect */
+.kerala-center-360-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 35px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(228, 222, 210, 0.95);
+  color: #143323;
+  font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(20, 51, 35, 0.06);
+}
+
+.kerala-center-360-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: #B58D5D;
+  color: #143323;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(181, 141, 93, 0.22);
+}
+
+.kerala-center-360-btn:hover .text-gold {
+  color: #B58D5D;
+}
+
+/* Arrow Button (Read More): Frosted Glass Effect */
 .kerala-center-cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: #143323;
-  color: #FAF8F5;
-  padding: 6.5px 16px;
-  border-radius: 999px;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(228, 222, 210, 0.95);
+  color: #143323;
   text-decoration: none;
+  cursor: pointer;
+  flex-shrink: 0;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 12px rgba(20, 51, 35, 0.18);
-  margin-top: 2px;
+  box-shadow: 0 4px 14px rgba(20, 51, 35, 0.06);
 }
 
 .kerala-center-cta:hover {
-  background: #B58D5D;
-  color: #FFFFFF;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(181, 141, 93, 0.35);
+  background: #143323;
+  color: #FAF8F5;
+  border-color: #143323;
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 6px 18px rgba(20, 51, 35, 0.22);
+}
+
+.kerala-center-cta svg {
+  transition: transform 0.22s ease;
+}
+
+.kerala-center-cta:hover svg {
+  transform: translateX(2px);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -576,8 +765,8 @@
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 46px;
-  height: 46px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(8px);
@@ -593,11 +782,11 @@
 }
 
 .kerala-nav-prev {
-  left: clamp(8px, 1.8vw, 36px);
+  left: 12px;
 }
 
 .kerala-nav-next {
-  right: clamp(8px, 1.8vw, 36px);
+  right: 12px;
 }
 
 .kerala-nav-arrow:hover {
@@ -613,7 +802,7 @@
    ══════════════════════════════════════════════════════════════ */
 .kerala-pagination {
   position: absolute;
-  bottom: 12px;
+  bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -685,101 +874,183 @@
    RESPONSIVE DESIGN BREAKPOINTS
    ══════════════════════════════════════════════════════════════ */
 
+/* Editorial Header Stacking for Screen Widths <= 1160px */
+@media (max-width: 1160px) {
+  .kerala-3d-editorial-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+  }
+  .kerala-3d-head-left {
+    max-width: 100%;
+    width: 100%;
+  }
+  .kerala-3d-head-right {
+    align-items: flex-start;
+    max-width: 100%;
+    width: 100%;
+    gap: 14px;
+  }
+  .kerala-3d-desc {
+    text-align: left !important;
+    max-width: 64ch !important;
+  }
+  .kerala-pills-bar {
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    width: 100%;
+    padding: 2px 2px 8px 2px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .kerala-pills-bar::-webkit-scrollbar {
+    display: none;
+  }
+  .kerala-pill-btn {
+    flex-shrink: 0;
+  }
+}
+
 /* Laptop screens (960px - 1180px) */
 @media (max-width: 1180px) {
+  .kerala-3d-stage {
+    gap: 20px;
+  }
+  .kerala-3d-left-col {
+    flex: 0 0 310px;
+    max-width: 320px;
+  }
+  .kerala-3d-map-wrap {
+    max-width: 320px;
+    height: 480px;
+  }
   .kerala-arch-card {
-    --kerala-card-w: 195px;
-    --kerala-card-h: 250px;
+    --kerala-card-w: 190px;
+    --kerala-card-h: 240px;
   }
   .kerala-arch-card.is-center-card {
-    --kerala-card-w: 240px;
-    --kerala-card-h: 310px;
+    --kerala-card-w: 236px;
+    --kerala-card-h: 305px;
   }
   .kerala-arch-stage-container {
-    height: clamp(560px, 64vh, 660px);
+    max-width: 800px;
+    height: clamp(490px, 58vh, 550px);
   }
   .kerala-arch-card.slot-top-left,
   .kerala-arch-card.slot-bottom-left {
-    --tx: -245px !important;
+    --tx: -230px !important;
   }
   .kerala-arch-card.slot-top-right,
   .kerala-arch-card.slot-bottom-right {
-    --tx: 245px !important;
+    --tx: 230px !important;
   }
   .kerala-arch-card.slot-top-left,
   .kerala-arch-card.slot-top-right {
-    --ty: -155px !important;
+    --ty: -110px !important;
   }
   .kerala-arch-card.slot-bottom-left,
   .kerala-arch-card.slot-bottom-right {
-    --ty: 155px !important;
+    --ty: 110px !important;
   }
   .kerala-arch-card.slot-top-center {
-    --ty: -200px !important;
+    --ty: -145px !important;
   }
   .kerala-arch-card.slot-bottom-center {
-    --ty: 200px !important;
+    --ty: 145px !important;
   }
 }
 
 /* Tablet screens (768px - 959px) */
 @media (max-width: 959px) {
+  .kerala-3d-stage {
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+  }
+  .kerala-3d-left-col {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+  }
+  .kerala-3d-map-wrap {
+    max-width: 440px;
+    height: clamp(340px, 45vh, 420px);
+    margin: 0 auto;
+  }
   .kerala-3d-editorial-head {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  .kerala-3d-desc {
-    text-align: left;
+  .kerala-arch-stage-container {
     max-width: 100%;
+    margin: 0 auto;
+    height: 480px;
   }
   .kerala-arch-card {
-    --kerala-card-w: 170px;
+    --kerala-card-w: 175px;
     --kerala-card-h: 225px;
   }
   .kerala-arch-card.is-center-card {
     --kerala-card-w: 220px;
     --kerala-card-h: 285px;
   }
-  .kerala-arch-stage-container {
-    height: 520px;
+  .kerala-nav-prev {
+    left: 8px;
+  }
+  .kerala-nav-next {
+    right: 8px;
   }
   .kerala-arch-card.slot-top-left,
   .kerala-arch-card.slot-bottom-left {
-    --tx: -205px !important;
+    --tx: -195px !important;
   }
   .kerala-arch-card.slot-top-right,
   .kerala-arch-card.slot-bottom-right {
-    --tx: 205px !important;
+    --tx: 195px !important;
   }
   .kerala-arch-card.slot-top-left,
   .kerala-arch-card.slot-top-right {
-    --ty: -130px !important;
+    --ty: -95px !important;
   }
   .kerala-arch-card.slot-bottom-left,
   .kerala-arch-card.slot-bottom-right {
-    --ty: 130px !important;
+    --ty: 95px !important;
   }
   .kerala-arch-card.slot-top-center {
-    --ty: -170px !important;
+    --ty: -125px !important;
   }
   .kerala-arch-card.slot-bottom-center {
-    --ty: 170px !important;
+    --ty: 125px !important;
   }
 }
 
 /* Mobile screens (< 768px) */
 @media (max-width: 767px) {
+  .kerala-3d-title {
+    white-space: normal;
+  }
+  .kerala-3d-map-wrap {
+    max-width: 340px;
+    height: 300px;
+    margin: 0 auto;
+  }
   .kerala-arch-stage-container.is-mobile-view {
-    height: 470px;
+    max-width: 100%;
+    margin: 0 auto;
+    height: 400px;
   }
   .kerala-arch-card {
-    --kerala-card-w: 250px;
-    --kerala-card-h: 330px;
+    --kerala-card-w: 220px;
+    --kerala-card-h: 290px;
   }
   .kerala-arch-card.is-center-card {
-    --kerala-card-w: 260px;
-    --kerala-card-h: 345px;
+    --kerala-card-w: 235px;
+    --kerala-card-h: 310px;
   }
   .kerala-pills-bar {
     overflow-x: auto;
@@ -800,5 +1071,15 @@
   }
   .kerala-nav-next {
     right: 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-floating-pin-pill {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) !important;
+    pointer-events: auto !important;
   }
 }

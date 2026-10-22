@@ -16,3 +16,5 @@ export * from "./whatsapp-consent.model";
 export * from "./whatsapp-setting.model";
 export * from "./audience-group.model";
 export * from "./email-automation.model";
+export * from "./itinerary-template.model";
+export * from "./testimonial.model";

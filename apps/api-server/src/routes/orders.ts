@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { OrderModel, getNextSequence } from "@workspace/db";
+import { OrderModel, NotificationModel, getNextSequence } from "@workspace/db";
 import {
   ListOrdersQueryParams,
   ExportOrdersQueryParams,
@@ -134,6 +134,13 @@ router.get("/orders", async (req, res, next): Promise<void> => {
 });
 
 const VALID_ORDER_STATUSES = ["enquiry", "confirmed", "completed", "cancelled"] as const;
+const VALID_PAYMENT_STATUSES = ["unpaid", "partially_paid", "paid", "refunded"] as const;
+
+function generateBookingReference(id: number): string {
+  const year = new Date().getFullYear();
+  const padded = String(id).padStart(4, "0");
+  return `ESC-BKG-${year}-${padded}`;
+}
 
 router.post("/orders", async (req, res, next): Promise<void> => {
   const parsed = CreateOrderBody.safeParse(req.body);
@@ -150,6 +157,10 @@ router.post("/orders", async (req, res, next): Promise<void> => {
     res.status(400).json({ error: "guestEmail cannot be empty" });
     return;
   }
+  if (!parsed.data.guestPhone?.trim()) {
+    res.status(400).json({ error: "guestPhone cannot be empty" });
+    return;
+  }
   if (
     parsed.data.guestCount !== undefined &&
     parsed.data.guestCount !== null &&
@@ -158,25 +169,74 @@ router.post("/orders", async (req, res, next): Promise<void> => {
     res.status(400).json({ error: "guestCount must be an integer of at least 1" });
     return;
   }
+  if (parsed.data.totalAmount !== undefined && parsed.data.totalAmount !== null && parsed.data.totalAmount < 0) {
+    res.status(400).json({ error: "totalAmount must be greater than or equal to 0" });
+    return;
+  }
+
+  const rawStatus = (parsed.data as any).status;
+  if (rawStatus && !VALID_ORDER_STATUSES.includes(rawStatus)) {
+    res.status(400).json({
+      error: `Invalid status "${rawStatus}". Supported statuses: ${VALID_ORDER_STATUSES.join(", ")}`,
+    });
+    return;
+  }
+
+  const rawPaymentStatus = (parsed.data as any).paymentStatus;
+  if (rawPaymentStatus && !VALID_PAYMENT_STATUSES.includes(rawPaymentStatus)) {
+    res.status(400).json({
+      error: `Invalid paymentStatus "${rawPaymentStatus}". Supported statuses: ${VALID_PAYMENT_STATUSES.join(", ")}`,
+    });
+    return;
+  }
+
+  const adminUser = (req.session as any)?.username || "admin";
+  const bookingStatus = rawStatus || "confirmed";
+  const paymentStatus = rawPaymentStatus || "unpaid";
+
+  // Duplicate safeguard: Prevent identical booking submission created within the last 5 seconds
+  const recentDuplicate = await OrderModel.findOne({
+    guestEmail: parsed.data.guestEmail.trim(),
+    guestPhone: parsed.data.guestPhone.trim(),
+    travelDate: parsed.data.travelDate || null,
+    createdAt: { $gte: new Date(Date.now() - 5000) },
+  }).lean();
+
+  if (recentDuplicate) {
+    res.status(409).json({
+      error: `A booking for ${parsed.data.guestEmail} was already created recently (#${recentDuplicate.id})`,
+      bookingId: recentDuplicate.id,
+      bookingReference: recentDuplicate.bookingReference,
+    });
+    return;
+  }
 
   const ipAddress = (req.ip ?? "").replace(/^::ffff:/, "") || undefined;
   const userAgent = req.headers["user-agent"] || undefined;
 
-  // Fire-and-forget geo lookup so it doesn't slow the response
-  const geoPromise = ipAddress ? lookupGeo(ipAddress) : Promise.resolve({});
-
   let geo: { geoCountry?: string; geoRegion?: string; geoCity?: string } = {};
-  try {
-    geo = await geoPromise;
-  } catch {
-    logger.warn("Geo lookup failed");
+  if (ipAddress) {
+    try {
+      geo = await lookupGeo(ipAddress);
+    } catch {
+      // non-fatal
+    }
   }
 
   try {
     const id = await getNextSequence("orders");
+    const bookingReference = (parsed.data as any).bookingReference || generateBookingReference(id);
+    const convertedAt = new Date();
+
     const orderDoc = await OrderModel.create({
       ...parsed.data,
       id,
+      bookingReference,
+      status: bookingStatus,
+      paymentStatus,
+      currency: (parsed.data as any).currency || "INR",
+      convertedBy: adminUser,
+      convertedAt,
       ipAddress,
       userAgent,
       ...geo,
@@ -184,13 +244,36 @@ router.post("/orders", async (req, res, next): Promise<void> => {
 
     const order = orderDoc.toObject();
 
-    // Send emails asynchronously — don't block the response
-    Promise.all([
-      sendBookingConfirmation(order),
-      sendAdminBookingNotification(order),
-    ]).catch(() => { /* non-fatal */ });
+    // Audit / Activity Log in NotificationModel
+    try {
+      const notifId = await getNextSequence("notifications");
+      await NotificationModel.create({
+        id: notifId,
+        type: "manual_booking_created",
+        category: "administrative",
+        relatedType: "order",
+        relatedId: id,
+        recipientEmail: order.guestEmail,
+        recipientName: order.guestName,
+        subject: `Manual booking ${bookingReference} created for ${order.guestName}`,
+        status: "sent",
+        sentBy: adminUser,
+        sentAt: convertedAt,
+        idempotencyKey: `manual-order-${id}`,
+        metadata: {
+          orderId: id,
+          bookingReference,
+          status: bookingStatus,
+          paymentStatus,
+          totalAmount: order.totalAmount,
+          convertedBy: adminUser,
+        },
+      });
+    } catch (auditErr: any) {
+      logger.warn({ err: auditErr?.message }, "[OrderRoute] Failed to record manual booking audit entry (non-fatal)");
+    }
 
-    // If order was created directly in confirmed status, trigger confirmation automation
+    // Only trigger booking confirmation automations if created in confirmed status
     if (order.status === "confirmed") {
       triggerBookingConfirmation(order).catch((err) => {
         logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] Booking confirmation trigger error on create");
@@ -199,17 +282,6 @@ router.post("/orders", async (req, res, next): Promise<void> => {
         logger.error({ err: err?.message, orderId: order.id }, "[OrderRoute] WhatsApp booking confirmation trigger error on create");
       });
     }
-
-    // Process optional marketing consent checkbox from journey plan / booking form
-    const marketingConsent = Boolean((req.body as any)?.marketingConsent ?? (parsed.data as any)?.marketingConsent);
-    processPublicFormConsent({
-      email: order.guestEmail,
-      name: order.guestName,
-      marketingConsent,
-      source: "website_plan_journey",
-    }).catch((err) => {
-      logger.error({ err: err?.message, email: order.guestEmail }, "[OrderRoute] Failed to record consent");
-    });
 
     res.status(201).json(GetOrderResponse.parse(serializeDates(order)));
   } catch (err: any) {

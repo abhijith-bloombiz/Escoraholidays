@@ -18,6 +18,15 @@ export interface OrderInput {
   budgetRange?: string;
   guestCount?: number;
   specialRequests?: string;
+  status?: string;
+  totalAmount?: number;
+  currency?: string;
+  paymentStatus?: string;
+  paymentTerms?: string;
+  notes?: string;
+  bookingReference?: string;
+  itineraryId?: number;
+  itineraryTitle?: string;
   ipAddress?: string;
   userAgent?: string;
   referrerUrl?: string;
@@ -31,4 +40,5 @@ export interface OrderInput {
   geoCountry?: string;
   geoRegion?: string;
   geoCity?: string;
+  marketingConsent?: boolean;
 }

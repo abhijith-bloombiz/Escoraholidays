@@ -330,7 +330,7 @@ export default function Journal() {
             </div>
           ) : (
             <div className="text-center py-28 reveal-up">
-              <p className="font-editorial text-2xl text-[#183628]">No stories found for this selection.</p>
+              <p className="font-editorial text-2xl text-[#293D1F]">No stories found for this selection.</p>
               <button 
                 onClick={() => { setActiveFilter("All"); setActiveTag(null); }}
                 className="mt-6 font-sans text-xs uppercase tracking-widest text-white bg-[#183628] hover:bg-[#26533A] px-6 py-2.5 rounded-full transition-colors cursor-pointer"

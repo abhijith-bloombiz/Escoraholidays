@@ -1,6 +1,4 @@
 import Layout from "@/components/layout/Layout";
-import { useState } from "react";
-import { useCreateEnquiry } from "@workspace/api-client-react";
 import { useSeo } from "@/hooks/useSeo";
 import PalmBotanicalAnimation from "@/components/PalmBotanicalAnimation";
 
@@ -10,31 +8,6 @@ export default function Contact() {
     description: "Get in touch with Escora's Kerala travel specialists in Kozhikode. Start planning your private luxury Kerala holiday — honeymoon, Ayurveda retreat, or bespoke family tour. We respond within one business day.",
     url: "https://www.escoraholidays.com/contact",
   });
-
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", marketingConsent: false });
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState("");
-  const mutation = useCreateEnquiry();
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    mutation.mutate(
-      {
-        data: {
-          name: form.name,
-          email: form.email,
-          phone: form.phone || undefined,
-          message: form.message,
-          marketingConsent: form.marketingConsent,
-        } as any,
-      },
-      {
-        onSuccess: () => setSubmitted(true),
-        onError: () => setError("Something went wrong. Please try again or email us directly."),
-      }
-    );
-  }
 
   return (
     <Layout>
@@ -70,14 +43,14 @@ export default function Contact() {
           {/* Contact details */}
           <div className="space-y-10 reveal-up">
             <div>
-              <p className="section-label mb-4"><span className="dot" />Get in touch</p>
+              <p className="section-label mb-4"><span className="dot" />Direct Lines</p>
               <div className="space-y-4 font-sans text-sm">
                 {[
                   { label: "Phone", value: "+91 8157 003 344", href: "tel:+918157003344" },
                   { label: "WhatsApp", value: "+91 8157 003 344", href: "https://wa.me/918157003344" },
                   { label: "Email", value: "hello@escoraholidays.com", href: "mailto:hello@escoraholidays.com" },
                 ].map(c => (
-                  <div key={c.label} className="flex items-start gap-4 py-4 border-b border-line">
+                  <div key={c.label} className="flex items-start gap-4 py-3 border-b border-line/50">
                     <span className="font-mono text-[10px] uppercase tracking-widest text-gold w-20 flex-shrink-0 pt-0.5">{c.label}</span>
                     <a href={c.href} className="text-ink hover:text-gold transition-colors">{c.value}</a>
                   </div>
@@ -86,9 +59,8 @@ export default function Contact() {
             </div>
 
             <div>
-              <p className="section-label mb-4"><span className="dot" />Find us</p>
+              <p className="section-label mb-4"><span className="dot" />Escora Journey Studio</p>
               <p className="font-sans text-ink-mute text-sm leading-relaxed">
-                Escora Journey Studio<br />
                 1st Floor, Landmark Maple Business Tower<br />
                 Kozhikode, Kerala 673014<br />
                 India
@@ -98,95 +70,7 @@ export default function Contact() {
               </p>
             </div>
           </div>
-
-          {/* Form */}
-          <div className="reveal-up">
-            {submitted ? (
-              <div className="text-center py-12">
-                <div className="w-12 h-12 rounded-full bg-gold/10 border border-gold/30 flex items-center justify-center mx-auto mb-6">
-                  <span className="text-gold text-xl">✓</span>
-                </div>
-                <h2 className="font-serif text-3xl text-ink font-light mb-4">Message received</h2>
-                <p className="font-sans text-ink-mute text-sm leading-relaxed">
-                  Thank you for reaching out. We'll reply within one business day.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <p className="section-label mb-6"><span className="dot" />Send a message</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="font-mono text-[10px] uppercase tracking-widest text-ink-mute">Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={form.name}
-                      onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                      className="w-full bg-transparent border border-line text-ink text-sm px-4 py-3 focus:outline-none focus:border-gold transition-colors"
-                      placeholder="Your name"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="font-mono text-[10px] uppercase tracking-widest text-ink-mute">Phone</label>
-                    <input
-                      type="tel"
-                      value={form.phone}
-                      onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                      className="w-full bg-transparent border border-line text-ink text-sm px-4 py-3 focus:outline-none focus:border-gold transition-colors"
-                      placeholder="+91"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-ink-mute">Email *</label>
-                  <input
-                    type="email"
-                    required
-                    value={form.email}
-                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                    className="w-full bg-transparent border border-line text-ink text-sm px-4 py-3 focus:outline-none focus:border-gold transition-colors"
-                    placeholder="you@email.com"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="font-mono text-[10px] uppercase tracking-widest text-ink-mute">Message *</label>
-                  <textarea
-                    required
-                    value={form.message}
-                    onChange={e => setForm(f => ({ ...f, message: e.target.value }))}
-                    rows={6}
-                    className="w-full bg-transparent border border-line text-ink text-sm px-4 py-3 focus:outline-none focus:border-gold transition-colors resize-none"
-                    placeholder="How can we help you plan your journey?"
-                  />
-                </div>
-                <div className="flex items-start gap-3 pt-1">
-                  <input
-                    id="contact-marketing-consent"
-                    type="checkbox"
-                    checked={form.marketingConsent}
-                    onChange={(e) => setForm((f) => ({ ...f, marketingConsent: e.target.checked }))}
-                    className="mt-1 h-4 w-4 rounded border-line text-gold focus:ring-gold accent-[#cbab6e] cursor-pointer"
-                  />
-                  <label
-                    htmlFor="contact-marketing-consent"
-                    className="font-sans text-xs text-ink-mute leading-relaxed cursor-pointer select-none"
-                  >
-                    I'd like to receive occasional travel inspiration, destination guides, and special offers from Escora Holidays by email. I can unsubscribe at any time.
-                  </label>
-                </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
-                <button
-                  type="submit"
-                  disabled={mutation.isPending}
-                  className="w-full bg-gold text-bg font-sans text-sm font-medium py-4 hover:opacity-90 transition-opacity disabled:opacity-60"
-                >
-                  {mutation.isPending ? "Sending…" : "Send Message"}
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      </section>
+        </section>
       </div>
     </Layout>
   );

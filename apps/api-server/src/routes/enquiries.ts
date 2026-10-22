@@ -16,7 +16,12 @@ import {
   ConvertEnquiryParams,
   ConvertEnquiryBody,
 } from "@workspace/api-zod";
-import { sendAdminContactNotification } from "../lib/email";
+import {
+  sendAdminContactNotification,
+  sendContactConfirmation,
+  sendBookingConfirmation,
+  sendAdminBookingNotification,
+} from "../lib/email";
 import {
   scheduleEnquiryFollowup,
   cancelEnquiryFollowup,
@@ -52,7 +57,49 @@ function serializeDates<T extends { createdAt: Date; updatedAt: Date; convertedA
     bookingId: row.bookingId ?? null,
     bookingReference: row.bookingReference ?? null,
     convertedBy: row.convertedBy ?? null,
+    packageId: row.packageId ?? null,
+    packageName: row.packageName ?? null,
+    travelStyle: row.travelStyle ?? null,
+    destinations: row.destinations ?? null,
+    travelDate: row.travelDate ?? null,
+    departureDate: row.departureDate ?? null,
+    guestCount: row.guestCount ?? null,
+    budgetRange: row.budgetRange ?? null,
+    currency: row.currency ?? "INR",
+    specialRequests: row.specialRequests ?? null,
+    marketingConsent: row.marketingConsent ?? false,
+    ipAddress: row.ipAddress ?? null,
+    userAgent: row.userAgent ?? null,
+    referrerUrl: row.referrerUrl ?? null,
+    landingPage: row.landingPage ?? null,
+    utmSource: row.utmSource ?? null,
+    utmMedium: row.utmMedium ?? null,
+    utmCampaign: row.utmCampaign ?? null,
+    browserLanguage: row.browserLanguage ?? null,
+    screenResolution: row.screenResolution ?? null,
+    timezone: row.timezone ?? null,
+    geoCountry: row.geoCountry ?? null,
+    geoRegion: row.geoRegion ?? null,
+    geoCity: row.geoCity ?? null,
   };
+}
+
+async function lookupGeo(ip: string): Promise<{ geoCountry?: string; geoRegion?: string; geoCity?: string }> {
+  if (!ip || ip === "::1" || ip.startsWith("127.") || ip.startsWith("192.168.") || ip.startsWith("10.") || ip === "::ffff:127.0.0.1") {
+    return {};
+  }
+  try {
+    const cleanIp = ip.replace(/^::ffff:/, "");
+    const res = await fetch(`http://ip-api.com/json/${cleanIp}?fields=status,country,regionName,city`, {
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) return {};
+    const data = (await res.json()) as { status: string; country?: string; regionName?: string; city?: string };
+    if (data.status !== "success") return {};
+    return { geoCountry: data.country, geoRegion: data.regionName, geoCity: data.city };
+  } catch {
+    return {};
+  }
 }
 
 function generateBookingReference(id: number): string {
@@ -78,36 +125,110 @@ router.post("/enquiries", async (req, res, next): Promise<void> => {
     res.status(400).json({ error: "Email cannot be empty" });
     return;
   }
-  if (!parsed.data.message?.trim()) {
-    res.status(400).json({ error: "Message cannot be empty" });
-    return;
+
+  // Synthesize a descriptive enquiry message if form didn't provide an explicit message
+  let message = (parsed.data.message || "").trim();
+  if (!message) {
+    if (parsed.data.packageName || parsed.data.packageId) {
+      const pkgInfo = parsed.data.packageName || `Package #${parsed.data.packageId}`;
+      const special = parsed.data.specialRequests ? ` Special requests: ${parsed.data.specialRequests}` : "";
+      message = `Enquiry for curated journey: ${pkgInfo}.${special}`;
+    } else if (parsed.data.destinations || parsed.data.travelStyle) {
+      const dest = parsed.data.destinations || "Kerala";
+      const style = parsed.data.travelStyle ? ` Style: ${parsed.data.travelStyle}.` : "";
+      const pax = parsed.data.guestCount ? ` Travellers: ${parsed.data.guestCount}.` : "";
+      const dates = parsed.data.travelDate ? ` Travel date: ${parsed.data.travelDate}.` : "";
+      const special = parsed.data.specialRequests ? ` Special requests: ${parsed.data.specialRequests}` : "";
+      message = `Custom journey enquiry for ${dest}.${style}${pax}${dates}${special}`.trim();
+    } else {
+      message = "General website enquiry";
+    }
+  }
+
+  const ipAddress = (req.ip ?? "").replace(/^::ffff:/, "") || parsed.data.ipAddress || undefined;
+  const userAgent = req.headers["user-agent"] || parsed.data.userAgent || undefined;
+
+  let geo: { geoCountry?: string; geoRegion?: string; geoCity?: string } = {};
+  if (ipAddress) {
+    try {
+      geo = await lookupGeo(ipAddress);
+    } catch {
+      // non-fatal
+    }
   }
 
   try {
     const id = await getNextSequence("enquiries");
-    const enquiryDoc = await EnquiryModel.create({ ...parsed.data, id });
+    const enquiryDoc = await EnquiryModel.create({
+      ...parsed.data,
+      message,
+      id,
+      ipAddress,
+      userAgent,
+      geoCountry: geo.geoCountry || parsed.data.geoCountry,
+      geoRegion: geo.geoRegion || parsed.data.geoRegion,
+      geoCity: geo.geoCity || parsed.data.geoCity,
+    });
     const enquiry = enquiryDoc.toObject();
     const serialized = serializeDates(enquiry);
 
-    // Send emails and WhatsApp notifications asynchronously — don't block the response
-    Promise.all([
-      sendAdminContactNotification(enquiry),
-      triggerEnquiryAcknowledgement(enquiry),
-      triggerWhatsAppEnquiryAcknowledgement(enquiry),
-    ]).catch(() => { /* non-fatal */ });
+    // Is this a journey-oriented enquiry or general contact message?
+    const isJourneyEnquiry = Boolean(
+      enquiry.packageId || enquiry.packageName || enquiry.destinations || enquiry.travelStyle || enquiry.travelDate
+    );
+
+    // Send emails and WhatsApp notifications asynchronously — avoid duplicate email sends
+    if (isJourneyEnquiry) {
+      Promise.all([
+        sendBookingConfirmation({
+          guestName: enquiry.name,
+          guestEmail: enquiry.email,
+          destinations: enquiry.destinations,
+          travelStyle: enquiry.travelStyle,
+          travelDate: enquiry.travelDate,
+          guestCount: enquiry.guestCount,
+          budgetRange: enquiry.budgetRange,
+          specialRequests: enquiry.specialRequests || enquiry.message,
+        }),
+        sendAdminBookingNotification({
+          id: enquiry.id,
+          guestName: enquiry.name,
+          guestEmail: enquiry.email,
+          guestPhone: enquiry.phone || "",
+          travelStyle: enquiry.travelStyle,
+          destinations: enquiry.destinations,
+          travelDate: enquiry.travelDate,
+          guestCount: enquiry.guestCount,
+          budgetRange: enquiry.budgetRange,
+        }),
+        triggerWhatsAppEnquiryAcknowledgement(enquiry),
+      ]).catch(() => { /* non-fatal */ });
+    } else {
+      Promise.all([
+        sendAdminContactNotification(enquiry),
+        triggerEnquiryAcknowledgement(enquiry),
+        triggerWhatsAppEnquiryAcknowledgement(enquiry),
+      ]).catch(() => { /* non-fatal */ });
+    }
 
     // Schedule polite customer follow-up in durable DB queue
     scheduleEnquiryFollowup(enquiry).catch((err) => {
       logger.error({ err: err?.message, enquiryId: enquiry.id }, "[EnquiryRoute] Failed to schedule enquiry follow-up");
     });
 
-    // Process optional marketing consent checkbox
+    // Process marketing consent with accurate attribution source
+    let consentSource = "website_contact_form";
+    if (parsed.data.packageName || parsed.data.packageId) {
+      consentSource = "website_curated_journey";
+    } else if (parsed.data.destinations || parsed.data.travelStyle) {
+      consentSource = "website_plan_journey";
+    }
     const marketingConsent = Boolean((req.body as any)?.marketingConsent ?? (parsed.data as any)?.marketingConsent);
     processPublicFormConsent({
       email: enquiry.email,
       name: enquiry.name,
       marketingConsent,
-      source: "website_contact_form",
+      source: consentSource,
     }).catch((err) => {
       logger.error({ err: err?.message, email: enquiry.email }, "[EnquiryRoute] Failed to record consent");
     });
@@ -512,6 +633,8 @@ router.post("/enquiries/:id/convert", async (req: Request, res: Response, next: 
     const destinations = (
       input.destinations ||
       itineraryDoc?.destination ||
+      enquiry.destinations ||
+      enquiry.packageName ||
       ""
     ).trim();
 
@@ -522,7 +645,12 @@ router.post("/enquiries/:id/convert", async (req: Request, res: Response, next: 
       return;
     }
 
-    const travelDate = (input.travelDate || itineraryDoc?.startDate || "").trim();
+    const travelDate = (
+      input.travelDate ||
+      itineraryDoc?.startDate ||
+      enquiry.travelDate ||
+      ""
+    ).trim();
     if (!travelDate) {
       res.status(400).json({
         error: "Requested arrival travel date must be established before conversion to booking",
@@ -530,9 +658,14 @@ router.post("/enquiries/:id/convert", async (req: Request, res: Response, next: 
       return;
     }
 
-    const departureDate = (input.departureDate || itineraryDoc?.endDate || "").trim() || undefined;
+    const departureDate = (
+      input.departureDate ||
+      itineraryDoc?.endDate ||
+      enquiry.departureDate ||
+      ""
+    ).trim() || undefined;
 
-    let guestCount = input.guestCount;
+    let guestCount = input.guestCount ?? enquiry.guestCount;
     if (guestCount === undefined || guestCount === null) {
       if (itineraryDoc?.adults || itineraryDoc?.children) {
         guestCount = (itineraryDoc.adults || 0) + (itineraryDoc.children || 0) + (itineraryDoc.infants || 0);
@@ -569,8 +702,8 @@ router.post("/enquiries/:id/convert", async (req: Request, res: Response, next: 
     const bookingStatus = (targetStatus === "confirmed" ? "confirmed" : "enquiry");
     const paymentStatus = (input.paymentStatus === "partially_paid" ? "partially_paid" : "unpaid");
 
-    const travelStyle = input.travelStyle || "Bespoke Kerala Journey";
-    const specialRequests = input.specialRequests || undefined;
+    const travelStyle = input.travelStyle || enquiry.travelStyle || "Bespoke Kerala Journey";
+    const specialRequests = input.specialRequests || enquiry.specialRequests || undefined;
     const internalNotes = input.notes || `Manually converted from Inbox Enquiry #${enquiryId} by ${adminUser}`;
 
     // 8. Generate sequence ID and booking reference
@@ -585,6 +718,8 @@ router.post("/enquiries/:id/convert", async (req: Request, res: Response, next: 
         id: orderId,
         bookingReference,
         enquiryId,
+        packageId: (req.body as any)?.packageId || enquiry.packageId || null,
+        packageName: (req.body as any)?.packageName || enquiry.packageName || null,
         itineraryId: itineraryDoc?.id || null,
         itineraryTitle,
         guestName,
@@ -606,6 +741,19 @@ router.post("/enquiries/:id/convert", async (req: Request, res: Response, next: 
         itinerarySnapshot,
         convertedBy: adminUser,
         convertedAt,
+        utmSource: enquiry.utmSource || undefined,
+        utmMedium: enquiry.utmMedium || undefined,
+        utmCampaign: enquiry.utmCampaign || undefined,
+        referrerUrl: enquiry.referrerUrl || undefined,
+        landingPage: enquiry.landingPage || undefined,
+        geoCountry: enquiry.geoCountry || undefined,
+        geoRegion: enquiry.geoRegion || undefined,
+        geoCity: enquiry.geoCity || undefined,
+        browserLanguage: enquiry.browserLanguage || undefined,
+        screenResolution: enquiry.screenResolution || undefined,
+        timezone: enquiry.timezone || undefined,
+        ipAddress: enquiry.ipAddress || undefined,
+        userAgent: enquiry.userAgent || undefined,
       });
 
       // Update Enquiry to converted state with linkage

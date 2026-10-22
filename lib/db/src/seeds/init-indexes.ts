@@ -9,6 +9,7 @@ import {
   TravelCategoryModel,
   EnquiryModel,
   ItineraryModel,
+  TestimonialModel,
 } from "../models";
 
 export async function initIndexes(): Promise<void> {
@@ -25,6 +26,7 @@ export async function initIndexes(): Promise<void> {
     { name: "TravelCategory", model: TravelCategoryModel },
     { name: "Enquiry", model: EnquiryModel },
     { name: "Itinerary", model: ItineraryModel },
+    { name: "Testimonial", model: TestimonialModel },
   ];
 
   for (const { name, model } of models) {

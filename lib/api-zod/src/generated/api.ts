@@ -99,6 +99,33 @@ export const AskAiAssistantResponse = zod.object({
 
 
 /**
+ * @summary Get indicative reference exchange rates against INR from Frankfurter (ECB)
+ */
+export const GetCurrencyRatesResponse = zod.object({
+  "base": zod.string(),
+  "referenceDate": zod.string(),
+  "lastUpdated": zod.string(),
+  "status": zod.enum(['live', 'cached', 'stale', 'fallback']),
+  "provider": zod.string(),
+  "disclaimer": zod.string(),
+  "rates": zod.object({
+  "INR": zod.number(),
+  "USD": zod.number(),
+  "EUR": zod.number(),
+  "GBP": zod.number(),
+  "AED": zod.number()
+}),
+  "inrPerUnit": zod.object({
+  "INR": zod.number(),
+  "USD": zod.number(),
+  "EUR": zod.number(),
+  "GBP": zod.number(),
+  "AED": zod.number()
+})
+})
+
+
+/**
  * @summary Generate and refine bespoke slow-luxury Kerala trip itineraries with Escora grounding
  */
 export const generateTripPlanBodyDurationDaysDefault = 7;
@@ -172,7 +199,27 @@ export const GenerateTripPlanResponse = zod.object({
 })),
   "practicalAdvice": zod.array(zod.string()),
   "catalogueNotice": zod.string(),
-  "realisticAssessment": zod.string().optional()
+  "realisticAssessment": zod.string().optional(),
+  "budget": zod.object({
+  "currency": zod.string(),
+  "minAmount": zod.number(),
+  "maxAmount": zod.number(),
+  "isPlus": zod.boolean().optional(),
+  "formatted": zod.string(),
+  "canonicalInr": zod.object({
+  "minInr": zod.number(),
+  "maxInr": zod.number(),
+  "isPlus": zod.boolean().optional(),
+  "formatted": zod.string()
+}),
+  "rateSnapshot": zod.object({
+  "rate": zod.number(),
+  "inrPerUnit": zod.number(),
+  "referenceDate": zod.string(),
+  "status": zod.string(),
+  "provider": zod.string()
+})
+}).optional()
 }),
   "provider": zod.string(),
   "model": zod.string(),
@@ -861,6 +908,213 @@ export const AssistItineraryResponse = zod.object({
 
 
 /**
+ * @summary List all itinerary templates
+ */
+export const ListItineraryTemplatesQueryParams = zod.object({
+  "status": zod.coerce.string().optional()
+})
+
+export const ListItineraryTemplatesResponseItem = zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "destination": zod.string(),
+  "customerName": zod.string().nullish(),
+  "startDate": zod.string().nullish(),
+  "endDate": zod.string().nullish(),
+  "curatorName": zod.string().nullish(),
+  "curatorPhone": zod.string().nullish(),
+  "emergencyContacts": zod.string().nullish(),
+  "referenceNumber": zod.string().nullish(),
+  "adults": zod.number().nullish(),
+  "children": zod.number().nullish(),
+  "infants": zod.number().nullish(),
+  "tripIncludes": zod.string().nullish(),
+  "transportation": zod.string().nullish(),
+  "coverImageUrl": zod.string().nullish(),
+  "summary": zod.string().nullish(),
+  "days": zod.string(),
+  "stays": zod.string(),
+  "pricing": zod.string(),
+  "inclusions": zod.string().nullish(),
+  "exclusions": zod.string().nullish(),
+  "hotelTerms": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "importantInfo": zod.string().nullish(),
+  "status": zod.string(),
+  "isPredefined": zod.boolean().optional(),
+  "displayOrder": zod.number().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListItineraryTemplatesResponse = zod.array(ListItineraryTemplatesResponseItem)
+
+
+/**
+ * @summary Create an itinerary template
+ */
+export const CreateItineraryTemplateBody = zod.object({
+  "id": zod.string().optional(),
+  "label": zod.string(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "destination": zod.string(),
+  "customerName": zod.string().optional(),
+  "startDate": zod.string().optional(),
+  "endDate": zod.string().optional(),
+  "curatorName": zod.string().optional(),
+  "curatorPhone": zod.string().optional(),
+  "emergencyContacts": zod.string().optional(),
+  "referenceNumber": zod.string().optional(),
+  "adults": zod.number().optional(),
+  "children": zod.number().optional(),
+  "infants": zod.number().optional(),
+  "tripIncludes": zod.string().optional(),
+  "transportation": zod.string().optional(),
+  "coverImageUrl": zod.string().optional(),
+  "summary": zod.string().optional(),
+  "days": zod.string().optional(),
+  "stays": zod.string().optional(),
+  "pricing": zod.string().optional(),
+  "inclusions": zod.string().optional(),
+  "exclusions": zod.string().optional(),
+  "hotelTerms": zod.string().optional(),
+  "paymentTerms": zod.string().optional(),
+  "importantInfo": zod.string().optional(),
+  "status": zod.string().optional(),
+  "isPredefined": zod.boolean().optional(),
+  "displayOrder": zod.number().optional()
+})
+
+
+/**
+ * @summary Get an itinerary template by ID
+ */
+export const GetItineraryTemplateParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetItineraryTemplateResponse = zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "destination": zod.string(),
+  "customerName": zod.string().nullish(),
+  "startDate": zod.string().nullish(),
+  "endDate": zod.string().nullish(),
+  "curatorName": zod.string().nullish(),
+  "curatorPhone": zod.string().nullish(),
+  "emergencyContacts": zod.string().nullish(),
+  "referenceNumber": zod.string().nullish(),
+  "adults": zod.number().nullish(),
+  "children": zod.number().nullish(),
+  "infants": zod.number().nullish(),
+  "tripIncludes": zod.string().nullish(),
+  "transportation": zod.string().nullish(),
+  "coverImageUrl": zod.string().nullish(),
+  "summary": zod.string().nullish(),
+  "days": zod.string(),
+  "stays": zod.string(),
+  "pricing": zod.string(),
+  "inclusions": zod.string().nullish(),
+  "exclusions": zod.string().nullish(),
+  "hotelTerms": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "importantInfo": zod.string().nullish(),
+  "status": zod.string(),
+  "isPredefined": zod.boolean().optional(),
+  "displayOrder": zod.number().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update an itinerary template
+ */
+export const UpdateItineraryTemplateParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const UpdateItineraryTemplateBody = zod.object({
+  "label": zod.string().optional(),
+  "title": zod.string().optional(),
+  "description": zod.string().optional(),
+  "destination": zod.string().optional(),
+  "customerName": zod.string().optional(),
+  "startDate": zod.string().optional(),
+  "endDate": zod.string().optional(),
+  "curatorName": zod.string().optional(),
+  "curatorPhone": zod.string().optional(),
+  "emergencyContacts": zod.string().optional(),
+  "referenceNumber": zod.string().optional(),
+  "adults": zod.number().optional(),
+  "children": zod.number().optional(),
+  "infants": zod.number().optional(),
+  "tripIncludes": zod.string().optional(),
+  "transportation": zod.string().optional(),
+  "coverImageUrl": zod.string().optional(),
+  "summary": zod.string().optional(),
+  "days": zod.string().optional(),
+  "stays": zod.string().optional(),
+  "pricing": zod.string().optional(),
+  "inclusions": zod.string().optional(),
+  "exclusions": zod.string().optional(),
+  "hotelTerms": zod.string().optional(),
+  "paymentTerms": zod.string().optional(),
+  "importantInfo": zod.string().optional(),
+  "status": zod.string().optional(),
+  "isPredefined": zod.boolean().optional(),
+  "displayOrder": zod.number().optional()
+})
+
+export const UpdateItineraryTemplateResponse = zod.object({
+  "id": zod.string(),
+  "label": zod.string(),
+  "title": zod.string(),
+  "description": zod.string(),
+  "destination": zod.string(),
+  "customerName": zod.string().nullish(),
+  "startDate": zod.string().nullish(),
+  "endDate": zod.string().nullish(),
+  "curatorName": zod.string().nullish(),
+  "curatorPhone": zod.string().nullish(),
+  "emergencyContacts": zod.string().nullish(),
+  "referenceNumber": zod.string().nullish(),
+  "adults": zod.number().nullish(),
+  "children": zod.number().nullish(),
+  "infants": zod.number().nullish(),
+  "tripIncludes": zod.string().nullish(),
+  "transportation": zod.string().nullish(),
+  "coverImageUrl": zod.string().nullish(),
+  "summary": zod.string().nullish(),
+  "days": zod.string(),
+  "stays": zod.string(),
+  "pricing": zod.string(),
+  "inclusions": zod.string().nullish(),
+  "exclusions": zod.string().nullish(),
+  "hotelTerms": zod.string().nullish(),
+  "paymentTerms": zod.string().nullish(),
+  "importantInfo": zod.string().nullish(),
+  "status": zod.string(),
+  "isPredefined": zod.boolean().optional(),
+  "displayOrder": zod.number().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete or archive an itinerary template
+ */
+export const DeleteItineraryTemplateParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+
+/**
  * @summary List all travel categories
  */
 export const ListTravelCategoriesQueryParams = zod.object({
@@ -967,6 +1221,122 @@ export const DeleteTravelCategoryParams = zod.object({
 
 
 /**
+ * @summary List all testimonials
+ */
+export const ListTestimonialsQueryParams = zod.object({
+  "published": zod.coerce.boolean().optional()
+})
+
+export const ListTestimonialsResponseItem = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "quote": zod.string(),
+  "category": zod.string().nullish(),
+  "dateLabel": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "photoUrl": zod.string().nullish(),
+  "photoAlt": zod.string().nullish(),
+  "rating": zod.number(),
+  "sortOrder": zod.number(),
+  "published": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListTestimonialsResponse = zod.array(ListTestimonialsResponseItem)
+
+
+/**
+ * @summary Create a testimonial
+ */
+export const CreateTestimonialBody = zod.object({
+  "name": zod.string(),
+  "quote": zod.string(),
+  "category": zod.string().optional(),
+  "dateLabel": zod.string().optional(),
+  "location": zod.string().optional(),
+  "avatarUrl": zod.string().optional(),
+  "photoUrl": zod.string().optional(),
+  "photoAlt": zod.string().optional(),
+  "rating": zod.number().optional(),
+  "sortOrder": zod.number().optional(),
+  "published": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Get testimonial by ID
+ */
+export const GetTestimonialParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetTestimonialResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "quote": zod.string(),
+  "category": zod.string().nullish(),
+  "dateLabel": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "photoUrl": zod.string().nullish(),
+  "photoAlt": zod.string().nullish(),
+  "rating": zod.number(),
+  "sortOrder": zod.number(),
+  "published": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a testimonial
+ */
+export const UpdateTestimonialParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTestimonialBody = zod.object({
+  "name": zod.string().optional(),
+  "quote": zod.string().optional(),
+  "category": zod.string().optional(),
+  "dateLabel": zod.string().optional(),
+  "location": zod.string().optional(),
+  "avatarUrl": zod.string().optional(),
+  "photoUrl": zod.string().optional(),
+  "photoAlt": zod.string().optional(),
+  "rating": zod.number().optional(),
+  "sortOrder": zod.number().optional(),
+  "published": zod.boolean().optional()
+})
+
+export const UpdateTestimonialResponse = zod.object({
+  "id": zod.number(),
+  "name": zod.string(),
+  "quote": zod.string(),
+  "category": zod.string().nullish(),
+  "dateLabel": zod.string().nullish(),
+  "location": zod.string().nullish(),
+  "avatarUrl": zod.string().nullish(),
+  "photoUrl": zod.string().nullish(),
+  "photoAlt": zod.string().nullish(),
+  "rating": zod.number(),
+  "sortOrder": zod.number(),
+  "published": zod.boolean(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a testimonial
+ */
+export const DeleteTestimonialParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary List all orders/enquiries
  */
 export const ListOrdersQueryParams = zod.object({
@@ -1036,6 +1406,15 @@ export const CreateOrderBody = zod.object({
   "budgetRange": zod.string().optional(),
   "guestCount": zod.number().optional(),
   "specialRequests": zod.string().optional(),
+  "status": zod.string().optional(),
+  "totalAmount": zod.number().optional(),
+  "currency": zod.string().optional(),
+  "paymentStatus": zod.string().optional(),
+  "paymentTerms": zod.string().optional(),
+  "notes": zod.string().optional(),
+  "bookingReference": zod.string().optional(),
+  "itineraryId": zod.number().optional(),
+  "itineraryTitle": zod.string().optional(),
   "ipAddress": zod.string().optional(),
   "userAgent": zod.string().optional(),
   "referrerUrl": zod.string().optional(),
@@ -1197,6 +1576,29 @@ export const ListEnquiriesResponseItem = zod.object({
   "phone": zod.string().nullish(),
   "message": zod.string(),
   "status": zod.string(),
+  "packageId": zod.number().nullish(),
+  "packageName": zod.string().nullish(),
+  "travelStyle": zod.string().nullish(),
+  "destinations": zod.string().nullish(),
+  "travelDate": zod.string().nullish(),
+  "departureDate": zod.string().nullish(),
+  "guestCount": zod.number().nullish(),
+  "budgetRange": zod.string().nullish(),
+  "currency": zod.string().nullish(),
+  "specialRequests": zod.string().nullish(),
+  "ipAddress": zod.string().nullish(),
+  "userAgent": zod.string().nullish(),
+  "referrerUrl": zod.string().nullish(),
+  "landingPage": zod.string().nullish(),
+  "utmSource": zod.string().nullish(),
+  "utmMedium": zod.string().nullish(),
+  "utmCampaign": zod.string().nullish(),
+  "browserLanguage": zod.string().nullish(),
+  "screenResolution": zod.string().nullish(),
+  "timezone": zod.string().nullish(),
+  "geoCountry": zod.string().nullish(),
+  "geoRegion": zod.string().nullish(),
+  "geoCity": zod.string().nullish(),
   "bookingId": zod.number().nullish(),
   "bookingReference": zod.string().nullish(),
   "convertedAt": zod.string().nullish(),
@@ -1214,8 +1616,31 @@ export const CreateEnquiryBody = zod.object({
   "name": zod.string(),
   "email": zod.string(),
   "phone": zod.string().optional(),
-  "message": zod.string(),
-  "marketingConsent": zod.boolean().optional()
+  "message": zod.string().optional(),
+  "packageId": zod.number().optional(),
+  "packageName": zod.string().optional(),
+  "travelStyle": zod.string().optional(),
+  "destinations": zod.string().optional(),
+  "travelDate": zod.string().optional(),
+  "departureDate": zod.string().optional(),
+  "guestCount": zod.number().optional(),
+  "budgetRange": zod.string().optional(),
+  "currency": zod.string().optional(),
+  "specialRequests": zod.string().optional(),
+  "marketingConsent": zod.boolean().optional(),
+  "ipAddress": zod.string().optional(),
+  "userAgent": zod.string().optional(),
+  "referrerUrl": zod.string().optional(),
+  "landingPage": zod.string().optional(),
+  "utmSource": zod.string().optional(),
+  "utmMedium": zod.string().optional(),
+  "utmCampaign": zod.string().optional(),
+  "browserLanguage": zod.string().optional(),
+  "screenResolution": zod.string().optional(),
+  "timezone": zod.string().optional(),
+  "geoCountry": zod.string().optional(),
+  "geoRegion": zod.string().optional(),
+  "geoCity": zod.string().optional()
 })
 
 
@@ -1233,6 +1658,29 @@ export const GetEnquiryResponse = zod.object({
   "phone": zod.string().nullish(),
   "message": zod.string(),
   "status": zod.string(),
+  "packageId": zod.number().nullish(),
+  "packageName": zod.string().nullish(),
+  "travelStyle": zod.string().nullish(),
+  "destinations": zod.string().nullish(),
+  "travelDate": zod.string().nullish(),
+  "departureDate": zod.string().nullish(),
+  "guestCount": zod.number().nullish(),
+  "budgetRange": zod.string().nullish(),
+  "currency": zod.string().nullish(),
+  "specialRequests": zod.string().nullish(),
+  "ipAddress": zod.string().nullish(),
+  "userAgent": zod.string().nullish(),
+  "referrerUrl": zod.string().nullish(),
+  "landingPage": zod.string().nullish(),
+  "utmSource": zod.string().nullish(),
+  "utmMedium": zod.string().nullish(),
+  "utmCampaign": zod.string().nullish(),
+  "browserLanguage": zod.string().nullish(),
+  "screenResolution": zod.string().nullish(),
+  "timezone": zod.string().nullish(),
+  "geoCountry": zod.string().nullish(),
+  "geoRegion": zod.string().nullish(),
+  "geoCity": zod.string().nullish(),
   "bookingId": zod.number().nullish(),
   "bookingReference": zod.string().nullish(),
   "convertedAt": zod.string().nullish(),
@@ -1260,6 +1708,29 @@ export const UpdateEnquiryResponse = zod.object({
   "phone": zod.string().nullish(),
   "message": zod.string(),
   "status": zod.string(),
+  "packageId": zod.number().nullish(),
+  "packageName": zod.string().nullish(),
+  "travelStyle": zod.string().nullish(),
+  "destinations": zod.string().nullish(),
+  "travelDate": zod.string().nullish(),
+  "departureDate": zod.string().nullish(),
+  "guestCount": zod.number().nullish(),
+  "budgetRange": zod.string().nullish(),
+  "currency": zod.string().nullish(),
+  "specialRequests": zod.string().nullish(),
+  "ipAddress": zod.string().nullish(),
+  "userAgent": zod.string().nullish(),
+  "referrerUrl": zod.string().nullish(),
+  "landingPage": zod.string().nullish(),
+  "utmSource": zod.string().nullish(),
+  "utmMedium": zod.string().nullish(),
+  "utmCampaign": zod.string().nullish(),
+  "browserLanguage": zod.string().nullish(),
+  "screenResolution": zod.string().nullish(),
+  "timezone": zod.string().nullish(),
+  "geoCountry": zod.string().nullish(),
+  "geoRegion": zod.string().nullish(),
+  "geoCity": zod.string().nullish(),
   "bookingId": zod.number().nullish(),
   "bookingReference": zod.string().nullish(),
   "convertedAt": zod.string().nullish(),
@@ -1661,9 +2132,11 @@ export const ListCampaignsResponseItem = zod.object({
   "previewText": zod.string().nullish(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
-  "travelStyle": zod.string().nullish()
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
 }),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
   "scheduledAt": zod.string().nullish(),
@@ -1699,7 +2172,7 @@ export const CreateCampaignBody = zod.object({
   "previewText": zod.string().optional(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'audience_group']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
   "travelStyle": zod.string().nullish(),
   "groupId": zod.number().nullish(),
@@ -1722,7 +2195,7 @@ export const GetCampaignResponse = zod.object({
   "previewText": zod.string().nullish(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment', 'audience_group']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
   "travelStyle": zod.string().nullish(),
   "groupId": zod.number().nullish(),
@@ -1765,7 +2238,7 @@ export const UpdateCampaignBody = zod.object({
   "previewText": zod.string().optional(),
   "contentHtml": zod.string().optional(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'audience_group']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
   "travelStyle": zod.string().nullish(),
   "groupId": zod.number().nullish(),
@@ -1780,7 +2253,7 @@ export const UpdateCampaignResponse = zod.object({
   "previewText": zod.string().nullish(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment', 'audience_group']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
   "travelStyle": zod.string().nullish(),
   "groupId": zod.number().nullish(),
@@ -1819,6 +2292,47 @@ export const DeleteCampaignParams = zod.object({
 
 
 /**
+ * @summary Estimate matching recipients and consent stats for target audience before saving
+ */
+export const EstimateCampaignAudienceBody = zod.object({
+  "targetAudience": zod.object({
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
+  "destinations": zod.array(zod.string()).optional(),
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
+}).optional()
+})
+
+export const EstimateCampaignAudienceResponse = zod.object({
+  "totalSelected": zod.number(),
+  "eligibleRecipients": zod.number(),
+  "eligibleCount": zod.number(),
+  "activeSubscribers": zod.number(),
+  "subscribedCount": zod.number(),
+  "notSubscribedCount": zod.number(),
+  "unsubscribedCount": zod.number(),
+  "suppressedCount": zod.number(),
+  "excludedNotSubscribed": zod.number(),
+  "excludedUnsubscribed": zod.number(),
+  "excludedSuppressed": zod.number(),
+  "sampleRecipients": zod.array(zod.object({
+  "name": zod.string(),
+  "email": zod.string(),
+  "source": zod.string(),
+  "isSubscribed": zod.boolean(),
+  "isSuppressed": zod.boolean().optional(),
+  "consentStatus": zod.string().optional(),
+  "isEligible": zod.boolean().optional(),
+  "eligibilityReason": zod.string().nullish(),
+  "exclusionReason": zod.string().nullish(),
+  "destination": zod.string().nullish(),
+  "hasDestination": zod.boolean().optional()
+}))
+})
+
+
+/**
  * @summary Preview matching recipients and consent stats for campaign
  */
 export const PreviewCampaignAudienceParams = zod.object({
@@ -1826,14 +2340,29 @@ export const PreviewCampaignAudienceParams = zod.object({
 })
 
 export const PreviewCampaignAudienceResponse = zod.object({
+  "totalSelected": zod.number(),
   "eligibleRecipients": zod.number(),
+  "eligibleCount": zod.number(),
   "activeSubscribers": zod.number(),
+  "subscribedCount": zod.number(),
+  "notSubscribedCount": zod.number(),
   "unsubscribedCount": zod.number(),
+  "suppressedCount": zod.number(),
+  "excludedNotSubscribed": zod.number(),
+  "excludedUnsubscribed": zod.number(),
+  "excludedSuppressed": zod.number(),
   "sampleRecipients": zod.array(zod.object({
   "name": zod.string(),
   "email": zod.string(),
   "source": zod.string(),
-  "isSubscribed": zod.boolean()
+  "isSubscribed": zod.boolean(),
+  "isSuppressed": zod.boolean().optional(),
+  "consentStatus": zod.string().optional(),
+  "isEligible": zod.boolean().optional(),
+  "eligibilityReason": zod.string().nullish(),
+  "exclusionReason": zod.string().nullish(),
+  "destination": zod.string().nullish(),
+  "hasDestination": zod.boolean().optional()
 }))
 })
 
@@ -1852,9 +2381,11 @@ export const ApproveCampaignResponse = zod.object({
   "previewText": zod.string().nullish(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
-  "travelStyle": zod.string().nullish()
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
 }),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
   "scheduledAt": zod.string().nullish(),
@@ -1898,9 +2429,11 @@ export const ScheduleCampaignResponse = zod.object({
   "previewText": zod.string().nullish(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
-  "travelStyle": zod.string().nullish()
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
 }),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
   "scheduledAt": zod.string().nullish(),
@@ -1944,9 +2477,11 @@ export const SendCampaignResponse = zod.object({
   "previewText": zod.string().nullish(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
-  "travelStyle": zod.string().nullish()
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
 }),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
   "scheduledAt": zod.string().nullish(),
@@ -1986,9 +2521,11 @@ export const CancelCampaignResponse = zod.object({
   "previewText": zod.string().nullish(),
   "contentHtml": zod.string(),
   "targetAudience": zod.object({
-  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'custom_segment']),
+  "type": zod.enum(['all_contacts', 'enquiries_only', 'confirmed_guests', 'subscribed_contacts', 'audience_group']),
   "destinations": zod.array(zod.string()).optional(),
-  "travelStyle": zod.string().nullish()
+  "travelStyle": zod.string().nullish(),
+  "groupId": zod.number().nullish(),
+  "groupIds": zod.array(zod.number()).optional()
 }),
   "status": zod.enum(['draft', 'approved', 'scheduled', 'sending', 'sent', 'cancelled', 'failed']),
   "scheduledAt": zod.string().nullish(),

@@ -158,6 +158,20 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /currency/rates:
+    get:
+      operationId: getCurrencyRates
+      summary: Get indicative reference exchange rates against INR from Frankfurter (ECB)
+      tags:
+        - Currency
+      responses:
+        "200":
+          description: Exchange rates against INR
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CurrencyRatesResponse"
+
   /ai/plan:
     post:
       operationId: generateTripPlan
@@ -632,7 +646,129 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
-  # ── Travel Categories ─────────────────────────────────────────
+  # ── Itinerary Templates ───────────────────────────────────────
+  /itinerary-templates:
+    get:
+      operationId: listItineraryTemplates
+      summary: List all itinerary templates
+      tags:
+        - Itineraries
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItineraryTemplate"
+    post:
+      operationId: createItineraryTemplate
+      summary: Create an itinerary template
+      tags:
+        - Itineraries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryTemplateInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItineraryTemplate"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /itinerary-templates/{id}:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      operationId: getItineraryTemplate
+      summary: Get an itinerary template by ID
+      tags:
+        - Itineraries
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItineraryTemplate"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateItineraryTemplate
+      summary: Update an itinerary template
+      tags:
+        - Itineraries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryTemplateUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItineraryTemplate"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteItineraryTemplate
+      summary: Delete or archive an itinerary template
+      tags:
+        - Itineraries
+      responses:
+        "204":
+          description: Deleted
+        "400":
+          description: Cannot delete referenced template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+
   /travel-categories:
     get:
       operationId: listTravelCategories
@@ -712,6 +848,96 @@ paths:
     delete:
       operationId: deleteTravelCategory
       summary: Delete a travel category
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Testimonials ─────────────────────────────────────────────
+  /testimonials:
+    get:
+      operationId: listTestimonials
+      summary: List all testimonials
+      parameters:
+        - in: query
+          name: published
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Testimonial"
+    post:
+      operationId: createTestimonial
+      summary: Create a testimonial
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestimonialInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Testimonial"
+
+  /testimonials/{id}:
+    get:
+      operationId: getTestimonial
+      summary: Get testimonial by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Testimonial"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateTestimonial
+      summary: Update a testimonial
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestimonialUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Testimonial"
+    delete:
+      operationId: deleteTestimonial
+      summary: Delete a testimonial
       parameters:
         - in: path
           name: id
@@ -1435,6 +1661,38 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+  /campaigns/audience-estimate:
+    post:
+      operationId: estimateCampaignAudience
+      summary: Estimate matching recipients and consent stats for target audience before saving
+      tags:
+        - Campaigns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CampaignAudienceEstimateInput"
+      responses:
+        "200":
+          description: Audience estimate and breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CampaignAudiencePreview"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
   /campaigns/{id}/audience-preview:
     parameters:
       - in: path
@@ -1956,6 +2214,93 @@ components:
           type: string
         journeyCount:
           type: string
+        sortOrder:
+          type: integer
+        published:
+          type: boolean
+
+    # ── Testimonial ──────────────────────────────────────────────
+    Testimonial:
+      type: object
+      required: [id, name, quote, rating, sortOrder, published, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        quote:
+          type: string
+        category:
+          type: ["string", "null"]
+        dateLabel:
+          type: ["string", "null"]
+        location:
+          type: ["string", "null"]
+        avatarUrl:
+          type: ["string", "null"]
+        photoUrl:
+          type: ["string", "null"]
+        photoAlt:
+          type: ["string", "null"]
+        rating:
+          type: integer
+        sortOrder:
+          type: integer
+        published:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TestimonialInput:
+      type: object
+      required: [name, quote]
+      properties:
+        name:
+          type: string
+        quote:
+          type: string
+        category:
+          type: string
+        dateLabel:
+          type: string
+        location:
+          type: string
+        avatarUrl:
+          type: string
+        photoUrl:
+          type: string
+        photoAlt:
+          type: string
+        rating:
+          type: integer
+        sortOrder:
+          type: integer
+        published:
+          type: boolean
+
+    TestimonialUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+        quote:
+          type: string
+        category:
+          type: string
+        dateLabel:
+          type: string
+        location:
+          type: string
+        avatarUrl:
+          type: string
+        photoUrl:
+          type: string
+        photoAlt:
+          type: string
+        rating:
+          type: integer
         sortOrder:
           type: integer
         published:
@@ -2497,6 +2842,205 @@ components:
           type: string
           description: Human-in-the-loop review reminder
 
+    # ── Itinerary Templates ───────────────────────────────────────
+    ItineraryTemplate:
+      type: object
+      required: [id, label, title, description, destination, days, stays, pricing, status, createdAt, updatedAt]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        destination:
+          type: string
+        customerName:
+          type: ["string", "null"]
+        startDate:
+          type: ["string", "null"]
+        endDate:
+          type: ["string", "null"]
+        curatorName:
+          type: ["string", "null"]
+        curatorPhone:
+          type: ["string", "null"]
+        emergencyContacts:
+          type: ["string", "null"]
+        referenceNumber:
+          type: ["string", "null"]
+        adults:
+          type: ["integer", "null"]
+        children:
+          type: ["integer", "null"]
+        infants:
+          type: ["integer", "null"]
+        tripIncludes:
+          type: ["string", "null"]
+        transportation:
+          type: ["string", "null"]
+        coverImageUrl:
+          type: ["string", "null"]
+        summary:
+          type: ["string", "null"]
+        days:
+          type: string
+        stays:
+          type: string
+        pricing:
+          type: string
+        inclusions:
+          type: ["string", "null"]
+        exclusions:
+          type: ["string", "null"]
+        hotelTerms:
+          type: ["string", "null"]
+        paymentTerms:
+          type: ["string", "null"]
+        importantInfo:
+          type: ["string", "null"]
+        status:
+          type: string
+        isPredefined:
+          type: boolean
+        displayOrder:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    ItineraryTemplateInput:
+      type: object
+      required: [label, title, description, destination]
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        destination:
+          type: string
+        customerName:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        curatorName:
+          type: string
+        curatorPhone:
+          type: string
+        emergencyContacts:
+          type: string
+        referenceNumber:
+          type: string
+        adults:
+          type: integer
+        children:
+          type: integer
+        infants:
+          type: integer
+        tripIncludes:
+          type: string
+        transportation:
+          type: string
+        coverImageUrl:
+          type: string
+        summary:
+          type: string
+        days:
+          type: string
+        stays:
+          type: string
+        pricing:
+          type: string
+        inclusions:
+          type: string
+        exclusions:
+          type: string
+        hotelTerms:
+          type: string
+        paymentTerms:
+          type: string
+        importantInfo:
+          type: string
+        status:
+          type: string
+        isPredefined:
+          type: boolean
+        displayOrder:
+          type: integer
+
+    ItineraryTemplateUpdate:
+      type: object
+      properties:
+        label:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        destination:
+          type: string
+        customerName:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        curatorName:
+          type: string
+        curatorPhone:
+          type: string
+        emergencyContacts:
+          type: string
+        referenceNumber:
+          type: string
+        adults:
+          type: integer
+        children:
+          type: integer
+        infants:
+          type: integer
+        tripIncludes:
+          type: string
+        transportation:
+          type: string
+        coverImageUrl:
+          type: string
+        summary:
+          type: string
+        days:
+          type: string
+        stays:
+          type: string
+        pricing:
+          type: string
+        inclusions:
+          type: string
+        exclusions:
+          type: string
+        hotelTerms:
+          type: string
+        paymentTerms:
+          type: string
+        importantInfo:
+          type: string
+        status:
+          type: string
+        isPredefined:
+          type: boolean
+        displayOrder:
+          type: integer
+
+
+
     # ── AI Content Assistant (Phase 3C) ─────────────────────────
     JournalAiArticleInput:
       type: object
@@ -2770,6 +3314,24 @@ components:
           type: integer
         specialRequests:
           type: string
+        status:
+          type: string
+        totalAmount:
+          type: number
+        currency:
+          type: string
+        paymentStatus:
+          type: string
+        paymentTerms:
+          type: string
+        notes:
+          type: string
+        bookingReference:
+          type: string
+        itineraryId:
+          type: integer
+        itineraryTitle:
+          type: string
         ipAddress:
           type: string
         userAgent:
@@ -2830,6 +3392,52 @@ components:
           type: string
         status:
           type: string
+        packageId:
+          type: ["integer", "null"]
+        packageName:
+          type: ["string", "null"]
+        travelStyle:
+          type: ["string", "null"]
+        destinations:
+          type: ["string", "null"]
+        travelDate:
+          type: ["string", "null"]
+        departureDate:
+          type: ["string", "null"]
+        guestCount:
+          type: ["integer", "null"]
+        budgetRange:
+          type: ["string", "null"]
+        currency:
+          type: ["string", "null"]
+        specialRequests:
+          type: ["string", "null"]
+        ipAddress:
+          type: ["string", "null"]
+        userAgent:
+          type: ["string", "null"]
+        referrerUrl:
+          type: ["string", "null"]
+        landingPage:
+          type: ["string", "null"]
+        utmSource:
+          type: ["string", "null"]
+        utmMedium:
+          type: ["string", "null"]
+        utmCampaign:
+          type: ["string", "null"]
+        browserLanguage:
+          type: ["string", "null"]
+        screenResolution:
+          type: ["string", "null"]
+        timezone:
+          type: ["string", "null"]
+        geoCountry:
+          type: ["string", "null"]
+        geoRegion:
+          type: ["string", "null"]
+        geoCity:
+          type: ["string", "null"]
         bookingId:
           type: ["integer", "null"]
         bookingReference:
@@ -2845,7 +3453,7 @@ components:
 
     EnquiryInput:
       type: object
-      required: [name, email, message]
+      required: [name, email]
       properties:
         name:
           type: string
@@ -2855,8 +3463,54 @@ components:
           type: string
         message:
           type: string
+        packageId:
+          type: integer
+        packageName:
+          type: string
+        travelStyle:
+          type: string
+        destinations:
+          type: string
+        travelDate:
+          type: string
+        departureDate:
+          type: string
+        guestCount:
+          type: integer
+        budgetRange:
+          type: string
+        currency:
+          type: string
+        specialRequests:
+          type: string
         marketingConsent:
           type: boolean
+        ipAddress:
+          type: string
+        userAgent:
+          type: string
+        referrerUrl:
+          type: string
+        landingPage:
+          type: string
+        utmSource:
+          type: string
+        utmMedium:
+          type: string
+        utmCampaign:
+          type: string
+        browserLanguage:
+          type: string
+        screenResolution:
+          type: string
+        timezone:
+          type: string
+        geoCountry:
+          type: string
+        geoRegion:
+          type: string
+        geoCity:
+          type: string
 
     EnquiryUpdate:
       type: object
@@ -3442,6 +4096,8 @@ components:
           type: string
         realisticAssessment:
           type: string
+        budget:
+          $ref: "#/components/schemas/TripBudgetDetails"
 
     TripPlanResponse:
       type: object
@@ -3457,6 +4113,93 @@ components:
           type: array
           items:
             type: string
+
+    TripBudgetDetails:
+      type: object
+      required: [currency, minAmount, maxAmount, formatted, canonicalInr, rateSnapshot]
+      properties:
+        currency:
+          type: string
+        minAmount:
+          type: number
+        maxAmount:
+          type: number
+        isPlus:
+          type: boolean
+        formatted:
+          type: string
+        canonicalInr:
+          type: object
+          required: [minInr, maxInr, formatted]
+          properties:
+            minInr:
+              type: number
+            maxInr:
+              type: number
+            isPlus:
+              type: boolean
+            formatted:
+              type: string
+        rateSnapshot:
+          type: object
+          required: [rate, inrPerUnit, referenceDate, status, provider]
+          properties:
+            rate:
+              type: number
+            inrPerUnit:
+              type: number
+            referenceDate:
+              type: string
+            status:
+              type: string
+            provider:
+              type: string
+
+    CurrencyRatesResponse:
+      type: object
+      required: [base, referenceDate, lastUpdated, status, provider, disclaimer, rates, inrPerUnit]
+      properties:
+        base:
+          type: string
+        referenceDate:
+          type: string
+        lastUpdated:
+          type: string
+        status:
+          type: string
+          enum: [live, cached, stale, fallback]
+        provider:
+          type: string
+        disclaimer:
+          type: string
+        rates:
+          type: object
+          required: [INR, USD, EUR, GBP, AED]
+          properties:
+            INR:
+              type: number
+            USD:
+              type: number
+            EUR:
+              type: number
+            GBP:
+              type: number
+            AED:
+              type: number
+        inrPerUnit:
+          type: object
+          required: [INR, USD, EUR, GBP, AED]
+          properties:
+            INR:
+              type: number
+            USD:
+              type: number
+            EUR:
+              type: number
+            GBP:
+              type: number
+            AED:
+              type: number
 
     # ── Campaign Automation ───────────────────────────────────────
     CampaignStatus:
@@ -3479,6 +4222,12 @@ components:
             type: string
         travelStyle:
           type: ["string", "null"]
+        groupId:
+          type: ["number", "null"]
+        groupIds:
+          type: array
+          items:
+            type: number
 
     CampaignDeliveryStats:
       type: object
@@ -3579,13 +4328,41 @@ components:
 
     CampaignAudiencePreview:
       type: object
-      required: [eligibleRecipients, activeSubscribers, unsubscribedCount, sampleRecipients]
+      required:
+        - totalSelected
+        - eligibleRecipients
+        - eligibleCount
+        - activeSubscribers
+        - subscribedCount
+        - notSubscribedCount
+        - unsubscribedCount
+        - suppressedCount
+        - excludedNotSubscribed
+        - excludedUnsubscribed
+        - excludedSuppressed
+        - sampleRecipients
       properties:
+        totalSelected:
+          type: integer
         eligibleRecipients:
+          type: integer
+        eligibleCount:
           type: integer
         activeSubscribers:
           type: integer
+        subscribedCount:
+          type: integer
+        notSubscribedCount:
+          type: integer
         unsubscribedCount:
+          type: integer
+        suppressedCount:
+          type: integer
+        excludedNotSubscribed:
+          type: integer
+        excludedUnsubscribed:
+          type: integer
+        excludedSuppressed:
           type: integer
         sampleRecipients:
           type: array
@@ -3600,6 +4377,20 @@ components:
               source:
                 type: string
               isSubscribed:
+                type: boolean
+              isSuppressed:
+                type: boolean
+              consentStatus:
+                type: string
+              isEligible:
+                type: boolean
+              eligibilityReason:
+                type: ["string", "null"]
+              exclusionReason:
+                type: ["string", "null"]
+              destination:
+                type: ["string", "null"]
+              hasDestination:
                 type: boolean
 
     SubscriberConsent:
@@ -3646,5 +4437,11 @@ components:
           type: string
         email:
           type: string
+
+    CampaignAudienceEstimateInput:
+      type: object
+      properties:
+        targetAudience:
+          $ref: "#/components/schemas/CampaignTargetAudience"
 
 

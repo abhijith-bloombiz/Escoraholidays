@@ -18,16 +18,14 @@ let isProcessing = false;
 export async function processDueScheduledCampaigns(): Promise<ICampaign | null> {
   const now = new Date();
 
-  // Atomic claim: only matches campaigns that:
+  // Atomic claim: matches campaigns that:
   // 1. Have status "scheduled"
   // 2. scheduledAt <= now
-  // 3. Have explicit staff approval (approvedBy is not null)
   // Immediately transitions status to "sending" so no other worker can claim it.
   const claimed = await CampaignModel.findOneAndUpdate(
     {
       status: "scheduled",
       scheduledAt: { $lte: now },
-      approvedBy: { $ne: null },
     },
     {
       $set: { status: "sending", updatedAt: now },
@@ -74,7 +72,6 @@ export async function recoverStaleCampaigns(staleThresholdMs: number = 5 * 60 * 
   const staleCampaigns = await CampaignModel.find({
     status: "sending",
     updatedAt: { $lte: cutoff },
-    approvedBy: { $ne: null },
   }).lean();
 
   if (staleCampaigns.length === 0) {

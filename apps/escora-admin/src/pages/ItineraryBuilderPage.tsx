@@ -187,8 +187,11 @@ export default function ItineraryBuilderPage() {
   // AI Assistant modal state (Phase 3B)
   const [showAiModal, setShowAiModal] = useState(false);
   const [aiEnquiryId, setAiEnquiryId] = useState<number | undefined>(undefined);
-  const [fromEnquiryId, setFromEnquiryId] = useState<number | null>(null);
+  const [linkedEnquiryId, setLinkedEnquiryId] = useState<number | null>(null);
+  const [returnToInboxEnquiryId, setReturnToInboxEnquiryId] = useState<number | null>(null);
   const openedFromUrlAi = useRef(false);
+  const hasInitializedRef = useRef(false);
+  const isSubmittingRef = useRef(false);
 
   // Collapsible days and stays state
   const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
@@ -275,21 +278,35 @@ export default function ItineraryBuilderPage() {
 
   // Handle URL query parameters (e.g. ?ai=true or ?enquiryId=123) and pending AI drafts
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || hasInitializedRef.current) return;
+    hasInitializedRef.current = true;
+
     const searchParams = new URLSearchParams(window.location.search);
     const aiParam = searchParams.get("ai");
     const aiDraftParam = searchParams.get("aiDraft");
     const blankParam = searchParams.get("blank");
-    const enqParam = searchParams.get("fromEnquiry") || searchParams.get("enquiryId");
+    const fromEnqParam = searchParams.get("fromEnquiry");
+    const linkedEnqParam = searchParams.get("linkedEnquiryId") || searchParams.get("enquiryId");
     const nameParam = searchParams.get("customerName");
     const emailParam = searchParams.get("customerEmail");
     const phoneParam = searchParams.get("customerPhone");
 
-    if (enqParam) {
-      const parsedId = Number(enqParam);
-      if (!Number.isNaN(parsedId)) {
-        setFromEnquiryId(parsedId);
-        setAiEnquiryId(parsedId);
+    // If opened directly from an Inbox inquiry ("Build Manually" or proposal edit from Inbox)
+    if (fromEnqParam) {
+      const parsedFromId = Number(fromEnqParam);
+      if (!Number.isNaN(parsedFromId)) {
+        setLinkedEnquiryId(parsedFromId);
+        setAiEnquiryId(parsedFromId);
+        // Only return to Inbox if initiated directly from Inbox inquiry workflow
+        if (aiDraftParam !== "true") {
+          setReturnToInboxEnquiryId(parsedFromId);
+        }
+      }
+    } else if (linkedEnqParam) {
+      const parsedLinkedId = Number(linkedEnqParam);
+      if (!Number.isNaN(parsedLinkedId)) {
+        setLinkedEnquiryId(parsedLinkedId);
+        setAiEnquiryId(parsedLinkedId);
       }
     }
 
@@ -300,7 +317,7 @@ export default function ItineraryBuilderPage() {
         const parsed = JSON.parse(pendingDraftStr);
         sessionStorage.removeItem("escoraholidays_pending_ai_draft");
         if (parsed?.extra?.enquiryId) {
-          setFromEnquiryId(parsed.extra.enquiryId);
+          setLinkedEnquiryId(parsed.extra.enquiryId);
           setAiEnquiryId(parsed.extra.enquiryId);
         }
         if (parsed?.draft) {
@@ -322,15 +339,13 @@ export default function ItineraryBuilderPage() {
       setTemplateChoice("blank");
     }
 
-    if (aiParam === "true" || enqParam) {
+    // Only open AI modal on mount if explicitly requested via ?ai=true and not starting blank or with draft
+    if (aiParam === "true" && blankParam !== "true" && aiDraftParam !== "true") {
       openedFromUrlAi.current = true;
-      if (enqParam) {
-        setAiEnquiryId(Number(enqParam));
-      }
       setShowAiModal(true);
     }
 
-    if (!isEdit && !aiParam && !aiDraftParam && !blankParam && !enqParam && templateChoice === null) {
+    if (!isEdit && !aiParam && !aiDraftParam && !blankParam && !fromEnqParam && templateChoice === null) {
       navigate("/itineraries/create", { replace: true });
     }
   }, [setValue, isEdit, templateChoice, navigate]);
@@ -340,20 +355,24 @@ export default function ItineraryBuilderPage() {
     extra?: { customerName?: string; customerEmail?: string; customerPhone?: string; startDate?: string; enquiryId?: number }
   ) => {
     openedFromUrlAi.current = false;
+    setShowAiModal(false);
+
     if (extra?.enquiryId) {
-      setFromEnquiryId(extra.enquiryId);
+      setLinkedEnquiryId(extra.enquiryId);
       setAiEnquiryId(extra.enquiryId);
     }
-    if (extra?.customerName && !getValues("customerName")) {
+    if (extra?.customerName) {
       setValue("customerName", extra.customerName, { shouldDirty: true });
+    } else if (!getValues("customerName")) {
+      setValue("customerName", "Valued Guest", { shouldDirty: true });
     }
-    if (extra?.customerEmail && !getValues("customerEmail")) {
+    if (extra?.customerEmail) {
       setValue("customerEmail", extra.customerEmail, { shouldDirty: true });
     }
-    if (extra?.customerPhone && !getValues("customerPhone")) {
+    if (extra?.customerPhone) {
       setValue("customerPhone", extra.customerPhone, { shouldDirty: true });
     }
-    if (extra?.startDate && !getValues("startDate")) {
+    if (extra?.startDate) {
       setValue("startDate", extra.startDate, { shouldDirty: true });
     }
 
@@ -364,20 +383,20 @@ export default function ItineraryBuilderPage() {
       setValue("coverImageUrl", draft.coverImageUrl, { shouldDirty: true });
     }
 
-    const start = watchedStartDate ? new Date(watchedStartDate) : null;
-    const formattedDays: ItineraryDay[] = draft.days.map((d, idx) => {
+    const start = extra?.startDate ? new Date(extra.startDate) : (watchedStartDate ? new Date(watchedStartDate) : null);
+    const formattedDays: ItineraryDay[] = (draft.days || []).map((d, idx) => {
       let dateStr = d.date || "";
       if (!dateStr && start && !Number.isNaN(start.getTime())) {
         const dayDate = new Date(start);
-        dayDate.setDate(start.getDate() + idx);
+        dayDate.setDate(dayDate.getDate() + idx);
         dateStr = dayDate.toISOString().split("T")[0];
       }
       return {
-        day: d.day,
+        day: d.day || idx + 1,
         date: dateStr,
         title: d.title,
         description: d.description || "",
-        activities: d.activities.map((a) => ({
+        activities: (d.activities || []).map((a) => ({
           time: a.time,
           title: a.title,
           description: a.description || "",
@@ -386,7 +405,13 @@ export default function ItineraryBuilderPage() {
     });
     setValue("days", formattedDays, { shouldDirty: true });
 
-    const formattedStays: ItineraryStay[] = draft.stays.map((s) => ({
+    if (start && !Number.isNaN(start.getTime()) && formattedDays.length > 0 && !getValues("endDate")) {
+      const endD = new Date(start);
+      endD.setDate(endD.getDate() + formattedDays.length - 1);
+      setValue("endDate", endD.toISOString().split("T")[0], { shouldDirty: true });
+    }
+
+    const formattedStays: ItineraryStay[] = (draft.stays || []).map((s) => ({
       name: s.name,
       location: s.location || draft.destination,
       checkIn: s.checkIn || "",
@@ -410,8 +435,8 @@ export default function ItineraryBuilderPage() {
   const handleCloseAiModal = () => {
     setShowAiModal(false);
     if (openedFromUrlAi.current && !isEdit && templateChoice !== "ai-draft") {
-      if (fromEnquiryId) {
-        navigate(`/enquiries?viewEnquiry=${fromEnquiryId}`);
+      if (returnToInboxEnquiryId) {
+        navigate(`/enquiries?viewEnquiry=${returnToInboxEnquiryId}`);
       } else {
         navigate("/itineraries/create");
       }
@@ -426,7 +451,7 @@ export default function ItineraryBuilderPage() {
   }
 
   const onSubmit = (form: BuilderForm) => {
-    if (createMutation.isPending || updateMutation.isPending) return;
+    if (isSubmittingRef.current || createMutation.isPending || updateMutation.isPending) return;
 
     // Validate required fields
     if (!form.customerName.trim()) {
@@ -478,23 +503,29 @@ export default function ItineraryBuilderPage() {
       hotelTerms: (existing as any)?.hotelTerms ?? JSON.stringify(DEFAULT_HOTEL_TERMS),
       paymentTerms: (existing as any)?.paymentTerms ?? JSON.stringify(DEFAULT_PAYMENT_TERMS),
       importantInfo: (existing as any)?.importantInfo ?? JSON.stringify(DEFAULT_IMPORTANT_INFO),
-      enquiryId: fromEnquiryId ?? (existing as any)?.enquiryId ?? undefined,
+      enquiryId: linkedEnquiryId ?? (existing as any)?.enquiryId ?? undefined,
     };
+
+    isSubmittingRef.current = true;
 
     if (isEdit && itineraryId) {
       updateMutation.mutate(
         { id: itineraryId, data },
         {
           onSuccess: () => {
+            isSubmittingRef.current = false;
             invalidate();
             toast({ title: "Itinerary proposal updated successfully" });
-            if (fromEnquiryId) {
-              navigate(`/enquiries?viewEnquiry=${fromEnquiryId}`);
+            if (returnToInboxEnquiryId) {
+              navigate(`/enquiries?viewEnquiry=${returnToInboxEnquiryId}`);
             } else {
               navigate("/itineraries");
             }
           },
-          onError: () => toast({ title: "Failed to update itinerary", variant: "destructive" }),
+          onError: (err: any) => {
+            isSubmittingRef.current = false;
+            toast({ title: "Failed to update itinerary", description: err?.message, variant: "destructive" });
+          },
         }
       );
     } else {
@@ -502,25 +533,40 @@ export default function ItineraryBuilderPage() {
         { data },
         {
           onSuccess: (created) => {
+            isSubmittingRef.current = false;
             invalidate();
             toast({
               title: "Proposal created successfully",
               description: `Reference: ${created.shareToken.slice(0, 8).toUpperCase()}`,
             });
-            if (fromEnquiryId) {
-              navigate(`/enquiries?viewEnquiry=${fromEnquiryId}&createdProposalId=${created.id}`);
+            if (returnToInboxEnquiryId) {
+              navigate(`/enquiries?viewEnquiry=${returnToInboxEnquiryId}&createdProposalId=${created.id}`);
             } else {
-              navigate("/itineraries");
+              navigate("/itineraries/create");
             }
           },
-          onError: () => toast({ title: "Failed to create itinerary", variant: "destructive" }),
+          onError: (err: any) => {
+            isSubmittingRef.current = false;
+            toast({ title: "Failed to create itinerary", description: err?.message, variant: "destructive" });
+          },
         }
       );
     }
   };
 
+  const onInvalid = (errors: any) => {
+    console.warn("Form validation errors:", errors);
+    const firstError = Object.values(errors)[0] as any;
+    toast({
+      title: "Please complete required fields",
+      description: firstError?.message || "Customer name and proposal title are required.",
+      variant: "destructive",
+    });
+    scrollToSection("section-details");
+  };
+
   function handleCancel() {
-    const returnTarget = fromEnquiryId ? `/enquiries?viewEnquiry=${fromEnquiryId}` : "/itineraries";
+    const returnTarget = returnToInboxEnquiryId ? `/enquiries?viewEnquiry=${returnToInboxEnquiryId}` : "/itineraries/create";
     if (isDirty) {
       setPendingNavigation(returnTarget);
       setShowDiscardDialog(true);
@@ -712,10 +758,10 @@ export default function ItineraryBuilderPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => (fromEnquiryId ? navigate(`/enquiries?viewEnquiry=${fromEnquiryId}`) : navigate("/itineraries"))}
+          onClick={() => (returnToInboxEnquiryId ? navigate(`/enquiries?viewEnquiry=${returnToInboxEnquiryId}`) : navigate("/itineraries"))}
           className="gap-2 cursor-pointer"
         >
-          <ArrowLeft className="h-4 w-4" /> {fromEnquiryId ? "Back to Inquiry" : "Back to Itineraries"}
+          <ArrowLeft className="h-4 w-4" /> {returnToInboxEnquiryId ? "Back to Inquiry" : "Back to Itineraries"}
         </Button>
         <Card className="border-border">
           <CardContent className="p-8 text-center space-y-4">
@@ -731,10 +777,10 @@ export default function ItineraryBuilderPage() {
             <div className="flex items-center justify-center gap-3 pt-2">
               <Button
                 variant="outline"
-                onClick={() => (fromEnquiryId ? navigate(`/enquiries?viewEnquiry=${fromEnquiryId}`) : navigate("/itineraries"))}
+                onClick={() => (returnToInboxEnquiryId ? navigate(`/enquiries?viewEnquiry=${returnToInboxEnquiryId}`) : navigate("/itineraries"))}
                 className="cursor-pointer"
               >
-                {fromEnquiryId ? "Return to Inquiry" : "Return to Itineraries List"}
+                {returnToInboxEnquiryId ? "Return to Inquiry" : "Return to Itineraries List"}
               </Button>
             </div>
           </CardContent>
@@ -826,7 +872,7 @@ export default function ItineraryBuilderPage() {
   // BUILDER FORM SCREEN (6 Visual Sections + Sticky Navigator)
   // -------------------------------------------------------------
   return (
-    <div data-testid="itinerary-builder-page" className="space-y-6 pb-12">
+    <div data-testid="itinerary-builder-page" className="relative space-y-6 pb-12">
       {/* Top Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
@@ -903,12 +949,12 @@ export default function ItineraryBuilderPage() {
             <Button
               type="button"
               size="sm"
-              onClick={handleSubmit(onSubmit)}
-              disabled={createMutation.isPending || updateMutation.isPending}
+              onClick={handleSubmit(onSubmit, onInvalid)}
+              disabled={isSubmittingRef.current || createMutation.isPending || updateMutation.isPending}
               className="h-8 text-xs font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs shrink-0 gap-1.5"
               data-testid="button-submit-itinerary"
             >
-              {createMutation.isPending || updateMutation.isPending ? (
+              {isSubmittingRef.current || createMutation.isPending || updateMutation.isPending ? (
                 <>
                   <RefreshCw className="h-3 w-3 animate-spin" />
                   Saving...
@@ -983,7 +1029,7 @@ export default function ItineraryBuilderPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8">
         {/* ============================================================
             SECTION 1: TRIP & CUSTOMER DETAILS
         ============================================================ */}
@@ -1238,6 +1284,7 @@ export default function ItineraryBuilderPage() {
                   return (
                     <div
                       key={field.id}
+                      data-testid={`day-card-${dayIndex}`}
                       className="border border-border rounded-lg bg-card overflow-hidden shadow-xs transition-all hover:border-border/80"
                     >
                       {/* Day Header Bar */}
@@ -1412,6 +1459,7 @@ export default function ItineraryBuilderPage() {
                   return (
                     <div
                       key={field.id}
+                      data-testid={`stay-card-${i}`}
                       className="border border-border rounded-lg bg-card overflow-hidden shadow-xs transition-all hover:border-border/80"
                     >
                       {/* Stay Header */}
@@ -2262,11 +2310,11 @@ export default function ItineraryBuilderPage() {
                   <div className="space-y-2 pt-2">
                     <Button
                       type="submit"
-                      disabled={createMutation.isPending || updateMutation.isPending}
+                      disabled={isSubmittingRef.current || createMutation.isPending || updateMutation.isPending}
                       className="w-full h-10 text-xs font-medium bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm gap-2"
                       data-testid="button-submit-itinerary-bottom"
                     >
-                      {createMutation.isPending || updateMutation.isPending ? (
+                      {isSubmittingRef.current || createMutation.isPending || updateMutation.isPending ? (
                         <>
                           <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                           <span>Saving Proposal...</span>

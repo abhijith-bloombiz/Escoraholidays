@@ -1,5 +1,5 @@
 import Layout from "@/components/layout/Layout";
-import { useGetPackage, getGetPackageQueryKey, useCreateOrder, type Package } from "@workspace/api-client-react";
+import { useGetPackage, getGetPackageQueryKey, useCreateEnquiry, type Package } from "@workspace/api-client-react";
 import { useParams, Link } from "wouter";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -54,7 +54,7 @@ export default function JourneyDetail() {
     } : undefined,
   });
 
-  const createOrder = useCreateOrder();
+  const createEnquiry = useCreateEnquiry();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -63,12 +63,19 @@ export default function JourneyDetail() {
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
     const bookingPackageId = pkg?.id ?? (isNumeric ? Number(rawId) : undefined);
-    createOrder.mutate({ 
+    createEnquiry.mutate({ 
       data: { 
-        ...data, 
+        name: data.guestName,
+        email: data.guestEmail,
+        phone: data.guestPhone,
         packageId: bookingPackageId, 
-        packageName: pkg?.name 
-      } 
+        packageName: pkg?.name,
+        destinations: pkg?.route || pkg?.name,
+        travelDate: data.travelDate || undefined,
+        guestCount: data.guestCount,
+        specialRequests: data.specialRequests || undefined,
+        travelStyle: pkg?.category || "Curated Journey",
+      } as any
     }, {
       onSuccess: () => {
         toast({ title: "Booking Enquiry Sent", description: "Our concierge will contact you shortly to confirm details." });
@@ -311,10 +318,10 @@ export default function JourneyDetail() {
                 
                 <button 
                   type="submit"
-                  disabled={createOrder.isPending}
+                  disabled={createEnquiry.isPending}
                   className="w-full bg-gold text-bg font-mono uppercase tracking-widest text-xs py-4 hover:bg-gold-bright transition-colors disabled:opacity-50 mt-4"
                 >
-                  {createOrder.isPending ? "Sending..." : "Request to Book"}
+                  {createEnquiry.isPending ? "Sending..." : "Request to Book"}
                 </button>
               </form>
             </div>

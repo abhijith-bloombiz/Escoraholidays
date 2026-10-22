@@ -17,41 +17,48 @@ export interface TravelTypeItem {
 
 export interface TravelTypeCoverflowProps {
   items: TravelTypeItem[];
-  activeIndex?: number;
-  onActiveIndexChange?: (index: number) => void;
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
-const getCardTitle = (item: TravelTypeItem): string => {
-  switch (item.id) {
-    case "health-wellness":
-      return "Health & Wellness";
-    case "nature-wildlife":
-      return "Nature & Wildlife";
-    case "hill-stations":
-      return "Hill Stations";
-    case "backwaters":
-      return "Backwaters";
-    case "honeymoon":
-      return "Honeymoon";
-    case "beaches":
-      return "Kerala Beaches";
-    case "functional-medicine":
-      return "Functional Medicine";
-    case "historical-heritage":
-      return "Heritage & Culture";
-    default:
-      return item.label;
+export function formatTravelCategoryTitle(label: string, slug?: string): React.ReactNode {
+  const s = (slug || "").toLowerCase().trim();
+  if (s === "honeymoon") return <>Honey-<br/><em>moon</em></>;
+  if (s === "backwaters") return <>Back-<br/><em>waters</em></>;
+  if (s === "beaches") return <>Kerala<br/><em>Beaches</em></>;
+  if (s === "nature-wildlife") return <>Nature &amp;<br/><em>Wildlife</em></>;
+  if (s === "health-wellness") return <>Health &amp;<br/><em>Wellness</em></>;
+  if (s === "historical-heritage") return <>Historical<br/><em>&amp; Heritage</em></>;
+  if (s === "hill-stations") return <>Hill<br/><em>Stations</em></>;
+  if (s === "functional-medicine") return <>Functional<br/><em>Medicine</em></>;
+
+  const text = (label || "").trim();
+  if (text.includes("&")) {
+    const parts = text.split("&");
+    return <>{parts[0].trim()} &amp;<br /><em>{parts.slice(1).join("&").trim()}</em></>;
   }
+  const words = text.split(/\s+/);
+  if (words.length > 1) {
+    const firstPart = words.slice(0, -1).join(" ");
+    const lastWord = words[words.length - 1];
+    return <>{firstPart}<br /><em>{lastWord}</em></>;
+  }
+  return <em>{text}</em>;
+}
+
+const getCardDisplayName = (item: TravelTypeItem) => {
+  return (item.label || "").toUpperCase();
 };
 
 export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   items,
-  activeIndex: controlledIndex,
-  onActiveIndexChange,
+  isLoading,
+  isError,
+  onRetry,
 }) => {
-  // Center card initially on index 1 (Wellness) or controlledIndex
-  const [internalIndex, setInternalIndex] = useState(1);
-  const activeIndex = controlledIndex !== undefined ? controlledIndex : internalIndex;
+  // Center card initially on index 2 (matching reference design) or 0 if fewer items
+  const [activeIndex, setActiveIndex] = useState(() => (items.length > 2 ? 2 : 0));
   const [, navigate] = useLocation();
   const [isPaused, setIsPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -311,6 +318,20 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
     }
   };
 
+  /* Calculate shortest circular offset from activeIndex */
+  const getOffset = (idx: number) => {
+    let diff = (idx - activeIndex) % total;
+    if (diff > total / 2) diff -= total;
+    if (diff < -total / 2) diff += total;
+    return diff;
+  };
+
+  useEffect(() => {
+    if (items.length > 0 && activeIndex >= items.length) {
+      setActiveIndex(0);
+    }
+  }, [items.length, activeIndex]);
+
   /* Preload images */
   useEffect(() => {
     items.forEach((item) => {
@@ -321,14 +342,44 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
     });
   }, [items]);
 
-  /* Track offsets after render to detect wrap-around jumps */
-  useEffect(() => {
-    const nextOffsets: Record<string, number> = {};
-    items.forEach((item, i) => {
-      nextOffsets[item.id] = getOffset(i);
-    });
-    prevOffsetsRef.current = nextOffsets;
-  }, [items, getOffset]);
+  if (isLoading) {
+    return (
+      <div className="travel-type-coverflow-wrap flex items-center justify-center py-24 text-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-2 border-[#c59a58]/30 border-t-[#c59a58] rounded-full animate-spin" />
+          <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#E5C388]/90">Loading categories…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="travel-type-coverflow-wrap flex items-center justify-center py-20 text-center">
+        <div className="flex flex-col items-center gap-3 max-w-sm px-4">
+          <p className="text-xs font-mono uppercase tracking-[0.2em] text-red-400">Failed to load travel categories</p>
+          <p className="text-xs text-white/60">Unable to load category information from the server.</p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="px-4 py-2 rounded-full border border-[#c59a58]/40 text-[#c59a58] text-xs font-mono tracking-wider hover:bg-[#c59a58]/10 transition-colors mt-2"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!items || items.length === 0) {
+    return (
+      <div className="travel-type-coverflow-wrap flex items-center justify-center py-20 text-center">
+        <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#E5C388]/70">No travel categories available at this time.</p>
+      </div>
+    );
+  }
 
   if (!items || items.length === 0) return null;
 
@@ -396,16 +447,20 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
                     <span className="coverflow-badge-pill">{item.label}</span>
                   </div>
 
-                  {/* ─── Bottom Content: Title + Count + 'View All →' Button ─── */}
-                  <div className="tt-card-content">
-                    <div className="tt-card-info">
-                      <h3 className="tt-card-title text-white">{getCardTitle(item)}</h3>
-                      <p className="tt-card-count">{item.count}</p>
-                      {item.desc && (
-                        <div className="tt-card-reveal">
-                          <p className="tt-card-desc">{item.desc}</p>
-                        </div>
-                      )}
+                  {/* Center (Active) card editorial content with 3D depth */}
+                  <div className="coverflow-center-top">
+                    <span className="coverflow-loc-label">KERALA, INDIA</span>
+                    <span className="coverflow-loc-line" />
+                  </div>
+
+                  <div className="coverflow-center-bottom">
+                    <h3 className="coverflow-center-title">
+                      {item.name || formatTravelCategoryTitle(item.label, item.id)}
+                    </h3>
+                    <p className="coverflow-center-desc">{item.desc}</p>
+                    <div className="coverflow-explore-cta">
+                      <span className="cta-text">EXPLORE →</span>
+                      <span className="cta-gold-line" />
                     </div>
 
                     <a

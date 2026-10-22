@@ -77,16 +77,14 @@ const PACKAGE_IMAGES: Record<string, string> = {
 };
 
 function resolvePackageImage(pkg: { slug?: string; heroImageUrl?: string | null }): string {
+  if (
+    pkg.heroImageUrl &&
+    !pkg.heroImageUrl.includes("photo-1556470478-98bd74cfc940") &&
+    !pkg.heroImageUrl.includes("photo-1623864703759-4509539ab8ee")
+  ) {
+    return pkg.heroImageUrl;
+  }
   if (pkg.slug && PACKAGE_IMAGES[pkg.slug]) {
-    // If the image is empty or the known broken unsplash URLs, use the verified local asset
-    if (
-      !pkg.heroImageUrl ||
-      pkg.heroImageUrl.includes("photo-1556470478-98bd74cfc940") ||
-      pkg.heroImageUrl.includes("photo-1623864703759-4509539ab8ee")
-    ) {
-      return PACKAGE_IMAGES[pkg.slug];
-    }
-    // High-resolution authentic local collections asset takes priority
     return PACKAGE_IMAGES[pkg.slug];
   }
   return pkg.heroImageUrl || fortKochiSunset;

@@ -48,7 +48,7 @@ router.get("/journal", async (req, res, next): Promise<void> => {
   }
 
   try {
-    const posts = await JournalPostModel.find(filter).sort({ createdAt: 1 }).lean();
+    const posts = await JournalPostModel.find(filter).sort({ createdAt: -1 }).lean();
     res.json(ListJournalPostsResponse.parse(posts.map(serializeDates)));
   } catch (err) {
     next(err);

@@ -255,10 +255,10 @@ async function runApiTests(BASE: string, serverProcess?: ChildProcess): Promise<
     assert(pkgCreate.status === 201 && typeof pkgData.id === "number", "POST /api/packages creates package");
     createdPkgIds.add(pkgData.id);
 
-    // Create booking order with all required fields including guestPhone
+    // Create booking order with all required fields including guestPhone (admin session required)
     const orderCreate = await fetch(`${BASE}/api/orders`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Cookie: adminCookie },
       body: JSON.stringify({
         packageId: pkgData.id,
         packageName: "Test Cardamom Retreat",
@@ -268,6 +268,7 @@ async function runApiTests(BASE: string, serverProcess?: ChildProcess): Promise<
         guestCount: 2,
         travelDate: "2026-11-20",
         budgetRange: "₹1,50,000+",
+        status: "enquiry",
       }),
     });
     const orderData = await orderCreate.json();

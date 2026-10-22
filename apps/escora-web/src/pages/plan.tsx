@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useListDestinations, useCreateOrder } from "@workspace/api-client-react";
+import { useListDestinations, useCreateEnquiry } from "@workspace/api-client-react";
 import Layout from "@/components/layout/Layout";
 import { Link } from "wouter";
 import { useSeo } from "@/hooks/useSeo";
@@ -66,6 +66,7 @@ interface FormData {
   adults: number;
   children: number;
   budgetRange: string;
+  currency: string;
   preferences: string;
   name: string;
   email: string;
@@ -81,6 +82,7 @@ const EMPTY: FormData = {
   adults: 2,
   children: 0,
   budgetRange: "",
+  currency: "INR",
   preferences: "",
   name: "",
   email: "",
@@ -103,10 +105,14 @@ export default function PlanPage() {
   const [error, setError] = useState("");
 
   const { data: destinations } = useListDestinations({ published: true });
-  const createOrder = useCreateOrder();
+  const createEnquiry = useCreateEnquiry();
 
   useEffect(() => {
-    const preselected = new URLSearchParams(window.location.search).get("destination");
+    const searchParams = new URLSearchParams(window.location.search);
+    const preselected = searchParams.get("destination");
+    const queryCurrency = searchParams.get("currency");
+    const queryBudget = searchParams.get("budget");
+
     if (preselected) {
       setForm((f) => (f.destinations.includes(preselected) ? f : { ...f, destinations: [...f.destinations, preselected] }));
     }
@@ -123,9 +129,17 @@ export default function PlanPage() {
             ...f,
             destinations: nextDestinations,
             travelStyle: (parsed.style as TravelStyle) || f.travelStyle,
+            currency: parsed.currency || queryCurrency || f.currency,
+            budgetRange: parsed.budgetRange || parsed.budget || queryBudget || f.budgetRange,
             preferences: parsed.notes ? `${parsed.notes}\n\n${f.preferences}`.trim() : f.preferences,
           };
         });
+      } else if (queryCurrency || queryBudget) {
+        setForm((f) => ({
+          ...f,
+          currency: queryCurrency || f.currency,
+          budgetRange: queryBudget || f.budgetRange,
+        }));
       }
     } catch {
       // Ignore storage errors
@@ -172,18 +186,19 @@ export default function PlanPage() {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || undefined,
     };
 
-    createOrder.mutate(
+    createEnquiry.mutate(
       {
         data: {
-          guestName: form.name,
-          guestEmail: form.email,
-          guestPhone: form.phone,
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
           travelStyle: form.travelStyle || undefined,
           destinations: form.destinations.length ? form.destinations.join(", ") : undefined,
           travelDate: form.arrivalDate || undefined,
           departureDate: form.departureDate || undefined,
           guestCount: (form.adults + form.children) || undefined,
           budgetRange: form.budgetRange || undefined,
+          currency: form.currency || "INR",
           specialRequests: form.preferences || undefined,
           marketingConsent: form.marketingConsent,
           ...trackingData,
@@ -202,22 +217,23 @@ export default function PlanPage() {
     <Layout>
       <div className="min-h-screen bg-[#FAF8F5] text-[#293D1F] pt-28 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto space-y-6">
-          {/* AI Trip Planner Bridge Card */}
+          {/* Subtle AI Trip Planner Alternative */}
           <div className="bg-[#F3F7F4] border border-[#DCE6E0] rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
             <div className="space-y-0.5">
-              <div className="font-serif text-sm sm:text-base font-semibold text-[#293D1F] flex items-center gap-1.5">
-                <Sparkles className="w-4 h-4 text-[#293D1F]" />
-                <span>Looking for an instant AI-designed itinerary?</span>
+              <div className="font-serif text-sm sm:text-base font-semibold text-[#183628] flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-[#183628]" />
+                <span>Prefer AI trip planning?</span>
               </div>
               <p className="text-xs text-[#56664C] leading-relaxed">
-                Curate a bespoke day-by-day slow-luxury passage in seconds, grounded in our verified catalog.
+                Let AI create a personalized Kerala itinerary based on your preferences.
               </p>
             </div>
             <Link
               href="/trip-planner"
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#183628] hover:bg-[#255239] text-white text-xs font-mono uppercase tracking-wider font-medium transition-all shrink-0 shadow-xs"
+              aria-label="Explore AI Trip Planner"
             >
-              <span>AI Trip Planner</span>
+              <span>Explore AI Trip Planner</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -456,10 +472,27 @@ export default function PlanPage() {
 
                 {/* Approximate Budget Per Person */}
                 <div className="space-y-3 mb-8">
-                  <label className="block text-xs font-mono uppercase tracking-wider text-[#293D1F] font-semibold">
-                    Approximate Budget Per Person
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-[#183628] font-semibold">
+                      Approximate Budget Per Person
+                    </label>
+                    {form.currency && form.currency !== "INR" && (
+                      <span className="text-[11px] font-mono text-[#788A63] font-semibold bg-[#FAF8F5] border border-[#DCE6E0] px-2.5 py-0.5 rounded-full">
+                        Currency: {form.currency}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-2.5">
+                    {form.budgetRange && !BUDGET_OPTIONS.includes(form.budgetRange) && (
+                      <button
+                        type="button"
+                        onClick={() => {}}
+                        className="px-4 py-2.5 rounded-full text-xs font-mono transition-all bg-[#183628] text-white border-2 border-[#183628] font-semibold shadow-2xs flex items-center gap-1.5"
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        <span>AI Plan: {form.budgetRange}</span>
+                      </button>
+                    )}
                     {BUDGET_OPTIONS.map((b) => {
                       const isSelected = form.budgetRange === b;
                       return (
@@ -615,10 +648,10 @@ export default function PlanPage() {
 
                   <button
                     type="submit"
-                    disabled={createOrder.isPending}
+                    disabled={createEnquiry.isPending}
                     className="px-8 py-3.5 rounded-full bg-[#183628] hover:bg-[#255239] text-white font-medium text-sm flex items-center gap-2 transition-all shadow-sm disabled:opacity-60"
                   >
-                    <span>{createOrder.isPending ? "Sending…" : "Send Enquiry"}</span>
+                    <span>{createEnquiry.isPending ? "Sending…" : "Send Enquiry"}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>

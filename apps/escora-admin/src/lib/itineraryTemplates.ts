@@ -9,6 +9,8 @@ import {
   DEFAULT_HOTEL_TERMS,
   DEFAULT_PAYMENT_TERMS,
   DEFAULT_IMPORTANT_INFO,
+  parseDays,
+  parseStays,
 } from "@/lib/itinerary";
 import alleppeyCoverImg from "@assets/escora/destinations/alleppey.jpg";
 import kovalamCleanImg from "@assets/escora/destinations/kovalam-clean.jpg";
@@ -44,6 +46,7 @@ export interface ItineraryTemplate {
   hotelTerms?: string[];
   paymentTerms?: string[];
   importantInfo?: string[];
+  isPredefined?: boolean;
 }
 
 export const itineraryTemplates: ItineraryTemplate[] = [
@@ -623,13 +626,17 @@ export const itineraryTemplates: ItineraryTemplate[] = [
 /**
  * Format consistent duration string from actual template data: e.g. "6 Days · 5 Nights"
  */
-export function getTemplateDuration(template: ItineraryTemplate): string {
+export function getTemplateDuration(template: any): string {
+  if (!template) return "Flexible Duration";
+
+  const parsedStays = Array.isArray(template.stays) ? template.stays : parseStays(template.stays);
   let nights = 0;
-  if (template.stays && template.stays.length > 0) {
-    nights = template.stays.reduce((sum, s) => sum + (s.nights || 0), 0);
+  if (parsedStays && parsedStays.length > 0) {
+    nights = parsedStays.reduce((sum: number, s: any) => sum + (Number(s.nights) || 0), 0);
   }
 
-  let days = template.days?.length || 0;
+  const parsedDays = Array.isArray(template.days) ? template.days : parseDays(template.days);
+  let days = parsedDays?.length || 0;
   if (template.id === "kozhikode-wayanad") {
     days = 4; // Core itinerary days (Day 5 contains optional extensions note)
   }
@@ -646,11 +653,12 @@ export function getTemplateDuration(template: ItineraryTemplate): string {
   return "Flexible Duration";
 }
 
+
 /**
  * Clean route / destination display without overflowing card badges
  */
-export function getTemplateRoute(template: ItineraryTemplate): string {
-  if (template.destination) {
+export function getTemplateRoute(template: any): string {
+  if (template?.destination) {
     return template.destination.replace(/,\s*India/gi, "").replace(/,\s*Keralam/gi, "").trim();
   }
   return "Kerala";

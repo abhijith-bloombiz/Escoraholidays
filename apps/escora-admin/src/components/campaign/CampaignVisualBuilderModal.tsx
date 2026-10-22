@@ -7,6 +7,7 @@ import {
   Check,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   Smartphone,
   Monitor,
   Sparkles,
@@ -206,7 +207,10 @@ export default function CampaignVisualBuilderModal({
     totalSelected: number;
     eligibleRecipients: number;
     activeSubscribers: number;
+    subscribedCount?: number;
+    notSubscribedCount?: number;
     unsubscribedCount: number;
+    suppressedCount?: number;
     excludedNotSubscribed: number;
     excludedUnsubscribed: number;
     excludedSuppressed: number;
@@ -217,6 +221,9 @@ export default function CampaignVisualBuilderModal({
       isSubscribed: boolean;
       isSuppressed?: boolean;
       consentStatus?: string;
+      isEligible?: boolean;
+      eligibilityReason?: string;
+      exclusionReason?: string;
     }>;
   }>({
     queryKey: ["campaigns", "audience-estimate", fields.audienceType, fields.groupId],
@@ -233,6 +240,11 @@ export default function CampaignVisualBuilderModal({
           sampleRecipients: [],
         };
       }
+      const parsedGroupId =
+        fields.groupId !== undefined && fields.groupId !== "" && !isNaN(Number(fields.groupId))
+          ? Number(fields.groupId)
+          : undefined;
+
       const res = await fetch("/api/campaigns/audience-estimate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -240,7 +252,8 @@ export default function CampaignVisualBuilderModal({
         body: JSON.stringify({
           targetAudience: {
             type: fields.audienceType,
-            groupIds: fields.groupId ? [fields.groupId] : undefined,
+            groupId: parsedGroupId,
+            groupIds: parsedGroupId !== undefined ? [parsedGroupId] : undefined,
           },
         }),
       });
@@ -297,12 +310,12 @@ export default function CampaignVisualBuilderModal({
   const previewResolution = simulateSampleData
     ? resolveMergeTagsClient(compiledHtml, selectedSampleProfile)
     : {
-        rendered: compiledHtml,
-        tagValues: {},
-        usedFallbacks: { name: false, destination: false },
-        unresolvedTags: detectUnresolvedAndMalformedTags(compiledHtml).unresolved,
-        malformedTags: detectUnresolvedAndMalformedTags(compiledHtml).malformed,
-      };
+      rendered: compiledHtml,
+      tagValues: {},
+      usedFallbacks: { name: false, destination: false },
+      unresolvedTags: detectUnresolvedAndMalformedTags(compiledHtml).unresolved,
+      malformedTags: detectUnresolvedAndMalformedTags(compiledHtml).malformed,
+    };
 
   const previewHtml = previewResolution.rendered;
 
@@ -310,12 +323,12 @@ export default function CampaignVisualBuilderModal({
   const previewSubjectResult = simulateSampleData
     ? resolveMergeTagsClient(fields.subject, selectedSampleProfile, { isHtml: false })
     : {
-        rendered: fields.subject,
-        tagValues: {},
-        usedFallbacks: { name: false, destination: false },
-        unresolvedTags: detectUnresolvedAndMalformedTags(fields.subject).unresolved,
-        malformedTags: detectUnresolvedAndMalformedTags(fields.subject).malformed,
-      };
+      rendered: fields.subject,
+      tagValues: {},
+      usedFallbacks: { name: false, destination: false },
+      unresolvedTags: detectUnresolvedAndMalformedTags(fields.subject).unresolved,
+      malformedTags: detectUnresolvedAndMalformedTags(fields.subject).malformed,
+    };
 
   const previewSubject = previewSubjectResult.rendered;
 
@@ -342,7 +355,7 @@ export default function CampaignVisualBuilderModal({
   }
   if ((fields.audienceType as string) === "custom_segment") {
     validationErrors.push(
-      "The 'Custom Destination Segment' audience option has been retired. Please select one of the four supported audience segments (All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, or Audience Group)."
+      "The 'Custom Destination Segment' audience option has been retired. Please select one of the five supported audience segments (All Contacts, Inquiries Prospects Only, Confirmed Journey Guests Only, Subscribed Contacts Only, or Audience Group)."
     );
   }
 
@@ -473,22 +486,20 @@ export default function CampaignVisualBuilderModal({
                   key={step.id}
                   type="button"
                   onClick={() => setCurrentStep(step.id)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-colors shrink-0 ${
-                    isActive
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs transition-colors shrink-0 ${isActive
                       ? "bg-[#24543D] text-[#FAF7F1] font-medium shadow-xs"
                       : isPast
-                      ? "bg-[#24543D]/10 text-[#24543D] hover:bg-[#24543D]/15"
-                      : "text-muted-foreground hover:bg-muted/30"
-                  }`}
+                        ? "bg-[#24543D]/10 text-[#24543D] hover:bg-[#24543D]/15"
+                        : "text-muted-foreground hover:bg-muted/30"
+                    }`}
                 >
                   <span
-                    className={`h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                      isActive
+                    className={`h-4 w-4 rounded-full flex items-center justify-center text-[10px] font-bold ${isActive
                         ? "bg-[#FAF7F1] text-[#24543D]"
                         : isPast
-                        ? "bg-[#24543D] text-[#FAF7F1]"
-                        : "bg-muted text-muted-foreground"
-                    }`}
+                          ? "bg-[#24543D] text-[#FAF7F1]"
+                          : "bg-muted text-muted-foreground"
+                      }`}
                   >
                     {isPast ? <Check className="h-2.5 w-2.5" /> : step.number}
                   </span>
@@ -547,10 +558,10 @@ export default function CampaignVisualBuilderModal({
                       }
                       className="w-full h-10 px-3 rounded-md bg-white dark:bg-background border border-[#E5DDD0] text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[#24543D]"
                     >
-                      <option value="all_contacts">All Contacts (Enquiries + Bookings)</option>
+                      <option value="all_contacts">All Contacts (Subscribers, Enquiries & Bookings)</option>
                       <option value="enquiries_only">Inquiries Prospects Only</option>
                       <option value="confirmed_guests">Confirmed Journey Guests Only</option>
-                      <option value="subscribed_contacts">Subscribed Contacts Only</option>
+                      <option value="subscribed_contacts">Only Subscribed (Marketing Consent Required)</option>
                       <option value="audience_group">Audience Group (Custom Segment)</option>
                       {(fields.audienceType as string) === "custom_segment" && (
                         <option value="custom_segment" disabled>
@@ -559,7 +570,9 @@ export default function CampaignVisualBuilderModal({
                       )}
                     </select>
                     <span className="text-[11px] text-muted-foreground">
-                      Selects active, subscribed contacts matching these criteria.
+                      {fields.audienceType === "subscribed_contacts"
+                        ? "Restricts audience strictly to contacts with verified marketing consent. Not-subscribed contacts are excluded."
+                        : "Includes matching contacts from this source in the audience. Email delivery is safely restricted to contacts with verified marketing consent."}
                     </span>
 
                     {(fields.audienceType as string) === "custom_segment" && (
@@ -567,7 +580,7 @@ export default function CampaignVisualBuilderModal({
                         <AlertCircle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
                         <div>
                           <span className="font-semibold block">Retired Audience Option</span>
-                          This campaign was saved with the retired <strong>Custom Destination Segment</strong>. Please reassign the audience to one of the four supported segments above before saving.
+                          This campaign was saved with the retired <strong>Custom Destination Segment</strong>. Please reassign the audience to one of the five supported segments above before saving.
                         </div>
                       </div>
                     )}
@@ -619,26 +632,45 @@ export default function CampaignVisualBuilderModal({
                     <div className="text-muted-foreground py-2 text-center">Calculating audience breakdown...</div>
                   ) : audienceEstimate ? (
                     <div className="space-y-2">
-                      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-center">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-center">
                         <div className="bg-white/80 p-2 rounded border border-[#E5DDD0]">
                           <span className="text-sm font-bold block text-foreground">{audienceEstimate.totalSelected}</span>
                           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Selected</span>
                         </div>
                         <div className="bg-emerald-50/80 p-2 rounded border border-emerald-200">
                           <span className="text-sm font-bold block text-emerald-800">{audienceEstimate.eligibleRecipients}</span>
-                          <span className="text-[10px] text-emerald-700 uppercase tracking-wider font-semibold">Eligible Marketing</span>
+                          <span className="text-[10px] text-emerald-700 uppercase tracking-wider font-semibold">Eligible Delivery</span>
+                        </div>
+                        <div className="bg-emerald-50/60 p-2 rounded border border-emerald-200/80">
+                          <span className="text-sm font-bold block text-emerald-700">{audienceEstimate.subscribedCount ?? audienceEstimate.activeSubscribers ?? 0}</span>
+                          <span className="text-[10px] text-emerald-600 uppercase tracking-wider">Subscribed</span>
                         </div>
                         <div className="bg-slate-50/80 p-2 rounded border border-slate-200">
-                          <span className="text-sm font-bold block text-slate-700">{audienceEstimate.excludedNotSubscribed}</span>
+                          <span className="text-sm font-bold block text-slate-700">{audienceEstimate.notSubscribedCount ?? 0}</span>
                           <span className="text-[10px] text-slate-600 uppercase tracking-wider">Not Subscribed</span>
                         </div>
                         <div className="bg-amber-50/80 p-2 rounded border border-amber-200">
-                          <span className="text-sm font-bold block text-amber-800">{audienceEstimate.excludedUnsubscribed}</span>
+                          <span className="text-sm font-bold block text-amber-800">{audienceEstimate.unsubscribedCount ?? 0}</span>
                           <span className="text-[10px] text-amber-700 uppercase tracking-wider">Unsubscribed</span>
                         </div>
                         <div className="bg-red-50/80 p-2 rounded border border-red-200">
-                          <span className="text-sm font-bold block text-red-700">{audienceEstimate.excludedSuppressed}</span>
+                          <span className="text-sm font-bold block text-red-700">{audienceEstimate.suppressedCount ?? 0}</span>
                           <span className="text-[10px] text-red-600 uppercase tracking-wider">Suppressed</span>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded bg-white/70 dark:bg-card/70 border border-[#E5DDD0] text-[11px] space-y-1.5 text-muted-foreground">
+                        <div className="flex items-center justify-between text-foreground font-medium">
+                          <span>Reconciliation: {audienceEstimate.eligibleRecipients} Eligible / {audienceEstimate.totalSelected} Selected</span>
+                          <span className="text-[10px] text-emerald-700 font-semibold">{audienceEstimate.subscribedCount ?? audienceEstimate.activeSubscribers ?? 0} Subscribed</span>
+                        </div>
+                        <div className="text-[10px] space-y-0.5">
+                          <div>
+                            <strong>Membership:</strong> {audienceEstimate.subscribedCount ?? audienceEstimate.activeSubscribers ?? 0} subscribed + {audienceEstimate.notSubscribedCount ?? 0} not subscribed + {audienceEstimate.unsubscribedCount ?? 0} unsubscribed + {audienceEstimate.suppressedCount ?? 0} suppressed = <strong>{audienceEstimate.totalSelected} total selected</strong>.
+                          </div>
+                          <div>
+                            <strong>Delivery:</strong> <span className="text-emerald-700 font-semibold">{audienceEstimate.eligibleRecipients} deliverable</span> with verified consent. {((audienceEstimate.totalSelected ?? 0) - audienceEstimate.eligibleRecipients)} excluded from delivery ({audienceEstimate.notSubscribedCount ?? 0} missing marketing consent, {audienceEstimate.unsubscribedCount ?? 0} unsubscribed, {audienceEstimate.suppressedCount ?? 0} suppressed).
+                          </div>
                         </div>
                       </div>
 
@@ -646,12 +678,12 @@ export default function CampaignVisualBuilderModal({
                         <div className="p-2 rounded bg-amber-50 border border-amber-200 text-amber-800 text-[11px] flex items-center gap-1.5">
                           <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-600" />
                           <span>
-                            <strong>0 eligible marketing recipients:</strong> All selected contacts are either not subscribed, unsubscribed, or suppressed. Marketing emails require explicit marketing consent.
+                            <strong>0 eligible marketing recipients:</strong> All selected contacts are either unsubscribed or suppressed, or lack required consent.
                           </span>
                         </div>
                       ) : (
                         <div className="text-[11px] text-muted-foreground">
-                          ✓ <strong>{audienceEstimate.eligibleRecipients}</strong> out of <strong>{audienceEstimate.totalSelected}</strong> contacts have verified marketing consent and will receive this campaign.
+                          ✓ <strong>{audienceEstimate.eligibleRecipients}</strong> out of <strong>{audienceEstimate.totalSelected}</strong> contacts are eligible and will receive this campaign.
                         </div>
                       )}
                     </div>
@@ -765,11 +797,10 @@ export default function CampaignVisualBuilderModal({
                     <div
                       key={tmpl.id}
                       onClick={() => handleSelectTemplate(tmpl)}
-                      className={`cursor-pointer rounded-xl border transition-all duration-200 overflow-hidden flex flex-col bg-[#FFFDF9] dark:bg-card ${
-                        isSelected
+                      className={`cursor-pointer rounded-xl border transition-all duration-200 overflow-hidden flex flex-col bg-[#FFFDF9] dark:bg-card ${isSelected
                           ? "border-[#24543D] ring-2 ring-[#24543D]/25 shadow-md"
                           : "border-[#E5DDD0] hover:border-[#24543D]/50 hover:shadow-xs"
-                      }`}
+                        }`}
                     >
                       {/* Template Mini Preview Banner */}
                       <div className="h-36 bg-[#F4EFE6] dark:bg-muted/40 relative overflow-hidden flex items-center justify-center p-4 border-b border-[#E5DDD0]">
@@ -829,11 +860,10 @@ export default function CampaignVisualBuilderModal({
                             type="button"
                             size="sm"
                             onClick={() => handleSelectTemplate(tmpl)}
-                            className={`h-7 text-xs px-3 font-medium ${
-                              isSelected
+                            className={`h-7 text-xs px-3 font-medium ${isSelected
                                 ? "bg-[#24543D] text-[#FAF7F1] hover:bg-[#1a3d2c]"
                                 : "bg-muted/80 text-foreground hover:bg-muted"
-                            }`}
+                              }`}
                           >
                             {isSelected ? "Selected" : "Use Template"}
                           </Button>
@@ -910,11 +940,10 @@ export default function CampaignVisualBuilderModal({
                           key={img.title}
                           type="button"
                           onClick={() => setFields({ ...fields, heroImage: img.url })}
-                          className={`group relative rounded-lg overflow-hidden h-20 border text-left transition-all ${
-                            isImgSelected
+                          className={`group relative rounded-lg overflow-hidden h-20 border text-left transition-all ${isImgSelected
                               ? "border-[#24543D] ring-2 ring-[#24543D]/30"
                               : "border-[#E5DDD0] hover:border-[#24543D]/50"
-                          }`}
+                            }`}
                         >
                           <img
                             src={img.url}
@@ -1162,11 +1191,10 @@ export default function CampaignVisualBuilderModal({
                           key={item.color}
                           type="button"
                           onClick={() => setFields({ ...fields, accentColor: item.color })}
-                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs transition-all ${
-                            fields.accentColor === item.color
+                          className={`flex items-center gap-2 px-2.5 py-1.5 rounded-lg border text-xs transition-all ${fields.accentColor === item.color
                               ? "border-foreground ring-1 ring-foreground/20 font-medium"
                               : "border-[#E5DDD0] opacity-80 hover:opacity-100"
-                          }`}
+                            }`}
                         >
                           <span
                             className="h-3.5 w-3.5 rounded-full"
@@ -1270,11 +1298,10 @@ export default function CampaignVisualBuilderModal({
                     <button
                       type="button"
                       onClick={() => setPreviewDevice("desktop")}
-                      className={`p-1.5 rounded text-xs flex items-center gap-1 ${
-                        previewDevice === "desktop"
+                      className={`p-1.5 rounded text-xs flex items-center gap-1 ${previewDevice === "desktop"
                           ? "bg-[#24543D] text-[#FAF7F1]"
                           : "text-muted-foreground hover:text-foreground"
-                      }`}
+                        }`}
                       title="Desktop view (620px width)"
                     >
                       <Monitor className="h-3.5 w-3.5" />
@@ -1282,11 +1309,10 @@ export default function CampaignVisualBuilderModal({
                     <button
                       type="button"
                       onClick={() => setPreviewDevice("mobile")}
-                      className={`p-1.5 rounded text-xs flex items-center gap-1 ${
-                        previewDevice === "mobile"
+                      className={`p-1.5 rounded text-xs flex items-center gap-1 ${previewDevice === "mobile"
                           ? "bg-[#24543D] text-[#FAF7F1]"
                           : "text-muted-foreground hover:text-foreground"
-                      }`}
+                        }`}
                       title="Mobile view (375px simulation)"
                     >
                       <Smartphone className="h-3.5 w-3.5" />
@@ -1328,11 +1354,10 @@ export default function CampaignVisualBuilderModal({
                   </span>
                   <Badge
                     variant="outline"
-                    className={`text-[10px] py-0 h-5 gap-1 ${
-                      previewResolution.usedFallbacks.name
+                    className={`text-[10px] py-0 h-5 gap-1 ${previewResolution.usedFallbacks.name
                         ? "bg-amber-500/10 text-amber-800 border-amber-300"
                         : "bg-emerald-500/10 text-emerald-800 border-emerald-300"
-                    }`}
+                      }`}
                   >
                     <span>{"{{name}}"}</span> →{" "}
                     <strong>{previewResolution.tagValues["{{name}}"] || selectedSampleProfile.name || "Valued Guest"}</strong>
@@ -1343,11 +1368,10 @@ export default function CampaignVisualBuilderModal({
 
                   <Badge
                     variant="outline"
-                    className={`text-[10px] py-0 h-5 gap-1 ${
-                      previewResolution.usedFallbacks.destination
+                    className={`text-[10px] py-0 h-5 gap-1 ${previewResolution.usedFallbacks.destination
                         ? "bg-amber-500/10 text-amber-800 border-amber-300"
                         : "bg-emerald-500/10 text-emerald-800 border-emerald-300"
-                    }`}
+                      }`}
                   >
                     <span>{"{{destination}}"}</span> →{" "}
                     <strong>{previewResolution.tagValues["{{destination}}"] || "Kerala"}</strong>
@@ -1376,11 +1400,10 @@ export default function CampaignVisualBuilderModal({
                   {emailConfig && (
                     <Badge
                       variant="outline"
-                      className={`text-[10px] py-0 h-4.5 ${
-                        emailConfig.isConfigured
+                      className={`text-[10px] py-0 h-4.5 ${emailConfig.isConfigured
                           ? "bg-emerald-500/10 text-emerald-700 border-emerald-300"
                           : "bg-amber-500/10 text-amber-700 border-amber-300"
-                      }`}
+                        }`}
                     >
                       {emailConfig.isConfigured
                         ? "Authenticated (Gmail SMTP)"
@@ -1405,9 +1428,8 @@ export default function CampaignVisualBuilderModal({
               {/* Rendered Email Simulator Container */}
               <div className="flex justify-center py-4 bg-[#F0ECE4] dark:bg-muted/30 rounded-2xl p-6 border border-[#E5DDD0]">
                 <div
-                  className={`transition-all duration-300 shadow-xl rounded-xl overflow-hidden bg-white ${
-                    previewDevice === "mobile" ? "w-[380px] max-w-full" : "w-[640px] max-w-full"
-                  }`}
+                  className={`transition-all duration-300 shadow-xl rounded-xl overflow-hidden bg-white ${previewDevice === "mobile" ? "w-[380px] max-w-full" : "w-[640px] max-w-full"
+                    }`}
                 >
                   {/* Phone Notch Simulation Header when in mobile mode */}
                   {previewDevice === "mobile" && (
@@ -1461,11 +1483,10 @@ export default function CampaignVisualBuilderModal({
 
               {/* Validation Status Checklist */}
               <div
-                className={`p-5 rounded-xl border ${
-                  isValid
+                className={`p-5 rounded-xl border ${isValid
                     ? "border-emerald-500/30 bg-emerald-500/5"
                     : "border-destructive/30 bg-destructive/5"
-                } space-y-3`}
+                  } space-y-3`}
               >
                 <div className="flex items-center gap-2">
                   {isValid ? (
@@ -1490,38 +1511,8 @@ export default function CampaignVisualBuilderModal({
 
                 {isValid && (
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    This campaign will be saved in <strong>Draft</strong> status. Staff approval and optional scheduling can be completed afterwards from the campaigns dashboard.
+                    This campaign will be saved in <strong>Draft</strong> status. You can preview, test, schedule, or send it directly from the campaigns dashboard.
                   </p>
-                )}
-
-                {initialCampaign?.status === "approved" && (
-                  <div className="p-3.5 rounded-lg border border-amber-500/40 bg-amber-500/10 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5">
-                    <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="block font-semibold">Approval Safeguard:</strong>
-                      Saving modifications to this approved campaign will automatically invalidate its existing approval and reset the status to <strong>Draft</strong>. It must be submitted and approved again before live sending.
-                    </div>
-                  </div>
-                )}
-
-                {initialCampaign?.status === "pending_approval" && (
-                  <div className="p-3.5 rounded-lg border border-blue-500/40 bg-blue-500/10 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5">
-                    <AlertCircle className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="block font-semibold">Review Queue Notice:</strong>
-                      Saving edits will withdraw this campaign from the pending approval queue and return it to <strong>Draft</strong> status. You can resubmit it for review when ready.
-                    </div>
-                  </div>
-                )}
-
-                {initialCampaign?.status === "rejected" && (
-                  <div className="p-3.5 rounded-lg border border-purple-500/40 bg-purple-500/10 text-xs text-purple-900 dark:text-purple-200 flex items-start gap-2.5">
-                    <AlertCircle className="h-4 w-4 text-purple-600 shrink-0 mt-0.5" />
-                    <div>
-                      <strong className="block font-semibold">Revision Notice:</strong>
-                      Saving your corrections will clear previous rejection remarks and reset the campaign to <strong>Draft</strong> status, ready for re-review.
-                    </div>
-                  </div>
                 )}
               </div>
 
@@ -1538,13 +1529,23 @@ export default function CampaignVisualBuilderModal({
                   </div>
                   <div>
                     <span className="text-muted-foreground block">Audience Segment:</span>
-                    <strong className="text-foreground capitalize">
+                    <strong className="text-foreground">
                       {(fields.audienceType as string) === "custom_segment" ? (
                         <span className="text-amber-700 dark:text-amber-400 font-semibold">
                           Custom Destination Segment (Retired — Action Required)
                         </span>
+                      ) : fields.audienceType === "all_contacts" ? (
+                        "All Contacts (Enquiries + Bookings)"
+                      ) : fields.audienceType === "enquiries_only" ? (
+                        "Inquiries Prospects Only"
+                      ) : fields.audienceType === "confirmed_guests" ? (
+                        "Confirmed Journey Guests Only"
+                      ) : fields.audienceType === "subscribed_contacts" ? (
+                        "Subscribed Contacts Only"
+                      ) : fields.audienceType === "audience_group" ? (
+                        "Audience Group (Custom Segment)"
                       ) : (
-                        fields.audienceType.replace("_", " ")
+                        fields.audienceType.replace(/_/g, " ")
                       )}
                     </strong>
                   </div>
@@ -1616,11 +1617,10 @@ export default function CampaignVisualBuilderModal({
               variant="outline"
               size="sm"
               onClick={() => setCurrentStep(currentStep === "preview" ? "customize" : "preview")}
-              className={`text-xs gap-1.5 h-9 ${
-                currentStep === "preview"
+              className={`text-xs gap-1.5 h-9 ${currentStep === "preview"
                   ? "bg-[#24543D]/10 text-[#24543D] border-[#24543D]/40 font-medium"
                   : "text-foreground"
-              }`}
+                }`}
             >
               <Eye className="h-3.5 w-3.5" />
               {currentStep === "preview" ? "Back to Editor" : "Live Preview"}
@@ -1720,7 +1720,7 @@ export default function CampaignVisualBuilderModal({
                 <span>Test Mode Only — Audience Protected</span>
               </div>
               <p className="text-[11px] leading-relaxed text-amber-800 dark:text-amber-300">
-                This dispatches a single test email exclusively to the email address entered below. 
+                This dispatches a single test email exclusively to the email address entered below.
                 <strong> No audience members or contacts will be emailed</strong>, and the campaign status will remain in Draft.
               </p>
             </div>

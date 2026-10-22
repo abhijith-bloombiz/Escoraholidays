@@ -8,6 +8,7 @@ import {
 import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
+import CreateBookingModal from "@/components/booking/CreateBookingModal";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -187,6 +188,7 @@ export default function OrdersPage() {
   const [sortBy, setSortBy] = useState("newest");
 
   // Modals state
+  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
   const [editing, setEditing] = useState<Order | null>(null);
@@ -461,6 +463,13 @@ export default function OrdersPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            className="bg-[#24543D] hover:bg-[#1b402e] text-[#FAF7F1] text-xs gap-1.5 font-medium shadow-xs cursor-pointer"
+            onClick={() => setOpenCreateModal(true)}
+          >
+            <ShoppingBag className="h-3.5 w-3.5" /> Create Booking
+          </Button>
           <Button
             variant="outline"
             size="sm"
@@ -825,7 +834,7 @@ export default function OrdersPage() {
                     </div>
                     {o.budgetRange && (
                       <div className="text-[11px] text-muted-foreground mt-0.5 truncate max-w-[120px]" title={o.budgetRange}>
-                        {o.budgetRange}
+                        {o.budgetRange}{o.currency ? ` (${o.currency})` : ""}
                       </div>
                     )}
                   </TableCell>
@@ -1088,7 +1097,7 @@ export default function OrdersPage() {
                   />
                   <InfoField
                     label="Budget Range"
-                    value={viewing.budgetRange || "—"}
+                    value={viewing.budgetRange ? `${viewing.budgetRange}${viewing.currency ? ` (${viewing.currency})` : ""}` : "—"}
                   />
                 </div>
               </div>
@@ -1436,6 +1445,13 @@ export default function OrdersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Manual Booking Creation Modal */}
+      <CreateBookingModal
+        isOpen={openCreateModal}
+        onClose={() => setOpenCreateModal(false)}
+        onCreated={(b) => setViewing(b)}
+      />
     </div>
   );
 }

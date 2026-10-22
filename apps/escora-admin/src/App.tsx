@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/Layout";
 import DashboardPage from "@/pages/DashboardPage";
 import DestinationsPage from "@/pages/DestinationsPage";
+import CategoriesPage from "@/pages/CategoriesPage";
+import TestimonialsPage from "@/pages/TestimonialsPage";
 import PackagesPage from "@/pages/PackagesPage";
 import ItinerariesPage from "@/pages/ItinerariesPage";
 import ItineraryDetailPage from "@/pages/ItineraryDetailPage";
@@ -63,6 +65,7 @@ function ProtectedRouter() {
       <Switch>
         <Route path="/" component={DashboardPage} />
         <Route path="/destinations" component={DestinationsPage} />
+        <Route path="/categories" component={CategoriesPage} />
         <Route path="/packages" component={PackagesPage} />
         <Route path="/itineraries/create" component={ItineraryCreatePage} />
         <Route path="/itinerary/create" component={ItineraryBuilderPage} />
@@ -78,6 +81,7 @@ function ProtectedRouter() {
         <Route path="/invoices" component={InvoicesPage} />
         <Route path="/orders" component={OrdersPage} />
         <Route path="/journal" component={JournalPage} />
+        <Route path="/testimonials" component={TestimonialsPage} />
         <Route path="/media" component={MediaPage} />
         <Route path="/enquiries" component={EnquiriesPage} />
         <Route path="/campaigns" component={CampaignsPage} />

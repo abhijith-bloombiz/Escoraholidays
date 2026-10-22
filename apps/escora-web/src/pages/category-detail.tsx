@@ -1,4 +1,5 @@
 import { useParams, Link } from "wouter";
+import { useListTravelCategories } from "@workspace/api-client-react";
 import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
 import honeymoonHero from "@assets/escora/collections/honeymoon-hero.jpg";
@@ -287,7 +288,27 @@ function parseHighlight(title: string) {
 
 export default function CategoryDetail() {
   const { category } = useParams<{ category: string }>();
-  const data = category ? CATEGORIES[category] : undefined;
+
+  const { data: apiCategories, isLoading } = useListTravelCategories({ published: true });
+  const categoryItem = apiCategories?.find((c) => c.slug === category);
+  const fallback = category ? CATEGORIES[category] : undefined;
+
+  const data: CategoryData | undefined = (categoryItem || fallback) ? {
+    label: categoryItem?.label ?? fallback?.label ?? "",
+    tagline: categoryItem?.description ?? fallback?.tagline ?? "",
+    heroImg: categoryItem?.imageUrl || fallback?.heroImg || honeymoonHero,
+    intro: categoryItem?.description ?? fallback?.intro ?? "",
+    inclusions: fallback?.inclusions ?? [
+      "Bespoke private vehicle and dedicated chauffeur throughout",
+      "Handpicked boutique or luxury heritage accommodation",
+      "Personalised daily pacing and curated local experiences",
+      "24-hour Escora concierge throughout your journey",
+    ],
+    highlights: fallback?.highlights ?? [],
+    priceFrom: categoryItem?.priceFrom ?? fallback?.priceFrom ?? "On Request",
+    priceLabel: categoryItem?.priceLabel ?? fallback?.priceLabel ?? "per person",
+    duration: categoryItem?.journeyCount ?? fallback?.duration ?? "5–10 nights",
+  } : undefined;
 
   const SEO_META: Record<string, { title: string; description: string }> = {
     "honeymoon": {
@@ -331,7 +352,17 @@ export default function CategoryDetail() {
     url: `https://www.escoraholidays.com/collections/${category ?? ""}`,
   });
 
-  if (!data) {
+  if (isLoading && !fallback) {
+    return (
+      <Layout>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="w-12 h-12 border-t border-gold animate-spin rounded-full" />
+        </div>
+      </Layout>
+    );
+  }
+
+  if (!data || (apiCategories && apiCategories.length > 0 && !categoryItem)) {
     return (
       <Layout>
         <div className="min-h-[60vh] flex flex-col items-center justify-center gap-6 text-center px-6">

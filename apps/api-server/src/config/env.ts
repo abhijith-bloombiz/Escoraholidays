@@ -41,7 +41,7 @@ export interface AppConfig {
   emailFrom: string;
   adminEmail: string;
   // Gmail SMTP / Authenticated Email Configuration
-  emailProvider: "auto" | "gmail" | "resend" | "mock";
+  emailProvider: "auto" | "gmail" | "resend";
   gmailUser: string;
   gmailAppPassword?: string;
   gmailFromName: string;
@@ -239,7 +239,7 @@ export const config: AppConfig = {
   emailFrom: process.env.EMAIL_FROM || "Escora Journeys <hello@escoraholidays.com>",
   adminEmail: process.env.ADMIN_EMAIL || "admin@escoraholidays.com",
   // Gmail SMTP / Authenticated Email Configuration
-  emailProvider: (process.env.EMAIL_PROVIDER as any) || "auto",
+  emailProvider: process.env.EMAIL_PROVIDER === "gmail" ? "gmail" : process.env.EMAIL_PROVIDER === "resend" ? "resend" : "auto",
   gmailUser: process.env.GMAIL_USER?.trim() || "arunopera7@gmail.com",
   gmailAppPassword: process.env.GMAIL_APP_PASSWORD?.trim() || undefined,
   gmailFromName: process.env.GMAIL_FROM_NAME?.trim() || "Escora Journeys",

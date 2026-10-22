@@ -1,9 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { Link } from "wouter";
-import { useListPackages, useListDestinations, useCreateEnquiry } from "@workspace/api-client-react";
+import {
+  useListPackages,
+  useListDestinations,
+  useCreateEnquiry,
+  useListTravelCategories,
+  useListTestimonials,
+} from "@workspace/api-client-react";
 import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
-import { TravelTypeCoverflow, TravelTypeItem } from "@/components/TravelTypeCoverflow";
+import { TravelTypeCoverflow, TravelTypeItem, formatTravelCategoryTitle } from "@/components/TravelTypeCoverflow";
 import { Flower2, SunMedium, Swords, HeartPulse } from "lucide-react";
 import TheEscoraWay from "@/components/TheEscoraWay";
 import Kerala3DDestinationExplorer from "@/components/Kerala3DDestinationExplorer";
@@ -415,16 +421,63 @@ export default function Home() {
   const [activeTestimonialIdx, setActiveTestimonialIdx] = useState<number>(0);
   const [isTestimonialHovered, setIsTestimonialHovered] = useState<boolean>(false);
 
+  const {
+    data: categoriesData,
+    isLoading: isCategoriesLoading,
+    isError: isCategoriesError,
+    refetch: refetchCategories,
+  } = useListTravelCategories({ published: true });
+
+  const {
+    data: testimonialsData,
+    isLoading: isTestimonialsLoading,
+    isError: isTestimonialsError,
+    refetch: refetchTestimonials,
+  } = useListTestimonials({ published: true });
+
+  const travelTypeItems: TravelTypeItem[] = useMemo(() => {
+    if (!categoriesData) return [];
+    return categoriesData.map((c) => ({
+      id: c.slug,
+      label: c.label,
+      img: c.imageUrl || "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80",
+      name: formatTravelCategoryTitle(c.label, c.slug),
+      desc: c.description || "",
+      price: c.priceFrom || undefined,
+      priceLabel: c.priceLabel || undefined,
+      count: c.journeyCount || "",
+      link: `/collections/${c.slug}`,
+    }));
+  }, [categoriesData]);
+
+  const testimonials = useMemo(() => {
+    return (testimonialsData || []).map((t) => ({
+      id: t.id,
+      name: t.name,
+      quote: t.quote,
+      av: t.avatarUrl || "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80",
+      photo: t.photoUrl || "/assets/testimonials/sunset-houseboat.jpg",
+      photoAlt: t.photoAlt || `${t.name} testimonial`,
+      rating: t.rating || 5,
+      cat: [t.category, t.dateLabel].filter(Boolean).join(" · ") || t.category || "",
+      meta: [t.location, t.category].filter(Boolean).join(" · ") || t.location || "",
+    }));
+  }, [testimonialsData]);
+
   useEffect(() => {
+    if (testimonials.length <= 1) return;
     if (isTestimonialHovered) return;
     const timer = setInterval(() => {
-      setActiveTestimonialIdx((prev) => (prev + 1) % TESTIMONIALS.length);
+      setActiveTestimonialIdx((prev) => (prev + 1) % testimonials.length);
     }, 5500);
     return () => clearInterval(timer);
-  }, [isTestimonialHovered]);
+  }, [isTestimonialHovered, testimonials.length]);
 
-
-
+  useEffect(() => {
+    if (testimonials.length > 0 && activeTestimonialIdx >= testimonials.length) {
+      setActiveTestimonialIdx(0);
+    }
+  }, [testimonials.length, activeTestimonialIdx]);
 
   useSeo({
     description: "Escora crafts luxury Kerala holiday packages — private honeymoon tours, Ayurveda retreats, backwater houseboat stays, and bespoke itineraries for discerning travellers from UK, Europe & the Gulf.",
@@ -548,7 +601,10 @@ export default function Home() {
             <div>
               <div className="eyebrow rv"><span className="dot" />Travel by Type</div>
               <h2 className="display-md rv d2" style={{ maxWidth: "20ch" }}>
-                Eight ways to discover <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kerala</em>.
+                {travelTypeItems.length > 0
+                  ? `${travelTypeItems.length === 8 ? "Eight" : travelTypeItems.length} ways to discover `
+                  : "Discover "}
+                <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kerala</em>.
               </h2>
             </div>
             <p className="rv d3" style={{ maxWidth: "38ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
@@ -556,7 +612,12 @@ export default function Home() {
             </p>
           </div>
 
-          <TravelTypeCoverflow items={TRAVEL_TYPE_ITEMS} />
+          <TravelTypeCoverflow
+            items={travelTypeItems}
+            isLoading={isCategoriesLoading}
+            isError={isCategoriesError}
+            onRetry={refetchCategories}
+          />
         </div>
       </section>
 
@@ -873,127 +934,170 @@ export default function Home() {
         </div>
 
         <div className="testi-carousel-wrapper">
-          <div className="testi-carousel-stage">
-            {TESTIMONIALS.map((t, i) => {
-              const N = TESTIMONIALS.length;
-              let diff = i - activeTestimonialIdx;
-              if (diff > N / 2) diff -= N;
-              if (diff < -N / 2) diff += N;
-
-              const isCenter = diff === 0;
-              const isLeft = diff === -1;
-              const isRight = diff === 1;
-
-              return (
-                <div
-                  key={i}
-                  className={`testi-carousel-item${isCenter ? " is-center" : ""}${isLeft ? " is-left" : ""}${isRight ? " is-right" : ""}`}
-                  style={{
-                    transform: isCenter
-                      ? "translateX(0) scale(1)"
-                      : isLeft
-                      ? "translateX(calc(-100% - 24px)) scale(0.96)"
-                      : isRight
-                      ? "translateX(calc(100% + 24px)) scale(0.96)"
-                      : "translateX(0) scale(0.85)",
-                    opacity: isCenter ? 1 : Math.abs(diff) === 1 ? 0.68 : 0,
-                    pointerEvents: isCenter ? "auto" : Math.abs(diff) === 1 ? "auto" : "none",
-                    zIndex: isCenter ? 5 : 2,
-                  }}
-                  onClick={() => {
-                    if (!isCenter) setActiveTestimonialIdx(i);
-                  }}
-                  role={isCenter ? "group" : "button"}
-                  tabIndex={isCenter ? undefined : 0}
-                  aria-label={isCenter ? undefined : `View testimonial by ${t.name}`}
-                  onKeyDown={(e) => {
-                    if (!isCenter && (e.key === "Enter" || e.key === " ")) {
-                      e.preventDefault();
-                      setActiveTestimonialIdx(i);
-                    }
-                  }}
+          {isTestimonialsLoading ? (
+            <div className="flex items-center justify-center py-24 text-center">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-2 border-[#c59a58]/30 border-t-[#c59a58] rounded-full animate-spin" />
+                <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#E5C388]/90">
+                  Loading traveller stories…
+                </p>
+              </div>
+            </div>
+          ) : isTestimonialsError ? (
+            <div className="flex items-center justify-center py-20 text-center">
+              <div className="flex flex-col items-center gap-3 max-w-sm px-4">
+                <p className="text-xs font-mono uppercase tracking-[0.2em] text-red-400">
+                  Failed to load traveller stories
+                </p>
+                <p className="text-xs text-white/60">
+                  Unable to connect to the testimonials service.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => refetchTestimonials()}
+                  className="px-4 py-2 rounded-full border border-[#c59a58]/40 text-[#c59a58] text-xs font-mono tracking-wider hover:bg-[#c59a58]/10 transition-colors mt-2"
                 >
-                  <div className="testi-card">
-                    {/* Left side: Travel Photo */}
-                    <div className="testi-card-photo-wrap">
-                      <img
-                        src={t.photo}
-                        alt={t.photoAlt}
-                        className="testi-card-photo"
-                        loading="lazy"
-                      />
-                    </div>
+                  Retry
+                </button>
+              </div>
+            </div>
+          ) : testimonials.length === 0 ? (
+            <div className="flex items-center justify-center py-20 text-center">
+              <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#E5C388]/70">
+                Traveller stories will be published soon.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="testi-carousel-stage">
+                {testimonials.map((t, i) => {
+                  const N = testimonials.length;
+                  let diff = i - activeTestimonialIdx;
+                  if (diff > N / 2) diff -= N;
+                  if (diff < -N / 2) diff += N;
 
-                    {/* Right side: Testimonial content */}
-                    <div className="testi-card-body">
-                      <div className="testi-quote-mark" aria-hidden="true">
-                        <svg viewBox="0 0 32 24" width="32" height="24" fill="#c59a58">
-                          <path d="M0 14.2c0-8.2 5.5-13.4 12.8-14.2l1.6 2.6C9.2 3.6 7 6.4 6.8 9.8c1.2-.4 2.6-.4 3.8.2 2.6 1.4 3.8 4.2 3.4 7-0.4 3-2.8 5.6-5.8 5.8-4.6.4-8.2-3.4-8.2-8.6zm17.6 0c0-8.2 5.5-13.4 12.8-14.2l1.6 2.6c-5.2 1-7.4 3.8-7.6 7.2 1.2-.4 2.6-.4 3.8.2 2.6 1.4 3.8 4.2 3.4 7-0.4 3-2.8 5.6-5.8 5.8-4.6.4-8.2-3.4-8.2-8.6z" />
-                        </svg>
-                      </div>
+                  const isCenter = diff === 0;
+                  const isLeft = diff === -1;
+                  const isRight = diff === 1;
 
-                      <blockquote
-                        className="testi-quote-text"
-                        dangerouslySetInnerHTML={{ __html: t.quote }}
-                      />
+                  return (
+                    <div
+                      key={t.id || i}
+                      className={`testi-carousel-item${isCenter ? " is-center" : ""}${isLeft ? " is-left" : ""}${isRight ? " is-right" : ""}`}
+                      style={{
+                        transform: isCenter
+                          ? "translateX(0) scale(1)"
+                          : isLeft
+                          ? "translateX(calc(-100% - 24px)) scale(0.96)"
+                          : isRight
+                          ? "translateX(calc(100% + 24px)) scale(0.96)"
+                          : "translateX(0) scale(0.85)",
+                        opacity: isCenter ? 1 : Math.abs(diff) === 1 ? 0.68 : 0,
+                        pointerEvents: isCenter ? "auto" : Math.abs(diff) === 1 ? "auto" : "none",
+                        zIndex: isCenter ? 5 : 2,
+                      }}
+                      onClick={() => {
+                        if (!isCenter) setActiveTestimonialIdx(i);
+                      }}
+                      role={isCenter ? "group" : "button"}
+                      tabIndex={isCenter ? undefined : 0}
+                      aria-label={isCenter ? undefined : `View testimonial by ${t.name}`}
+                      onKeyDown={(e) => {
+                        if (!isCenter && (e.key === "Enter" || e.key === " ")) {
+                          e.preventDefault();
+                          setActiveTestimonialIdx(i);
+                        }
+                      }}
+                    >
+                      <div className="testi-card">
+                        {/* Left side: Travel Photo */}
+                        <div className="testi-card-photo-wrap">
+                          <img
+                            src={t.photo}
+                            alt={t.photoAlt}
+                            className="testi-card-photo"
+                            loading="lazy"
+                          />
+                        </div>
 
-                      <div className="testi-card-footer">
-                        <div className="testi-author-info">
-                          <img src={t.av} alt={t.name} className="testi-author-avatar" />
-                          <div>
-                            <div className="testi-author-name">{t.name}</div>
-                            <div className="testi-author-meta">{t.meta}</div>
+                        {/* Right side: Testimonial content */}
+                        <div className="testi-card-body">
+                          <div className="testi-quote-mark" aria-hidden="true">
+                            <svg viewBox="0 0 32 24" width="32" height="24" fill="#c59a58">
+                              <path d="M0 14.2c0-8.2 5.5-13.4 12.8-14.2l1.6 2.6C9.2 3.6 7 6.4 6.8 9.8c1.2-.4 2.6-.4 3.8.2 2.6 1.4 3.8 4.2 3.4 7-0.4 3-2.8 5.6-5.8 5.8-4.6.4-8.2-3.4-8.2-8.6zm17.6 0c0-8.2 5.5-13.4 12.8-14.2l1.6 2.6c-5.2 1-7.4 3.8-7.6 7.2 1.2-.4 2.6-.4 3.8.2 2.6 1.4 3.8 4.2 3.4 7-0.4 3-2.8 5.6-5.8 5.8-4.6.4-8.2-3.4-8.2-8.6z" />
+                            </svg>
+                          </div>
+
+                          <blockquote
+                            className="testi-quote-text"
+                            dangerouslySetInnerHTML={{ __html: t.quote }}
+                          />
+
+                          <div className="testi-card-footer">
+                            <div className="testi-author-info">
+                              <img src={t.av} alt={t.name} className="testi-author-avatar" />
+                              <div>
+                                <div className="testi-author-name">{t.name}</div>
+                                <div className="testi-author-meta">{t.meta}</div>
+                              </div>
+                            </div>
+
+                            <div className="testi-rating" aria-label={`${t.rating} out of 5 stars`}>
+                              {"★".repeat(t.rating)}
+                            </div>
                           </div>
                         </div>
-
-                        <div className="testi-rating" aria-label="5 out of 5 stars">
-                          {"★".repeat(t.rating)}
-                        </div>
                       </div>
                     </div>
-                  </div>
+                  );
+                })}
+
+                {/* Left and Right navigation arrows overlapping the central card edges */}
+                {testimonials.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      className="testi-nav-arrow prev"
+                      onClick={() => setActiveTestimonialIdx((prev) => (prev - 1 + testimonials.length) % testimonials.length)}
+                      aria-label="Previous testimonial"
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M15 18l-6-6 6-6" />
+                      </svg>
+                    </button>
+
+                    <button
+                      type="button"
+                      className="testi-nav-arrow next"
+                      onClick={() => setActiveTestimonialIdx((prev) => (prev + 1) % testimonials.length)}
+                      aria-label="Next testimonial"
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M9 18l6-6-6-6" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Bottom pagination indicator pills */}
+              {testimonials.length > 1 && (
+                <div className="testi-indicators" role="tablist" aria-label="Testimonial indicators">
+                  {testimonials.map((t, idx) => (
+                    <button
+                      key={t.id || idx}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeTestimonialIdx === idx}
+                      aria-label={`View testimonial from ${t.name}`}
+                      className={`testi-indicator-pill${activeTestimonialIdx === idx ? " is-active" : ""}`}
+                      onClick={() => setActiveTestimonialIdx(idx)}
+                    />
+                  ))}
                 </div>
-              );
-            })}
-
-            {/* Left and Right navigation arrows overlapping the central card edges */}
-            <button
-              type="button"
-              className="testi-nav-arrow prev"
-              onClick={() => setActiveTestimonialIdx((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)}
-              aria-label="Previous testimonial"
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-
-            <button
-              type="button"
-              className="testi-nav-arrow next"
-              onClick={() => setActiveTestimonialIdx((prev) => (prev + 1) % TESTIMONIALS.length)}
-              aria-label="Next testimonial"
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6" />
-              </svg>
-            </button>
-          </div>
-
-          {/* Bottom pagination indicator pills */}
-          <div className="testi-indicators" role="tablist" aria-label="Testimonial indicators">
-            {TESTIMONIALS.map((t, idx) => (
-              <button
-                key={idx}
-                type="button"
-                role="tab"
-                aria-selected={activeTestimonialIdx === idx}
-                aria-label={`View testimonial from ${t.name}`}
-                className={`testi-indicator-pill${activeTestimonialIdx === idx ? " is-active" : ""}`}
-                onClick={() => setActiveTestimonialIdx(idx)}
-              />
-            ))}
-          </div>
+              )}
+            </>
+          )}
         </div>
       </section>
       <section className="enquiry-section-v2" id="contact" aria-label="Begin Your Journey">

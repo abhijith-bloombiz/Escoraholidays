@@ -17,6 +17,12 @@ import {
   Instagram,
   Twitter,
   Linkedin,
+  Clock,
+  MapPin,
+  ShieldCheck,
+  Award,
+  Sparkles,
+  Star,
 } from "lucide-react";
 import type {
   ItineraryDay,
@@ -35,6 +41,8 @@ import {
 
 import alleppeyFallbackImg from "@assets/escora/destinations/alleppey.jpg";
 import kumarakomFallbackImg from "@assets/escora/destinations/kumarakom.jpg";
+import munnarFallbackImg from "@assets/escora/destinations/munnar.jpg";
+import fortKochiFallbackImg from "@assets/escora/destinations/fort-kochi.jpg";
 
 export interface ItineraryPrintData {
   title: string;
@@ -123,14 +131,11 @@ export function computeItineraryDatesAndDuration(
 } {
   const daysCount = days.length > 0 ? days.length : 1;
 
-  // Nights calculation:
-  // 1. Calculate from stays if specified
   let nightsFromStays = 0;
   if (stays && stays.length > 0) {
     nightsFromStays = stays.reduce((acc, s) => acc + (s.nights || 0), 0);
   }
 
-  // 2. Calculate from dates if valid
   let nightsFromDates = 0;
   let parsedStart: Date | null = null;
   let parsedEnd: Date | null = null;
@@ -156,8 +161,6 @@ export function computeItineraryDatesAndDuration(
     }
   }
 
-  // Determine final nights:
-  // If stays specified, prefer stays; else if dates valid, prefer dates; else fallback to days - 1
   let finalNights = nightsFromStays;
   if (finalNights === 0 && nightsFromDates > 0) {
     finalNights = nightsFromDates;
@@ -166,14 +169,11 @@ export function computeItineraryDatesAndDuration(
     finalNights = Math.max(0, daysCount - 1);
   }
 
-  // Consistent start and end date labels
   let finalStartDateText = "Dates to be advised";
   let finalEndDateText = "Dates to be advised";
 
   if (parsedStart) {
     finalStartDateText = formatDDMMYYYY(parsedStart.toISOString());
-    // If an explicit endDate was provided and aligns, use it;
-    // otherwise calculate the end date corresponding to the itinerary's duration
     if (parsedEnd && nightsFromDates === daysCount - 1) {
       finalEndDateText = formatDDMMYYYY(parsedEnd.toISOString());
     } else {
@@ -197,10 +197,21 @@ export function computeItineraryDatesAndDuration(
 }
 
 function splitTitle(title: string): { line1: string; line2?: string } {
-  if (!title) return { line1: "Kerala", line2: "Journey" };
+  if (!title) return { line1: "Kerala", line2: "Slow-Luxury Journey" };
   const parts = title.trim().split(/\s+/);
-  if (parts.length === 1) return { line1: parts[0] };
-  if (parts.length === 2) return { line1: parts[0], line2: parts[1] };
+  if (parts.length <= 2) return { line1: title.trim() };
+  if (parts.length <= 4) {
+    const mid = Math.ceil(parts.length / 2);
+    return {
+      line1: parts.slice(0, mid).join(" "),
+      line2: parts.slice(mid).join(" "),
+    };
+  }
+  // If there's an en-dash or em-dash or hyphen separator, split by separator
+  const dashMatch = title.match(/^(.*?)\s*([—–-])\s*(.*?)$/);
+  if (dashMatch) {
+    return { line1: dashMatch[1].trim(), line2: dashMatch[3].trim() };
+  }
   const mid = Math.ceil(parts.length / 2);
   return {
     line1: parts.slice(0, mid).join(" "),
@@ -307,7 +318,7 @@ function EditorialHeading({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3">
       <h2
-        className="font-serif text-[19px] font-bold text-[#39271F] tracking-tight leading-none"
+        className="font-serif text-[18px] font-bold text-[#39271F] tracking-tight leading-none"
         style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
       >
         {title}
@@ -322,7 +333,7 @@ function EditorialHeading({ title }: { title: string }) {
  */
 function PageHeader({ title }: { title: string }) {
   return (
-    <div className="w-full mb-3.5">
+    <div className="w-full mb-3 shrink-0">
       <div className="flex items-center justify-between pb-1">
         <EditorialHeading title={title} />
         <BrandLogo variant="dark" />
@@ -333,12 +344,25 @@ function PageHeader({ title }: { title: string }) {
 }
 
 /**
- * Page Footer with border and page numbering
+ * Page Footer with reference number on left and page indicator on right
  */
-function PageFooterIndicator({ pageNum, totalPages }: { pageNum: number; totalPages: number }) {
+function PageFooterIndicator({
+  pageNum,
+  totalPages,
+  referenceNumber,
+}: {
+  pageNum: number;
+  totalPages: number;
+  referenceNumber?: string;
+}) {
   return (
-    <div className="text-right text-[9px] font-mono text-[#685D56] pt-1 border-t border-[#E4DDD3]/60">
-      {formatPageNum(pageNum, totalPages)}
+    <div className="w-full pt-1.5 border-t border-[#E4DDD3]/70 flex items-center justify-between text-[8.5px] text-[#685D56] shrink-0">
+      <span className="font-mono tracking-wide">
+        {referenceNumber ? `REF: ${referenceNumber}` : "ESCORA LUXURY TRAVEL DOSSIER"}
+      </span>
+      <span className="font-mono tabular-nums">
+        {formatPageNum(pageNum, totalPages)}
+      </span>
     </div>
   );
 }
@@ -351,6 +375,7 @@ function ItineraryDayBlock({
   header,
   title,
   description,
+  activities = [],
   optionalActivities,
   meals,
   stay,
@@ -361,6 +386,7 @@ function ItineraryDayBlock({
   header: { weekday: string; dateText: string };
   title?: string | null;
   description?: string | null;
+  activities?: Array<{ time?: string; title: string; description?: string }>;
   optionalActivities?: string[] | string | null;
   meals?: string | null;
   stay?: string | null;
@@ -368,19 +394,20 @@ function ItineraryDayBlock({
   isLastOnPage?: boolean;
 }) {
   const hasImages = images && images.length > 0;
+  const hasActivities = activities && activities.length > 0;
 
   return (
-    <div className="flex gap-4 relative w-full mb-3">
+    <div className="flex gap-4 relative w-full mb-2.5 last:mb-0">
       {/* Left Timeline Gutter */}
-      <div className="w-12 shrink-0 flex flex-col items-center">
+      <div className="w-11 shrink-0 flex flex-col items-center">
         <span
-          className="font-serif text-[11px] text-[#39271F] leading-none"
+          className="font-serif text-[10px] text-[#685D56] uppercase tracking-wider leading-none"
           style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
         >
           Day
         </span>
         <span
-          className="font-serif text-[32px] font-bold text-[#A45132] leading-none mt-0.5"
+          className="font-serif text-[28px] font-bold text-[#A45132] leading-none mt-0.5"
           style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
         >
           {dayNumber}
@@ -390,28 +417,46 @@ function ItineraryDayBlock({
 
       {/* Right Content Column */}
       <div className="flex-1 min-w-0 pb-1">
-        <div className="text-[9.5px] font-semibold text-[#8C7A6B] tracking-wide uppercase">
-          {header.weekday ? `${header.weekday} | ` : ""}
+        <div className="text-[9px] font-semibold text-[#8C7A6B] tracking-wide uppercase">
+          {header.weekday ? `${header.weekday} · ` : ""}
           {header.dateText}
         </div>
         <h3
-          className="font-serif text-[15px] font-bold text-[#39271F] mt-0.5 mb-1 leading-snug"
+          className="font-serif text-[14px] font-bold text-[#39271F] mt-0.5 mb-1 leading-snug"
           style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
         >
           {title ?? `Day ${dayNumber} Itinerary`}
         </h3>
 
         {description && (
-          <div className="text-[9px] leading-[1.46] text-[#282421] space-y-1 mb-2 whitespace-pre-line">
+          <div className="text-[8.75px] leading-[1.48] text-[#282421] space-y-1 mb-1.5 whitespace-pre-line">
             {description}
+          </div>
+        )}
+
+        {/* Scheduled Activities with timestamps */}
+        {hasActivities && (
+          <div className="mb-2 space-y-1">
+            {activities.map((act, aIdx) => (
+              <div key={aIdx} className="flex items-center gap-2 text-[8.5px] text-[#39271F]">
+                {act.time ? (
+                  <span className="font-mono font-bold text-[#A45132] bg-[#F5EBE1] px-1.5 py-0.5 rounded text-[8px] shrink-0">
+                    {act.time}
+                  </span>
+                ) : (
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#BE8C70] shrink-0" />
+                )}
+                <span className="font-medium">{act.title}</span>
+              </div>
+            ))}
           </div>
         )}
 
         {/* Optional activities */}
         {optionalActivities && (
-          <div className="bg-[#F0E6DA] rounded p-2 mb-2 text-[#39271F]">
-            <span className="text-[9px] font-bold block mb-0.5">Optional (on request):</span>
-            <ul className="text-[8.5px] text-[#5C524C] space-y-0.5 list-disc list-inside">
+          <div className="bg-[#F0E6DA] rounded p-2 mb-1.5 text-[#39271F]">
+            <span className="text-[8.5px] font-bold block mb-0.5">Optional (on request):</span>
+            <ul className="text-[8px] text-[#5C524C] space-y-0.5 list-disc list-inside">
               {Array.isArray(optionalActivities) ? (
                 optionalActivities.map((act, idx) => <li key={idx}>{act}</li>)
               ) : (
@@ -423,24 +468,24 @@ function ItineraryDayBlock({
 
         {/* Meals note */}
         {meals && (
-          <div className="text-[8.5px] italic text-[#685D56] mb-1.5 leading-relaxed">
+          <div className="text-[8.25px] italic text-[#685D56] mb-1 leading-relaxed">
             {meals}
           </div>
         )}
 
         {/* Stay row */}
         {stay && (
-          <div className="flex items-center gap-1.5 text-[9px] font-bold text-[#39271F] mb-1.5">
-            <Bed className="w-3.5 h-3.5 text-[#39271F] shrink-0" />
+          <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
+            <Bed className="w-3.5 h-3.5 text-[#A45132] shrink-0" />
             <span>{stay.startsWith("Stay:") ? stay : `Stay: ${stay}`}</span>
           </div>
         )}
 
-        {/* Verified Day Images (Rendered only when actual photos exist for this day) */}
+        {/* Verified Day Images */}
         {hasImages && (
           <div
-            className={`w-full mt-2 rounded overflow-hidden ${
-              images.length === 1 ? "h-[120px]" : "grid grid-cols-2 gap-3 h-[100px]"
+            className={`w-full mt-1.5 rounded overflow-hidden ${
+              images.length === 1 ? "h-[105px]" : "grid grid-cols-2 gap-2.5 h-[90px]"
             }`}
           >
             {images.slice(0, 2).map((imgSrc, idx) => (
@@ -460,91 +505,216 @@ function ItineraryDayBlock({
 }
 
 /**
- * Logistics Component: Transportation & Inclusions / Exclusions
+ * Editorial Landscape Accent: Fills residual space on Day pages with slow-luxury Kerala atmosphere
  */
-function LogisticsSection({
-  transportation,
-  inclusions,
-  exclusions,
-  compact = false,
+function DayPageAtmosphereAccent({
+  accentIndex = 0,
 }: {
-  transportation: ItineraryTransportation;
-  inclusions: string[];
-  exclusions: string[];
-  compact?: boolean;
+  accentIndex?: number;
+}) {
+  const accents = [
+    {
+      img: munnarFallbackImg,
+      alt: "Munnar Tea Plantations",
+      quote: "Misty plantation trails and emerald valleys — where Kerala's tranquil rhythm gently unfolds.",
+      tag: "CURATED HIGHLIGHT · THE HILL RETREAT",
+    },
+    {
+      img: alleppeyFallbackImg,
+      alt: "Alleppey Backwaters Houseboat",
+      quote: "Palm-fringed lagoons and golden waterside serenity — timeless slow luxury in God's Own Country.",
+      tag: "CURATED HIGHLIGHT · BACKWATER SPLENDOUR",
+    },
+    {
+      img: fortKochiFallbackImg,
+      alt: "Fort Kochi Heritage Shoreline",
+      quote: "Centuries of spice trading history, colonial avenues, and vibrant Kathakali classical traditions.",
+      tag: "CURATED HIGHLIGHT · HERITAGE & CULTURE",
+    },
+  ];
+
+  const accent = accents[accentIndex % accents.length];
+
+  return (
+    <div className="relative w-full h-[110px] rounded overflow-hidden mt-2 shrink-0 border border-[#E4DDD3]/60 shadow-xs">
+      <ImageWithFallback
+        src={accent.img}
+        alt={accent.alt}
+        className="w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent flex flex-col justify-end p-3">
+        <span className="text-[7.5px] font-bold tracking-widest uppercase text-[#BE8C70] mb-0.5">
+          {accent.tag}
+        </span>
+        <span className="text-[9px] font-serif italic text-white/95 tracking-wide leading-snug">
+          &ldquo;{accent.quote}&rdquo;
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Accommodations & Stay Breakdown Section
+ */
+function AccommodationsSection({
+  stays,
+  destinationText,
+}: {
+  stays: ItineraryStay[];
+  destinationText: string;
 }) {
   return (
-    <div className={`space-y-3.5 ${compact ? "mt-2 pt-2 border-t border-[#E4DDD3]" : "mt-1"}`}>
-      {/* Transportation Section */}
-      <div>
-        <EditorialHeading title="Transportation" />
-        <div className="bg-[#FAF7F1] border border-[#E4DDD3] rounded p-3 flex items-center justify-between gap-4 mt-2">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#F0E6DA] flex items-center justify-center text-[#39271F] shrink-0">
-              <Car className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-[9.5px] font-bold text-[#39271F] block leading-snug">
-                {transportation.origin}
-              </span>
-              <span className="text-[8.5px] text-[#685D56] block mt-0.5">
-                {transportation.destination}
-              </span>
-            </div>
-          </div>
-          {transportation.vehicleType && (
-            <div className="shrink-0 text-right">
-              <span className="text-[8.5px] font-semibold text-[#A45132] bg-[#F5EBE1] px-2.5 py-1 rounded inline-block">
-                {transportation.vehicleType}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+    <div className="shrink-0">
+      <EditorialHeading title="Accommodations &amp; Stays" />
+      <div className="bg-[#F0E6DA] rounded p-2.5 text-[#39271F] mt-1.5">
+        {stays && stays.length > 0 ? (
+          <div className="space-y-2">
+            {stays.map((stay, idx) => (
+              <div key={idx} className={idx > 0 ? "pt-2 border-t border-[#E2D7C8]" : ""}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-[9.5px] font-bold text-[#39271F] block leading-tight">
+                      {stay.name}
+                    </span>
+                    <div className="flex items-center gap-1.5 text-[8px] text-[#685D56] mt-0.5">
+                      <MapPin className="w-2.5 h-2.5 text-[#A45132] shrink-0" />
+                      <span>{stay.location || destinationText}</span>
+                    </div>
+                  </div>
+                  {stay.starRating && (
+                    <span className="text-[7.5px] font-bold uppercase tracking-wider text-[#183D2E] bg-[#E2EDDE] px-2 py-0.5 rounded shrink-0">
+                      {stay.starRating}
+                    </span>
+                  )}
+                </div>
 
-      {/* Inclusions & Exclusions Section */}
-      <div>
-        <EditorialHeading title="Inclusions &amp; Exclusions" />
-        <div className="grid grid-cols-2 gap-3 mt-2">
-          {/* Inclusions Card */}
-          <div className="bg-[#F0E6DA] rounded p-3 text-[#39271F]">
-            <span className="text-[9.5px] font-bold tracking-wider uppercase text-[#183D2E] block mb-2 flex items-center gap-1.5">
+                <div className="flex items-center gap-5 text-[8px] text-[#4E463C] mt-1 pt-0.5">
+                  <div>
+                    <span className="text-[#685D56]">Duration: </span>
+                    <span className="font-bold">{stay.nights ?? 1} Night{(stay.nights ?? 1) > 1 ? "s" : ""}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#685D56]">Rooms: </span>
+                    <span className="font-bold">{stay.rooms ?? 1}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#685D56]">Meal Plan: </span>
+                    <span className="font-bold">{stay.mealPlan || "Breakfast"}</span>
+                  </div>
+                  {stay.roomType && (
+                    <div>
+                      <span className="text-[#685D56]">Category: </span>
+                      <span className="font-bold">{stay.roomType}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-[8.5px] text-[#685D56] italic">
+            Handpicked 5-Star hotels, heritage boutique retreats and private backwater houseboats reserved according to client specification.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Transportation Section
+ */
+function TransportationSection({
+  transportation,
+}: {
+  transportation: ItineraryTransportation;
+}) {
+  return (
+    <div className="shrink-0">
+      <EditorialHeading title="Transportation &amp; Transfers" />
+      <div className="bg-[#FAF7F1] border border-[#E4DDD3] rounded p-2.5 flex items-center justify-between gap-4 mt-1.5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full bg-[#F0E6DA] flex items-center justify-center text-[#39271F] shrink-0">
+            <Car className="w-3.5 h-3.5 text-[#A45132]" />
+          </div>
+          <div>
+            <span className="text-[9px] font-bold text-[#39271F] block leading-snug">
+              {transportation.origin}
+            </span>
+            <span className="text-[8px] text-[#685D56] block mt-0.5">
+              {transportation.destination}
+            </span>
+          </div>
+        </div>
+        {transportation.vehicleType && (
+          <div className="shrink-0 text-right">
+            <span className="text-[8px] font-semibold text-[#A45132] bg-[#F5EBE1] px-2 py-0.5 rounded inline-block">
+              {transportation.vehicleType}
+            </span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Inclusions & Exclusions Section
+ */
+function InclusionsExclusionsSection({
+  inclusions,
+  exclusions,
+}: {
+  inclusions: string[];
+  exclusions: string[];
+}) {
+  return (
+    <div className="shrink-0">
+      <EditorialHeading title="Inclusions &amp; Exclusions" />
+      <div className="grid grid-cols-2 gap-3 mt-1.5">
+        {/* Inclusions Card */}
+        <div className="bg-[#F0E6DA] rounded p-2.5 text-[#39271F] flex flex-col justify-between">
+          <div>
+            <span className="text-[9px] font-bold tracking-wider uppercase text-[#183D2E] block mb-1.5 flex items-center gap-1.5">
               <Check className="w-3.5 h-3.5 text-[#183D2E]" /> Inclusions
             </span>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1">
               {inclusions.length > 0 ? (
                 inclusions.map((inc, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-[8.5px] text-[#282421]">
+                  <li key={idx} className="flex items-start gap-1.5 text-[8px] text-[#282421]">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#183D2E] mt-1 shrink-0" />
-                    <span className="leading-relaxed">{inc}</span>
+                    <span className="leading-snug">{inc}</span>
                   </li>
                 ))
               ) : (
-                <li className="text-[8.5px] text-[#685D56] italic">
-                  Accommodations and sightseeing as outlined in itinerary.
+                <li className="text-[8px] text-[#685D56] italic">
+                  Luxury accommodations, private chauffeur AC transfers, sightseeing access and curated experiences as outlined in the proposal.
                 </li>
               )}
             </ul>
           </div>
+        </div>
 
-          {/* Exclusions Card */}
-          <div className="bg-[#F0E6DA] rounded p-3 text-[#39271F]">
-            <span className="text-[9.5px] font-bold tracking-wider uppercase text-[#A45132] block mb-2 flex items-center gap-1.5">
+        {/* Exclusions Card */}
+        <div className="bg-[#F0E6DA] rounded p-2.5 text-[#39271F] flex flex-col justify-between">
+          <div>
+            <span className="text-[9px] font-bold tracking-wider uppercase text-[#A45132] block mb-1.5 flex items-center gap-1.5">
               <XCircle className="w-3.5 h-3.5 text-[#A45132]" /> Exclusions
             </span>
-            <ul className="space-y-1.5">
+            <ul className="space-y-1">
               {exclusions.length > 0 ? (
                 exclusions.map((exc, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-[8.5px] text-[#282421]">
-                    <XCircle className="w-3 h-3 text-[#A45132] shrink-0 mt-0.5" />
-                    <span className="leading-relaxed">{exc}</span>
+                  <li key={idx} className="flex items-start gap-1.5 text-[8px] text-[#282421]">
+                    <XCircle className="w-2.5 h-2.5 text-[#A45132] shrink-0 mt-0.5" />
+                    <span className="leading-snug">{exc}</span>
                   </li>
                 ))
               ) : (
                 DEFAULT_EXCLUSIONS.slice(0, 3).map((exc, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-[8.5px] text-[#282421]">
-                    <XCircle className="w-3 h-3 text-[#A45132] shrink-0 mt-0.5" />
-                    <span className="leading-relaxed">{exc}</span>
+                  <li key={idx} className="flex items-start gap-1.5 text-[8px] text-[#282421]">
+                    <XCircle className="w-2.5 h-2.5 text-[#A45132] shrink-0 mt-0.5" />
+                    <span className="leading-snug">{exc}</span>
                   </li>
                 ))
               )}
@@ -554,6 +724,77 @@ function LogisticsSection({
       </div>
     </div>
   );
+}
+
+interface DayPageItem {
+  day: ItineraryDay;
+  dayNumber: number;
+  header: { weekday: string; dateText: string };
+  images: string[];
+}
+
+interface DayPageGroup {
+  items: DayPageItem[];
+}
+
+/**
+ * Intelligently partitions itinerary days across pages:
+ * - Fits 3 days per page as standard editorial density (or 2 if heavily detailed/imaged)
+ * - Balances days evenly so pages don't have awkward single-item overflows
+ * - Eliminates excessive empty space while preventing page-break collisions
+ */
+function partitionDaysIntoPages(
+  days: ItineraryDay[],
+  parsedStartDate: Date | null
+): DayPageGroup[] {
+  const total = days.length;
+  if (total === 0) return [];
+
+  const items: DayPageItem[] = days.map((day, idx) => {
+    const dayNumber = idx + 1;
+    const header = formatDayWeekdayDate(dayNumber, day.date, parsedStartDate);
+    const images =
+      day.imageUrls && day.imageUrls.length > 0
+        ? day.imageUrls
+        : day.imageUrl
+        ? [day.imageUrl]
+        : [];
+    return { day, dayNumber, header, images };
+  });
+
+  let targetPagesCount = 1;
+  if (total <= 3) {
+    targetPagesCount = 1;
+  } else if (total === 4) {
+    targetPagesCount = 2;
+  } else if (total <= 6) {
+    targetPagesCount = 2;
+  } else if (total <= 9) {
+    targetPagesCount = 3;
+  } else if (total <= 12) {
+    targetPagesCount = 4;
+  } else {
+    targetPagesCount = Math.ceil(total / 3);
+  }
+
+  const baseSize = Math.floor(total / targetPagesCount);
+  const remainder = total % targetPagesCount;
+
+  const pageSizes: number[] = [];
+  for (let p = 0; p < targetPagesCount; p++) {
+    pageSizes.push(baseSize + (p < remainder ? 1 : 0));
+  }
+
+  let itemIdx = 0;
+  const pages: DayPageGroup[] = [];
+
+  for (const size of pageSizes) {
+    const pageItems = items.slice(itemIdx, itemIdx + size);
+    pages.push({ items: pageItems });
+    itemIdx += size;
+  }
+
+  return pages;
 }
 
 export default function ItineraryPrintDocument({
@@ -570,6 +811,7 @@ export default function ItineraryPrintDocument({
     startDate,
     endDate,
     coverImageUrl,
+    summary,
     days = [],
     stays = [],
     inclusions = [],
@@ -579,7 +821,6 @@ export default function ItineraryPrintDocument({
     shareToken,
   } = data;
 
-  // Computed trip details & dates derived from actual source data
   const {
     daysCount,
     nightsCount,
@@ -628,11 +869,20 @@ export default function ItineraryPrintDocument({
 
   const titleParts = splitTitle(title);
 
-  // Compute pricing total
-  const computedPricingTotal =
+  // Compute pricing totals
+  const subtotal =
     (pricing?.items && pricing.items.length > 0
-      ? pricing.items.reduce((sum, item) => sum + (item.amount || 0), 0)
-      : null) ?? (pricing?.total || 0);
+      ? pricing.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+      : null) ?? (Number(pricing?.total) || 0);
+
+  const discountAmount = Number(pricing?.discount) || 0;
+  const taxesAmount = Number(pricing?.taxes) || 0;
+  const computedPricingTotal =
+    pricing?.total && Number(pricing.total) > 0
+      ? Number(pricing.total)
+      : Math.max(0, subtotal - discountAmount + taxesAmount);
+
+  const currencySymbol = currency === "INR" ? "₹" : `${currency} `;
 
   // Inclusion icons on cover page
   const incConfig = data.tripIncludes ?? {
@@ -649,29 +899,13 @@ export default function ItineraryPrintDocument({
     { key: "transfer", label: "Transfer", icon: Bus, active: incConfig.transfer ?? true },
   ].filter((b) => b.active);
 
-  // ---------------------------------------------------------------------------
-  // SMART DYNAMIC PAGINATION PACKING
-  // ---------------------------------------------------------------------------
-  // Every day is rendered in chronological order.
-  // If daysCount is odd, the last day is paired with Logistics (Transportation & Inclusions)
-  // so the page is full and balanced without any empty voids.
-  // If daysCount is even, days are paired in twos, followed by a dedicated Logistics page.
-  const isOdd = daysCount % 2 === 1;
-  const pairedDaysLimit = isOdd ? daysCount - 1 : daysCount;
+  // Balanced pagination calculation
+  const isSingleDay = daysCount === 1;
+  const dayPages = partitionDaysIntoPages(days, parsedStartDate);
 
-  const dayPairs: Array<[ItineraryDay, ItineraryDay]> = [];
-  for (let i = 0; i < pairedDaysLimit; i += 2) {
-    dayPairs.push([days[i], days[i + 1]]);
-  }
-
-  const lastOddDay: ItineraryDay | null = isOdd ? days[daysCount - 1] : null;
-
-  // Total pages calculation:
-  // Page 1: Cover
-  // Day pairs: dayPairs.length
-  // Logistics page: 1 (either lastOddDay + Logistics, or dedicated Logistics)
-  // Final page: 1 (Budget, Terms, Google Review, Footer)
-  const totalPages = 1 + dayPairs.length + 1 + 1;
+  const totalPages = isSingleDay
+    ? 3
+    : 1 + dayPages.length + 1 + 1;
 
   let currentPageNum = 1;
 
@@ -758,19 +992,16 @@ export default function ItineraryPrintDocument({
           {/* Left Column (52%) */}
           <div className="w-[52%] pl-[18mm] pr-6 pt-[16mm] pb-4 flex flex-col justify-between">
             <div>
-              {/* Brand Logo */}
               <BrandLogo variant="dark" />
 
-              {/* Tagline */}
-              <div className="text-[9px] font-bold tracking-[0.22em] uppercase text-[#685D56] mt-5 leading-relaxed">
+              <div className="text-[8.5px] font-bold tracking-[0.24em] uppercase text-[#685D56] mt-4 leading-relaxed">
                 A JOURNEY THROUGH
                 <br />
                 KERALA&apos;S TIMELESS BEAUTY
               </div>
 
-              {/* Trip Title in Large Serif */}
               <h1
-                className="font-serif text-[36px] leading-[1.08] font-bold text-[#39271F] tracking-tight mt-4"
+                className="font-serif text-[32px] leading-[1.08] font-bold text-[#39271F] tracking-tight mt-3.5"
                 style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
               >
                 {titleParts.line1}
@@ -782,10 +1013,14 @@ export default function ItineraryPrintDocument({
                 )}
               </h1>
 
-              {/* Duration line */}
-              <div className="flex items-center gap-3 mt-3.5">
+              {/* Editorial Summary or Brand Lead-in */}
+              <div className="text-[9px] font-serif italic text-[#685D56] mt-2.5 leading-snug line-clamp-2">
+                {summary || "A bespoke slow-luxury journey curated with private chauffeur transfers, handpicked accommodations, and immersive cultural heritage."}
+              </div>
+
+              <div className="flex items-center gap-3 mt-3">
                 <span
-                  className="font-serif text-sm font-semibold text-[#39271F] whitespace-nowrap"
+                  className="font-serif text-[13px] font-semibold text-[#A45132] whitespace-nowrap"
                   style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
                 >
                   {formattedDuration}
@@ -793,15 +1028,20 @@ export default function ItineraryPrintDocument({
                 <div className="w-16 h-px bg-[#BE8C70]" />
               </div>
 
-              {/* Customer Name */}
-              <div className="text-[14px] font-bold tracking-[0.2em] uppercase text-[#39271F] mt-5">
-                {customerName}
+              {/* Customer Greeting */}
+              <div className="mt-4">
+                <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-[#BE8C70] block">
+                  PROPOSAL PREPARED EXCLUSIVELY FOR
+                </span>
+                <span className="text-[14px] font-bold tracking-[0.08em] uppercase text-[#39271F] block mt-0.5">
+                  {customerName}
+                </span>
               </div>
 
               {/* YOUR TRIP INCLUDES */}
               {includedBadges.length > 0 && (
-                <div className="mt-5">
-                  <div className="text-[9px] font-bold tracking-[0.2em] uppercase text-[#39271F] mb-2.5">
+                <div className="mt-4">
+                  <div className="text-[8px] font-bold tracking-[0.2em] uppercase text-[#685D56] mb-2">
                     YOUR TRIP INCLUDES
                   </div>
                   <div className="flex items-center gap-3">
@@ -809,10 +1049,10 @@ export default function ItineraryPrintDocument({
                       const IconComponent = badge.icon;
                       return (
                         <div key={badge.key} className="flex flex-col items-center">
-                          <div className="w-8 h-8 rounded-full bg-[#F0E6DA] flex items-center justify-center text-[#39271F]">
-                            <IconComponent className="w-3.5 h-3.5" />
+                          <div className="w-7 h-7 rounded-full bg-[#F0E6DA] flex items-center justify-center text-[#39271F]">
+                            <IconComponent className="w-3 h-3 text-[#A45132]" />
                           </div>
-                          <span className="text-[8px] font-bold text-[#39271F] mt-1">
+                          <span className="text-[7.5px] font-bold text-[#39271F] mt-1">
                             {badge.label}
                           </span>
                         </div>
@@ -824,57 +1064,53 @@ export default function ItineraryPrintDocument({
             </div>
 
             {/* 2-Column Info Grid */}
-            <div className="grid grid-cols-2 gap-y-3 gap-x-4 pt-4 border-t border-[#E4DDD3]">
-              {/* Emergency Contacts */}
+            <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 pt-3.5 border-t border-[#E4DDD3]">
               <div className="flex items-start gap-2">
                 <Phone className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-[8px] font-sans tracking-wider uppercase text-[#685D56] block font-semibold">
+                  <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
                     Emergency Contacts
                   </span>
-                  <span className="text-[8.5px] font-bold text-[#282421] block leading-tight mt-0.5">
+                  <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5">
                     {emergencyContacts}
                   </span>
                 </div>
               </div>
 
-              {/* Reference No */}
               <div className="flex items-start gap-2">
                 <FileText className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-[8px] font-sans tracking-wider uppercase text-[#685D56] block font-semibold">
+                  <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
                     Reference No.
                   </span>
-                  <span className="text-[8.5px] font-bold text-[#282421] block leading-tight mt-0.5 font-mono">
+                  <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5 font-mono">
                     {referenceNumber}
                   </span>
                 </div>
               </div>
 
-              {/* Curator */}
               <div className="flex items-start gap-2">
                 <User className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-[8px] font-sans tracking-wider uppercase text-[#685D56] block font-semibold">
-                    Itinerary Curated By
+                  <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
+                    Curated By
                   </span>
-                  <span className="text-[8.5px] font-bold text-[#282421] block leading-tight mt-0.5">
+                  <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5">
                     {curatorName}
                   </span>
                   {curatorPhone && (
-                    <span className="text-[8px] text-[#685D56] block">({curatorPhone})</span>
+                    <span className="text-[7.5px] text-[#685D56] block">({curatorPhone})</span>
                   )}
                 </div>
               </div>
 
-              {/* Created On */}
               <div className="flex items-start gap-2">
                 <Calendar className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
                 <div>
-                  <span className="text-[8px] font-sans tracking-wider uppercase text-[#685D56] block font-semibold">
+                  <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
                     Created on
                   </span>
-                  <span className="text-[8.5px] font-bold text-[#282421] block leading-tight mt-0.5 font-sans tabular-nums">
+                  <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5 tabular-nums">
                     {createdDate}
                   </span>
                 </div>
@@ -894,7 +1130,7 @@ export default function ItineraryPrintDocument({
         </div>
 
         {/* Full-width Deep Espresso Trip Details Panel */}
-        <div className="bg-[#39271F] text-[#FAF7F1] px-[18mm] py-4 relative overflow-hidden shrink-0">
+        <div className="bg-[#39271F] text-[#FAF7F1] px-[18mm] py-3.5 relative overflow-hidden shrink-0">
           <svg
             className="absolute right-0 bottom-0 h-full w-[45%] opacity-20 pointer-events-none"
             viewBox="0 0 300 200"
@@ -906,388 +1142,381 @@ export default function ItineraryPrintDocument({
           </svg>
 
           <h2
-            className="font-serif text-[19px] font-bold text-[#FAF7F1] tracking-tight relative z-10"
+            className="font-serif text-[17px] font-bold text-[#FAF7F1] tracking-tight relative z-10"
             style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
           >
-            Trip Details
+            Trip Details &amp; Overview
           </h2>
 
-          <div className="grid grid-cols-3 gap-y-2.5 gap-x-6 relative z-10 text-xs mt-2.5 mb-1">
+          <div className="grid grid-cols-3 gap-y-2 gap-x-6 relative z-10 text-xs mt-2 mb-0.5">
             <div className="col-span-1">
-              <span className="text-[8px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
                 DESTINATION
               </span>
-              <span className="text-[10px] text-[#FAF7F1] block mt-0.5 leading-snug font-medium truncate" title={destinationText}>
+              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 leading-snug font-medium truncate" title={destinationText}>
                 {destinationText}
               </span>
             </div>
             <div>
-              <span className="text-[8px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
                 START DATE
               </span>
-              <span className="text-[10px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
+              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
                 {startDateText}
               </span>
             </div>
             <div>
-              <span className="text-[8px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
                 END DATE
               </span>
-              <span className="text-[10px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
+              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
                 {endDateText}
               </span>
             </div>
             <div>
-              <span className="text-[8px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
                 NIGHTS | DAYS
               </span>
-              <span className="text-[10px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
+              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
                 {formattedDuration}
               </span>
             </div>
             <div className="col-span-2">
-              <span className="text-[8px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
                 TOTAL PASSENGER
               </span>
-              <span className="text-[10px] text-[#FAF7F1] block mt-0.5 font-bold">
+              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold">
                 {adults} Adult{adults > 1 ? "s" : ""}
-                {children > 0 ? ` | ${children} Child${children > 1 ? "ren" : ""}` : ""}
-                {infants > 0 ? ` | ${infants} Infant${infants > 1 ? "s" : ""}` : ""}
+                {children > 0 ? ` · ${children} Child${children > 1 ? "ren" : ""}` : ""}
+                {infants > 0 ? ` · ${infants} Infant${infants > 1 ? "s" : ""}` : ""}
               </span>
             </div>
           </div>
 
-          <div className="text-right text-[9px] font-mono text-[#BE8C70] relative z-10 pt-1">
+          <div className="text-right text-[8.5px] font-mono text-[#BE8C70] relative z-10 pt-0.5">
             {formatPageNum(currentPageNum++, totalPages)}
           </div>
         </div>
       </section>
 
       {/* ==================================================================== */}
-      {/* PAIRED DAY PAGES (Days 1 & 2, Days 3 & 4, etc.)                      */}
+      {/* ITINERARY DAY PAGES (Dynamically balanced, zero empty voids)         */}
       {/* ==================================================================== */}
-      {dayPairs.map((pair, pairIdx) => {
-        const [firstDay, secondDay] = pair;
-        const firstDayNum = pairIdx * 2 + 1;
-        const secondDayNum = pairIdx * 2 + 2;
-
-        const firstHeader = formatDayWeekdayDate(
-          firstDayNum,
-          firstDay.date,
-          parsedStartDate
-        );
-        const secondHeader = formatDayWeekdayDate(
-          secondDayNum,
-          secondDay.date,
-          parsedStartDate
-        );
-
-        const firstImages =
-          firstDay.imageUrls && firstDay.imageUrls.length > 0
-            ? firstDay.imageUrls
-            : firstDay.imageUrl
-            ? [firstDay.imageUrl]
-            : [];
-
-        const secondImages =
-          secondDay.imageUrls && secondDay.imageUrls.length > 0
-            ? secondDay.imageUrls
-            : secondDay.imageUrl
-            ? [secondDay.imageUrl]
-            : [];
-
-        const thisPageNum = currentPageNum++;
-
-        return (
-          <section
-            key={`day-pair-${pairIdx}`}
-            className="brochure-page px-[18mm] pt-[16mm] pb-[12mm] flex flex-col justify-between"
-          >
-            <div>
-              <PageHeader title="Day-To-Day Plan" />
-
-              <ItineraryDayBlock
-                dayNumber={firstDayNum}
-                header={firstHeader}
-                title={firstDay.subtitle || firstDay.title}
-                description={firstDay.description}
-                optionalActivities={firstDay.optionalActivities}
-                meals={firstDay.meals}
-                stay={firstDay.stay}
-                images={firstImages}
-                isLastOnPage={false}
-              />
-
-              <ItineraryDayBlock
-                dayNumber={secondDayNum}
-                header={secondHeader}
-                title={secondDay.subtitle || secondDay.title}
-                description={secondDay.description}
-                optionalActivities={secondDay.optionalActivities}
-                meals={secondDay.meals}
-                stay={secondDay.stay}
-                images={secondImages}
-                isLastOnPage={true}
-              />
-            </div>
-
-            <PageFooterIndicator pageNum={thisPageNum} totalPages={totalPages} />
-          </section>
-        );
-      })}
-
-      {/* ==================================================================== */}
-      {/* LOGISTICS PAGE (Either Odd Last Day + Logistics, or Dedicated)       */}
-      {/* ==================================================================== */}
-      {lastOddDay ? (
-        /* ODD LAST DAY + LOGISTICS COMBINED (Eliminates empty space on Page 3/5) */
+      {isSingleDay ? (
+        /* 1-DAY ITINERARY: Day 1 + Logistics + Scenic Accent on Page 2 */
         (() => {
-          const oddDayNum = daysCount;
-          const oddHeader = formatDayWeekdayDate(
-            oddDayNum,
-            lastOddDay.date,
-            parsedStartDate
-          );
-          const oddImages =
-            lastOddDay.imageUrls && lastOddDay.imageUrls.length > 0
-              ? lastOddDay.imageUrls
-              : lastOddDay.imageUrl
-              ? [lastOddDay.imageUrl]
+          const firstDay = days[0];
+          const firstHeader = formatDayWeekdayDate(1, firstDay?.date, parsedStartDate);
+          const firstImages =
+            firstDay?.imageUrls && firstDay.imageUrls.length > 0
+              ? firstDay.imageUrls
+              : firstDay?.imageUrl
+              ? [firstDay.imageUrl]
               : [];
-
           const thisPageNum = currentPageNum++;
 
           return (
-            <section className="brochure-page px-[18mm] pt-[16mm] pb-[12mm] flex flex-col justify-between">
+            <section className="brochure-page px-[18mm] pt-[15mm] pb-[12mm] flex flex-col justify-between">
               <div>
-                <PageHeader title="Day-To-Day Plan &amp; Logistics" />
+                <PageHeader title="Day-To-Day Plan &amp; Services" />
 
                 <ItineraryDayBlock
-                  dayNumber={oddDayNum}
-                  header={oddHeader}
-                  title={lastOddDay.subtitle || lastOddDay.title}
-                  description={lastOddDay.description}
-                  optionalActivities={lastOddDay.optionalActivities}
-                  meals={lastOddDay.meals}
-                  stay={lastOddDay.stay}
-                  images={oddImages}
+                  dayNumber={1}
+                  header={firstHeader}
+                  title={firstDay?.subtitle || firstDay?.title}
+                  description={firstDay?.description}
+                  activities={firstDay?.activities}
+                  optionalActivities={firstDay?.optionalActivities}
+                  meals={firstDay?.meals}
+                  stay={firstDay?.stay}
+                  images={firstImages}
                   isLastOnPage={true}
                 />
 
-                <LogisticsSection
-                  transportation={transportation}
-                  inclusions={inclusions}
-                  exclusions={activeExclusions}
-                  compact
-                />
+                <div className="mt-3 pt-2.5 border-t border-[#E4DDD3] space-y-2.5">
+                  <TransportationSection transportation={transportation} />
+                  <InclusionsExclusionsSection
+                    inclusions={inclusions}
+                    exclusions={activeExclusions}
+                  />
+                  <DayPageAtmosphereAccent accentIndex={0} />
+                </div>
               </div>
 
-              <PageFooterIndicator pageNum={thisPageNum} totalPages={totalPages} />
+              <PageFooterIndicator
+                pageNum={thisPageNum}
+                totalPages={totalPages}
+                referenceNumber={referenceNumber}
+              />
             </section>
           );
         })()
       ) : (
-        /* EVEN DAYS: DEDICATED LOGISTICS & SERVICES PAGE */
-        (() => {
+        /* STANDARD MULTI-DAY PAGES */
+        dayPages.map((pageGroup, pageIdx) => {
           const thisPageNum = currentPageNum++;
+          // If days on this page have concise text/fewer images, include scenic accent to balance vertical space
+          const totalDaysOnPage = pageGroup.items.length;
+          const hasManyImages = pageGroup.items.some((i) => i.images.length > 0);
+          const needsBalancing = totalDaysOnPage <= 2 || (!hasManyImages && totalDaysOnPage === 3);
+
           return (
-            <section className="brochure-page px-[18mm] pt-[16mm] pb-[12mm] flex flex-col justify-between">
+            <section
+              key={`day-page-${pageIdx}`}
+              className="brochure-page px-[18mm] pt-[15mm] pb-[12mm] flex flex-col justify-between"
+            >
               <div>
-                <PageHeader title="Included Services &amp; Logistics" />
+                <PageHeader title="Day-To-Day Plan" />
 
-                <LogisticsSection
-                  transportation={transportation}
-                  inclusions={inclusions}
-                  exclusions={activeExclusions}
-                  compact={false}
-                />
+                {pageGroup.items.map((item, itemIdx) => {
+                  const isLast = itemIdx === pageGroup.items.length - 1;
+                  return (
+                    <ItineraryDayBlock
+                      key={`day-${item.dayNumber}`}
+                      dayNumber={item.dayNumber}
+                      header={item.header}
+                      title={item.day.subtitle || item.day.title}
+                      description={item.day.description}
+                      activities={item.day.activities}
+                      optionalActivities={item.day.optionalActivities}
+                      meals={item.day.meals}
+                      stay={item.day.stay}
+                      images={item.images}
+                      isLastOnPage={isLast}
+                    />
+                  );
+                })}
 
-                {/* Editorial destination highlight */}
-                <div className="w-full h-[150px] rounded overflow-hidden mt-4">
-                  <ImageWithFallback
-                    src={coverImageUrl || kumarakomFallbackImg}
-                    fallback={kumarakomFallbackImg}
-                    alt="Kerala Destination View"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-
-              <PageFooterIndicator pageNum={thisPageNum} totalPages={totalPages} />
-            </section>
-          );
-        })()
-      )}
-
-      {/* ==================================================================== */}
-      {/* FINAL PAGE: Budget & Pricing, Stays, Terms, and Closing Footer       */}
-      {/* ==================================================================== */}
-      {(() => {
-        const thisPageNum = currentPageNum++;
-        return (
-          <section className="brochure-page px-[18mm] pt-[16mm] pb-[12mm] flex flex-col justify-between">
-            <div>
-              <PageHeader title="Budget &amp; Pricing" />
-
-              {/* Package Accommodations Card */}
-              <div className="bg-[#F0E6DA] rounded-t p-3 text-[#39271F]">
-                <span className="text-[10px] font-bold text-[#39271F] block mb-2">
-                  Accommodations &amp; Stay Breakdown
-                </span>
-                {stays && stays.length > 0 ? (
-                  stays.map((stay, idx) => (
-                    <div key={idx}>
-                      {idx > 0 && <div className="border-t border-[#E2D7C8] my-2" />}
-                      <div className="grid grid-cols-2 gap-2 text-[9px]">
-                        <div>
-                          <span className="text-[#685D56]">Location: </span>
-                          <span className="font-bold text-[#39271F]">
-                            {stay.location || destinationText}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[#685D56]">Hotel: </span>
-                          <span className="font-bold text-[#39271F]">
-                            {stay.name} {stay.starRating ? `| ${stay.starRating}` : ""}
-                          </span>
-                        </div>
-                        <div className="col-span-2 flex items-center gap-6 text-[8.5px]">
-                          <div>
-                            <span className="text-[#685D56]">Nights: </span>
-                            <span className="font-bold">{stay.nights ?? 1}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#685D56]">Rooms: </span>
-                            <span className="font-bold">{stay.rooms ?? 1}</span>
-                          </div>
-                          <div>
-                            <span className="text-[#685D56]">Meal Plan: </span>
-                            <span className="font-bold">{stay.mealPlan || "Breakfast"}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-[9px] text-[#685D56] italic">
-                    Bespoke hotel and heritage resort accommodations arranged according to client tier.
-                  </div>
+                {/* Intelligent space balancer: anchors page and eliminates dead bottom space */}
+                {needsBalancing && (
+                  <DayPageAtmosphereAccent accentIndex={pageIdx} />
                 )}
               </div>
 
-              {/* Itemized Pricing Breakdown (if line items present) */}
-              {pricing?.items && pricing.items.length > 0 && (
-                <div className="bg-[#FAF7F1] border-x border-[#E4DDD3] p-2.5 text-[8.5px] space-y-1">
+              <PageFooterIndicator
+                pageNum={thisPageNum}
+                totalPages={totalPages}
+                referenceNumber={referenceNumber}
+              />
+            </section>
+          );
+        })
+      )}
+
+      {/* ==================================================================== */}
+      {/* INCLUDED SERVICES & ACCOMMODATIONS PAGE                              */}
+      {/* ==================================================================== */}
+      {!isSingleDay &&
+        (() => {
+          const thisPageNum = currentPageNum++;
+          return (
+            <section className="brochure-page px-[18mm] pt-[15mm] pb-[12mm] flex flex-col justify-between">
+              <div className="space-y-3">
+                <PageHeader title="Included Services &amp; Accommodations" />
+
+                <AccommodationsSection
+                  stays={stays}
+                  destinationText={destinationText}
+                />
+
+                <TransportationSection transportation={transportation} />
+
+                <InclusionsExclusionsSection
+                  inclusions={inclusions}
+                  exclusions={activeExclusions}
+                />
+
+                {/* Editorial Destination Panorama */}
+                <div className="relative w-full h-[145px] rounded overflow-hidden mt-2 shrink-0 border border-[#E4DDD3]/60 shadow-xs">
+                  <ImageWithFallback
+                    src={coverImageUrl || kumarakomFallbackImg}
+                    fallback={kumarakomFallbackImg}
+                    alt="Kerala Backwaters Destination View"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent flex items-end p-3">
+                    <span className="text-[9px] font-serif italic text-white/95 tracking-wide">
+                      Curated slow luxury across God&apos;s Own Country — handcrafted with excellence by Escora Holidays
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <PageFooterIndicator
+                pageNum={thisPageNum}
+                totalPages={totalPages}
+                referenceNumber={referenceNumber}
+              />
+            </section>
+          );
+        })()}
+
+      {/* ==================================================================== */}
+      {/* FINAL PAGE: Budget & Pricing, Terms, Trust Guarantees & Closing Bar */}
+      {/* ==================================================================== */}
+      {(() => {
+        const thisPageNum = currentPageNum++;
+        const hasLineItems = pricing?.items && pricing.items.length > 0;
+
+        return (
+          <section className="brochure-page px-[18mm] pt-[15mm] pb-[12mm] flex flex-col justify-between">
+            <div className="space-y-2.5">
+              <PageHeader title="Investment, Terms &amp; Policies" />
+
+              {/* Itemized Pricing Breakdown Table (if line items present) */}
+              {hasLineItems && (
+                <div className="bg-[#FAF7F1] border border-[#E4DDD3] rounded-t p-2.5 text-[8px] space-y-1">
+                  <span className="text-[8.5px] font-bold uppercase tracking-wider text-[#685D56] block mb-1">
+                    Itemized Investment Breakdown
+                  </span>
                   {pricing.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-[#39271F]">
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between text-[#39271F] py-0.5 border-b border-[#E4DDD3]/50 last:border-b-0"
+                    >
                       <span className="text-[#685D56]">{item.label}</span>
                       <span className="font-sans font-bold tabular-nums">
-                        {currency === "INR" ? "₹" : `${currency} `}
+                        {currencySymbol}
                         {Number(item.amount).toLocaleString("en-IN")}
                       </span>
                     </div>
                   ))}
+
+                  {discountAmount > 0 && (
+                    <div className="flex items-center justify-between text-[#183D2E] py-0.5 pt-1 border-t border-[#E4DDD3]">
+                      <span className="font-medium">Special Applied Privilege / Discount</span>
+                      <span className="font-bold tabular-nums">- {currencySymbol}{discountAmount.toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
+
+                  {taxesAmount > 0 && (
+                    <div className="flex items-center justify-between text-[#685D56] py-0.5">
+                      <span className="font-medium">Applicable Taxes &amp; GST</span>
+                      <span className="font-bold tabular-nums">+ {currencySymbol}{taxesAmount.toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {/* Total Package Price Bar */}
-              <div className="bg-[#A45132] text-[#FAF7F1] px-4 py-2.5 rounded-b flex items-center justify-between">
-                <span className="text-[10px] font-bold tracking-widest uppercase">
-                  TOTAL PACKAGE PRICE
-                </span>
+              {/* Total Package Investment Banner */}
+              <div
+                className={`bg-[#A45132] text-[#FAF7F1] px-4 py-2.5 ${
+                  hasLineItems ? "rounded-b" : "rounded"
+                } flex items-center justify-between shadow-xs`}
+              >
+                <div>
+                  <span className="text-[9.5px] font-bold tracking-widest uppercase block">
+                    TOTAL PACKAGE INVESTMENT
+                  </span>
+                  <span className="text-[7.5px] text-[#F5EBE1] block mt-0.5">
+                    All-inclusive quote per specified itinerary, private transfers &amp; verified stays
+                  </span>
+                </div>
                 <span
-                  className="font-serif text-[19px] font-bold tracking-tight"
+                  className="font-serif text-[20px] font-bold tracking-tight tabular-nums"
                   style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
                 >
                   {computedPricingTotal > 0 ? (
                     <>
-                      <span className="font-sans">₹</span>
+                      <span className="font-sans mr-0.5">{currencySymbol}</span>
                       {Number(computedPricingTotal).toLocaleString("en-IN")}
                     </>
                   ) : (
-                    <span className="text-sm font-sans font-medium">Custom Quote on Request</span>
+                    <span className="text-xs font-sans font-medium">Bespoke Quote on Request</span>
                   )}
                 </span>
               </div>
 
               {pricing?.notes && (
-                <div className="text-[8px] italic text-[#685D56] mt-1">
-                  {pricing.notes}
+                <div className="text-[8px] italic text-[#685D56] leading-tight">
+                  * {pricing.notes}
                 </div>
               )}
 
               {/* Terms & Conditions (2 Columns) */}
-              <div className="grid grid-cols-2 gap-2.5 mt-2.5">
+              <div className="grid grid-cols-2 gap-2.5 pt-0.5">
                 {/* Hotel Terms */}
-                <div className="bg-[#F0E6DA] rounded p-2.5">
-                  <div className="flex items-center gap-1.5 text-[9px] font-bold text-[#39271F] mb-1">
-                    <Bed className="w-3 h-3 text-[#39271F]" />
-                    <span>Hotel Terms &amp; Conditions</span>
+                <div className="bg-[#F0E6DA] rounded p-2.5 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
+                      <Bed className="w-3.5 h-3.5 text-[#A45132]" />
+                      <span>Hotel Terms &amp; Policies</span>
+                    </div>
+                    <ul className="text-[7.75px] leading-[1.38] text-[#4E463C] space-y-1 list-disc list-inside">
+                      {hotelTerms.slice(0, 4).map((term, idx) => (
+                        <li key={idx}>{term}</li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="text-[7.5px] leading-[1.35] text-[#4E463C] space-y-0.5 list-disc list-inside">
-                    {hotelTerms.slice(0, 4).map((term, idx) => (
-                      <li key={idx}>{term}</li>
-                    ))}
-                  </ul>
                 </div>
 
                 {/* Payment Terms */}
-                <div className="bg-[#F0E6DA] rounded p-2.5">
-                  <div className="flex items-center gap-1.5 text-[9px] font-bold text-[#39271F] mb-1">
-                    <FileText className="w-3 h-3 text-[#39271F]" />
-                    <span>Payment Terms &amp; Conditions</span>
+                <div className="bg-[#F0E6DA] rounded p-2.5 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
+                      <FileText className="w-3.5 h-3.5 text-[#A45132]" />
+                      <span>Payment &amp; Booking Terms</span>
+                    </div>
+                    <ul className="text-[7.75px] leading-[1.38] text-[#4E463C] space-y-1 list-disc list-inside">
+                      {paymentTerms.slice(0, 4).map((term, idx) => (
+                        <li key={idx}>{term}</li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul className="text-[7.5px] leading-[1.35] text-[#4E463C] space-y-0.5 list-disc list-inside">
-                    {paymentTerms.slice(0, 4).map((term, idx) => (
-                      <li key={idx}>{term}</li>
-                    ))}
-                  </ul>
                 </div>
               </div>
 
-              {/* Important Information */}
-              <div className="bg-[#F0E6DA] rounded p-2.5 mt-2">
-                <div className="flex items-center gap-1.5 text-[9px] font-bold text-[#39271F] mb-1">
-                  <Info className="w-3 h-3 text-[#39271F]" />
-                  <span>Important Information</span>
+              {/* Important Travel Guidelines */}
+              <div className="bg-[#F0E6DA] rounded p-2.5">
+                <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
+                  <Info className="w-3.5 h-3.5 text-[#A45132]" />
+                  <span>Important Travel Guidelines &amp; Protocol</span>
                 </div>
-                <ul className="text-[7.5px] leading-[1.35] text-[#4E463C] space-y-0.5 list-disc list-inside">
-                  {importantInfo.slice(0, 3).map((info, idx) => (
+                <ul className="text-[7.75px] leading-[1.38] text-[#4E463C] space-y-0.5 list-disc list-inside">
+                  {importantInfo.slice(0, 4).map((info, idx) => (
                     <li key={idx}>{info}</li>
                   ))}
                 </ul>
               </div>
 
-              {/* Destination Photo Strip + Google Review Overlay */}
-              <div className="relative h-[65px] rounded overflow-hidden mt-2.5">
-                <ImageWithFallback
-                  src={kumarakomFallbackImg}
-                  fallback={kumarakomFallbackImg}
-                  alt="Kerala Backwaters Sunrise"
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded shadow-sm">
-                  <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+              {/* Escora Trust, Google Review & Concierge Safeguards Bar */}
+              <div className="bg-[#FAF7F1] border border-[#E4DDD3] rounded p-2 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                   </svg>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-[#39271F] leading-tight">Google Review</span>
-                    <div className="flex items-center text-[#F59E0B] text-[11px] leading-none mt-0.5 tracking-tight">
-                      <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[9px] font-bold text-[#39271F] leading-tight">Google Review · 5.0 Rating</span>
+                      <div className="flex items-center text-[#F59E0B] text-[10px] leading-none">
+                        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                      </div>
                     </div>
+                    <span className="text-[7.5px] text-[#685D56] block">Verified International Traveller Feedback</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 border-l border-[#E4DDD3] pl-3">
+                  <div className="flex items-center gap-1.5 text-[8px] text-[#183D2E]">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#183D2E]" />
+                    <span className="font-semibold">24/7 On-Trip Concierge</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[8px] text-[#A45132]">
+                    <Award className="w-3.5 h-3.5 text-[#A45132]" />
+                    <span className="font-semibold">Kerala Tourism Accredited</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Closing Espresso Footer */}
-            <div className="w-full">
+            {/* Closing Deep Espresso Agency Footer */}
+            <div className="w-full mt-2.5 shrink-0">
               <div className="bg-[#39271F] text-[#FAF7F1] rounded px-4 py-2 flex items-center justify-between">
                 <BrandLogo variant="white" />
-                <div className="flex items-center gap-3.5 text-[8.5px]">
+                <div className="flex items-center gap-4 text-[8px]">
                   <div className="flex items-center gap-1.5">
                     <Phone className="w-3 h-3 text-[#BE8C70]" />
                     <span>{agencyPhone}</span>
@@ -1316,7 +1545,7 @@ export default function ItineraryPrintDocument({
                       <Linkedin className="w-2 h-2" />
                     </div>
                   </div>
-                  <span className="text-[8.5px] font-mono text-[#BE8C70] font-bold pl-2 border-l border-[#FAF7F1]/20">
+                  <span className="text-[8px] font-mono text-[#BE8C70] font-bold pl-2 border-l border-[#FAF7F1]/20">
                     {formatPageNum(thisPageNum, totalPages)}
                   </span>
                 </div>

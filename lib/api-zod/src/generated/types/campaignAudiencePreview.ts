@@ -7,8 +7,16 @@
 import type { CampaignAudiencePreviewSampleRecipientsItem } from './campaignAudiencePreviewSampleRecipientsItem';
 
 export interface CampaignAudiencePreview {
+  totalSelected: number;
   eligibleRecipients: number;
+  eligibleCount: number;
   activeSubscribers: number;
+  subscribedCount: number;
+  notSubscribedCount: number;
   unsubscribedCount: number;
+  suppressedCount: number;
+  excludedNotSubscribed: number;
+  excludedUnsubscribed: number;
+  excludedSuppressed: number;
   sampleRecipients: CampaignAudiencePreviewSampleRecipientsItem[];
 }

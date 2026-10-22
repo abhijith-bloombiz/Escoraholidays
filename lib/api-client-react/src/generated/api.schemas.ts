@@ -158,6 +158,57 @@ export interface TravelCategoryUpdate {
   published?: boolean;
 }
 
+export interface Testimonial {
+  id: number;
+  name: string;
+  quote: string;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  dateLabel?: string | null;
+  /** @nullable */
+  location?: string | null;
+  /** @nullable */
+  avatarUrl?: string | null;
+  /** @nullable */
+  photoUrl?: string | null;
+  /** @nullable */
+  photoAlt?: string | null;
+  rating: number;
+  sortOrder: number;
+  published: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TestimonialInput {
+  name: string;
+  quote: string;
+  category?: string;
+  dateLabel?: string;
+  location?: string;
+  avatarUrl?: string;
+  photoUrl?: string;
+  photoAlt?: string;
+  rating?: number;
+  sortOrder?: number;
+  published?: boolean;
+}
+
+export interface TestimonialUpdate {
+  name?: string;
+  quote?: string;
+  category?: string;
+  dateLabel?: string;
+  location?: string;
+  avatarUrl?: string;
+  photoUrl?: string;
+  photoAlt?: string;
+  rating?: number;
+  sortOrder?: number;
+  published?: boolean;
+}
+
 export interface Package {
   id: number;
   name: string;
@@ -489,6 +540,125 @@ export interface ItineraryAiAssistResponse {
   disclaimer: string;
 }
 
+export interface ItineraryTemplate {
+  id: string;
+  label: string;
+  title: string;
+  description: string;
+  destination: string;
+  /** @nullable */
+  customerName?: string | null;
+  /** @nullable */
+  startDate?: string | null;
+  /** @nullable */
+  endDate?: string | null;
+  /** @nullable */
+  curatorName?: string | null;
+  /** @nullable */
+  curatorPhone?: string | null;
+  /** @nullable */
+  emergencyContacts?: string | null;
+  /** @nullable */
+  referenceNumber?: string | null;
+  /** @nullable */
+  adults?: number | null;
+  /** @nullable */
+  children?: number | null;
+  /** @nullable */
+  infants?: number | null;
+  /** @nullable */
+  tripIncludes?: string | null;
+  /** @nullable */
+  transportation?: string | null;
+  /** @nullable */
+  coverImageUrl?: string | null;
+  /** @nullable */
+  summary?: string | null;
+  days: string;
+  stays: string;
+  pricing: string;
+  /** @nullable */
+  inclusions?: string | null;
+  /** @nullable */
+  exclusions?: string | null;
+  /** @nullable */
+  hotelTerms?: string | null;
+  /** @nullable */
+  paymentTerms?: string | null;
+  /** @nullable */
+  importantInfo?: string | null;
+  status: string;
+  isPredefined?: boolean;
+  displayOrder?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ItineraryTemplateInput {
+  id?: string;
+  label: string;
+  title: string;
+  description: string;
+  destination: string;
+  customerName?: string;
+  startDate?: string;
+  endDate?: string;
+  curatorName?: string;
+  curatorPhone?: string;
+  emergencyContacts?: string;
+  referenceNumber?: string;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  tripIncludes?: string;
+  transportation?: string;
+  coverImageUrl?: string;
+  summary?: string;
+  days?: string;
+  stays?: string;
+  pricing?: string;
+  inclusions?: string;
+  exclusions?: string;
+  hotelTerms?: string;
+  paymentTerms?: string;
+  importantInfo?: string;
+  status?: string;
+  isPredefined?: boolean;
+  displayOrder?: number;
+}
+
+export interface ItineraryTemplateUpdate {
+  label?: string;
+  title?: string;
+  description?: string;
+  destination?: string;
+  customerName?: string;
+  startDate?: string;
+  endDate?: string;
+  curatorName?: string;
+  curatorPhone?: string;
+  emergencyContacts?: string;
+  referenceNumber?: string;
+  adults?: number;
+  children?: number;
+  infants?: number;
+  tripIncludes?: string;
+  transportation?: string;
+  coverImageUrl?: string;
+  summary?: string;
+  days?: string;
+  stays?: string;
+  pricing?: string;
+  inclusions?: string;
+  exclusions?: string;
+  hotelTerms?: string;
+  paymentTerms?: string;
+  importantInfo?: string;
+  status?: string;
+  isPredefined?: boolean;
+  displayOrder?: number;
+}
+
 export interface JournalAiArticleInput {
   title?: string;
   slug?: string;
@@ -696,6 +866,15 @@ export interface OrderInput {
   budgetRange?: string;
   guestCount?: number;
   specialRequests?: string;
+  status?: string;
+  totalAmount?: number;
+  currency?: string;
+  paymentStatus?: string;
+  paymentTerms?: string;
+  notes?: string;
+  bookingReference?: string;
+  itineraryId?: number;
+  itineraryTitle?: string;
   ipAddress?: string;
   userAgent?: string;
   referrerUrl?: string;
@@ -709,6 +888,7 @@ export interface OrderInput {
   geoCountry?: string;
   geoRegion?: string;
   geoCity?: string;
+  marketingConsent?: boolean;
 }
 
 export interface OrderUpdate {
@@ -728,6 +908,52 @@ export interface Enquiry {
   message: string;
   status: string;
   /** @nullable */
+  packageId?: number | null;
+  /** @nullable */
+  packageName?: string | null;
+  /** @nullable */
+  travelStyle?: string | null;
+  /** @nullable */
+  destinations?: string | null;
+  /** @nullable */
+  travelDate?: string | null;
+  /** @nullable */
+  departureDate?: string | null;
+  /** @nullable */
+  guestCount?: number | null;
+  /** @nullable */
+  budgetRange?: string | null;
+  /** @nullable */
+  currency?: string | null;
+  /** @nullable */
+  specialRequests?: string | null;
+  /** @nullable */
+  ipAddress?: string | null;
+  /** @nullable */
+  userAgent?: string | null;
+  /** @nullable */
+  referrerUrl?: string | null;
+  /** @nullable */
+  landingPage?: string | null;
+  /** @nullable */
+  utmSource?: string | null;
+  /** @nullable */
+  utmMedium?: string | null;
+  /** @nullable */
+  utmCampaign?: string | null;
+  /** @nullable */
+  browserLanguage?: string | null;
+  /** @nullable */
+  screenResolution?: string | null;
+  /** @nullable */
+  timezone?: string | null;
+  /** @nullable */
+  geoCountry?: string | null;
+  /** @nullable */
+  geoRegion?: string | null;
+  /** @nullable */
+  geoCity?: string | null;
+  /** @nullable */
   bookingId?: number | null;
   /** @nullable */
   bookingReference?: string | null;
@@ -743,7 +969,31 @@ export interface EnquiryInput {
   name: string;
   email: string;
   phone?: string;
-  message: string;
+  message?: string;
+  packageId?: number;
+  packageName?: string;
+  travelStyle?: string;
+  destinations?: string;
+  travelDate?: string;
+  departureDate?: string;
+  guestCount?: number;
+  budgetRange?: string;
+  currency?: string;
+  specialRequests?: string;
+  marketingConsent?: boolean;
+  ipAddress?: string;
+  userAgent?: string;
+  referrerUrl?: string;
+  landingPage?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  browserLanguage?: string;
+  screenResolution?: string;
+  timezone?: string;
+  geoCountry?: string;
+  geoRegion?: string;
+  geoCity?: string;
 }
 
 export interface EnquiryUpdate {
@@ -1076,6 +1326,31 @@ export interface TripPlanEntity {
   highlightsOrRoute?: string;
 }
 
+export type TripBudgetDetailsCanonicalInr = {
+  minInr: number;
+  maxInr: number;
+  isPlus?: boolean;
+  formatted: string;
+};
+
+export type TripBudgetDetailsRateSnapshot = {
+  rate: number;
+  inrPerUnit: number;
+  referenceDate: string;
+  status: string;
+  provider: string;
+};
+
+export interface TripBudgetDetails {
+  currency: string;
+  minAmount: number;
+  maxAmount: number;
+  isPlus?: boolean;
+  formatted: string;
+  canonicalInr: TripBudgetDetailsCanonicalInr;
+  rateSnapshot: TripBudgetDetailsRateSnapshot;
+}
+
 export interface TripItinerary {
   title: string;
   tagline: string;
@@ -1092,6 +1367,7 @@ export interface TripItinerary {
   practicalAdvice: string[];
   catalogueNotice: string;
   realisticAssessment?: string;
+  budget?: TripBudgetDetails;
 }
 
 export interface TripPlanResponse {
@@ -1099,6 +1375,43 @@ export interface TripPlanResponse {
   provider: string;
   model: string;
   refinementSuggestions?: string[];
+}
+
+export type CurrencyRatesResponseStatus = typeof CurrencyRatesResponseStatus[keyof typeof CurrencyRatesResponseStatus];
+
+
+export const CurrencyRatesResponseStatus = {
+  live: 'live',
+  cached: 'cached',
+  stale: 'stale',
+  fallback: 'fallback',
+} as const;
+
+export type CurrencyRatesResponseRates = {
+  INR: number;
+  USD: number;
+  EUR: number;
+  GBP: number;
+  AED: number;
+};
+
+export type CurrencyRatesResponseInrPerUnit = {
+  INR: number;
+  USD: number;
+  EUR: number;
+  GBP: number;
+  AED: number;
+};
+
+export interface CurrencyRatesResponse {
+  base: string;
+  referenceDate: string;
+  lastUpdated: string;
+  status: CurrencyRatesResponseStatus;
+  provider: string;
+  disclaimer: string;
+  rates: CurrencyRatesResponseRates;
+  inrPerUnit: CurrencyRatesResponseInrPerUnit;
 }
 
 export type CampaignStatus = typeof CampaignStatus[keyof typeof CampaignStatus];
@@ -1130,6 +1443,9 @@ export interface CampaignTargetAudience {
   destinations?: string[];
   /** @nullable */
   travelStyle?: string | null;
+  /** @nullable */
+  groupId?: number | null;
+  groupIds?: number[];
 }
 
 export interface CampaignDeliveryStats {
@@ -1203,12 +1519,30 @@ export type CampaignAudiencePreviewSampleRecipientsItem = {
   email: string;
   source: string;
   isSubscribed: boolean;
+  isSuppressed?: boolean;
+  consentStatus?: string;
+  isEligible?: boolean;
+  /** @nullable */
+  eligibilityReason?: string | null;
+  /** @nullable */
+  exclusionReason?: string | null;
+  /** @nullable */
+  destination?: string | null;
+  hasDestination?: boolean;
 };
 
 export interface CampaignAudiencePreview {
+  totalSelected: number;
   eligibleRecipients: number;
+  eligibleCount: number;
   activeSubscribers: number;
+  subscribedCount: number;
+  notSubscribedCount: number;
   unsubscribedCount: number;
+  suppressedCount: number;
+  excludedNotSubscribed: number;
+  excludedUnsubscribed: number;
+  excludedSuppressed: number;
   sampleRecipients: CampaignAudiencePreviewSampleRecipientsItem[];
 }
 
@@ -1240,6 +1574,10 @@ export interface CampaignUnsubscribeInput {
   email: string;
 }
 
+export interface CampaignAudienceEstimateInput {
+  targetAudience?: CampaignTargetAudience;
+}
+
 export type ListDestinationsParams = {
 type?: string;
 published?: boolean;
@@ -1256,7 +1594,15 @@ status?: string;
 enquiryId?: number;
 };
 
+export type ListItineraryTemplatesParams = {
+status?: string;
+};
+
 export type ListTravelCategoriesParams = {
+published?: boolean;
+};
+
+export type ListTestimonialsParams = {
 published?: boolean;
 };
 

@@ -458,7 +458,7 @@ export default function NavbarV3() {
 
         <div className="v3-nav-right nav-right-desktop">
           <Link
-            href="/plan-a-journey"
+            href="/plan"
             className="v3-nav-cta"
             aria-label="Plan a Journey"
           >
@@ -469,7 +469,7 @@ export default function NavbarV3() {
         {/* Phones use the bottom tab bar instead of the burger menu. */}
         <div className="v3-nav-phone-cta-wrap">
           <Link
-            href="/plan-a-journey"
+            href="/plan"
             className="v3-nav-cta v3-nav-cta-phone"
             aria-label="Plan a Journey"
           >
@@ -507,7 +507,7 @@ export default function NavbarV3() {
         ))}
 
         <Link
-          href="/plan-a-journey"
+          href="/plan"
           onClick={() => setMenuOpen(false)}
           className="v3-mobile-cta"
         >

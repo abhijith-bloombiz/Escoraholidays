@@ -64,19 +64,19 @@ export function isLiveTransactionalSending(): boolean {
   }
   const isGmailActive = Boolean(
     (config.emailProvider === "gmail" || config.emailProvider === "auto") &&
-      config.gmailUser &&
-      config.gmailAppPassword &&
-      config.gmailAppPassword.trim().length > 0
+    config.gmailUser &&
+    config.gmailAppPassword &&
+    config.gmailAppPassword.trim().length > 0
   );
   const isResendActive = Boolean(
     config.resendApiKey &&
-      config.resendApiKey.trim().length > 0 &&
-      getResendClient() !== null
+    config.resendApiKey.trim().length > 0 &&
+    getResendClient() !== null
   );
 
   return Boolean(
     isGmailActive ||
-      (config.transactionalSendingEnabled && isResendActive)
+    (config.transactionalSendingEnabled && isResendActive)
   );
 }
 
@@ -265,11 +265,12 @@ export async function triggerBookingConfirmation(order: IOrder): Promise<INotifi
       logger.error({ orderId: order.id, error: errorMsg }, "[Notification] Booking confirmation dispatch failed");
     }
   } else {
-    // Simulation / safe test mode
-    status = "sent";
-    messageId = `mock_resend_msg_${crypto.randomUUID()}`;
-    sentAt = new Date();
-    logger.info({ orderId: order.id, messageId }, "[Notification] Booking confirmation processed in simulation mode");
+    // If transactional sending is disabled or provider not configured, mark as failed safely without simulation
+    status = "failed";
+    errorMsg = !config.transactionalSendingEnabled
+      ? "Transactional email sending is disabled (TRANSACTIONAL_SENDING_ENABLED is false)"
+      : "No live email provider is configured. Please configure Gmail credentials or Resend API key.";
+    logger.warn({ orderId: order.id, error: errorMsg }, "[Notification] Booking confirmation email dispatch skipped");
   }
 
   try {
@@ -1539,7 +1540,7 @@ async function dispatchNotificationEmail(
     });
 
     if (sendResult.success) {
-      claimed.status = sendResult.status === "simulated" ? "simulated" : "accepted";
+      claimed.status = sendResult.status === "delivered" ? "delivered" : "accepted";
       claimed.messageId = sendResult.messageId || null;
       claimed.sentAt = sendResult.sentAt || new Date();
       claimed.error = null;
@@ -1550,7 +1551,6 @@ async function dispatchNotificationEmail(
         providerResponse: sendResult.providerResponse || null,
         acceptedRecipients: sendResult.acceptedRecipients || [claimed.recipientEmail],
         rejectedRecipients: sendResult.rejectedRecipients || [],
-        isSimulated: sendResult.status === "simulated",
       };
     } else {
       claimed.retryCount = (claimed.retryCount || 0) + 1;
@@ -1571,16 +1571,14 @@ async function dispatchNotificationEmail(
       }
     }
   } else {
-    // Safe simulation mode
-    claimed.status = "simulated";
-    claimed.messageId = `simulated_${crypto.randomUUID()}`;
-    claimed.sentAt = new Date();
-    claimed.error = null;
+    // Transactional sending disabled or unconfigured — mark as failed safely without simulation
+    claimed.status = "failed";
+    claimed.error = !config.transactionalSendingEnabled
+      ? "Transactional email sending is disabled (TRANSACTIONAL_SENDING_ENABLED is false)"
+      : "No live email provider is configured. Please configure Gmail credentials or Resend API key.";
     claimed.metadata = {
       ...(claimed.metadata || {}),
-      provider: "mock",
-      isSimulated: true,
-      simulationReason: "Automated simulation mode / provider not in live mode",
+      provider: "none",
     };
   }
 
@@ -1612,7 +1610,7 @@ async function dispatchNotificationEmail(
           lastExecutionError: claimed.error || null,
         },
       }
-    ).catch(() => {});
+    ).catch(() => { });
   }
 }
 

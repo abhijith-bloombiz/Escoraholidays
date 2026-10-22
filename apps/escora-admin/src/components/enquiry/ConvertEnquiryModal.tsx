@@ -155,38 +155,44 @@ export default function ConvertEnquiryModal({
     }
 
     // Direct Booking (no proposal selected)
-    // Attempt to extract from AI briefing if available
-    let extractedDest = "";
-    if (aiResult?.extractedPreferences?.destinations?.length) {
-      extractedDest = aiResult.extractedPreferences.destinations.join(" & ");
-    } else if (aiResult?.summary?.destinations?.length) {
-      extractedDest = aiResult.summary.destinations.join(" & ");
+    // Attempt to extract from enquiry fields first, then AI briefing
+    let extractedDest = enquiry.destinations || "";
+    if (!extractedDest) {
+      if (aiResult?.extractedPreferences?.destinations?.length) {
+        extractedDest = aiResult.extractedPreferences.destinations.join(" & ");
+      } else if (aiResult?.summary?.destinations?.length) {
+        extractedDest = aiResult.summary.destinations.join(" & ");
+      }
     }
     setDestinations(extractedDest || "Munnar & Alleppey Backwaters");
 
-    let extractedDate = "";
-    const datesStr = aiResult?.extractedPreferences?.travelDates || aiResult?.summary?.travelDates || "";
-    if (datesStr && !datesStr.toLowerCase().includes("unknown")) {
-      const match = datesStr.match(/\d{4}-\d{2}-\d{2}/);
-      if (match) extractedDate = match[0];
+    let extractedDate = enquiry.travelDate || "";
+    if (!extractedDate) {
+      const datesStr = aiResult?.extractedPreferences?.travelDates || aiResult?.summary?.travelDates || "";
+      if (datesStr && !datesStr.toLowerCase().includes("unknown")) {
+        const match = datesStr.match(/\d{4}-\d{2}-\d{2}/);
+        if (match) extractedDate = match[0];
+      }
     }
     setTravelDate(extractedDate);
-    setDepartureDate("");
+    setDepartureDate(enquiry.departureDate || "");
 
-    let count = 2;
-    const groupStr = (aiResult?.extractedPreferences?.groupSize || "").toLowerCase();
-    const countMatch = groupStr.match(/(\d+)/);
-    if (countMatch) {
-      count = parseInt(countMatch[1], 10) || 2;
+    let count = enquiry.guestCount || 2;
+    if (!enquiry.guestCount) {
+      const groupStr = (aiResult?.extractedPreferences?.groupSize || "").toLowerCase();
+      const countMatch = groupStr.match(/(\d+)/);
+      if (countMatch) {
+        count = parseInt(countMatch[1], 10) || 2;
+      }
     }
     setGuestCount(count >= 1 ? count : 2);
 
     setTotalAmount(0);
     setCurrency("INR");
     setPaymentTerms("50% advance deposit upon confirmation, balance 15 days prior to arrival");
-    setTravelStyle(aiResult?.extractedPreferences?.travelStyle || "Bespoke Slow-Luxury");
-    setSpecialRequests(aiResult?.extractedPreferences?.specialRequests?.join(", ") || "");
-    setInternalNotes(`Direct booking conversion from Inbox Enquiry #${enquiry.id}`);
+    setTravelStyle(enquiry.travelStyle || aiResult?.extractedPreferences?.travelStyle || "Bespoke Slow-Luxury");
+    setSpecialRequests(enquiry.specialRequests || aiResult?.extractedPreferences?.specialRequests?.join(", ") || "");
+    setInternalNotes(`Direct booking conversion from Inbox Enquiry #${enquiry.id}${enquiry.packageName ? ` (${enquiry.packageName})` : ""}`);
     setCustomerAccepted(true);
     setAvailabilityConfirmed(true);
   }

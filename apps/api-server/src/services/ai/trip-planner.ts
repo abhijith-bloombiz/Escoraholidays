@@ -39,6 +39,8 @@ export interface DayItineraryItem {
   travelNote?: string;
 }
 
+import { currencyService, type TripBudgetDetails, type SupportedCurrency } from "../currency-service";
+
 export interface FormattedTripItinerary {
   title: string;
   tagline: string;
@@ -49,6 +51,7 @@ export interface FormattedTripItinerary {
   idealSeason: string;
   pace: string;
   budgetGuidance: string;
+  budget?: TripBudgetDetails;
   days: DayItineraryItem[];
   verifiedDestinations: GroundedEntityItem[];
   verifiedJourneys: GroundedEntityItem[];
@@ -103,6 +106,14 @@ export async function planEscoraTrip(data: TripPlanRequestData): Promise<TripPla
   const notes = (data.additionalNotes || "").slice(0, 1000).trim();
   const refinementPrompt = (data.refinementPrompt || "").slice(0, 1000).trim();
 
+  // Deterministically compute authoritative canonical INR budget and target currency conversion
+  const budgetDetails = await currencyService.calculateTripBudget(
+    budgetTier,
+    durationDays,
+    travelersCount,
+    currency
+  );
+
   // 2. Format catalog for AI context
   const catalogDestinationsText = destinations
     .map((d) => {
@@ -120,7 +131,7 @@ export async function planEscoraTrip(data: TripPlanRequestData): Promise<TripPla
     })
     .join("\n");
 
-  // 3. System prompt enforcing Escora slow-luxury rules, catalog strictness, and schema adherence
+  // 3. System prompt enforcing Escora slow-luxury rules, catalog strictness, conciseness, and schema adherence
   const systemPrompt = `You are the Master Travel Designer for Escora Holidays — South India's premier slow-luxury, experiential travel house.
 You craft meticulously paced, sensory, unhurried journeys through God's Own Country (Kerala).
 
@@ -136,12 +147,25 @@ CRITICAL GROUNDING RULES:
    - Road transfers in Kerala's Western Ghats take 3.5 to 5 hours of scenic driving; avoid scheduling transfers on consecutive days whenever possible.
    - If the requested duration or interest combination is too rushed, prioritize quality over quantity and explain your pacing adjustments in 'realisticAssessment'.
 
-3. NON-FABRICATION:
+3. CONCISE, HIGH-VALUE LUXURY WRITING (CRITICAL):
+   - Produce concise, clear, premium-quality content. Shorten the text length, NOT the travel experience or recommendation quality.
+   - Deliver maximum substance with minimum words. Avoid long rambling paragraphs, repetitive descriptions, and unnecessary introductions.
+   - Eliminate filler phrases and travel clichés (e.g., 'enjoy the beautiful scenery', 'soak in the sights and sounds', 'as the morning sun rises', 'take time to relax and unwind').
+   - Use specific, destination-relevant language, genuine local landmarks, and authentic cultural or nature experiences (e.g., 'private solar cruise through Punnamada backwaters', 'guided walk through Lockhart tea factory', 'sunset Kathakali demonstration at Fort Kochi').
+   - Voyage Overview: Exactly 2 concise sentences (approx 35–55 words total) detailing the voyage arc and distinctive character. Evocative, meaningful, easy to scan.
+   - Day Title: Short, descriptive day title (3–6 words, e.g., 'Colonial Fort Kochi & Harbor').
+   - Daily Themes: Approximately one concise sentence (usually 15–25 words) capturing the day's distinctive focus and atmosphere without filler.
+   - Activities: Present 'morningActivity', 'afternoonActivity', and 'eveningActivity' as short labels or compact text (10–18 words each) specifying the distinctive experience, venue, or sight without lengthy explanations or filler.
+   - Retain only the most relevant 2–4 distinctive recommendations for each day. Avoid listing too many activities simply to fill the itinerary, and avoid duplicating attractions across days unless revisiting is intentional.
+   - Accommodations: Keep 'stayRecommendation' concise (under 8 words), showing the sanctuary category and overnight location clearly (e.g., 'Heritage tea bungalow, Munnar').
+   - Logistics: Keep 'travelNote' concise and practical (under 10 words, e.g., '3.5h scenic private transfer'), or null if staying put.
+   - Personalization: Preserve full personalization reflecting the guest's selected interests, duration, party composition, budget tier, and requested pace.
+
+4. NON-FABRICATION:
    - Do NOT invent specific hotel room confirmation numbers, real-time availability, or guaranteed locked prices.
    - Describe accommodations by sanctuary category and style (e.g., "Restored Dutch colonial heritage villa", "Boutique tea plantation bungalow", "Private solar-assisted backwater cruiser").
-   - State prices indicatively in 'budgetGuidance'.
 
-4. OUTPUT FORMAT (MANDATORY):
+5. OUTPUT FORMAT (MANDATORY):
    - You MUST output ONLY a valid JSON object matching the requested schema. No markdown formatting outside the JSON, no intro text, no conversational sign-offs.`;
 
   // 4. User prompt formulating guest requirements or refinement
@@ -152,7 +176,7 @@ CRITICAL GROUNDING RULES:
 - Travelers: ${travelersCount} guest(s) (${travelerType})
 - Desired Travel Style & Pace: ${pace}
 - Selected Interests: ${interests.join(", ")}
-- Target Budget Tier: ${budgetTier} (${currency})
+- Target Budget Tier: ${budgetTier} (${currency}) [Baseline: ${budgetDetails.canonicalInr.formatted}]
 ${notes ? `- Special Requests & Preferences: "${notes}"` : ""}
 
 VERIFIED ESCORA CATALOG:
@@ -169,50 +193,39 @@ REFINEMENT INSTRUCTION:
 The guest has reviewed their previous itinerary ("${data.currentItinerary.title || "Previous Kerala Journey"}") and requests the following specific refinement:
 "${refinementPrompt}"
 
-Please update and refine the day-by-day plan to honor this request while maintaining logical geographical routing and Escora's slow-luxury philosophy.
+Please update and refine the day-by-day plan to honor this request while maintaining logical geographical routing, Escora's slow-luxury philosophy, and concise premium wording.
 `;
   } else {
     userPrompt += `
-Please design an unhurried, evocative ${durationDays}-day day-by-day slow-luxury Kerala itinerary for this guest.`;
+Please design an unhurried, evocative ${durationDays}-day day-by-day slow-luxury Kerala itinerary for this guest. Keep all text concise, clear, and premium in quality.`;
   }
 
   userPrompt += `
 JSON OUTPUT SCHEMA:
 {
-  "title": "Evocative journey title (e.g., 'Mist & Waters: An Unhurried 7-Day Passage')",
-  "tagline": "Poetic single-sentence essence of the trip",
-  "overview": "Rich 2-3 paragraph slow-luxury narrative detailing the voyage arc and atmosphere",
+  "title": "Evocative journey title (e.g., 'Mist & Waters: A 7-Day Kerala Passage')",
+  "tagline": "Poetic single-sentence essence of the trip (under 15 words)",
+  "overview": "Concise 2-sentence slow-luxury overview of the voyage arc (approx 35–55 words, no filler)",
   "durationDays": ${durationDays},
   "durationNights": ${durationNights},
   "routeSequence": ["Array of destination names in travel order"],
   "idealSeason": "Season or timing summary",
   "pace": "${pace}",
-  "budgetGuidance": "Indicative pricing range and explanation of what slow luxury covers (private car, experiential stays, private boat)",
-  "realisticAssessment": "Honest assessment of pacing, travel feasibility, mountain road distances, or budget alignment",
+  "realisticAssessment": "Honest 1-sentence assessment of pacing and transit feasibility",
   "days": [
     {
       "day": 1,
-      "title": "Evocative day title",
+      "title": "Short descriptive title (3–6 words, e.g. 'Colonial Fort Kochi & Sunset Harbor')",
       "destination": "Verified destination name from catalog",
       "destinationSlug": "Matching slug from catalog",
-      "theme": "Atmospheric day theme",
-      "morningActivity": "Sensory, unhurried morning experience",
-      "afternoonActivity": "Immersive afternoon slow travel experience",
-      "eveningActivity": "Tranquil evening, dining, or sunset experience",
-      "stayRecommendation": "Indicative boutique sanctuary style",
-      "travelNote": "Transit distance or scenic road advice (or null if staying put)"
+      "theme": "One concise sentence (15–25 words) capturing the day's focus and atmosphere",
+      "morningActivity": "Short label or compact text (10–18 words) focusing on distinctive experience or landmark",
+      "afternoonActivity": "Short label or compact text (10–18 words) focusing on distinctive experience or landmark",
+      "eveningActivity": "Short label or compact text (10–18 words) focusing on distinctive experience or landmark",
+      "stayRecommendation": "Concise sanctuary category & overnight location (under 8 words, e.g. 'Heritage boutique villa, Fort Kochi')",
+      "travelNote": "Essential transit timing or null if staying put (under 10 words, e.g. '3.5h scenic private transfer')"
     }
     // Repeat for all ${durationDays} days
-  ],
-  "practicalAdvice": [
-    "Practical slow travel tip 1 (clothing, weather, footwear)",
-    "Practical slow travel tip 2 (transit, winding roads)",
-    "Practical slow travel tip 3 (ayurvedic rhythms, local etiquette)"
-  ],
-  "refinementSuggestions": [
-    "Refinement suggestion 1 (e.g. Add an extra night in Munnar)",
-    "Refinement suggestion 2 (e.g. Shift from coast to deep spice sanctuaries)",
-    "Refinement suggestion 3 (e.g. Include private classical Kathakali workshop)"
   ]
 }`;
 
@@ -372,7 +385,8 @@ JSON OUTPUT SCHEMA:
       : verifiedDestinations.map((d) => d.name),
     idealSeason: parsedRaw.idealSeason || season,
     pace,
-    budgetGuidance: parsedRaw.budgetGuidance || `Indicative starting slow-luxury budget: ₹${(durationDays * 22000).toLocaleString("en-IN")} – ₹${(durationDays * 35000).toLocaleString("en-IN")} for ${travelersCount} guests, depending on bespoke property preferences.`,
+    budgetGuidance: budgetDetails.guidanceText,
+    budget: budgetDetails,
     realisticAssessment: parsedRaw.realisticAssessment || `This ${durationDays}-day itinerary balances scenic transit with restful sanctuary stays, ensuring you experience Kerala deeply rather than spending all day in transport.`,
     days: normalizedDays,
     verifiedDestinations,

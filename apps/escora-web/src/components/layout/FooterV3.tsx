@@ -148,7 +148,7 @@ export default function FooterV3() {
             </div>
 
             <div>
-              <Link href="/plan-a-journey" className="cinematic-footer-plan-btn">
+              <Link href="/plan" className="cinematic-footer-plan-btn">
                 <span>PLAN A JOURNEY</span>
                 <svg
                   viewBox="0 0 24 24"

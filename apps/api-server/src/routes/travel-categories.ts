@@ -1,10 +1,9 @@
 import { Router, type IRouter } from "express";
-import { TravelCategoryModel, getNextSequence } from "@workspace/db";
+import { TravelCategoryModel, PackageModel, getNextSequence } from "@workspace/db";
 import {
   ListTravelCategoriesQueryParams,
   ListTravelCategoriesResponse,
   CreateTravelCategoryBody,
-  GetTravelCategoryParams,
   GetTravelCategoryResponse,
   UpdateTravelCategoryParams,
   UpdateTravelCategoryBody,
@@ -25,8 +24,12 @@ router.get("/travel-categories", async (req, res, next): Promise<void> => {
     return;
   }
 
+  const isAdmin = Boolean((req.session as any)?.authenticated);
   const filter: Record<string, any> = {};
-  if (query.data.published !== undefined) {
+
+  if (!isAdmin) {
+    filter.published = true;
+  } else if (query.data.published !== undefined) {
     filter.published = query.data.published;
   }
 
@@ -58,7 +61,12 @@ router.post("/travel-categories", async (req, res, next): Promise<void> => {
 
   try {
     const id = await getNextSequence("travel_categories");
-    const cat = await TravelCategoryModel.create({ ...parsed.data, id });
+    const cat = await TravelCategoryModel.create({
+      ...parsed.data,
+      id,
+      label: parsed.data.label.trim(),
+      slug: parsed.data.slug.trim(),
+    });
     res.status(201).json(GetTravelCategoryResponse.parse(serializeDates(cat.toObject())));
   } catch (err: any) {
     if (err.name === "ValidationError" || err.name === "CastError") {
@@ -70,13 +78,24 @@ router.post("/travel-categories", async (req, res, next): Promise<void> => {
 });
 
 router.get("/travel-categories/:id", async (req, res): Promise<void> => {
-  const params = GetTravelCategoryParams.safeParse(req.params);
-  if (!params.success) {
-    res.status(400).json({ error: params.error.message });
+  const rawId = req.params.id;
+  if (!rawId || typeof rawId !== "string" || !rawId.trim()) {
+    res.status(404).json({ error: "Travel category not found" });
     return;
   }
+
+  const isNumeric = /^\d+$/.test(rawId);
+  const filter: Record<string, any> = isNumeric
+    ? { $or: [{ id: Number(rawId) }, { slug: rawId }] }
+    : { slug: rawId };
+
+  const isAdmin = Boolean((req.session as any)?.authenticated);
+  if (!isAdmin) {
+    filter.published = true;
+  }
+
   try {
-    const cat = await TravelCategoryModel.findOne({ id: params.data.id }).lean();
+    const cat = await TravelCategoryModel.findOne(filter).lean();
     if (!cat) {
       res.status(404).json({ error: "Travel category not found" });
       return;
@@ -109,9 +128,13 @@ router.patch("/travel-categories/:id", async (req, res, next): Promise<void> => 
   }
 
   try {
+    const updatePayload: Record<string, any> = { ...parsed.data, updatedAt: new Date() };
+    if (parsed.data.label !== undefined) updatePayload.label = parsed.data.label.trim();
+    if (parsed.data.slug !== undefined) updatePayload.slug = parsed.data.slug.trim();
+
     const cat = await TravelCategoryModel.findOneAndUpdate(
       { id: params.data.id },
-      { $set: { ...parsed.data, updatedAt: new Date() } },
+      { $set: updatePayload },
       { new: true, runValidators: true }
     ).lean();
     if (!cat) {
@@ -135,11 +158,24 @@ router.delete("/travel-categories/:id", async (req, res, next): Promise<void> =>
     return;
   }
   try {
-    const cat = await TravelCategoryModel.findOneAndDelete({ id: params.data.id }).lean();
+    const cat = await TravelCategoryModel.findOne({ id: params.data.id }).lean();
     if (!cat) {
       res.status(404).json({ error: "Travel category not found" });
       return;
     }
+
+    // Safety check for dependencies: do any packages reference this category?
+    const dependentPackages = await PackageModel.countDocuments({
+      category: { $in: [cat.slug, cat.label] },
+    });
+    if (dependentPackages > 0) {
+      res.status(409).json({
+        error: `Cannot delete category "${cat.label}" because ${dependentPackages} package(s) reference it. Please reassign or delete those packages first.`,
+      });
+      return;
+    }
+
+    await TravelCategoryModel.deleteOne({ id: params.data.id });
     res.sendStatus(204);
   } catch (err) {
     next(err);

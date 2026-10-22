@@ -374,7 +374,7 @@ export default function About() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Link
-                href="/plan-a-journey"
+                href="/plan"
                 className="inline-flex items-center justify-center bg-[#183628] text-[#FAF8F5] font-sans text-sm font-medium px-8 py-3.5 rounded-full hover:bg-[#12281e] transition-colors shadow-sm min-w-[170px]"
               >
                 Plan a Journey

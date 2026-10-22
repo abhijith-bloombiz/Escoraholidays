@@ -110,7 +110,7 @@ export default function DestinationsV3() {
               <div className="dest-grid">
                 {destinations.map((dest) => {
                   const slug = dest.slug || slugify(dest.name);
-                  const img = DESTINATION_PHOTOS[slug] || dest.imageUrl || FALLBACK_IMG;
+                  const img = dest.imageUrl || DESTINATION_PHOTOS[slug] || FALLBACK_IMG;
                   return (
                     <Link
                       key={dest.id}

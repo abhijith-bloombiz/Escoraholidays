@@ -16,34 +16,48 @@ export interface TravelTypeItem {
 
 interface TravelTypeCoverflowProps {
   items: TravelTypeItem[];
+  isLoading?: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
+}
+
+export function formatTravelCategoryTitle(label: string, slug?: string): React.ReactNode {
+  const s = (slug || "").toLowerCase().trim();
+  if (s === "honeymoon") return <>Honey-<br/><em>moon</em></>;
+  if (s === "backwaters") return <>Back-<br/><em>waters</em></>;
+  if (s === "beaches") return <>Kerala<br/><em>Beaches</em></>;
+  if (s === "nature-wildlife") return <>Nature &amp;<br/><em>Wildlife</em></>;
+  if (s === "health-wellness") return <>Health &amp;<br/><em>Wellness</em></>;
+  if (s === "historical-heritage") return <>Historical<br/><em>&amp; Heritage</em></>;
+  if (s === "hill-stations") return <>Hill<br/><em>Stations</em></>;
+  if (s === "functional-medicine") return <>Functional<br/><em>Medicine</em></>;
+
+  const text = (label || "").trim();
+  if (text.includes("&")) {
+    const parts = text.split("&");
+    return <>{parts[0].trim()} &amp;<br /><em>{parts.slice(1).join("&").trim()}</em></>;
+  }
+  const words = text.split(/\s+/);
+  if (words.length > 1) {
+    const firstPart = words.slice(0, -1).join(" ");
+    const lastWord = words[words.length - 1];
+    return <>{firstPart}<br /><em>{lastWord}</em></>;
+  }
+  return <em>{text}</em>;
 }
 
 const getCardDisplayName = (item: TravelTypeItem) => {
-  switch (item.id) {
-    case "health-wellness":
-      return "HEALTH & WELLNESS";
-    case "nature-wildlife":
-      return "NATURE & WILDLIFE";
-    case "hill-stations":
-      return "HILL STATIONS";
-    case "backwaters":
-      return "BACKWATERS";
-    case "honeymoon":
-      return "HONEYMOON";
-    case "beaches":
-      return "BEACHES";
-    case "functional-medicine":
-      return "FUNCTIONAL MEDICINE";
-    case "historical-heritage":
-      return "HISTORICAL & HERITAGE";
-    default:
-      return item.label.toUpperCase();
-  }
+  return (item.label || "").toUpperCase();
 };
 
-export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items }) => {
-  // Center card initially on index 2 (Nature & Wildlife) matching reference design
-  const [activeIndex, setActiveIndex] = useState(2);
+export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
+  items,
+  isLoading,
+  isError,
+  onRetry,
+}) => {
+  // Center card initially on index 2 (matching reference design) or 0 if fewer items
+  const [activeIndex, setActiveIndex] = useState(() => (items.length > 2 ? 2 : 0));
   const [, navigate] = useLocation();
   const [isPaused, setIsPaused] = useState(false);
   const touchStartX = useRef<number | null>(null);
@@ -275,6 +289,12 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items 
     return diff;
   };
 
+  useEffect(() => {
+    if (items.length > 0 && activeIndex >= items.length) {
+      setActiveIndex(0);
+    }
+  }, [items.length, activeIndex]);
+
   /* Preload images */
   useEffect(() => {
     items.forEach((item) => {
@@ -285,7 +305,44 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items 
     });
   }, [items]);
 
-  if (!items || items.length === 0) return null;
+  if (isLoading) {
+    return (
+      <div className="travel-type-coverflow-wrap flex items-center justify-center py-24 text-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-2 border-[#c59a58]/30 border-t-[#c59a58] rounded-full animate-spin" />
+          <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#E5C388]/90">Loading categories…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="travel-type-coverflow-wrap flex items-center justify-center py-20 text-center">
+        <div className="flex flex-col items-center gap-3 max-w-sm px-4">
+          <p className="text-xs font-mono uppercase tracking-[0.2em] text-red-400">Failed to load travel categories</p>
+          <p className="text-xs text-white/60">Unable to load category information from the server.</p>
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="px-4 py-2 rounded-full border border-[#c59a58]/40 text-[#c59a58] text-xs font-mono tracking-wider hover:bg-[#c59a58]/10 transition-colors mt-2"
+            >
+              Retry
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (!items || items.length === 0) {
+    return (
+      <div className="travel-type-coverflow-wrap flex items-center justify-center py-20 text-center">
+        <p className="text-xs font-mono uppercase tracking-[0.2em] text-[#E5C388]/70">No travel categories available at this time.</p>
+      </div>
+    );
+  }
 
   const entranceClass = `coverflow-entrance-${entranceState}`;
 
@@ -360,15 +417,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({ items 
 
                   <div className="coverflow-center-bottom">
                     <h3 className="coverflow-center-title">
-                      {item.id === "nature-wildlife" ? (
-                        <>NATURE &amp;<br />WILDLIFE</>
-                      ) : item.id === "health-wellness" ? (
-                        <>HEALTH &amp;<br />WELLNESS</>
-                      ) : item.id === "historical-heritage" ? (
-                        <>HISTORICAL &amp;<br />HERITAGE</>
-                      ) : (
-                        getCardDisplayName(item)
-                      )}
+                      {item.name || formatTravelCategoryTitle(item.label, item.id)}
                     </h3>
                     <p className="coverflow-center-desc">{item.desc}</p>
                     <div className="coverflow-explore-cta">

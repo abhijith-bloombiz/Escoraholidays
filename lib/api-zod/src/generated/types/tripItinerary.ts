@@ -4,6 +4,7 @@
  * Api
  * OpenAPI spec version: 1.0.0
  */
+import type { TripBudgetDetails } from './tripBudgetDetails';
 import type { TripItineraryDay } from './tripItineraryDay';
 import type { TripPlanEntity } from './tripPlanEntity';
 
@@ -23,4 +24,5 @@ export interface TripItinerary {
   practicalAdvice: string[];
   catalogueNotice: string;
   realisticAssessment?: string;
+  budget?: TripBudgetDetails;
 }

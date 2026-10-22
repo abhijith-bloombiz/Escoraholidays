@@ -124,43 +124,43 @@ async function run() {
     );
 
     // -----------------------------------------------------------------
-    // TEST 2: Simulation mode dispatches
+    // TEST 2: Unconfigured Provider Fails Safely (No Simulation Mode)
     // -----------------------------------------------------------------
-    console.log("\nScenario 2: Simulation mode dispatches");
+    console.log("\nScenario 2: Unconfigured Provider Fails Safely");
     const testSimNotifId = 999902;
     await NotificationModel.deleteOne({ id: testSimNotifId });
 
-    // Explicitly test mock/simulation provider dispatch
-    setResendClientForTesting(null); // Forces mock provider
-    const simResult: EmailSendResult = await sendEmailWithStatus({
-      to: "simulated.guest@example.com",
-      subject: "Simulation Test",
+    // Explicitly test unconfigured provider dispatch
+    setResendClientForTesting(null); // No Resend client
+    const failResult: EmailSendResult = await sendEmailWithStatus({
+      to: "test.guest@example.com",
+      subject: "Unconfigured Provider Test",
       html: "<p>Test</p>",
     });
 
     report(
-      "sendEmailWithStatus returns status: 'simulated' in mock mode",
-      simResult.status === "simulated" && simResult.success === true,
-      `Expected status 'simulated', got '${simResult.status}'`
+      "sendEmailWithStatus returns status: 'failed' when provider unconfigured (never simulates)",
+      failResult.status === "failed" && failResult.success === false,
+      `Expected status 'failed', got '${failResult.status}'`
     );
     report(
-      "Simulated result provider is 'mock'",
-      simResult.provider === "mock",
-      `Expected provider 'mock', got '${simResult.provider}'`
+      "Failed result contains actionable configuration error",
+      Boolean(failResult.error && failResult.error.length > 0),
+      `Expected error message, got '${failResult.error}'`
     );
 
-    // Save notification in simulation mode
+    // Verify historical notification with status: 'simulated' remains readable
     const simNotif = await NotificationModel.create({
       id: testSimNotifId,
       type: "booking_confirmation",
       category: "transactional",
       relatedType: "order",
       relatedId: 889,
-      recipientEmail: "simulated.guest@example.com",
-      recipientName: "Simulation Guest",
+      recipientEmail: "historical.guest@example.com",
+      recipientName: "Historical Guest",
       subject: "Booking Confirmed — Escora",
-      status: simResult.status,
-      messageId: simResult.messageId,
+      status: "simulated",
+      messageId: "mock_msg_historical_123",
       sentAt: new Date(),
       deliveredAt: null,
       idempotencyKey: `sim-idem-${Date.now()}`,
@@ -171,7 +171,7 @@ async function run() {
     });
 
     report(
-      "Notification document records status: 'simulated'",
+      "Historical notification document records status: 'simulated' and remains readable",
       simNotif.status === "simulated",
       `Expected 'simulated', got '${simNotif.status}'`
     );

@@ -92,6 +92,7 @@ import {
   MessageSquare,
   CheckCheck,
   ShoppingBag,
+  Compass,
 } from "lucide-react";
 import ConvertEnquiryModal from "@/components/enquiry/ConvertEnquiryModal";
 import AiItineraryAssistantModal from "@/components/itinerary/AiItineraryAssistantModal";
@@ -1358,6 +1359,28 @@ export default function EnquiriesPage() {
 
                     {/* Message Preview */}
                     <TableCell className="align-top py-3.5 max-w-md">
+                      {(e.packageName || e.destinations) && (
+                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                          <Badge variant="outline" className="text-[10px] bg-primary/5 text-primary border-primary/20 font-medium">
+                            {e.packageName || e.destinations}
+                          </Badge>
+                          {e.travelDate && (
+                            <span className="text-[10px] text-muted-foreground">
+                              · {e.travelDate}
+                            </span>
+                          )}
+                          {e.guestCount && (
+                            <span className="text-[10px] text-muted-foreground">
+                              · {e.guestCount} {e.guestCount === 1 ? "Guest" : "Guests"}
+                            </span>
+                          )}
+                          {e.budgetRange && (
+                            <span className="text-[10px] text-muted-foreground">
+                              · {e.budgetRange}{e.currency ? ` (${e.currency})` : ""}
+                            </span>
+                          )}
+                        </div>
+                      )}
                       <p className={`text-sm line-clamp-2 leading-relaxed ${isUnread ? "text-foreground font-normal" : "text-muted-foreground"}`}>
                         {e.message}
                       </p>
@@ -1623,6 +1646,74 @@ export default function EnquiriesPage() {
                     )}
                   </div>
                 </div>
+
+                {/* Journey & Package Details Card */}
+                {(viewing.packageName || viewing.destinations || viewing.travelDate) && (
+                  <div className="p-4 rounded-lg border border-[#24543D]/20 bg-[#24543D]/5 space-y-2.5">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[#24543D] flex items-center gap-1.5">
+                        <Compass className="h-3.5 w-3.5 text-[#24543D]" />
+                        Requested Journey &amp; Package
+                      </span>
+                      {viewing.packageName && (
+                        <Badge className="bg-[#24543D]/10 text-[#24543D] border-[#24543D]/20 text-[10px] font-medium">
+                          {viewing.packageName}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
+                      {viewing.destinations && (
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Destinations</span>
+                          <span className="font-medium text-foreground">{viewing.destinations}</span>
+                        </div>
+                      )}
+                      {viewing.travelDate && (
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Arrival Date</span>
+                          <span className="font-medium text-foreground">{viewing.travelDate}</span>
+                        </div>
+                      )}
+                      {viewing.guestCount && (
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Travellers</span>
+                          <span className="font-medium text-foreground">{viewing.guestCount} Guests</span>
+                        </div>
+                      )}
+                      {viewing.travelStyle && (
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Style</span>
+                          <span className="font-medium text-foreground">{viewing.travelStyle}</span>
+                        </div>
+                      )}
+                      {viewing.budgetRange && (
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Budget</span>
+                          <span className="font-medium text-foreground">
+                            {viewing.budgetRange}
+                            {viewing.currency && (
+                              <span className="ml-1.5 text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-[#24543D]/10 text-[#24543D]">
+                                {viewing.currency}
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      )}
+                      {!viewing.budgetRange && viewing.currency && (
+                        <div>
+                          <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Currency</span>
+                          <span className="font-medium text-foreground">{viewing.currency}</span>
+                        </div>
+                      )}
+                    </div>
+                    {viewing.specialRequests && (
+                      <div className="pt-2 border-t border-[#24543D]/15 text-xs">
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider block">Special Requests</span>
+                        <p className="text-foreground mt-0.5">{viewing.specialRequests}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Message Content */}
                 <div className="space-y-1.5">

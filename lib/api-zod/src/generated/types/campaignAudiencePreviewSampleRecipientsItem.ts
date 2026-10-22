@@ -10,4 +10,14 @@ export type CampaignAudiencePreviewSampleRecipientsItem = {
   email: string;
   source: string;
   isSubscribed: boolean;
+  isSuppressed?: boolean;
+  consentStatus?: string;
+  isEligible?: boolean;
+  /** @nullable */
+  eligibilityReason?: string | null;
+  /** @nullable */
+  exclusionReason?: string | null;
+  /** @nullable */
+  destination?: string | null;
+  hasDestination?: boolean;
 };

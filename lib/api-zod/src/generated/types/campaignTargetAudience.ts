@@ -11,4 +11,7 @@ export interface CampaignTargetAudience {
   destinations?: string[];
   /** @nullable */
   travelStyle?: string | null;
+  /** @nullable */
+  groupId?: number | null;
+  groupIds?: number[];
 }

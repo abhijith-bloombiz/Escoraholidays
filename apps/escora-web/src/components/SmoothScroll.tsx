@@ -68,6 +68,22 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
           hash = href.substring(1);
         }
         if (hash) {
+          const PINNED_HASH_MAP: Record<string, number> = {
+            "#why-escora": 0,
+            "#categories": 1,
+            "#explore-kerala": 2,
+            "#how-it-works": 3,
+            "#retreat": 4,
+            "#testimonials": 5,
+            "#contact": 6,
+          };
+
+          if (hash in PINNED_HASH_MAP && window.__pinnedJourney) {
+            e.preventDefault();
+            window.__pinnedJourney.goToSlide(PINNED_HASH_MAP[hash]);
+            return;
+          }
+
           const elem = document.querySelector(hash);
           if (elem) {
             e.preventDefault();

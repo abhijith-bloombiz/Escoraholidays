@@ -162,9 +162,9 @@ export default function EscoraContactCard({ id = "contact", className = "" }: Es
             ) : (
               <form onSubmit={handleSubmit} noValidate>
                 {/* Header */}
-                <span className="escora-card-eyebrow">SEND AN ENQUIRY</span>
+                <span className="escora-card-eyebrow" data-pinned-reveal>SEND AN ENQUIRY</span>
 
-                <h2 className="escora-card-heading">
+                <h2 className="escora-card-heading" data-pinned-reveal>
                   <span className="escora-heading-line1">Let's Plan Your</span>
                   <span className="escora-heading-line2-wrap">
                     <span className="escora-heading-line2">Kerala Journey</span>
@@ -178,12 +178,12 @@ export default function EscoraContactCard({ id = "contact", className = "" }: Es
                   </span>
                 </h2>
 
-                <p className="escora-card-subtitle">
+                <p className="escora-card-subtitle" data-pinned-reveal>
                   Share a few details and we'll plan your personalized Kerala journey.
                 </p>
 
                 {/* Form Fields Grid */}
-                <div className="escora-form-grid">
+                <div className="escora-form-grid" data-pinned-reveal>
                   {/* Field 1: YOUR NAME */}
                   <div className="escora-form-field">
                     <label className="escora-field-label" htmlFor="escora-name">
@@ -385,7 +385,7 @@ export default function EscoraContactCard({ id = "contact", className = "" }: Es
                 {error && <p className="escora-form-error">{error}</p>}
 
                 {/* Action Buttons Row */}
-                <div className="escora-buttons-row">
+                <div className="escora-buttons-row" data-pinned-reveal>
                   {/* Primary Submit Button with Leaf Illustration */}
                   <button
                     type="submit"

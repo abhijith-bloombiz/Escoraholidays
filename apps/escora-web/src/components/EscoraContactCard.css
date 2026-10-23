@@ -173,25 +173,25 @@
   margin: 0;
 }
 
-/* ─── Luxury Input Pill Box (Pure White, Smooth Gold Border) ─── */
+/* ─── Luxury Borderless Input Pill Box ─── */
 .escora-input-pill {
   position: relative;
   display: flex;
   align-items: center;
-  height: clamp(40px, 4.6vh, 44px);
+  height: clamp(42px, 4.6vh, 46px);
   background: #FFFFFF !important;
   border-radius: 12px;
-  border: 1.5px solid rgba(214, 206, 192, 0.9);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
-  padding: 0 12px;
+  border: none !important;
+  box-shadow: 0 1px 4px rgba(20, 51, 35, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+  padding: 0 14px;
   transition: all 0.22s ease;
   box-sizing: border-box;
 }
 
 .escora-input-pill:focus-within {
-  border-color: #B58D5D;
+  border: none !important;
   background: #FFFFFF !important;
-  box-shadow: 0 0 0 3px rgba(181, 141, 93, 0.18), 0 3px 10px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 0 0 2.5px rgba(181, 141, 93, 0.35), 0 4px 14px rgba(20, 51, 35, 0.07);
 }
 
 .escora-pill-icon {
@@ -200,7 +200,8 @@
   justify-content: center;
   color: #B58D5D;
   flex-shrink: 0;
-  margin-right: 9px;
+  margin-right: 10px;
+  pointer-events: none;
 }
 
 .escora-pill-icon svg {
@@ -210,10 +211,10 @@
 
 .escora-pill-icon.rupee-symbol {
   font-family: var(--font-sans, system-ui, sans-serif);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #B58D5D;
-  margin-right: 7px;
+  margin-right: 9px;
 }
 
 /* Unified phone selector */
@@ -221,70 +222,118 @@
   display: flex;
   align-items: center;
   width: 100%;
+  height: 100%;
+  min-width: 0;
 }
 
-.escora-phone-prefix-select {
-  background: transparent;
-  border: none;
+.escora-phone-prefix-select,
+html.theme-v3 .escora-phone-prefix-select,
+.escora-input-pill select.escora-phone-prefix-select {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   font-family: var(--font-sans, system-ui, sans-serif);
   font-size: 13px;
   font-weight: 500;
-  color: #143323;
+  color: #143323 !important;
   cursor: pointer;
-  padding: 0 2px 0 0;
-  outline: none;
-  appearance: none;
-  -webkit-appearance: none;
+  padding: 0 2px 0 0 !important;
+  margin: 0 !important;
+  outline: none !important;
+  height: 100% !important;
+  width: auto !important;
+  flex-shrink: 0;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
 }
 
 .escora-phone-prefix-arrow {
   color: #708076;
   font-size: 10px;
-  margin-right: 7px;
+  margin-right: 8px;
   pointer-events: none;
+  flex-shrink: 0;
 }
 
 .escora-phone-divider {
   width: 1px;
-  height: 16px;
-  background: rgba(214, 206, 192, 0.9);
-  margin-right: 9px;
+  height: 18px;
+  background: rgba(214, 206, 192, 0.75);
+  margin-right: 10px;
+  flex-shrink: 0;
 }
 
-/* Inputs and selects */
+.escora-phone-wrap input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Inputs and selects inside pill */
 .escora-text-input,
-.escora-select-input {
-  width: 100%;
-  height: 100%;
-  border: none;
+.escora-select-input,
+.escora-input-pill input,
+.escora-input-pill select,
+html.theme-v3 .escora-text-input,
+html.theme-v3 .escora-select-input,
+html.theme-v3 .escora-input-pill input,
+html.theme-v3 .escora-input-pill select {
+  width: 100% !important;
+  height: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   background: transparent !important;
   font-family: var(--font-sans, var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif));
   font-size: 13px;
-  color: #143323;
-  outline: none;
-  padding: 0;
+  color: #143323 !important;
+  outline: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+}
+
+.escora-text-input:focus,
+.escora-select-input:focus,
+.escora-phone-prefix-select:focus,
+.escora-input-pill input:focus,
+.escora-input-pill select:focus,
+html.theme-v3 .escora-text-input:focus,
+html.theme-v3 .escora-select-input:focus,
+html.theme-v3 .escora-phone-prefix-select:focus,
+html.theme-v3 .escora-input-pill input:focus,
+html.theme-v3 .escora-input-pill select:focus {
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  background: transparent !important;
 }
 
 .escora-text-input::placeholder {
-  color: #93A299;
+  color: #93A299 !important;
   font-size: 12.5px;
   font-weight: 400;
+  opacity: 1;
 }
 
 .escora-select-input {
   cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
+  padding-right: 26px !important;
 }
 
 .escora-select-input option {
   background: #FFFFFF;
   color: #143323;
+  padding: 8px 12px;
 }
 
 .escora-select-chevron {
   position: absolute;
-  right: 12px;
+  right: 14px;
   color: #708076;
   pointer-events: none;
   display: flex;

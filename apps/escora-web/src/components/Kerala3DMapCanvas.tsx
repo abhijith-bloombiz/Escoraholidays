@@ -175,6 +175,7 @@ export default function Kerala3DMapCanvas({
   const isRevealingRef = useRef(false);
   const revealTimelineRef = useRef<gsap.core.Timeline | null>(null);
   const ensureRevealedRef = useRef<() => void>(() => {});
+  const pinElementsRef = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const districtMeshesRef = useRef<Map<string, THREE.Mesh>>(new Map());
   const selectedDistrictRef = useRef<string | null>(selectedDistrict);
@@ -204,6 +205,7 @@ export default function Kerala3DMapCanvas({
 
     const width = container.clientWidth || 380;
     const height = container.clientHeight || 480;
+    const dims = { w: width, h: height };
 
     // Calibrated isometric perspective camera so entire Kerala relief and all pins fit cleanly within viewport
     const camera = new THREE.PerspectiveCamera(39, width / height, 0.1, 100);
@@ -387,7 +389,6 @@ export default function Kerala3DMapCanvas({
       const intersects = raycaster.intersectObjects(districtMeshArray);
 
       if (intersects.length > 0) {
-        ensureRevealedRef.current();
         const hitName = (intersects[0].object as THREE.Mesh).userData.districtName;
         if (currentHovered !== hitName) {
           currentHovered = hitName;
@@ -414,7 +415,6 @@ export default function Kerala3DMapCanvas({
     };
 
     const onClick = (e: MouseEvent) => {
-      ensureRevealedRef.current();
       const rect = renderer.domElement.getBoundingClientRect();
       const clickMouse = new THREE.Vector2(
         ((e.clientX - rect.left) / rect.width) * 2 - 1,
@@ -530,9 +530,40 @@ export default function Kerala3DMapCanvas({
         }
       });
 
+      // Synchronize pin positions and opacities directly with 3D projection during forward & backward wave
+      const w = dims.w;
+      const h = dims.h;
+      MAP_PINS.forEach((pin) => {
+        const el = pinElementsRef.current.get(pin.id);
+        if (!el) return;
+        const st = districtRevealStates.get(pin.district);
+        const currentScale = st ? Math.max(0, Math.min(1, st.scale)) : 1;
+        const currentOffsetY = st ? st.offsetY : 0;
+        const currentOffsetZ = st ? st.offsetZ : 0;
+        const topo = DISTRICT_TOPOGRAPHY[pin.district] || { depth: 0.32 };
+        const mesh = districtMeshes.get(pin.district);
+        const zOffset = mesh ? mesh.position.z : 0;
+
+        const x = (pin.lon - centerLon) * scale;
+        const y = (pin.lat - centerLat) * scale;
+        tempVec.set(x, y + currentOffsetY, topo.depth + 0.12 + zOffset + currentOffsetZ);
+        tempVec.project(camera);
+
+        const screenX = ((tempVec.x + 1) / 2) * w;
+        const screenY = ((-tempVec.y + 1) / 2) * h;
+
+        const opacity = Math.max(0, Math.min(1, (currentScale - 0.20) / 0.80));
+        el.style.left = `${screenX}px`;
+        el.style.top = `${screenY}px`;
+        el.style.opacity = `${opacity}`;
+        el.style.transform = `translate(-50%, -50%) scale(${0.35 + 0.65 * currentScale})`;
+        el.style.pointerEvents = opacity > 0.75 ? "auto" : "none";
+      });
+
       renderer.render(scene, camera);
 
-      if ((maxDelta > 0.001 || isRevealingRef.current) && !prefersReduced) {
+      const isTimelineActive = Boolean(revealTimelineRef.current && isVisible);
+      if ((maxDelta > 0.001 || isTimelineActive) && !prefersReduced) {
         animId = requestAnimationFrame(animate);
       } else {
         // Snap all meshes to exact targetZ to ensure clean resting state
@@ -546,15 +577,13 @@ export default function Kerala3DMapCanvas({
         });
         renderer.render(scene, camera);
         animId = 0;
-        calculatePins(container.clientWidth || 360, container.clientHeight || 440);
       }
     };
 
-    // ── Sequential Reveal Animations (Pop-up from top North to South in order) ──
+    // ── Sequential Reveal Animations (Looping Forward and Backward) ──
     const ensureRevealed = () => {
       revealTimelineRef.current?.progress(1);
       isRevealedRef.current = true;
-      isRevealingRef.current = false;
       setIsRevealed(true);
 
       districtGroups.forEach((grp, name) => {
@@ -572,10 +601,42 @@ export default function Kerala3DMapCanvas({
     };
     ensureRevealedRef.current = ensureRevealed;
 
+    const resetReveal = () => {
+      if (revealTimelineRef.current) {
+        revealTimelineRef.current.kill();
+        revealTimelineRef.current = null;
+      }
+      isRevealedRef.current = false;
+      setIsRevealed(false);
+
+      NORTH_TO_SOUTH_DISTRICTS.forEach((name) => {
+        const st = districtRevealStates.get(name);
+        const grp = districtGroups.get(name);
+        if (st && grp) {
+          st.scale = 0;
+          st.offsetY = 0.38;
+          st.offsetZ = -0.32;
+          grp.scale.set(0, 0, 0);
+          grp.position.set(grp.userData.centroidX, grp.userData.centroidY + 0.38, -0.32);
+        }
+      });
+
+      // Reset pins to hidden state
+      MAP_PINS.forEach((pin) => {
+        const el = pinElementsRef.current.get(pin.id);
+        if (el) {
+          el.style.opacity = "0";
+          el.style.pointerEvents = "none";
+          el.style.transform = "translate(-50%, -50%) scale(0.35)";
+        }
+      });
+
+      wakeLoop();
+    };
+
     const triggerReveal = () => {
-      if (isRevealedRef.current || isRevealingRef.current) return;
+      if (isRevealedRef.current) return;
       isRevealedRef.current = true;
-      isRevealingRef.current = true;
       setIsRevealed(true);
 
       const prefersReduced =
@@ -587,25 +648,17 @@ export default function Kerala3DMapCanvas({
         return;
       }
 
-      revealTimelineRef.current?.kill();
+      if (revealTimelineRef.current) {
+        revealTimelineRef.current.kill();
+      }
+
+      // Smooth one-shot cascade from North (Kasaragod) down to South (Trivandrum)
       const tl = gsap.timeline({
         onUpdate: () => {
           wakeLoop();
         },
         onComplete: () => {
-          isRevealingRef.current = false;
-          districtGroups.forEach((grp, name) => {
-            const st = districtRevealStates.get(name);
-            if (st) {
-              st.scale = 1;
-              st.offsetY = 0;
-              st.offsetZ = 0;
-            }
-            grp.scale.set(1, 1, 1);
-            const { centroidX, centroidY } = grp.userData;
-            grp.position.set(centroidX, centroidY, 0);
-          });
-          wakeLoop();
+          ensureRevealed();
         },
       });
       revealTimelineRef.current = tl;
@@ -622,7 +675,7 @@ export default function Kerala3DMapCanvas({
         grp.position.set(grp.userData.centroidX, grp.userData.centroidY + 0.38, -0.32);
 
         // Sequence from top (Kasaragod) down to bottom (Trivandrum) one by one in order
-        const delay = idx * 0.062;
+        const delay = idx * 0.055;
 
         tl.to(
           st,
@@ -631,7 +684,7 @@ export default function Kerala3DMapCanvas({
             offsetY: 0,
             offsetZ: 0,
             duration: 0.65,
-            ease: "back.out(1.5)",
+            ease: "power2.out",
             onUpdate: () => {
               const s = Math.max(0, st.scale);
               grp.scale.set(s, s, s);
@@ -644,69 +697,67 @@ export default function Kerala3DMapCanvas({
       });
     };
 
-    const resetReveal = () => {
-      if (isRevealingRef.current) return;
-      if (selectedDistrictRef.current !== null) return;
-
-      revealTimelineRef.current?.kill();
-      isRevealedRef.current = false;
-      isRevealingRef.current = false;
-      setIsRevealed(false);
-
-      districtGroups.forEach((grp, name) => {
-        const st = districtRevealStates.get(name);
-        if (st) {
-          st.scale = 0;
-          st.offsetY = 0.38;
-          st.offsetZ = -0.32;
-        }
-        grp.scale.set(0, 0, 0);
-        const { centroidX, centroidY } = grp.userData;
-        grp.position.set(centroidX, centroidY + 0.38, -0.32);
-      });
-      renderer.render(scene, camera);
-    };
-
-    // ── IntersectionObserver: Detect exact viewport reach ──
+    // ── IntersectionObserver: Trigger reveal strictly when user scrolls and reaches map viewport ──
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry) return;
         isVisible = entry.isIntersecting;
 
-        const inExactViewport =
-          entry.isIntersecting &&
-          (entry.intersectionRatio >= 0.18 ||
-            (entry.boundingClientRect.top < window.innerHeight * 0.80 &&
-              entry.boundingClientRect.bottom > window.innerHeight * 0.18));
-
-        if (inExactViewport) {
-          triggerReveal();
+        if (entry.isIntersecting) {
+          isVisible = true;
+          if (!isRevealedRef.current) {
+            triggerReveal();
+          }
           wakeLoop();
-        } else if (!entry.isIntersecting || entry.intersectionRatio <= 0.01) {
-          resetReveal();
-          if (animId) {
-            cancelAnimationFrame(animId);
-            animId = 0;
+        } else {
+          const rect = entry.boundingClientRect;
+          if (rect.top > window.innerHeight || rect.bottom < 0) {
+            isVisible = false;
+            resetReveal();
+            if (animId) {
+              cancelAnimationFrame(animId);
+              animId = 0;
+            }
           }
         }
       },
-      { threshold: [0, 0.05, 0.12, 0.18, 0.30] }
+      { rootMargin: "0px 0px -15% 0px", threshold: 0 }
     );
     observer.observe(container);
 
-    // Initial check in case section is already in viewport on mount
-    const initialRect = container.getBoundingClientRect();
-    if (initialRect.top < window.innerHeight && initialRect.bottom > 0) {
-      isVisible = true;
-      triggerReveal();
-      wakeLoop();
+    // Initial check: ONLY trigger if user reloads while already scrolled down to the map
+    // NEVER trigger on page load when user is at the top hero
+    if (typeof window !== "undefined" && window.scrollY > 300) {
+      const initialRect = container.getBoundingClientRect();
+      if (initialRect.top < window.innerHeight * 0.85 && initialRect.bottom > 0) {
+        isVisible = true;
+        triggerReveal();
+        wakeLoop();
+      }
     }
+
+    // Tab visibility handling: pause when browser tab is inactive, resume when tab is active
+    const handleTabVisibility = () => {
+      if (document.hidden) {
+        revealTimelineRef.current?.pause();
+        if (animId) {
+          cancelAnimationFrame(animId);
+          animId = 0;
+        }
+      } else if (isVisible) {
+        revealTimelineRef.current?.play();
+        wakeLoop();
+      }
+    };
+    document.addEventListener("visibilitychange", handleTabVisibility);
 
     // ── Resize Handler ──
     const handleResize = () => {
       if (!container) return;
       const w = container.clientWidth || 380;
       const h = container.clientHeight || 480;
+      dims.w = w;
+      dims.h = h;
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
@@ -719,6 +770,7 @@ export default function Kerala3DMapCanvas({
     return () => {
       revealTimelineRef.current?.kill();
       observer.disconnect();
+      document.removeEventListener("visibilitychange", handleTabVisibility);
       if (animId) cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
       renderer.domElement.removeEventListener("mousemove", onPointerMove);
@@ -776,6 +828,10 @@ export default function Kerala3DMapCanvas({
           return (
             <div
               key={pin.id}
+              ref={(el) => {
+                if (el) pinElementsRef.current.set(pin.id, el);
+                else pinElementsRef.current.delete(pin.id);
+              }}
               className={`map-floating-pin-pill ${isHighlighted ? "is-active" : ""} ${isDestActive ? "is-dest-target" : ""}`}
               style={
                 {
@@ -787,11 +843,9 @@ export default function Kerala3DMapCanvas({
                 } as React.CSSProperties
               }
               onClick={() => {
-                ensureRevealedRef.current();
                 onSelectDistrict(pin.district, pin.associatedDestId);
               }}
               onMouseEnter={() => {
-                ensureRevealedRef.current();
                 setHoveredDistrict(pin.district);
               }}
               onMouseLeave={() => setHoveredDistrict(null)}

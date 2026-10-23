@@ -2693,8 +2693,51 @@ body {
   box-shadow: 0 8px 32px rgba(19, 51, 36, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.95);
   border-radius: 18px;
   cursor: pointer;
-  transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease, padding 0.35s ease;
   outline: none;
+  will-change: transform, opacity;
+}
+
+/* Retreat Items: Smooth Cascading Reveal strictly when reaching services list component viewport */
+.retreat-items-list:not(.is-in-view) .retreat-item {
+  opacity: 0;
+  transform: translateY(36px);
+  pointer-events: none;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+}
+
+.retreat-items-list.is-in-view .retreat-item,
+.retreat-split-layout.is-in-view .retreat-item {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  transition: 
+    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    padding 0.35s ease;
+}
+
+/* Stagger list items revealing from bottom one after another */
+.retreat-items-list.is-in-view .retreat-item:nth-child(1),
+.retreat-split-layout.is-in-view .retreat-item:nth-child(1) {
+  transition-delay: 0.08s, 0.08s, 0s, 0s, 0s, 0s;
+}
+
+.retreat-items-list.is-in-view .retreat-item:nth-child(2),
+.retreat-split-layout.is-in-view .retreat-item:nth-child(2) {
+  transition-delay: 0.18s, 0.18s, 0s, 0s, 0s, 0s;
+}
+
+.retreat-items-list.is-in-view .retreat-item:nth-child(3),
+.retreat-split-layout.is-in-view .retreat-item:nth-child(3) {
+  transition-delay: 0.28s, 0.28s, 0s, 0s, 0s, 0s;
+}
+
+.retreat-items-list.is-in-view .retreat-item:nth-child(4),
+.retreat-split-layout.is-in-view .retreat-item:nth-child(4) {
+  transition-delay: 0.38s, 0.38s, 0s, 0s, 0s, 0s;
 }
 
 .retreat-item:hover {
@@ -2896,6 +2939,12 @@ body {
   max-width: 490px;
   height: 440px;
   margin: 0 auto;
+  --slot1-dx: 234px;
+  --slot1-dy: 54px;
+  --slot2-dx: 237px;
+  --slot2-dy: -154px;
+  --slot3-dx: 2px;
+  --slot3-dy: -214px;
 }
 
 /* ═══════════ Persistent Circular Cards (Fluid Kinetic Swapping) ═══════════ */
@@ -2912,7 +2961,11 @@ body {
   display: block;
   user-select: none;
   -webkit-user-select: none;
+  transform-origin: center center;
+  will-change: transform, opacity, top, left, width, height;
   transition: 
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease,
     top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
     left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
     width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
@@ -2920,7 +2973,6 @@ body {
     border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
     border-color 0.4s ease,
     box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: top, left, width, height;
 }
 
 .retreat-circle-card-img {
@@ -3063,6 +3115,112 @@ body {
   max-width: 115px;
 }
 
+/* ═══════════ Retreat Cards: In-View Reveal & Behind-Hero Emergence (Bidirectional) ═══════════ */
+/* Unrevealed / Reset state: Main card at 0%, Other cards smoothly positioned behind main card */
+.retreat-collage-wrapper:not(.is-in-view) .retreat-card-slot-0 {
+  transform: scale(0);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+
+.retreat-collage-wrapper:not(.is-in-view) .retreat-card-slot-1 {
+  transform: translate(var(--slot1-dx, 234px), var(--slot1-dy, 54px)) scale(0.18);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1 !important;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+
+.retreat-collage-wrapper:not(.is-in-view) .retreat-card-slot-2 {
+  transform: translate(var(--slot2-dx, 237px), var(--slot2-dy, -154px)) scale(0.18);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1 !important;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+
+.retreat-collage-wrapper:not(.is-in-view) .retreat-card-slot-3 {
+  transform: translate(var(--slot3-dx, 2px), var(--slot3-dy, -214px)) scale(0.18);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 1 !important;
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+
+/* In-View state: Main card blooms 0% to 100%, Satellite cards smoothly emerge from behind main card */
+.retreat-collage-wrapper.is-in-view .retreat-card-slot-0,
+.retreat-split-layout.is-in-view .retreat-card-slot-0 {
+  transform: scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  transition: 
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s ease;
+  transition-delay: 0.1s, 0.1s, 0s, 0s, 0s, 0s, 0s, 0s, 0s;
+}
+
+.retreat-collage-wrapper.is-in-view .retreat-card-slot-1,
+.retreat-split-layout.is-in-view .retreat-card-slot-1 {
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  transition: 
+    transform 1.02s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s ease;
+  transition-delay: 0.28s, 0.28s, 0s, 0s, 0s, 0s, 0s, 0s, 0s;
+}
+
+.retreat-collage-wrapper.is-in-view .retreat-card-slot-2,
+.retreat-split-layout.is-in-view .retreat-card-slot-2 {
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  transition: 
+    transform 1.08s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+    top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s ease;
+  transition-delay: 0.38s, 0.38s, 0s, 0s, 0s, 0s, 0s, 0s, 0s;
+}
+
+.retreat-collage-wrapper.is-in-view .retreat-card-slot-3,
+.retreat-split-layout.is-in-view .retreat-card-slot-3 {
+  transform: translate(0, 0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+  transition: 
+    transform 1.14s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
+    top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.4s ease;
+  transition-delay: 0.48s, 0.48s, 0s, 0s, 0s, 0s, 0s, 0s, 0s;
+}
+
 /* Responsive Media Queries */
 @media (max-width: 1024px) {
   .retreat-split-layout {
@@ -3076,6 +3234,12 @@ body {
   .retreat-collage-wrapper {
     max-width: 410px;
     height: 380px;
+    --slot1-dx: 189px;
+    --slot1-dy: 46px;
+    --slot2-dx: 189px;
+    --slot2-dy: -133px;
+    --slot3-dx: 1px;
+    --slot3-dy: -186px;
   }
   .retreat-card-slot-0 {
     width: 215px;
@@ -3146,6 +3310,12 @@ body {
   .retreat-collage-wrapper {
     max-width: 320px;
     height: 300px;
+    --slot1-dx: 150px;
+    --slot1-dy: 38px;
+    --slot2-dx: 149px;
+    --slot2-dy: -106px;
+    --slot3-dx: 7px;
+    --slot3-dy: -147px;
   }
   .retreat-card-slot-0 {
     width: 170px;
@@ -3196,6 +3366,15 @@ body {
   }
   .retreat-item.is-active {
     padding: 16px 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .retreat-item,
+  .retreat-circle-card {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
   }
 }
 

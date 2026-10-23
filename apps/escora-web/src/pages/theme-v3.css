@@ -160,6 +160,7 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   min-height: 72px;
   padding: 16px 36px 16px 40px;
   border-radius: 20px;
+  border: none;
   font-family: var(--f-body);
   background: transparent;
   backdrop-filter: blur(20px) saturate(180%);
@@ -204,14 +205,13 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.26) 100%);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.78);
+  border: none;
   box-shadow:
     0 10px 32px rgba(19, 51, 36, 0.06),
-    0 2px 6px rgba(0, 0, 0, 0.02),
-    inset 0 1px 1.5px rgba(255, 255, 255, 0.95);
+    0 2px 6px rgba(0, 0, 0, 0.02);
   pointer-events: none;
   z-index: 1;
-  transition: background .4s, border-color .4s, box-shadow .4s, opacity .4s;
+  transition: background .4s, box-shadow .4s, opacity .4s;
 }
 
 /* When in Hero section on homepage: preserve luxury frosted glass */
@@ -224,11 +224,10 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.26) 100%);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.78);
+  border: none;
   box-shadow:
     0 10px 32px rgba(19, 51, 36, 0.06),
-    0 2px 6px rgba(0, 0, 0, 0.02),
-    inset 0 1px 1.5px rgba(255, 255, 255, 0.95);
+    0 2px 6px rgba(0, 0, 0, 0.02);
   opacity: 1;
 }
 
@@ -245,11 +244,10 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.46) 100%);
   backdrop-filter: blur(24px) saturate(190%);
   -webkit-backdrop-filter: blur(24px) saturate(190%);
-  border: 1.5px solid rgba(255, 255, 255, 0.94);
+  border: none;
   box-shadow:
     0 14px 40px rgba(19, 51, 36, 0.08),
-    0 3px 10px rgba(0, 0, 0, 0.03),
-    inset 0 1.5px 2px rgba(255, 255, 255, 1);
+    0 3px 10px rgba(0, 0, 0, 0.03);
 }
 
 .v3-nav-brand { display: flex; align-items: center; z-index: 2; margin-right: auto; }
@@ -267,9 +265,9 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
 }
 .v3-nav-link {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 10px 16px; border-radius: 10px;
+  padding: 10px 15px; border-radius: 10px;
   font-family: 'Inter', var(--f-sans, sans-serif);
-  font-size: 13.5px; font-weight: 500;
+  font-size: 15px; font-weight: 500;
   color: #1A3F2C; text-decoration: none; white-space: nowrap;
   transition: color .3s;
 }
@@ -438,7 +436,7 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   align-items: center;
   padding: 10px 14px;
   border-radius: 12px;
-  font-size: 13.5px;
+  font-size: 14.5px;
   font-weight: 500;
   color: #1A3F2C;
   text-decoration: none;
@@ -470,7 +468,7 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
 .v3-nav-cta {
   background: #e8d2ac; color: #1A3F2C;
   padding: 12px 24px; border-radius: 999px;
-  font-size: 13.5px; font-weight: 600; text-decoration: none; white-space: nowrap;
+  font-size: 14.5px; font-weight: 600; text-decoration: none; white-space: nowrap;
   display: inline-flex; align-items: center; justify-content: center;
   line-height: 1;
   transition: background .35s, color .35s, transform .35s;
@@ -671,7 +669,7 @@ button.v3-nav-cta {
 
 @media (max-width: 1060px) {
   .v3-nav-phone { display: none; }
-  .v3-nav-link { padding: 9px 12px; font-size: 13px; }
+  .v3-nav-link { padding: 8px 11px; font-size: 13.5px; }
 }
 @media (max-width: 920px) {
   .v3-nav-links, .v3-nav-right { display: none !important; }
@@ -1144,9 +1142,9 @@ html.theme-v3 .portal-card img {
 }
 
 /* Forms minimal input fields */
-html.theme-v3 input:not([type="checkbox"]):not([type="radio"]),
-html.theme-v3 select,
-html.theme-v3 textarea {
+html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):not(.escora-text-input):not(.escora-phone-prefix-select):not(.escora-input-pill *),
+html.theme-v3 select:not(.escora-select-input):not(.escora-phone-prefix-select):not(.escora-input-pill *),
+html.theme-v3 textarea:not(.escora-input-pill *) {
   border-radius: 12px !important;
   background: var(--bg-3);
   border: 1px solid var(--line);
@@ -1154,9 +1152,9 @@ html.theme-v3 textarea {
   transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
 }
 
-html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):focus,
-html.theme-v3 select:focus,
-html.theme-v3 textarea:focus {
+html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):not(.escora-text-input):not(.escora-phone-prefix-select):not(.escora-input-pill *):focus,
+html.theme-v3 select:not(.escora-select-input):not(.escora-phone-prefix-select):not(.escora-input-pill *):focus,
+html.theme-v3 textarea:not(.escora-input-pill *):focus {
   border-color: var(--gold) !important;
   background: #FEFEFE;
   box-shadow: 0 0 0 3px rgba(26,63,44,0.08);

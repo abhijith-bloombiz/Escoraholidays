@@ -237,11 +237,150 @@
   overflow: visible;
   box-sizing: border-box;
   text-align: left;
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  pointer-events: auto;
+  will-change: transform, opacity;
+  /* Swift, smooth exit/reset transition when scrolling out of view (enables instant replay on backward scroll) */
+  transition:
+    transform 0.45s cubic-bezier(0.25, 1, 0.5, 1),
+    opacity 0.38s ease-out;
 }
 
 .how-card:focus-visible {
   outline: 2px solid #B58E58;
   outline-offset: 4px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   HOW IT WORKS — SCROLL REVEAL ANIMATIONS (BIDIRECTIONAL FORWARD & BACKWARD)
+   - Left card (Step 01): comes smoothly from the left
+   - Right card (Step 06): comes smoothly from the right
+   - Other cards (Steps 02-05): reveal from 65% to 100% scale
+   - Fully reversible and plays continuously on forward and backward scroll
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Inactive slide staged state: prepared for entrance transition */
+.pinned-journey-slide:not(.is-active):not(.is-initial-active) .how-card.how-card-left,
+.pinned-journey-slide:not(.is-active):not(.is-initial-active) .how-card.card-col-1-big,
+.how-journey-stage:not(.stage-in-view) .how-card.how-card-left,
+.how-journey-stage:not(.stage-in-view) .how-card.card-col-1-big {
+  opacity: 0;
+  transform: translate3d(-80px, 0, 0);
+  pointer-events: none;
+}
+
+.pinned-journey-slide:not(.is-active):not(.is-initial-active) .how-card.how-card-right,
+.pinned-journey-slide:not(.is-active):not(.is-initial-active) .how-card.card-col-4-big,
+.how-journey-stage:not(.stage-in-view) .how-card.how-card-right,
+.how-journey-stage:not(.stage-in-view) .how-card.card-col-4-big {
+  opacity: 0;
+  transform: translate3d(80px, 0, 0);
+  pointer-events: none;
+}
+
+.pinned-journey-slide:not(.is-active):not(.is-initial-active) .how-card.how-card-scale,
+.pinned-journey-slide:not(.is-active):not(.is-initial-active) .how-card.card-col-2-top,
+.pinned-journey-slide:not(.is-active):not(.is-initial-active) .how-card.card-col-2-btm,
+.pinned-journey-slide:not(.is-active):not(.is-initial-active) .how-card.card-col-3-top,
+.pinned-journey-slide:not(.is-active):not(.is-initial-active) .how-card.card-col-3-btm,
+.how-journey-stage:not(.stage-in-view) .how-card.how-card-scale,
+.how-journey-stage:not(.stage-in-view) .how-card.card-col-2-top,
+.how-journey-stage:not(.stage-in-view) .how-card.card-col-2-btm,
+.how-journey-stage:not(.stage-in-view) .how-card.card-col-3-top,
+.how-journey-stage:not(.stage-in-view) .how-card.card-col-3-btm {
+  opacity: 0;
+  transform: scale(0.65);
+  transform-origin: center center;
+  pointer-events: none;
+}
+
+/* ─── Revealed State: Silky smooth entrance strictly when reaching cards component viewport ─── */
+.how-card,
+.how-card.is-revealed,
+.how-card.card-in-view,
+.how-journey-stage.stage-in-view .how-card,
+.pinned-journey-slide.is-active .how-card,
+.pinned-journey-slide.is-initial-active .how-card {
+  opacity: 1;
+  pointer-events: auto;
+  transition:
+    transform 0.72s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Left Card Revealed: comes smoothly from left to position 0 */
+.how-card.how-card-left.is-revealed,
+.how-card.how-card-left.card-in-view,
+.how-card.card-col-1-big.is-revealed,
+.how-card.card-col-1-big.card-in-view,
+.how-journey-stage.stage-in-view .how-card.how-card-left,
+.how-journey-stage.stage-in-view .how-card.card-col-1-big,
+.pinned-journey-slide.is-active .how-card.how-card-left,
+.pinned-journey-slide.is-active .how-card.card-col-1-big {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-delay: 0.04s;
+}
+
+/* Right Card Revealed: comes smoothly from right to position 0 */
+.how-card.how-card-right.is-revealed,
+.how-card.how-card-right.card-in-view,
+.how-card.card-col-4-big.is-revealed,
+.how-card.card-col-4-big.card-in-view,
+.how-journey-stage.stage-in-view .how-card.how-card-right,
+.how-journey-stage.stage-in-view .how-card.card-col-4-big,
+.pinned-journey-slide.is-active .how-card.how-card-right,
+.pinned-journey-slide.is-active .how-card.card-col-4-big {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition-delay: 0.16s;
+}
+
+/* Other / Middle Cards: reveal from 65% to 100% scale */
+.how-card.how-card-scale.is-revealed,
+.how-card.how-card-scale.card-in-view,
+.how-journey-stage.stage-in-view .how-card.how-card-scale,
+.pinned-journey-slide.is-active .how-card.how-card-scale {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Orchestrated Stagger for Middle Cards */
+.how-card.card-col-2-top.is-revealed,
+.how-card.card-col-2-top.card-in-view,
+.how-journey-stage.stage-in-view .how-card.card-col-2-top,
+.pinned-journey-slide.is-active .how-card.card-col-2-top {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.10s;
+}
+
+.how-card.card-col-2-btm.is-revealed,
+.how-card.card-col-2-btm.card-in-view,
+.how-journey-stage.stage-in-view .how-card.card-col-2-btm,
+.pinned-journey-slide.is-active .how-card.card-col-2-btm {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.18s;
+}
+
+.how-card.card-col-3-top.is-revealed,
+.how-card.card-col-3-top.card-in-view,
+.how-journey-stage.stage-in-view .how-card.card-col-3-top,
+.pinned-journey-slide.is-active .how-card.card-col-3-top {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.24s;
+}
+
+.how-card.card-col-3-btm.is-revealed,
+.how-card.card-col-3-btm.card-in-view,
+.how-journey-stage.stage-in-view .how-card.card-col-3-btm,
+.pinned-journey-slide.is-active .how-card.card-col-3-btm {
+  opacity: 1;
+  transform: scale(1);
+  transition-delay: 0.30s;
 }
 
 /* ─── Distinct Architectural Arch Shapes (Reduced 2x for refined elegance) ─── */
@@ -709,10 +848,29 @@
   .how-card-arch-frame {
     min-height: 260px;
   }
+
+  /* Mobile responsive distance adjustment */
+  .how-card.how-card-left,
+  .how-card.card-col-1-big {
+    transform: translate3d(-60px, 0, 0);
+  }
+
+  .how-card.how-card-right,
+  .how-card.card-col-4-big {
+    transform: translate3d(60px, 0, 0);
+  }
+
+  .how-card.is-revealed,
+  .how-card.card-in-view {
+    transition-delay: 0.04s !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .how-card,
+  .how-card.how-card-left,
+  .how-card.how-card-right,
+  .how-card.how-card-scale,
   .how-card-arch-frame,
   .how-card-img,
   .how-cta-btn,
@@ -721,5 +879,7 @@
     transition: none !important;
     animation: none !important;
     transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
   }
 }

@@ -35,7 +35,7 @@ export const DESTINATIONS_360: Destination360Item[] = [
     slug: "munnar",
     image: "/assets/360/munnar.jpg",
     thumb: "/assets/360/thumbs/munnar.jpg",
-    panorama: "/assets/360/munnar.jpg",
+    panorama: "/assets/360/munnar.hdr",
     description: "Misty tea gardens, rolling Western Ghats peaks, and cool mountain breezes at sunrise.",
   },
   {
@@ -68,7 +68,7 @@ export const DESTINATIONS_360: Destination360Item[] = [
     slug: "kovalam",
     image: "/assets/360/kovalam.jpg",
     thumb: "/assets/360/thumbs/kovalam.jpg",
-    panorama: "/assets/360/kovalam.jpg",
+    panorama: "/assets/360/kovalam.hdr",
     description: "Golden crescent shores, iconic red-and-white striped lighthouse, and warm sea surf.",
   },
   {
@@ -81,6 +81,17 @@ export const DESTINATIONS_360: Destination360Item[] = [
     thumb: "/assets/360/thumbs/thekkady.jpg",
     panorama: "/assets/360/thekkady.jpg",
     description: "Periyar lake sanctuary, elephant herds grazing by the water, and cardamom-scented forests.",
+  },
+  {
+    id: "bekal",
+    name: "Bekal",
+    location: "Kasaragod, Kerala",
+    category: "Historic Forts & Seas",
+    slug: "bekal",
+    image: "/assets/360/kovalam.jpg",
+    thumb: "/assets/360/thumbs/kovalam.jpg",
+    panorama: "/assets/360/bekal.hdr",
+    description: "Ancient 300-year-old keyhole fort rising above turquoise coastal waves and golden beaches.",
   },
 ];
 
@@ -103,7 +114,10 @@ function PanoramaModal({
     let isDisposed = false;
     let cleanupFn: (() => void) | undefined;
 
-    import("three").then((THREE) => {
+    Promise.all([
+      import("three"),
+      import("three/examples/jsm/loaders/HDRLoader.js"),
+    ]).then(([THREE, { HDRLoader }]) => {
       if (isDisposed || !containerRef.current) return;
 
       const container = containerRef.current;
@@ -118,18 +132,31 @@ function PanoramaModal({
       rendererRef.current = renderer;
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(width, height);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.0;
       container.appendChild(renderer.domElement);
 
       const geometry = new THREE.SphereGeometry(500, 60, 40);
       geometry.scale(-1, 1, 1);
 
-      const textureLoader = new THREE.TextureLoader();
-      textureLoader.load(dest.panorama, (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        const material = new THREE.MeshBasicMaterial({ map: texture });
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
-      });
+      const isHdr = dest.panorama?.toLowerCase().split("?")[0].endsWith(".hdr");
+      if (isHdr) {
+        const hdrLoader = new HDRLoader();
+        hdrLoader.load(dest.panorama, (texture) => {
+          texture.mapping = THREE.EquirectangularReflectionMapping;
+          const material = new THREE.MeshBasicMaterial({ map: texture });
+          const mesh = new THREE.Mesh(geometry, material);
+          scene.add(mesh);
+        });
+      } else {
+        const textureLoader = new THREE.TextureLoader();
+        textureLoader.load(dest.panorama, (texture) => {
+          texture.colorSpace = THREE.SRGBColorSpace;
+          const material = new THREE.MeshBasicMaterial({ map: texture });
+          const mesh = new THREE.Mesh(geometry, material);
+          scene.add(mesh);
+        });
+      }
 
       let isUserInteracting = false;
       let onPointerDownMouseX = 0;

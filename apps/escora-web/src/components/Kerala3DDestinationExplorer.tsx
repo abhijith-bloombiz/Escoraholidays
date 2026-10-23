@@ -31,15 +31,16 @@ export interface DestinationItem {
 }
 
 const DEFAULT_PANORAMAS: Record<string, string> = {
-  munnar: "/assets/360/munnar.jpg",
+  munnar: "/assets/360/munnar.hdr",
   wayanad: "/assets/360/wayanad.jpg",
   kochi: "/assets/360/alleppey.jpg",
   "fort-kochi": "/assets/360/alleppey.jpg",
   alleppey: "/assets/360/alleppey.jpg",
   varkala: "/assets/360/varkala.jpg",
   thekkady: "/assets/360/thekkady.jpg",
-  bekal: "/assets/360/kovalam.jpg",
-  kovalam: "/assets/360/kovalam.jpg",
+  bekal: "/assets/360/bekal.hdr",
+  bakel: "/assets/360/bekal.hdr",
+  kovalam: "/assets/360/kovalam.hdr",
 };
 
 export const KERALA_DESTINATIONS_DATA: DestinationItem[] = [
@@ -396,7 +397,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
           image: validCoverImage,
           associatedDistrict,
           features: item.features,
-          panorama: DEFAULT_PANORAMAS[item.id] || "/assets/360/munnar.jpg",
+          panorama: DEFAULT_PANORAMAS[item.id] || "/assets/360/munnar.hdr",
         };
       });
     }, [destinations]);
@@ -748,20 +749,22 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
       </div>
 
         {/* ── 360° Interactive Panoramic Popup Modal ── */}
-        <Destination360Modal
-          isOpen={Boolean(active360Dest)}
-          destination={active360Dest}
-          destinations={items}
-          onClose={() => setActive360Dest(null)}
-          onSelectDestination={(dest) => {
-            const found = items.find((it) => it.id === dest.id);
-            if (found) {
-              setActive360Dest(found);
-              const foundIdx = items.findIndex((it) => it.id === dest.id);
-              if (foundIdx !== -1) setActiveIdx(foundIdx);
-            }
-          }}
-        />
+        {Boolean(active360Dest) && (
+          <Destination360Modal
+            isOpen={true}
+            destination={active360Dest}
+            destinations={items}
+            onClose={() => setActive360Dest(null)}
+            onSelectDestination={(dest) => {
+              const found = items.find((it) => String(it.id) === String(dest.id) || it.slug === dest.slug);
+              if (found) {
+                setActive360Dest(found);
+                const foundIdx = items.findIndex((it) => String(it.id) === String(dest.id) || it.slug === dest.slug);
+                if (foundIdx !== -1) setActiveIdx(foundIdx);
+              }
+            }}
+          />
+        )}
       </section>
     );
   }

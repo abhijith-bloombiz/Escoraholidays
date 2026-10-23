@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "wouter";
 import * as THREE from "three";
+import { HDRLoader } from "three/examples/jsm/loaders/HDRLoader.js";
 import {
   X,
   Compass,
@@ -33,16 +34,53 @@ export interface Destination360ModalItem {
 }
 
 const DEFAULT_PANORAMAS: Record<string, string> = {
-  munnar: "/assets/360/munnar.jpg",
+  munnar: "/assets/360/munnar.hdr",
   wayanad: "/assets/360/wayanad.jpg",
   kochi: "/assets/360/alleppey.jpg",
   "fort-kochi": "/assets/360/alleppey.jpg",
   alleppey: "/assets/360/alleppey.jpg",
   varkala: "/assets/360/varkala.jpg",
   thekkady: "/assets/360/thekkady.jpg",
-  bekal: "/assets/360/kovalam.jpg",
-  kovalam: "/assets/360/kovalam.jpg",
+  bekal: "/assets/360/bekal.hdr",
+  bakel: "/assets/360/bekal.hdr",
+  kovalam: "/assets/360/kovalam.hdr",
 };
+
+function loadPanoramaTexture(
+  src: string,
+  onSuccess: (texture: THREE.Texture) => void,
+  onError: (err: unknown) => void
+) {
+  const cleanSrc = src.split("?")[0].toLowerCase();
+  if (cleanSrc.endsWith(".hdr")) {
+    const hdrLoader = new HDRLoader();
+    hdrLoader.load(
+      src,
+      (texture) => {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.needsUpdate = true;
+        onSuccess(texture);
+      },
+      undefined,
+      onError
+    );
+  } else {
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.load(
+      src,
+      (texture) => {
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.minFilter = THREE.LinearFilter;
+        texture.needsUpdate = true;
+        onSuccess(texture);
+      },
+      undefined,
+      onError
+    );
+  }
+}
 
 export interface Destination360ModalProps {
   isOpen: boolean;
@@ -60,6 +98,7 @@ export default function Destination360Modal({
   onSelectDestination,
 }: Destination360ModalProps) {
   const [currentDest, setCurrentDest] = useState<Destination360ModalItem | null>(destination);
+  const activeDest = currentDest || destination;
   const [isLoading, setIsLoading] = useState(true);
   const [isAutoRotate, setIsAutoRotate] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -94,9 +133,9 @@ export default function Destination360Modal({
 
   // Handle destination panorama URL
   const getPanoramaUrl = useCallback((dest: Destination360ModalItem | null) => {
-    if (!dest) return "/assets/360/munnar.jpg";
+    if (!dest) return DEFAULT_PANORAMAS.munnar;
     if (dest.panorama) return dest.panorama;
-    const key = dest.id?.toLowerCase() || dest.slug?.toLowerCase() || "";
+    const key = String(dest.slug || dest.id || "").toLowerCase();
     return DEFAULT_PANORAMAS[key] || DEFAULT_PANORAMAS.munnar;
   }, []);
 
@@ -162,6 +201,8 @@ export default function Destination360Modal({
     rendererRef.current = renderer;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
     renderer.domElement.className = "dest-360-canvas";
     container.innerHTML = "";
     container.appendChild(renderer.domElement);
@@ -176,31 +217,30 @@ export default function Destination360Modal({
     sphereMeshRef.current = sphereMesh;
     scene.add(sphereMesh);
 
-    // Load initial texture
-    const textureLoader = new THREE.TextureLoader();
-    const panoramaSrc = getPanoramaUrl(currentDest);
+    // Load initial texture (supports both .hdr and .jpg/.png)
+    const panoramaSrc = getPanoramaUrl(activeDest);
     setIsLoading(true);
 
-    textureLoader.load(
+    loadPanoramaTexture(
       panoramaSrc,
       (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.minFilter = THREE.LinearFilter;
         material.map = texture;
         material.color.setHex(0xffffff);
         material.needsUpdate = true;
         setIsLoading(false);
       },
-      undefined,
       (err) => {
         console.warn("Failed to load 360 panorama, falling back to default:", err);
-        textureLoader.load("/assets/360/munnar.jpg", (fallbackTex) => {
-          fallbackTex.colorSpace = THREE.SRGBColorSpace;
-          material.map = fallbackTex;
-          material.color.setHex(0xffffff);
-          material.needsUpdate = true;
-          setIsLoading(false);
-        });
+        loadPanoramaTexture(
+          "/assets/360/munnar.jpg",
+          (fallbackTex) => {
+            material.map = fallbackTex;
+            material.color.setHex(0xffffff);
+            material.needsUpdate = true;
+            setIsLoading(false);
+          },
+          () => setIsLoading(false)
+        );
       }
     );
 
@@ -289,32 +329,28 @@ export default function Destination360Modal({
     };
   }, [isOpen]);
 
-  // Load new panorama texture when currentDest changes
+  // Load new panorama texture when activeDest changes
   useEffect(() => {
     if (!isOpen || !sphereMeshRef.current) return;
 
     const mesh = sphereMeshRef.current;
     const material = mesh.material as THREE.MeshBasicMaterial;
-    const textureLoader = new THREE.TextureLoader();
-    const panoramaSrc = getPanoramaUrl(currentDest);
+    const panoramaSrc = getPanoramaUrl(activeDest);
 
     setIsLoading(true);
-    textureLoader.load(
+    loadPanoramaTexture(
       panoramaSrc,
       (texture) => {
-        texture.colorSpace = THREE.SRGBColorSpace;
-        texture.minFilter = THREE.LinearFilter;
         material.map = texture;
         material.color.setHex(0xffffff);
         material.needsUpdate = true;
         setIsLoading(false);
       },
-      undefined,
       () => {
         setIsLoading(false);
       }
     );
-  }, [currentDest, isOpen, getPanoramaUrl]);
+  }, [activeDest, isOpen, getPanoramaUrl]);
 
   // Pointer drag controls with velocity tracking
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -420,7 +456,7 @@ export default function Destination360Modal({
     handleSelectDest(destinations[nextIdx]);
   };
 
-  if (!isOpen || !currentDest) return null;
+  if (!isOpen || !activeDest) return null;
 
   return (
     <div
@@ -428,7 +464,7 @@ export default function Destination360Modal({
       className="dest-360-popup-overlay"
       role="dialog"
       aria-modal="true"
-      aria-label={`360 Panorama Viewer - ${currentDest.name}`}
+      aria-label={`360 Panorama Viewer - ${activeDest.name}`}
     >
       {/* ── TOP HEADER / IDENTITY BAR ── */}
       <header className="dest-360-popup-header">
@@ -441,17 +477,17 @@ export default function Destination360Modal({
 
           <div className="dest-360-header-info">
             <div className="dest-360-header-title-row">
-              {currentDest.num && <span className="dest-360-header-num">{currentDest.num}</span>}
-              <h2 className="dest-360-header-title">{currentDest.name}</h2>
-              {currentDest.associatedDistrict && (
+              {activeDest.num && <span className="dest-360-header-num">{activeDest.num}</span>}
+              <h2 className="dest-360-header-title">{activeDest.name}</h2>
+              {activeDest.associatedDistrict && (
                 <span className="dest-360-header-district">
                   <MapPin className="w-3.5 h-3.5 text-gold" />
-                  {currentDest.associatedDistrict}
+                  {activeDest.associatedDistrict}
                 </span>
               )}
             </div>
-            {currentDest.category && (
-              <span className="dest-360-header-category">{currentDest.category}</span>
+            {activeDest.category && (
+              <span className="dest-360-header-category">{activeDest.category}</span>
             )}
           </div>
         </div>
@@ -459,7 +495,7 @@ export default function Destination360Modal({
         {/* Right: Quick action buttons & Close */}
         <div className="dest-360-header-right">
           <Link
-            href={`/destinations/${currentDest.slug}`}
+            href={`/destinations/${activeDest.slug}`}
             className="dest-360-view-guide-btn"
             target="_blank"
             rel="noopener noreferrer"
@@ -611,7 +647,7 @@ export default function Destination360Modal({
           {/* Thumbnails Track */}
           <div className="dest-360-thumbs-track" ref={trackRef}>
             {destinations.map((dest) => {
-              const isActive = dest.id === currentDest.id;
+              const isActive = String(dest.id) === String(activeDest.id) || dest.slug === activeDest.slug;
               return (
                 <button
                   key={dest.id}

@@ -116,7 +116,7 @@
   justify-content: center;
   width: min(500px, 84vw);
   margin: 0;
-  animation: splash-logo-fade-in 0.85s ease-out 0.05s both;
+  animation: splash-logo-fade-in 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
 }
 
 .cinematic-splash-logo-img {
@@ -138,17 +138,29 @@
   font-weight: 500;
   opacity: 0.92;
   text-align: center;
+  animation: splash-tagline-fade-in 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.45s both;
 }
 
-/* Pure fade-in animation: zero translation/movement */
+/* Pure fade-in animation: lavish, graceful reveal */
 @keyframes splash-logo-fade-in {
   0% {
     opacity: 0;
-    transform: scale(0.98);
+    transform: scale(0.96);
   }
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes splash-tagline-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 0.92;
+    transform: translateY(0);
   }
 }
 

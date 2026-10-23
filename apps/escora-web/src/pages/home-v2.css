@@ -147,7 +147,7 @@ body {
 .loader .logo-img {
   width: min(380px, 60vw);
   height: auto;
-  animation: logo-in 1.1s cubic-bezier(0.16, 1, 0.3, 1) 0.1s both;
+  animation: logo-in 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
 }
 @keyframes logo-in {
   from { opacity: 0; transform: translateY(10px) scale(0.985); }
@@ -2532,14 +2532,12 @@ body {
 
 
 
-/* ═══════════════════════ REDESIGNED ESCORA RETREAT ═══════════════════════ */
+/* ═══════════════════════ ESCORA RETREAT ═══════════════════════ */
 .escora-retreat-section {
   position: relative;
-  background: #fbf8f2;
-  background: radial-gradient(circle at 18% 40%, rgba(224, 189, 130, 0.16) 0%, transparent 45%),
-              radial-gradient(circle at 12% 70%, rgba(19, 51, 36, 0.07) 0%, transparent 40%),
-              linear-gradient(180deg, #faf7f0 0%, #f6f2e8 100%);
-  padding: clamp(36px, 4.5vh, 56px) 0;
+  background: #FAF7F2;
+  background: radial-gradient(ellipse at 50% 25%, #FCFBF8 0%, #FAF7F2 65%, #F4EFE6 100%);
+  padding: clamp(48px, 6vh, 76px) 0 clamp(52px, 6.5vh, 80px) 0;
   min-height: 100vh;
   min-height: 100dvh;
   min-height: 100svh;
@@ -2547,57 +2545,21 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  overflow: visible;
-  color: #133324;
+  overflow: hidden;
+  color: #102B1D;
   scroll-snap-align: none;
   scroll-snap-stop: normal;
   box-sizing: border-box;
-}
-
-
-
-.retreat-leaf-shadow-tr {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 420px;
-  height: 420px;
-  pointer-events: none;
-  background: radial-gradient(circle at top right, rgba(19, 51, 36, 0.08) 0%, rgba(19, 51, 36, 0.02) 48%, transparent 70%);
-  filter: blur(24px);
-  z-index: 1;
-}
-
-.retreat-leaf-shadow-bl {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 360px;
-  height: 360px;
-  pointer-events: none;
-  background: radial-gradient(circle at bottom left, rgba(197, 154, 88, 0.08) 0%, transparent 65%);
-  filter: blur(28px);
-  z-index: 1;
 }
 
 .retreat-container {
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: min(1380px, calc(100vw - 48px));
+  max-width: min(1360px, calc(100vw - 48px));
   margin: 0 auto;
-  padding: 0 var(--gutter, clamp(16px, 3vw, 36px));
+  padding: 0 var(--gutter, clamp(16px, 2.5vw, 36px));
   box-sizing: border-box;
-}
-
-/* Split Two-Column Layout */
-.retreat-split-layout {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: clamp(36px, 5vw, 68px);
-  align-items: center;
-  position: relative;
-  width: 100%;
 }
 
 /* ═══════════ HEADER ROW: Left Title & Right Top Lede ═══════════ */
@@ -2606,382 +2568,202 @@ body {
   align-items: flex-end;
   justify-content: space-between;
   gap: clamp(24px, 4vw, 56px);
-  margin-bottom: clamp(28px, 3.4vh, 40px);
+  margin-bottom: clamp(28px, 3.8vh, 44px);
   width: 100%;
 }
 
 .retreat-header-left {
   display: flex;
   flex-direction: column;
-  max-width: 620px;
+  align-items: flex-start;
+  max-width: 680px;
 }
 
 .retreat-header-right {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  max-width: 480px;
+  max-width: 440px;
   padding-bottom: 4px;
 }
 
+/* Disable index.css horizontal pseudo lines on retreat eyebrow */
+.escora-retreat-section .retreat-eyebrow::before,
+.escora-retreat-section .retreat-eyebrow::after {
+  display: none !important;
+  content: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .retreat-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
-  font-size: 12px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #B58D5D;
-  font-weight: 700;
-  margin-bottom: 8px;
-  line-height: 1.2;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: #766E63 !important;
+  margin-bottom: 8px !important;
+  line-height: 1.2 !important;
 }
 
-.retreat-eyebrow .dot,
-.retreat-eyebrow-dot {
-  display: none;
+.retreat-eyebrow-dash {
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  background-color: #8C7B65;
+  flex-shrink: 0;
 }
 
-.retreat-title {
-  font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-size: clamp(36px, 4.5vw, 62px);
-  line-height: 1.08;
-  font-weight: 400;
-  color: #25432F;
-  letter-spacing: -0.02em;
-  margin: 0;
+.retreat-eyebrow-bullet {
+  font-size: 11px !important;
+  line-height: 1 !important;
+  color: #8C7B65 !important;
+  display: inline-block !important;
 }
 
-.retreat-title em {
-  font-style: normal;
-  font-family: var(--f-display, Georgia, serif);
-  color: #293D1F;
-  font-weight: 400;
+/* Section Title - Exactly matches the other section font style & design */
+.escora-retreat-section h2.retreat-title,
+.escora-retreat-section .retreat-title,
+h2.retreat-title {
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
+  font-style: normal !important;
+  font-size: clamp(34px, 4vw, 54px) !important;
+  line-height: 1.08 !important;
+  font-weight: 400 !important;
+  color: #25432F !important;
+  letter-spacing: -0.015em !important;
+  margin: 0 !important;
+}
+
+/* Ensure no words or spans have any different accent color or italic style */
+.escora-retreat-section h2.retreat-title *,
+.escora-retreat-section .retreat-title * {
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
+  font-style: normal !important;
+  color: #25432F !important;
+  font-weight: 400 !important;
 }
 
 .retreat-lede {
-  font-family: var(--f-body, sans-serif);
-  font-size: clamp(13px, 0.95vw, 14.5px);
+  font-family: var(--f-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: clamp(13px, 0.95vw, 14px);
   line-height: 1.68;
-  color: #55665d;
+  color: #55685D;
   margin: 0;
-  max-width: 46ch;
+  max-width: 44ch;
+  text-align: left;
 }
 
-/* ═══════════ LEFT COLUMN: Numbered Services ═══════════ */
-.retreat-left-col {
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  z-index: 3;
-}
-
-/* Numbered Retreat Items List */
-.retreat-items-list {
-  display: flex;
-  flex-direction: column;
-  gap: clamp(12px, 1.6vh, 18px);
-  width: 100%;
-}
-
-/* Inactive items: Compact, transparent frosted glass, heading only */
-.retreat-item {
-  position: relative;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 14px clamp(18px, 2vw, 24px);
-  background: rgba(255, 255, 255, 0.42);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.58) 0%, rgba(255, 255, 255, 0.22) 100%);
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  border: 1.5px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 8px 32px rgba(19, 51, 36, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.95);
-  border-radius: 18px;
-  cursor: pointer;
-  outline: none;
-  will-change: transform, opacity;
-}
-
-/* Retreat Items: Smooth Cascading Reveal strictly when reaching services list component viewport */
-.retreat-items-list:not(.is-in-view) .retreat-item {
-  opacity: 0;
-  transform: translateY(36px);
-  pointer-events: none;
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
-}
-
-.retreat-items-list.is-in-view .retreat-item,
-.retreat-split-layout.is-in-view .retreat-item {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-  transition: 
-    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    background 0.35s ease,
-    border-color 0.35s ease,
-    box-shadow 0.35s ease,
-    padding 0.35s ease;
-}
-
-/* Stagger list items revealing from bottom one after another */
-.retreat-items-list.is-in-view .retreat-item:nth-child(1),
-.retreat-split-layout.is-in-view .retreat-item:nth-child(1) {
-  transition-delay: 0.08s, 0.08s, 0s, 0s, 0s, 0s;
-}
-
-.retreat-items-list.is-in-view .retreat-item:nth-child(2),
-.retreat-split-layout.is-in-view .retreat-item:nth-child(2) {
-  transition-delay: 0.18s, 0.18s, 0s, 0s, 0s, 0s;
-}
-
-.retreat-items-list.is-in-view .retreat-item:nth-child(3),
-.retreat-split-layout.is-in-view .retreat-item:nth-child(3) {
-  transition-delay: 0.28s, 0.28s, 0s, 0s, 0s, 0s;
-}
-
-.retreat-items-list.is-in-view .retreat-item:nth-child(4),
-.retreat-split-layout.is-in-view .retreat-item:nth-child(4) {
-  transition-delay: 0.38s, 0.38s, 0s, 0s, 0s, 0s;
-}
-
-.retreat-item:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.68) 0%, rgba(255, 255, 255, 0.32) 100%);
-  border-color: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 12px 34px rgba(19, 51, 36, 0.08), inset 0 1px 1.5px rgba(255, 255, 255, 1);
-}
-
-.retreat-item:focus-visible {
-  border-color: #c59a58;
-  box-shadow: 0 0 0 3px rgba(197, 154, 88, 0.25);
-}
-
-/* Active Item State: Elevated frosted glass popup card with identical aligned width */
-.retreat-item.is-active {
-  background: rgba(255, 255, 255, 0.76);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.84) 0%, rgba(255, 255, 255, 0.48) 100%);
-  backdrop-filter: blur(28px) saturate(200%);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  border-color: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 20px 48px rgba(19, 51, 36, 0.1), 0 4px 14px rgba(197, 154, 88, 0.14), inset 0 1.5px 2px rgba(255, 255, 255, 1);
-  padding: clamp(18px, 2.2vh, 24px) clamp(18px, 2vw, 24px);
-  border-radius: 18px;
-}
-
-/* Item Header: Number + Title + Chevron */
-.retreat-item-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 0;
-  width: 100%;
-}
-
-.retreat-item.is-active .retreat-item-header {
-  margin-bottom: 12px;
-}
-
-.retreat-item-num {
-  font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-size: clamp(15.5px, 1.25vw, 18.5px);
-  font-weight: 700;
-  color: #a67c3b;
-  letter-spacing: -0.01em;
-  flex-shrink: 0;
-  transition: color 0.3s ease;
-}
-
-.retreat-item.is-active .retreat-item-num {
-  color: #c59a58;
-}
-
-.retreat-item-title {
-  font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-size: clamp(15.5px, 1.25vw, 19.5px);
-  font-weight: 600;
-  color: #293D1F;
-  margin: 0;
-  line-height: 1.25;
-  letter-spacing: -0.01em;
-  transition: color 0.3s ease;
-}
-
-.retreat-item-chevron {
-  margin-left: auto;
-  color: #a67c3b;
-  opacity: 0.5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, color 0.3s ease;
-}
-
-.retreat-item:hover .retreat-item-chevron {
-  opacity: 0.85;
-  color: #c59a58;
-}
-
-.retreat-item.is-active .retreat-item-chevron {
-  transform: rotate(180deg);
-  opacity: 1;
-  color: #c59a58;
-}
-
-/* Smooth collapsible accordion popup */
-.retreat-item-collapse {
+/* ═══════════ UNIQUE RETREAT CARDS GRID & BUTTERY-SMOOTH REVEAL ═══════════ */
+.retreat-cards-grid {
   display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(16px, 1.8vw, 24px);
+  align-items: stretch;
+  width: 100%;
 }
 
-.retreat-item.is-active .retreat-item-collapse {
-  grid-template-rows: 1fr;
-}
-
-.retreat-item-collapse-inner {
-  overflow: hidden;
-  min-height: 0;
-}
-
-.retreat-item-popup-content {
+/* ═══════════ 4-DIRECTIONAL BUTTERY-SMOOTH SYNCHRONIZED REVEAL ═══════════
+   Card 1: From Left   (translateX: -75px)
+   Card 2: From Top    (translateY: -55px)
+   Card 3: From Bottom (translateY: 55px)
+   Card 4: From Right  (translateX: 75px)
+   All 4 cards arrive in perfect sync with zero blur and silky easeOutCubic curve.
+*/
+.retreat-card {
+  position: relative;
+  background: #FFFFFF;
+  border-radius: 20px;
+  border: 1px solid rgba(37, 67, 47, 0.1);
+  box-shadow: 0 6px 24px -4px rgba(20, 45, 33, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 13px;
-  padding-top: 14px;
-  opacity: 0;
-  transform: translateY(-4px);
-  transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.retreat-item.is-active .retreat-item-popup-content {
-  opacity: 1;
-  transform: translateY(0);
-  transition-delay: 0.08s;
-}
-
-/* Item Description */
-.retreat-item-desc {
-  font-family: var(--f-body, sans-serif);
-  font-size: clamp(12.5px, 0.92vw, 13.5px);
-  line-height: 1.62;
-  color: #3b4941;
-  margin: 0;
-}
-
-.retreat-item-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
-}
-
-.retreat-item-tag {
-  font-family: var(--f-mono, monospace);
-  font-size: 8.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #1a422d;
-  background: rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: 0 2px 6px rgba(19, 51, 36, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-radius: 999px;
-  padding: 3px 9px;
-}
-
-.retreat-item-cta-row {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  margin-top: 2px;
-}
-
-.retreat-item-enquire-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--f-body, sans-serif);
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #c59a58;
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.retreat-item-enquire-btn:hover {
-  color: #9c7332;
-  transform: translateX(3px);
-}
-
-.retreat-item-enquire-btn svg {
-  transition: transform 0.25s ease;
-}
-
-.retreat-item-enquire-btn:hover svg {
-  transform: translateX(3px);
-}
-
-/* ═══════════ RIGHT COLUMN: Fluid Swapping Circular Visual Collage ═══════════ */
-.retreat-right-col {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  z-index: 3;
-  width: 100%;
-}
-
-.retreat-collage-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 490px;
-  height: 440px;
-  margin: 0 auto;
-  --slot1-dx: 234px;
-  --slot1-dy: 54px;
-  --slot2-dx: 237px;
-  --slot2-dy: -154px;
-  --slot3-dx: 2px;
-  --slot3-dy: -214px;
-}
-
-/* ═══════════ Persistent Circular Cards (Fluid Kinetic Swapping) ═══════════ */
-.retreat-circle-card {
-  position: absolute;
-  border-radius: 50%;
   overflow: hidden;
   box-sizing: border-box;
-  background: #e9e3d7;
-  border: 3.5px solid #ffffff;
-  padding: 0;
   cursor: pointer;
   outline: none;
-  display: block;
   user-select: none;
-  -webkit-user-select: none;
-  transform-origin: center center;
-  will-change: transform, opacity, top, left, width, height;
-  transition: 
-    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.45s ease,
-    top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.4s ease,
-    box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  
+  /* Initial hidden state: translated from designated side, crisp zero blur */
+  opacity: 0;
+  transform: translate3d(var(--reveal-x, 0px), var(--reveal-y, 0px), 0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+
+  /* Smooth quick reset when out of viewport so it's ready to reveal again */
+  transition: transform 0.4s ease-out,
+              opacity 0.32s ease-out,
+              box-shadow 0.3s ease,
+              border-color 0.25s ease;
 }
 
-.retreat-circle-card-img {
+/* 4 Unique Entry Directions */
+.retreat-card:nth-child(1) { --reveal-x: -75px; --reveal-y: 0px; }  /* 1st: Left */
+.retreat-card:nth-child(2) { --reveal-x: 0px; --reveal-y: -55px; }  /* 2nd: Top */
+.retreat-card:nth-child(3) { --reveal-x: 0px; --reveal-y: 55px; }   /* 3rd: Bottom */
+.retreat-card:nth-child(4) { --reveal-x: 75px; --reveal-y: 0px; }   /* 4th: Right */
+
+/* Synchronized In-View Reveal: all 4 cards glide into place at the exact same time when reaching viewport */
+.retreat-cards-grid.is-revealed .retreat-card {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+              border-color 0.25s ease;
+  transition-delay: 0s;
+}
+
+/* Card Hover State (Immediate responsive feedback once revealed) */
+.retreat-cards-grid.is-revealed .retreat-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px -8px rgba(20, 45, 33, 0.12), 0 3px 8px rgba(0, 0, 0, 0.03);
+  border-color: rgba(37, 67, 47, 0.22);
+  transition-duration: 0.28s;
+  transition-delay: 0s;
+}
+
+.retreat-card:focus-visible {
+  border-color: #C09553;
+  box-shadow: 0 0 0 3px rgba(192, 149, 83, 0.3);
+}
+
+/* Active Highlighted Card */
+.retreat-card.is-active {
+  border-color: #C09553;
+  box-shadow: 0 18px 44px -6px rgba(192, 149, 83, 0.24), 0 3px 10px rgba(20, 45, 33, 0.05);
+}
+
+.retreat-cards-grid.is-revealed .retreat-card.is-active {
+  transform: translate3d(0, 0, 0);
+}
+
+.retreat-cards-grid.is-revealed .retreat-card.is-active:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 22px 48px -6px rgba(192, 149, 83, 0.3), 0 4px 12px rgba(20, 45, 33, 0.06);
+  transition-duration: 0.28s;
+  transition-delay: 0s;
+}
+
+/* Inset Framed Photo Window */
+.retreat-card-media {
+  position: relative;
+  width: calc(100% - 20px);
+  margin: 10px 10px 0 10px;
+  height: clamp(190px, 22vh, 225px);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #EAE5DC;
+  flex-shrink: 0;
+}
+
+.retreat-card-img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -2989,395 +2771,240 @@ body {
   object-fit: cover;
   object-position: center;
   display: block;
+  transform: scale(1.04);
+  transition: transform 0.82s cubic-bezier(0.22, 1, 0.36, 1);
   pointer-events: none;
-  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.retreat-circle-card:not(.retreat-card-slot-0):hover .retreat-circle-card-img {
-  transform: scale(1.08);
+.retreat-cards-grid.is-revealed .retreat-card-img {
+  transform: scale(1);
+  transition-delay: 0s;
 }
 
-.retreat-circle-card:not(.retreat-card-slot-0):hover {
-  border-color: #c59a58;
-  box-shadow: 0 16px 40px rgba(197, 154, 88, 0.35);
-  z-index: 5;
+.retreat-cards-grid.is-revealed .retreat-card:hover .retreat-card-img {
+  transform: scale(1.06);
+  transition-duration: 0.4s;
+  transition-delay: 0s;
 }
 
-.retreat-circle-card:focus-visible {
-  border-color: #c59a58;
-  box-shadow: 0 0 0 3px rgba(197, 154, 88, 0.35);
-}
-
-/* Card Content: Perfectly Centered Title with Deep Contrast Shadow */
-.retreat-circle-card-content {
+.retreat-card-media-overlay {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
+  background: linear-gradient(180deg, rgba(16, 43, 29, 0.22) 0%, transparent 45%, rgba(16, 43, 29, 0.16) 100%);
+  pointer-events: none;
+}
+
+/* Floating Frosted Chips inside the media frame */
+.retreat-card-step-chip {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 3;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  box-sizing: border-box;
-  background: transparent;
-  z-index: 4;
-  pointer-events: none;
-  padding: 16px;
-  transition: padding 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  min-width: 32px;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #25432F;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
-.retreat-circle-card-title {
-  font-family: var(--f-display, "Playfair Display", Georgia, serif);
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.01em;
-  margin: 0 auto;
-  line-height: 1.25;
-  text-align: center;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 16px rgba(0, 0, 0, 0.9), 0 1px 3px #000000;
-  white-space: normal;
-  word-break: normal;
-  overflow-wrap: break-word;
-  transition: font-size 0.85s cubic-bezier(0.22, 1, 0.36, 1), max-width 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+.retreat-card-step-chip.is-active,
+.retreat-card:hover .retreat-card-step-chip {
+  background: #C09553;
+  color: #FFFFFF;
+  border-color: #C09553;
+  box-shadow: 0 2px 8px rgba(192, 149, 83, 0.45);
 }
 
-/* ═══════════ Slot 0: Hero (Top-Right Featured Card) ═══════════ */
-.retreat-card-slot-0 {
-  top: 14px;
-  left: calc(100% - 266px);
-  width: 250px;
-  height: 250px;
-  border-width: 4px;
-  box-shadow: 0 20px 48px rgba(19, 51, 36, 0.22), 0 4px 14px rgba(0, 0, 0, 0.08);
-  z-index: 6;
-  cursor: default;
-}
-
-.retreat-card-slot-0 .retreat-circle-card-content {
-  padding: 22px;
-}
-
-.retreat-card-slot-0 .retreat-circle-card-title {
-  font-size: clamp(17px, 1.4vw, 20px);
-  max-width: 195px;
-}
-
-/* ═══════════ Slot 1: Satellite Top-Left ═══════════ */
-.retreat-card-slot-1 {
-  top: 18px;
-  left: 48px;
-  width: 135px;
-  height: 135px;
-  border-width: 3.5px;
-  box-shadow: 0 12px 30px rgba(19, 51, 36, 0.12);
-  z-index: 2;
-}
-
-.retreat-card-slot-1 .retreat-circle-card-content {
-  padding: 12px;
-}
-
-.retreat-card-slot-1 .retreat-circle-card-title {
-  font-size: clamp(11.5px, 0.95vw, 13px);
-  max-width: 115px;
-}
-
-/* ═══════════ Slot 2: Satellite Bottom-Left ═══════════ */
-.retreat-card-slot-2 {
-  top: 200px;
-  left: 20px;
-  width: 185px;
-  height: 185px;
-  border-width: 3.5px;
-  box-shadow: 0 16px 40px rgba(19, 51, 36, 0.14);
+.retreat-card-icon-chip {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   z-index: 3;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  color: #25432F;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: all 0.25s ease;
 }
 
-.retreat-card-slot-2 .retreat-circle-card-content {
-  padding: 16px;
+.retreat-card-icon-chip svg {
+  width: 15px;
+  height: 15px;
 }
 
-.retreat-card-slot-2 .retreat-circle-card-title {
-  font-size: clamp(13.5px, 1.1vw, 15.5px);
-  max-width: 155px;
+.retreat-card-icon-chip.is-active,
+.retreat-card:hover .retreat-card-icon-chip {
+  background: #FAF2E4;
+  color: #B88A58;
+  border-color: #E2CFB4;
 }
 
-/* ═══════════ Slot 3: Satellite Bottom-Right ═══════════ */
-.retreat-card-slot-3 {
-  top: 285px;
-  left: calc(100% - 210px);
-  width: 135px;
-  height: 135px;
-  border-width: 3.5px;
-  box-shadow: 0 12px 30px rgba(19, 51, 36, 0.12);
-  z-index: 2;
+/* Editorial Body */
+.retreat-card-body {
+  padding: 16px 16px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  box-sizing: border-box;
 }
 
-.retreat-card-slot-3 .retreat-circle-card-content {
-  padding: 12px;
+/* Card Title */
+.escora-retreat-section h3.retreat-card-title,
+.escora-retreat-section .retreat-card-title,
+h3.retreat-card-title {
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
+  font-style: normal !important;
+  font-size: clamp(16.5px, 1.2vw, 19px) !important;
+  font-weight: 500 !important;
+  line-height: 1.25 !important;
+  color: #25432F !important;
+  margin: 0 0 8px 0 !important;
+  letter-spacing: -0.01em !important;
 }
 
-.retreat-card-slot-3 .retreat-circle-card-title {
-  font-size: clamp(11.5px, 0.95vw, 13px);
-  max-width: 115px;
+/* Card Description */
+.retreat-card-desc {
+  font-family: var(--f-body, 'Plus Jakarta Sans', sans-serif);
+  font-size: clamp(11.5px, 0.82vw, 12.5px);
+  line-height: 1.56;
+  color: #55685D;
+  margin: 0 0 14px 0;
+  min-height: 58px;
 }
 
-/* ═══════════ Retreat Cards: In-View Reveal & Behind-Hero Emergence (Bidirectional) ═══════════ */
-/* Unrevealed / Reset state: Main card at 0%, Other cards smoothly positioned behind main card */
-.retreat-collage-wrapper:not(.is-in-view) .retreat-card-slot-0 {
-  transform: scale(0);
-  opacity: 0;
-  pointer-events: none;
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+/* Tags Container */
+.retreat-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: auto;
+  margin-bottom: 14px;
 }
 
-.retreat-collage-wrapper:not(.is-in-view) .retreat-card-slot-1 {
-  transform: translate(var(--slot1-dx, 234px), var(--slot1-dy, 54px)) scale(0.18);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 1 !important;
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+.retreat-card-tag {
+  background: #F0F5F2;
+  color: #284F39;
+  font-family: var(--f-mono, 'JetBrains Mono', monospace);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  padding: 3px 6px;
+  line-height: 1.2;
+  white-space: nowrap;
+  border: 1px solid rgba(40, 79, 57, 0.1);
 }
 
-.retreat-collage-wrapper:not(.is-in-view) .retreat-card-slot-2 {
-  transform: translate(var(--slot2-dx, 237px), var(--slot2-dy, -154px)) scale(0.18);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 1 !important;
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+/* Interactive Bottom Action Row */
+.retreat-card-action-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba(37, 67, 47, 0.08);
+  margin-top: auto;
+  cursor: pointer;
+  transition: color 0.25s ease;
 }
 
-.retreat-collage-wrapper:not(.is-in-view) .retreat-card-slot-3 {
-  transform: translate(var(--slot3-dx, 2px), var(--slot3-dy, -214px)) scale(0.18);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 1 !important;
-  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+.retreat-card-action-label {
+  font-family: var(--f-mono, 'JetBrains Mono', monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: #25432F;
+  transition: color 0.25s ease;
 }
 
-/* In-View state: Main card blooms 0% to 100%, Satellite cards smoothly emerge from behind main card */
-.retreat-collage-wrapper.is-in-view .retreat-card-slot-0,
-.retreat-split-layout.is-in-view .retreat-card-slot-0 {
-  transform: scale(1);
-  opacity: 1;
-  pointer-events: auto;
-  transition: 
-    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.4s ease;
-  transition-delay: 0.1s, 0.1s, 0s, 0s, 0s, 0s, 0s, 0s, 0s;
+.retreat-card:hover .retreat-card-action-label {
+  color: #C09553;
 }
 
-.retreat-collage-wrapper.is-in-view .retreat-card-slot-1,
-.retreat-split-layout.is-in-view .retreat-card-slot-1 {
-  transform: translate(0, 0) scale(1);
-  opacity: 1;
-  pointer-events: auto;
-  transition: 
-    transform 1.02s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-    top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.4s ease;
-  transition-delay: 0.28s, 0.28s, 0s, 0s, 0s, 0s, 0s, 0s, 0s;
+.retreat-card-action-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F0F5F2;
+  color: #25432F;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
 }
 
-.retreat-collage-wrapper.is-in-view .retreat-card-slot-2,
-.retreat-split-layout.is-in-view .retreat-card-slot-2 {
-  transform: translate(0, 0) scale(1);
-  opacity: 1;
-  pointer-events: auto;
-  transition: 
-    transform 1.08s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-    top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.4s ease;
-  transition-delay: 0.38s, 0.38s, 0s, 0s, 0s, 0s, 0s, 0s, 0s;
-}
-
-.retreat-collage-wrapper.is-in-view .retreat-card-slot-3,
-.retreat-split-layout.is-in-view .retreat-card-slot-3 {
-  transform: translate(0, 0) scale(1);
-  opacity: 1;
-  pointer-events: auto;
-  transition: 
-    transform 1.14s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-    top 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    left 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-width 0.85s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.4s ease;
-  transition-delay: 0.48s, 0.48s, 0s, 0s, 0s, 0s, 0s, 0s, 0s;
+.retreat-card-action-btn.is-active,
+.retreat-card:hover .retreat-card-action-btn {
+  background: #C09553;
+  color: #FFFFFF;
+  transform: translateX(2px);
+  box-shadow: 0 3px 10px rgba(192, 149, 83, 0.45);
 }
 
 /* Responsive Media Queries */
-@media (max-width: 1024px) {
-  .retreat-split-layout {
-    grid-template-columns: 1fr;
-    gap: 36px;
+@media (max-width: 1080px) {
+  .retreat-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
   }
-  .retreat-right-col {
-    order: -1;
-    margin-bottom: 8px;
-  }
-  .retreat-collage-wrapper {
-    max-width: 410px;
-    height: 380px;
-    --slot1-dx: 189px;
-    --slot1-dy: 46px;
-    --slot2-dx: 189px;
-    --slot2-dy: -133px;
-    --slot3-dx: 1px;
-    --slot3-dy: -186px;
-  }
-  .retreat-card-slot-0 {
-    width: 215px;
-    height: 215px;
-    top: 12px;
-    left: calc(100% - 229px);
-    z-index: 6;
-  }
-  .retreat-card-slot-0 .retreat-circle-card-title {
-    font-size: 14.5px;
-    max-width: 165px;
-  }
-  .retreat-card-slot-1 {
-    width: 115px;
-    height: 115px;
-    top: 16px;
-    left: 42px;
-    z-index: 2;
-  }
-  .retreat-card-slot-1 .retreat-circle-card-title {
-    font-size: 10.5px;
-    max-width: 95px;
-  }
-  .retreat-card-slot-2 {
-    width: 160px;
-    height: 160px;
-    top: 172px;
-    left: 20px;
-    z-index: 3;
-  }
-  .retreat-card-slot-2 .retreat-circle-card-title {
-    font-size: 12.5px;
-    max-width: 135px;
-  }
-  .retreat-card-slot-3 {
-    width: 115px;
-    height: 115px;
-    top: 248px;
-    left: calc(100% - 180px);
-    z-index: 2;
-  }
-  .retreat-card-slot-3 .retreat-circle-card-title {
-    font-size: 10.5px;
-    max-width: 95px;
-  }
+}
+
+@media (max-width: 768px) {
+  .retreat-card:nth-child(1) { --reveal-x: -50px; --reveal-y: 0px; }
+  .retreat-card:nth-child(2) { --reveal-x: 0px; --reveal-y: -40px; }
+  .retreat-card:nth-child(3) { --reveal-x: 0px; --reveal-y: 40px; }
+  .retreat-card:nth-child(4) { --reveal-x: 50px; --reveal-y: 0px; }
+
   .retreat-header-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 14px;
+    gap: 12px;
     margin-bottom: 24px;
   }
   .retreat-header-right {
     max-width: 100%;
     padding-bottom: 0;
   }
-  .retreat-title {
-    white-space: normal;
+  .retreat-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
   }
-  .retreat-lede {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 640px) {
-  .escora-retreat-section {
-    padding: 36px 0 44px 0;
-  }
-  .retreat-collage-wrapper {
-    max-width: 320px;
-    height: 300px;
-    --slot1-dx: 150px;
-    --slot1-dy: 38px;
-    --slot2-dx: 149px;
-    --slot2-dy: -106px;
-    --slot3-dx: 7px;
-    --slot3-dy: -147px;
-  }
-  .retreat-card-slot-0 {
-    width: 170px;
-    height: 170px;
-    top: 8px;
-    left: calc(100% - 178px);
-    z-index: 6;
-  }
-  .retreat-card-slot-0 .retreat-circle-card-title {
-    font-size: 12.5px;
-    max-width: 135px;
-  }
-  .retreat-card-slot-1 {
-    width: 90px;
-    height: 90px;
-    top: 10px;
-    left: 32px;
-    z-index: 2;
-  }
-  .retreat-card-slot-1 .retreat-circle-card-title {
-    font-size: 9px;
-    max-width: 78px;
-  }
-  .retreat-card-slot-2 {
-    width: 125px;
-    height: 125px;
-    top: 136px;
-    left: 16px;
-    z-index: 3;
-  }
-  .retreat-card-slot-2 .retreat-circle-card-title {
-    font-size: 10.5px;
-    max-width: 105px;
-  }
-  .retreat-card-slot-3 {
-    width: 95px;
-    height: 95px;
-    top: 192px;
-    left: calc(100% - 147px);
-    z-index: 2;
-  }
-  .retreat-card-slot-3 .retreat-circle-card-title {
-    font-size: 9px;
-    max-width: 80px;
-  }
-  .retreat-item {
-    padding: 12px 14px;
-  }
-  .retreat-item.is-active {
-    padding: 16px 14px;
+  .retreat-card {
+    max-width: 360px;
+    margin: 0 auto;
+    width: 100%;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .retreat-item,
-  .retreat-circle-card {
+  .retreat-card,
+  .retreat-cards-grid:not(.is-revealed) .retreat-card,
+  .retreat-cards-grid.is-revealed .retreat-card,
+  .retreat-card-img,
+  .retreat-card-action-btn {
     transform: none !important;
     opacity: 1 !important;
     transition: none !important;

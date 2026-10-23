@@ -434,16 +434,6 @@ export default function PinnedJourneyExperience({ children }: PinnedJourneyExper
         <div ref={bgRef} className="pinned-journey-bg" />
         <div className="pinned-journey-ambient-glow" />
 
-        {/* Subtle Bottom Scroll Cue Indicator */}
-        <div className="pinned-journey-scroll-hint" aria-hidden="true">
-          <span>SCROLL TO EXPLORE</span>
-          <span className="pinned-journey-scroll-chevron">
-            <svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M2 4l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-        </div>
-
         {/* Stacked Slides Container */}
         <div className="pinned-journey-slides-container">
           {children.map((child, idx) => (

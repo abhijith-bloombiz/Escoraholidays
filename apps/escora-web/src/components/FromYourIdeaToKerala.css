@@ -21,53 +21,20 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: clamp(16px, 2.4vh, 32px) 0;
+  padding: clamp(48px, 6vh, 80px) 0;
   overflow: hidden;
   color: #102B1D;
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   box-sizing: border-box;
 }
 
-@media (min-width: 1025px) and (min-height: 600px) {
-  .how-it-works-section {
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100vh;
-    max-height: 100dvh;
-  }
-}
-
 /* ─── Background Watermark Artworks ─── */
 .how-art-leaves-tl {
-  position: absolute;
-  top: -10px;
-  left: -12px;
-  width: clamp(220px, 22vw, 340px);
-  height: clamp(260px, 28vw, 400px);
-  background-image: url('/assets/enquiry/botanical-leaves.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: left top;
-  opacity: 0.34;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  z-index: 0;
+  display: none !important;
 }
 
 .how-art-houseboat-br {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: clamp(320px, 36vw, 560px);
-  height: clamp(180px, 20vw, 290px);
-  background-image: url('/assets/enquiry/kerala-scenery-transparent.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: right bottom;
-  opacity: 0.26;
-  mix-blend-mode: multiply;
-  pointer-events: none;
-  z-index: 0;
+  display: none !important;
 }
 
 .how-ambient-glow {
@@ -82,21 +49,19 @@
   z-index: 0;
 }
 
-/* ─── Main Container ─── */
+/* ─── Main Container (Matching Explore Kerala Container & Gutter Padding) ─── */
 .how-container {
   position: relative;
   z-index: 1;
-  max-width: var(--container, 1380px);
+  max-width: var(--container, 1440px);
   margin: 0 auto;
-  padding: 0 var(--gutter, clamp(20px, 3.6vw, 56px));
+  padding: 0 var(--gutter, clamp(20px, 4vw, 64px));
   box-sizing: border-box;
   width: 100%;
-  height: 100%;
-  max-height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: clamp(16px, 2.8vh, 34px);
+  gap: clamp(18px, 2.6vh, 34px);
 }
 
 /* ─── Header Row ─── */
@@ -215,8 +180,8 @@
 .how-stepper-wrap {
   position: relative;
   width: 100%;
-  margin: 0;
-  padding: 6px 0;
+  margin: clamp(20px, 3vh, 42px) 0;
+  padding: 12px 0;
   box-sizing: border-box;
   flex-shrink: 0;
 }
@@ -224,10 +189,11 @@
 /* Continuous track connecting center of Step 01 to center of Step 06 */
 .how-stepper-track-wrapper {
   position: absolute;
-  top: 26px;
+  top: 38px;
+  transform: translateY(-50%);
   left: calc(100% / 12);
   right: calc(100% / 12);
-  height: 1.5px;
+  height: 2px;
   z-index: 1;
   pointer-events: none;
 }
@@ -562,13 +528,13 @@
   transform: translateX(6px);
 }
 
-/* ─── Bottom Navigation Arrows & Step Progress Bar ─── */
+/* ─── Bottom Navigation Arrows ─── */
 .how-showcase-nav-row {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 22px;
-  margin-top: clamp(16px, 3vh, 36px);
+  gap: 12px;
+  margin-top: clamp(14px, 2.4vh, 26px);
   width: 100%;
   box-sizing: border-box;
 }
@@ -692,7 +658,7 @@
   }
 
   .how-showcase-nav-row {
-    justify-content: space-between;
+    justify-content: flex-end;
   }
 }
 

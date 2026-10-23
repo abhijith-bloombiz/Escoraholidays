@@ -67,7 +67,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   const [, navigate] = useLocation();
   const [isPaused, setIsPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [entranceState, setEntranceState] = useState<"pending" | "revealing" | "complete">("revealing");
+  const [entranceState, setEntranceState] = useState<"pending" | "revealing" | "complete">("complete");
 
   const carouselRef = useRef<HTMLDivElement>(null);
   const pointerStartX = useRef<number | null>(null);
@@ -77,7 +77,14 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   const prevOffsetsRef = useRef<Record<string, number>>({});
   const revealTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  /* Viewport & Pinned Slide Observer: Trigger entrance animation when scrolled into view */
+  // Sync center card selection when items load dynamically
+  useEffect(() => {
+    if (controlledIndex === undefined && internalIndex === 0 && items.length > 2) {
+      setInternalIndex(2);
+    }
+  }, [items.length, controlledIndex, internalIndex]);
+
+  /* Viewport Intersection Observer: Trigger entrance animation when scrolled into view */
   useEffect(() => {
     const el = carouselRef.current;
     if (!el) return;
@@ -120,23 +127,11 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && entry.intersectionRatio >= 0.12) {
-          setEntranceState((prev) => {
-            if (prev === "pending") {
-              if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-              revealTimerRef.current = setTimeout(() => {
-                setEntranceState("complete");
-              }, 1200);
-              return "revealing";
-            }
-            return prev;
-          });
-        } else if (!entry.isIntersecting || entry.intersectionRatio <= 0.02) {
-          setEntranceState("pending");
-          if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+        if (entry.isIntersecting) {
+          setEntranceState("complete");
         }
       },
-      { threshold: [0, 0.05, 0.12, 0.35] }
+      { threshold: [0, 0.08] }
     );
 
     observer.observe(el);
@@ -144,7 +139,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
       observer.disconnect();
       if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
     };
-  }, []);
+  }, [isLoading, items.length]);
 
   const total = items.length;
 

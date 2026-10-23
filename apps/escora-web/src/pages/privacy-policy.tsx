@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
           style={{ backgroundImage: "radial-gradient(circle at 60% 40%, #cbab6e 0%, transparent 60%)" }} />
         <div className="container mx-auto px-6 sm:px-8 max-w-4xl">
-          <p className="section-label mb-6"><span className="dot" />Legal</p>
+          <p className="section-label mb-6">Legal</p>
           <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl text-ink font-light leading-[1.1] mb-6">
             Privacy &amp; <em className="italic text-gold">Policy</em>
           </h1>

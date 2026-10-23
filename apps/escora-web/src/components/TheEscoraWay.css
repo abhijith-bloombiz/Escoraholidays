@@ -157,7 +157,7 @@
 .escora-way-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   font-size: 12px;
   font-weight: 700;
@@ -168,12 +168,7 @@
 }
 
 .escora-way-eyebrow .dot {
-  width: 5.5px;
-  height: 5.5px;
-  border-radius: 50%;
-  background-color: #B58D5D;
-  display: inline-block;
-  flex-shrink: 0;
+  display: none;
 }
 
 /* Main Heading — Elegant Fonarto typography */
@@ -183,7 +178,7 @@
   font-weight: 400;
   line-height: 1.08;
   letter-spacing: -0.02em;
-  color: #293D1F;
+  color: #25432F;
   margin: 0 0 clamp(20px, 2.5vh, 28px) 0;
 }
 
@@ -195,14 +190,14 @@
   font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-style: normal;
   font-weight: 400;
-  color: #293D1F;
+  color: #25432F;
 }
 
 .escora-way-heading .italic-gold {
   font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-style: normal;
   font-weight: 400;
-  color: #293D1F;
+  color: #25432F;
 }
 
 /* Body Text */

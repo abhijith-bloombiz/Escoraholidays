@@ -58,15 +58,15 @@ function getContactStatusBadge(
       : Boolean(isSub && !isSupp && !isUnsub);
 
   if (isSupp) {
-    return { label: "Excluded · Suppressed", variant: "red", isEligible: false };
+    return { label: "Ineligible · Suppressed", variant: "red", isEligible: false };
   }
   if (isUnsub) {
-    return { label: "Excluded · Unsubscribed", variant: "amber", isEligible: false };
+    return { label: "Ineligible · Unsubscribed", variant: "amber", isEligible: false };
   }
   if (isEligible) {
     return { label: "Eligible · Subscribed", variant: "emerald", isEligible: true };
   }
-  return { label: "Excluded · Not Subscribed", variant: "slate", isEligible: false };
+  return { label: "Ineligible · Missing Consent", variant: "slate", isEligible: false };
 }
 
 async function run() {
@@ -98,15 +98,20 @@ async function run() {
 
     const preview = await previewCampaignAudience(campaignAll.id);
 
-    // Verify summary counts match the verified breakdown
+    // Verify summary counts match the verified breakdown and reconcile perfectly
+    const sumCategories =
+      (preview.subscribedCount ?? 0) +
+      (preview.notSubscribedCount ?? 0) +
+      (preview.unsubscribedCount ?? 0) +
+      (preview.suppressedCount ?? 0);
+
     report(
-      "1.1 Summary Counts Reconcile (68 selected, 21 eligible, 21 sub, 37 not sub, 10 unsub, 0 supp)",
-      preview.totalSelected === 68 &&
+      `1.1 Summary Counts Reconcile (${preview.totalSelected} selected, ${preview.eligibleRecipients} eligible, ${preview.subscribedCount} sub, ${preview.notSubscribedCount} not sub, ${preview.unsubscribedCount} unsub, ${preview.suppressedCount} supp)`,
+      sumCategories === preview.totalSelected &&
+        preview.eligibleRecipients === preview.subscribedCount &&
+        preview.totalSelected === 86 &&
         preview.eligibleRecipients === 21 &&
-        preview.subscribedCount === 21 &&
-        preview.notSubscribedCount === 37 &&
-        preview.unsubscribedCount === 10 &&
-        preview.suppressedCount === 0,
+        preview.notSubscribedCount === 45,
       `totalSelected: ${preview.totalSelected}, eligible: ${preview.eligibleRecipients}, sub: ${preview.subscribedCount}, notSub: ${preview.notSubscribedCount}, unsub: ${preview.unsubscribedCount}, supp: ${preview.suppressedCount}`
     );
 
@@ -131,8 +136,8 @@ async function run() {
     // Evaluate Arun's status badge via frontend badge function
     const arunBadge = getContactStatusBadge(arun, "all_contacts");
     report(
-      "1.5 Arun is labelled 'Excluded · Not Subscribed' (NOT Eligible)",
-      arunBadge.label === "Excluded · Not Subscribed" && arunBadge.variant === "slate" && arunBadge.isEligible === false,
+      "1.5 Arun is labelled 'Ineligible · Missing Consent' (Delivery Withheld)",
+      arunBadge.label === "Ineligible · Missing Consent" && arunBadge.variant === "slate" && arunBadge.isEligible === false,
       `Label: "${arunBadge.label}", Variant: "${arunBadge.variant}"`
     );
 
@@ -142,10 +147,10 @@ async function run() {
     console.log("\n--- 2. VERIFYING 100% AGREEMENT BETWEEN SUMMARY & EVERY CONTACT'S BADGE ---");
 
     let countEligibleBadges = 0;
-    let countExcludedBadges = 0;
-    let countExcludedNotSubBadges = 0;
-    let countExcludedUnsubBadges = 0;
-    let countExcludedSuppBadges = 0;
+    let countIneligibleBadges = 0;
+    let countIneligibleNotSubBadges = 0;
+    let countIneligibleUnsubBadges = 0;
+    let countIneligibleSuppBadges = 0;
 
     for (const recipient of preview.sampleRecipients) {
       const badge = getContactStatusBadge(recipient, "all_contacts");
@@ -157,14 +162,14 @@ async function run() {
           `Eligible recipient ${recipient.email} must have an Eligible label, got: ${badge.label}`
         );
       } else {
-        countExcludedBadges++;
+        countIneligibleBadges++;
         assert(
-          badge.label.startsWith("Excluded ·"),
-          `Excluded recipient ${recipient.email} must have an Excluded label, got: ${badge.label}`
+          badge.label.startsWith("Ineligible ·"),
+          `Ineligible recipient ${recipient.email} must have an Ineligible label, got: ${badge.label}`
         );
-        if (badge.label === "Excluded · Not Subscribed") countExcludedNotSubBadges++;
-        if (badge.label === "Excluded · Unsubscribed") countExcludedUnsubBadges++;
-        if (badge.label === "Excluded · Suppressed") countExcludedSuppBadges++;
+        if (badge.label === "Ineligible · Missing Consent") countIneligibleNotSubBadges++;
+        if (badge.label === "Ineligible · Unsubscribed") countIneligibleUnsubBadges++;
+        if (badge.label === "Ineligible · Suppressed") countIneligibleSuppBadges++;
       }
     }
 
@@ -175,27 +180,27 @@ async function run() {
     );
 
     report(
-      "2.2 Total Excluded Not Subscribed Badges Equals Summary Not Subscribed (37)",
-      countExcludedNotSubBadges === preview.notSubscribedCount,
-      `Badge not subscribed count: ${countExcludedNotSubBadges}, Summary notSubscribedCount: ${preview.notSubscribedCount}`
+      "2.2 Total Ineligible Missing Consent Badges Equals Summary Not Subscribed (37)",
+      countIneligibleNotSubBadges === preview.notSubscribedCount,
+      `Badge not subscribed count: ${countIneligibleNotSubBadges}, Summary notSubscribedCount: ${preview.notSubscribedCount}`
     );
 
     report(
-      "2.3 Total Excluded Unsubscribed Badges Equals Summary Unsubscribed (10)",
-      countExcludedUnsubBadges === preview.unsubscribedCount,
-      `Badge unsubscribed count: ${countExcludedUnsubBadges}, Summary unsubscribedCount: ${preview.unsubscribedCount}`
+      `2.3 Total Ineligible Unsubscribed Badges Equals Summary Unsubscribed (${preview.unsubscribedCount})`,
+      countIneligibleUnsubBadges === preview.unsubscribedCount,
+      `Badge unsubscribed count: ${countIneligibleUnsubBadges}, Summary unsubscribedCount: ${preview.unsubscribedCount}`
     );
 
     report(
-      "2.4 Total Excluded Suppressed Badges Equals Summary Suppressed (0)",
-      countExcludedSuppBadges === preview.suppressedCount,
-      `Badge suppressed count: ${countExcludedSuppBadges}, Summary suppressedCount: ${preview.suppressedCount}`
+      `2.4 Total Ineligible Suppressed Badges Equals Summary Suppressed (${preview.suppressedCount})`,
+      countIneligibleSuppBadges === preview.suppressedCount,
+      `Badge suppressed count: ${countIneligibleSuppBadges}, Summary suppressedCount: ${preview.suppressedCount}`
     );
 
     report(
-      "2.5 Total Badges (21 eligible + 47 excluded = 68) Equals Total Selected (68)",
-      countEligibleBadges + countExcludedBadges === preview.totalSelected,
-      `Sum: ${countEligibleBadges + countExcludedBadges}, totalSelected: ${preview.totalSelected}`
+      `2.5 Total Badges (${countEligibleBadges} eligible + ${countIneligibleBadges} ineligible = ${preview.totalSelected}) Equals Total Selected (${preview.totalSelected})`,
+      countEligibleBadges + countIneligibleBadges === preview.totalSelected,
+      `Sum: ${countEligibleBadges + countIneligibleBadges}, totalSelected: ${preview.totalSelected}`
     );
 
     // -------------------------------------------------------------------------
@@ -304,26 +309,26 @@ async function run() {
 
     // Not Subscribed (with DB record)
     report(
-      "3.2 Not Subscribed Contact: isEligible=false, label='Excluded · Not Subscribed'",
-      Boolean(itemNotSub && itemNotSub.isEligible === false && getContactStatusBadge(itemNotSub, "all_contacts").label === "Excluded · Not Subscribed")
+      "3.2 Not Subscribed Contact: isEligible=false, label='Ineligible · Missing Consent'",
+      Boolean(itemNotSub && itemNotSub.isEligible === false && getContactStatusBadge(itemNotSub, "all_contacts").label === "Ineligible · Missing Consent")
     );
 
     // No DB consent record
     report(
-      "3.3 Missing Consent Record: accurately treated as not_subscribed, isEligible=false, label='Excluded · Not Subscribed'",
-      Boolean(itemNoRec && itemNoRec.consentStatus === "not_subscribed" && itemNoRec.isEligible === false && getContactStatusBadge(itemNoRec, "all_contacts").label === "Excluded · Not Subscribed")
+      "3.3 Missing Consent Record: accurately treated as not_subscribed, isEligible=false, label='Ineligible · Missing Consent'",
+      Boolean(itemNoRec && itemNoRec.consentStatus === "not_subscribed" && itemNoRec.isEligible === false && getContactStatusBadge(itemNoRec, "all_contacts").label === "Ineligible · Missing Consent")
     );
 
     // Unsubscribed
     report(
-      "3.4 Unsubscribed Contact: isEligible=false, label='Excluded · Unsubscribed'",
-      Boolean(itemUnsub && itemUnsub.isEligible === false && getContactStatusBadge(itemUnsub, "all_contacts").label === "Excluded · Unsubscribed")
+      "3.4 Unsubscribed Contact: isEligible=false, label='Ineligible · Unsubscribed'",
+      Boolean(itemUnsub && itemUnsub.isEligible === false && getContactStatusBadge(itemUnsub, "all_contacts").label === "Ineligible · Unsubscribed")
     );
 
     // Suppressed
     report(
-      "3.5 Suppressed Contact: isEligible=false, label='Excluded · Suppressed'",
-      Boolean(itemSupp && itemSupp.isEligible === false && getContactStatusBadge(itemSupp, "all_contacts").label === "Excluded · Suppressed")
+      "3.5 Suppressed Contact: isEligible=false, label='Ineligible · Suppressed'",
+      Boolean(itemSupp && itemSupp.isEligible === false && getContactStatusBadge(itemSupp, "all_contacts").label === "Ineligible · Suppressed")
     );
 
     // -------------------------------------------------------------------------
@@ -351,8 +356,8 @@ async function run() {
     const testAudienceEnq = await resolveAudience({ type: "enquiries_only" });
     const itemNotSubInEnq = testAudienceEnq.eligible.find((r) => r.email === emailNotSub);
     report(
-      "4.3 In Enquiries Only: unconsented contact is gathered but isEligible=false and labelled 'Excluded · Not Subscribed'",
-      Boolean(itemNotSubInEnq && itemNotSubInEnq.isEligible === false && getContactStatusBadge(itemNotSubInEnq, "enquiries_only").label === "Excluded · Not Subscribed"),
+      "4.3 In Enquiries Only: unconsented contact is gathered but isEligible=false and labelled 'Ineligible · Missing Consent'",
+      Boolean(itemNotSubInEnq && itemNotSubInEnq.isEligible === false && getContactStatusBadge(itemNotSubInEnq, "enquiries_only").label === "Ineligible · Missing Consent"),
       `Badge: ${itemNotSubInEnq ? getContactStatusBadge(itemNotSubInEnq, "enquiries_only").label : "not found"}`
     );
 

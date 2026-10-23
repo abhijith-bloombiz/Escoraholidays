@@ -109,7 +109,7 @@ body {
 .eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   font-size: 12px;
   font-weight: 700;
@@ -118,14 +118,7 @@ body {
   color: #B58D5D;
 }
 .eyebrow .dot {
-  display: inline-block;
-  width: 5.5px;
-  height: 5.5px;
-  background-color: #B58D5D;
-  border-radius: 50%;
-  flex-shrink: 0;
-  margin: 0;
-  transform: none;
+  display: none;
 }
 
 .link-arrow {
@@ -2616,7 +2609,7 @@ body {
 .retreat-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
   font-size: 12px;
   letter-spacing: 0.22em;
@@ -2629,12 +2622,7 @@ body {
 
 .retreat-eyebrow .dot,
 .retreat-eyebrow-dot {
-  width: 5.5px;
-  height: 5.5px;
-  border-radius: 50%;
-  background-color: #B58D5D;
-  display: inline-block;
-  flex-shrink: 0;
+  display: none;
 }
 
 .retreat-title {
@@ -2642,7 +2630,7 @@ body {
   font-size: clamp(36px, 4.5vw, 62px);
   line-height: 1.08;
   font-weight: 400;
-  color: #293D1F;
+  color: #25432F;
   letter-spacing: -0.02em;
   margin: 0;
 }
@@ -3483,7 +3471,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
   font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
   font-size: 12px;
   letter-spacing: 0.22em;
@@ -3495,10 +3483,7 @@ body {
 }
 
 .testi-eyebrow-line {
-  width: 28px;
-  height: 1px;
-  background: #B58D5D;
-  opacity: 0.7;
+  display: none;
 }
 
 .testi-title {
@@ -3506,7 +3491,7 @@ body {
   font-size: clamp(36px, 4.5vw, 62px);
   line-height: 1.08;
   font-weight: 400;
-  color: #293D1F;
+  color: #25432F;
   letter-spacing: -0.02em;
   margin: 0 0 clamp(6px, 1vh, 10px) 0;
   text-align: center;
@@ -3860,7 +3845,7 @@ body {
 .enquiry-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
   font-size: 12px;
   letter-spacing: 0.22em;
@@ -3873,12 +3858,7 @@ body {
 
 .enquiry-eyebrow .dot,
 .enquiry-eyebrow-dot {
-  width: 5.5px;
-  height: 5.5px;
-  border-radius: 50%;
-  background-color: #B58D5D;
-  display: inline-block;
-  flex-shrink: 0;
+  display: none;
 }
 
 .enquiry-title {
@@ -3986,7 +3966,7 @@ a.enquiry-contact-val:hover {
 .enquiry-panel-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
   font-size: 12px;
   letter-spacing: 0.22em;
@@ -3998,12 +3978,7 @@ a.enquiry-contact-val:hover {
 }
 
 .enquiry-panel-eyebrow .dot {
-  width: 5.5px;
-  height: 5.5px;
-  border-radius: 50%;
-  background-color: #B58D5D;
-  display: inline-block;
-  flex-shrink: 0;
+  display: none;
 }
 
 .enquiry-panel-subtitle {
@@ -4688,7 +4663,7 @@ a.enquiry-contact-val:hover {
 .why-esc-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   font-size: 12px;
   font-weight: 700;
@@ -4700,28 +4675,23 @@ a.enquiry-contact-val:hover {
 }
 
 .why-esc-eyebrow .dot {
-  width: 5.5px;
-  height: 5.5px;
-  border-radius: 50%;
-  background-color: #B58D5D;
-  display: inline-block;
-  flex-shrink: 0;
+  display: none;
 }
 
 .why-esc-heading {
   font-family: var(--f-heading, 'Fonarto', Georgia, serif);
   font-size: clamp(36px, 4.5vw, 62px);
   font-weight: 400;
+  color: #25432F;
   line-height: 1.08;
   letter-spacing: -0.02em;
-  color: #293D1F;
   margin: 0 0 clamp(10px, 1.4vh, 18px) 0;
   max-width: 18ch;
 }
 
 .why-esc-heading-em {
   font-style: normal;
-  color: #293D1F;
+  color: #25432F;
   font-family: var(--f-heading, 'Fonarto', Georgia, serif);
 }
 

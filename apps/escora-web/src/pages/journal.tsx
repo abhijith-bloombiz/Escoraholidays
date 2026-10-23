@@ -75,7 +75,7 @@ export default function Journal() {
       {/* Page Hero */}
       <section className="relative page-hero-top bg-bg border-b border-line">
         <div className="container mx-auto px-6 md:px-12 text-center reveal-up">
-          <p className="section-label mb-6 block"><span className="dot" />Travelogue</p>
+          <p className="section-label mb-6 block">Travelogue</p>
           <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl text-ink leading-[1.1] font-light max-w-4xl mx-auto mb-6 sm:mb-8">
             The Escora <em className="text-gold italic">Journal</em>
           </h1>

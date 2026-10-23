@@ -101,7 +101,6 @@ export default function TheEscoraWay() {
           {/* ── Left Column: Editorial Manifesto & CTA ── */}
           <div className="escora-way-left">
             <div className="escora-way-eyebrow escora-way-reveal">
-              <span className="dot" />
               <span>THE ESCORA WAY</span>
             </div>
 

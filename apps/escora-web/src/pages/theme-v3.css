@@ -8,7 +8,7 @@
 
    Palette (client brief):
      Deep Forest Green   #1A3F2C  footer, primary buttons, strong sections
-     Dark Botanical      #293D1F  headings / dark accents
+     Deep Botanical Green #25432F  headings / dark accents
      Forest Green        #3F5630  image overlays, secondary elements
      Muted Sage          #597043  supporting accents
      Soft Sage           #788A63  light decorative elements
@@ -19,7 +19,7 @@
 
 html.theme-v3 {
   --v3-deep: #1A3F2C;
-  --v3-botanical: #293D1F;
+  --v3-botanical: #25432F;
   --v3-forest: #3F5630;
   --v3-sage: #597043;
   --v3-soft: #788A63;
@@ -84,7 +84,7 @@ html.theme-v3 h6 {
   font-style: normal !important;
 }
 
-/* Base heading color: Dark Botanical #293D1F unless explicitly light/white or inside dark themes/elements */
+/* Base heading color: Deep Botanical #25432F unless explicitly light/white or inside dark themes/elements */
 html.theme-v3 h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
 html.theme-v3 h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
 html.theme-v3 h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
@@ -92,7 +92,7 @@ html.theme-v3 h4:not(.text-white):not([class*="text-white"]):not(.cinematic-foot
 html.theme-v3 h5:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
 html.theme-v3 h6:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
 html.theme-v3 .font-serif:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) {
-  color: var(--v3-botanical, #293D1F);
+  color: var(--v3-botanical, #25432F);
 }
 
 html.theme-v3 h1 *,
@@ -1142,9 +1142,9 @@ html.theme-v3 .portal-card img {
 }
 
 /* Forms minimal input fields */
-html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):not(.escora-text-input):not(.escora-phone-prefix-select):not(.escora-input-pill *),
-html.theme-v3 select:not(.escora-select-input):not(.escora-phone-prefix-select):not(.escora-input-pill *),
-html.theme-v3 textarea:not(.escora-input-pill *) {
+html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):not(.escora-text-input):not(.escora-enquiry-card *),
+html.theme-v3 select:not(.escora-select-input):not(.escora-phone-prefix-select):not(.escora-enquiry-card *),
+html.theme-v3 textarea {
   border-radius: 12px !important;
   background: var(--bg-3);
   border: 1px solid var(--line);
@@ -1152,9 +1152,9 @@ html.theme-v3 textarea:not(.escora-input-pill *) {
   transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
 }
 
-html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):not(.escora-text-input):not(.escora-phone-prefix-select):not(.escora-input-pill *):focus,
-html.theme-v3 select:not(.escora-select-input):not(.escora-phone-prefix-select):not(.escora-input-pill *):focus,
-html.theme-v3 textarea:not(.escora-input-pill *):focus {
+html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):not(.escora-text-input):not(.escora-enquiry-card *):focus,
+html.theme-v3 select:not(.escora-select-input):not(.escora-phone-prefix-select):not(.escora-enquiry-card *):focus,
+html.theme-v3 textarea:focus {
   border-color: var(--gold) !important;
   background: #FEFEFE;
   box-shadow: 0 0 0 3px rgba(26,63,44,0.08);

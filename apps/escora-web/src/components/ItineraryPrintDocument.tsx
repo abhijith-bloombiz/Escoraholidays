@@ -17,12 +17,9 @@ import {
   Instagram,
   Twitter,
   Linkedin,
-  Clock,
   MapPin,
   ShieldCheck,
   Award,
-  Sparkles,
-  Star,
 } from "lucide-react";
 import type {
   ItineraryDay,
@@ -60,7 +57,6 @@ export interface ItineraryPrintData {
   currency: string;
   shareToken: string;
   mode?: "package" | "itinerary";
-  // Reference PDF fields
   referenceNumber?: string | null;
   curatorName?: string | null;
   curatorPhone?: string | null;
@@ -224,9 +220,6 @@ function formatPageNum(pageNum: number, total: number): string {
   return `${p} / ${t}`;
 }
 
-/**
- * Robust image component with fallback: never breaks the PDF layout
- */
 function ImageWithFallback({
   src,
   fallback,
@@ -272,9 +265,6 @@ function ImageWithFallback({
   );
 }
 
-/**
- * Escora Brand Logo: authentic wordmark with flying bird accent
- */
 function BrandLogo({ variant = "dark" }: { variant?: "dark" | "white" }) {
   const isWhite = variant === "white";
   return (
@@ -310,9 +300,6 @@ function BrandLogo({ variant = "dark" }: { variant?: "dark" | "white" }) {
   );
 }
 
-/**
- * Editorial section heading: Large serif title with terracotta divider line
- */
 function EditorialHeading({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-3">
@@ -327,9 +314,6 @@ function EditorialHeading({ title }: { title: string }) {
   );
 }
 
-/**
- * Standard Page Header for interior pages
- */
 function PageHeader({ title }: { title: string }) {
   return (
     <div className="w-full mb-3 shrink-0">
@@ -342,9 +326,6 @@ function PageHeader({ title }: { title: string }) {
   );
 }
 
-/**
- * Page Footer with reference number on left and page indicator on right
- */
 function PageFooterIndicator({
   pageNum,
   totalPages,
@@ -355,7 +336,7 @@ function PageFooterIndicator({
   referenceNumber?: string;
 }) {
   return (
-    <div className="w-full pt-1.5 border-t border-[#E4DDD3]/70 flex items-center justify-between text-[8.5px] text-[#685D56] shrink-0">
+    <div className="w-full pt-1.5 border-t border-[#E4DDD3]/70 flex items-center justify-between text-[8.5px] text-[#685D56] shrink-0 mt-auto">
       <span className="font-mono tracking-wide">
         {referenceNumber ? `REF: ${referenceNumber}` : "ESCORA LUXURY TRAVEL DOSSIER"}
       </span>
@@ -366,9 +347,6 @@ function PageFooterIndicator({
   );
 }
 
-/**
- * Reusable two-column itinerary day item
- */
 function ItineraryDayBlock({
   dayNumber,
   header,
@@ -396,7 +374,7 @@ function ItineraryDayBlock({
   const hasActivities = activities && activities.length > 0;
 
   return (
-    <div className="flex gap-4 relative w-full mb-2.5 last:mb-0">
+    <div className="flex gap-4 relative w-full mb-3 last:mb-0">
       {/* Left Timeline Gutter */}
       <div className="w-11 shrink-0 flex flex-col items-center">
         <span
@@ -428,12 +406,11 @@ function ItineraryDayBlock({
         </h3>
 
         {description && (
-          <div className="text-[8.75px] leading-[1.48] text-[#282421] space-y-1 mb-1.5 whitespace-pre-line">
+          <div className="text-[8.75px] leading-[1.5] text-[#282421] space-y-1 mb-1.5 whitespace-pre-line">
             {description}
           </div>
         )}
 
-        {/* Scheduled Activities with timestamps */}
         {hasActivities && (
           <div className="mb-2 space-y-1">
             {activities.map((act, aIdx) => (
@@ -451,7 +428,6 @@ function ItineraryDayBlock({
           </div>
         )}
 
-        {/* Optional activities */}
         {optionalActivities && (
           <div className="bg-[#F0E6DA] rounded p-2 mb-1.5 text-[#39271F]">
             <span className="text-[8.5px] font-bold block mb-0.5">Optional (on request):</span>
@@ -465,14 +441,12 @@ function ItineraryDayBlock({
           </div>
         )}
 
-        {/* Meals note */}
         {meals && (
           <div className="text-[8.25px] italic text-[#685D56] mb-1 leading-relaxed">
             {meals}
           </div>
         )}
 
-        {/* Stay row */}
         {stay && (
           <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
             <Bed className="w-3.5 h-3.5 text-[#A45132] shrink-0" />
@@ -480,7 +454,6 @@ function ItineraryDayBlock({
           </div>
         )}
 
-        {/* Verified Day Images */}
         {hasImages && (
           <div
             className={`w-full mt-1.5 rounded overflow-hidden ${
@@ -503,13 +476,12 @@ function ItineraryDayBlock({
   );
 }
 
-/**
- * Editorial Landscape Accent: Fills residual space on Day pages with slow-luxury Kerala atmosphere
- */
 function DayPageAtmosphereAccent({
   accentIndex = 0,
+  heightPx = 130,
 }: {
   accentIndex?: number;
+  heightPx?: number;
 }) {
   const accents = [
     {
@@ -535,7 +507,10 @@ function DayPageAtmosphereAccent({
   const accent = accents[accentIndex % accents.length];
 
   return (
-    <div className="relative w-full h-[110px] rounded overflow-hidden mt-2 shrink-0 border border-[#E4DDD3]/60 shadow-xs">
+    <div
+      className="relative w-full rounded overflow-hidden mt-3 shrink-0 border border-[#E4DDD3]/60 shadow-xs"
+      style={{ height: `${heightPx}px` }}
+    >
       <ImageWithFallback
         src={accent.img}
         alt={accent.alt}
@@ -553,9 +528,6 @@ function DayPageAtmosphereAccent({
   );
 }
 
-/**
- * Accommodations & Stay Breakdown Section
- */
 function AccommodationsSection({
   stays,
   destinationText,
@@ -588,7 +560,7 @@ function AccommodationsSection({
                   )}
                 </div>
 
-                <div className="flex items-center gap-5 text-[8px] text-[#4E463C] mt-1 pt-0.5">
+                <div className="flex items-center gap-5 text-[8px] text-[#4E463C] mt-1 pt-0.5 flex-wrap">
                   <div>
                     <span className="text-[#685D56]">Duration: </span>
                     <span className="font-bold">{stay.nights ?? 1} Night{(stay.nights ?? 1) > 1 ? "s" : ""}</span>
@@ -621,9 +593,6 @@ function AccommodationsSection({
   );
 }
 
-/**
- * Transportation Section
- */
 function TransportationSection({
   transportation,
 }: {
@@ -632,7 +601,7 @@ function TransportationSection({
   return (
     <div className="shrink-0">
       <EditorialHeading title="Transportation &amp; Transfers" />
-      <div className="bg-[#FAF7F1] border border-[#E4DDD3] rounded p-2.5 flex items-center justify-between gap-4 mt-1.5">
+      <div className="bg-[#FAF7F1] border border-[#E4DDD3] rounded p-2 flex items-center justify-between gap-4 mt-1.5">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-full bg-[#F0E6DA] flex items-center justify-center text-[#39271F] shrink-0">
             <Car className="w-3.5 h-3.5 text-[#A45132]" />
@@ -658,9 +627,6 @@ function TransportationSection({
   );
 }
 
-/**
- * Inclusions & Exclusions Section
- */
 function InclusionsExclusionsSection({
   inclusions,
   exclusions,
@@ -725,31 +691,324 @@ function InclusionsExclusionsSection({
   );
 }
 
+function InvestmentPricingSection({
+  pricing,
+  currencySymbol,
+  computedPricingTotal,
+  discountAmount,
+  taxesAmount,
+  compact = false,
+}: {
+  pricing: ItineraryPricing;
+  currencySymbol: string;
+  computedPricingTotal: number;
+  discountAmount: number;
+  taxesAmount: number;
+  compact?: boolean;
+}) {
+  const hasLineItems = pricing?.items && pricing.items.length > 0;
+  const pad = compact ? "p-2" : "p-2.5";
+  const itemPy = compact ? "py-0.5" : "py-1";
+
+  return (
+    <div className={`shrink-0 ${compact ? "space-y-1.5" : "space-y-2"}`}>
+      {hasLineItems && (
+        <div className={`bg-[#FAF7F1] border border-[#E4DDD3] rounded-t ${pad} text-[8px] space-y-0.5`}>
+          <span className="text-[8.5px] font-bold uppercase tracking-wider text-[#685D56] block mb-1">
+            Itemized Investment Breakdown
+          </span>
+          {pricing.items!.map((item, idx) => (
+            <div
+              key={idx}
+              className={`flex items-center justify-between text-[#39271F] ${itemPy} border-b border-[#E4DDD3]/50 last:border-b-0`}
+            >
+              <span className="text-[#685D56]">{item.label}</span>
+              <span className="font-sans font-bold tabular-nums">
+                {currencySymbol}
+                {Number(item.amount).toLocaleString("en-IN")}
+              </span>
+            </div>
+          ))}
+
+          {discountAmount > 0 && (
+            <div className={`flex items-center justify-between text-[#183D2E] ${itemPy} pt-1 border-t border-[#E4DDD3]`}>
+              <span className="font-medium">Special Applied Privilege / Discount</span>
+              <span className="font-bold tabular-nums">- {currencySymbol}{discountAmount.toLocaleString("en-IN")}</span>
+            </div>
+          )}
+
+          {taxesAmount > 0 && (
+            <div className={`flex items-center justify-between text-[#685D56] ${itemPy}`}>
+              <span className="font-medium">Applicable Taxes &amp; GST</span>
+              <span className="font-bold tabular-nums">+ {currencySymbol}{taxesAmount.toLocaleString("en-IN")}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Total Package Investment Banner */}
+      <div
+        className={`bg-[#A45132] text-[#FAF7F1] ${compact ? "px-4 py-2" : "px-4 py-2.5"} ${
+          hasLineItems ? "rounded-b" : "rounded"
+        } flex items-center justify-between shadow-xs`}
+      >
+        <div>
+          <span className="text-[9.5px] font-bold tracking-widest uppercase block">
+            TOTAL PACKAGE INVESTMENT
+          </span>
+          <span className="text-[7.5px] text-[#F5EBE1] block mt-0.5">
+            All-inclusive quote per specified itinerary, private transfers &amp; verified stays
+          </span>
+        </div>
+        <span
+          className="font-serif text-[20px] font-bold tracking-tight tabular-nums"
+          style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
+        >
+          {computedPricingTotal > 0 ? (
+            <>
+              <span className="font-sans mr-0.5">{currencySymbol}</span>
+              {Number(computedPricingTotal).toLocaleString("en-IN")}
+            </>
+          ) : (
+            <span className="text-xs font-sans font-medium">Bespoke Quote on Request</span>
+          )}
+        </span>
+      </div>
+
+      {pricing?.notes && (
+        <div className="text-[8px] italic text-[#685D56] leading-tight">
+          * {pricing.notes}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TermsAndGuidelinesSection({
+  hotelTerms,
+  paymentTerms,
+  importantInfo,
+  compact = false,
+}: {
+  hotelTerms: string[];
+  paymentTerms: string[];
+  importantInfo: string[];
+  compact?: boolean;
+}) {
+  const pad = compact ? "p-2" : "p-3";
+  const limit = compact ? 4 : 6;
+  const textSize = compact ? "text-[7.75px]" : "text-[8.25px]";
+  const leading = compact ? "leading-[1.4]" : "leading-[1.45]";
+  const itemSpace = compact ? "space-y-0.5" : "space-y-1";
+
+  return (
+    <div className={`shrink-0 ${compact ? "space-y-1.5" : "space-y-2.5"}`}>
+      {/* Terms & Conditions (2 Columns) */}
+      <div className="grid grid-cols-2 gap-2.5">
+        {/* Hotel Terms */}
+        <div className={`bg-[#F0E6DA] rounded ${pad} flex flex-col justify-between`}>
+          <div>
+            <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
+              <Bed className="w-3.5 h-3.5 text-[#A45132]" />
+              <span>Hotel Terms &amp; Policies</span>
+            </div>
+            <ul className={`${textSize} ${leading} text-[#4E463C] ${itemSpace} list-disc list-inside`}>
+              {hotelTerms.slice(0, limit).map((term, idx) => (
+                <li key={idx}>{term}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Payment Terms */}
+        <div className={`bg-[#F0E6DA] rounded ${pad} flex flex-col justify-between`}>
+          <div>
+            <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
+              <FileText className="w-3.5 h-3.5 text-[#A45132]" />
+              <span>Payment &amp; Booking Terms</span>
+            </div>
+            <ul className={`${textSize} ${leading} text-[#4E463C] ${itemSpace} list-disc list-inside`}>
+              {paymentTerms.slice(0, limit).map((term, idx) => (
+                <li key={idx}>{term}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Important Travel Guidelines */}
+      <div className={`bg-[#F0E6DA] rounded ${pad}`}>
+        <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
+          <Info className="w-3.5 h-3.5 text-[#A45132]" />
+          <span>Important Travel Guidelines &amp; Protocol</span>
+        </div>
+        <ul className={`${textSize} ${leading} text-[#4E463C] ${itemSpace} list-disc list-inside`}>
+          {importantInfo.slice(0, limit).map((info, idx) => (
+            <li key={idx}>{info}</li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function TrustSafeguardsBar() {
+  return (
+    <div className="bg-[#FAF7F1] border border-[#E4DDD3] rounded p-2 flex items-center justify-between gap-4 shrink-0">
+      <div className="flex items-center gap-2">
+        <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+        </svg>
+        <div>
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] font-bold text-[#39271F] leading-tight">Google Review · 5.0 Rating</span>
+            <div className="flex items-center text-[#F59E0B] text-[10px] leading-none">
+              <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+            </div>
+          </div>
+          <span className="text-[7.5px] text-[#685D56] block">Verified International Traveller Feedback</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 border-l border-[#E4DDD3] pl-3">
+        <div className="flex items-center gap-1.5 text-[8px] text-[#183D2E]">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#183D2E]" />
+          <span className="font-semibold">24/7 On-Trip Concierge</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-[8px] text-[#A45132]">
+          <Award className="w-3.5 h-3.5 text-[#A45132]" />
+          <span className="font-semibold">Kerala Tourism Accredited</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ClosingAgencyFooter({
+  agencyPhone,
+  agencyEmail,
+  agencyWebsite,
+  pageNum,
+  totalPages,
+}: {
+  agencyPhone: string;
+  agencyEmail: string;
+  agencyWebsite: string;
+  pageNum: number;
+  totalPages: number;
+}) {
+  return (
+    <div className="w-full mt-auto pt-2 shrink-0">
+      <div className="bg-[#39271F] text-[#FAF7F1] rounded px-4 py-2 flex items-center justify-between">
+        <BrandLogo variant="white" />
+        <div className="flex items-center gap-4 text-[8px]">
+          <div className="flex items-center gap-1.5">
+            <Phone className="w-3 h-3 text-[#BE8C70]" />
+            <span>{agencyPhone}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Mail className="w-3 h-3 text-[#BE8C70]" />
+            <span>{agencyEmail}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Globe className="w-3 h-3 text-[#BE8C70]" />
+            <span>{agencyWebsite.replace(/^https?:\/\//, "")}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 text-[#FAF7F1]">
+            <div className="w-4 h-4 rounded-full bg-[#FAF7F1]/10 flex items-center justify-center">
+              <Facebook className="w-2 h-2" />
+            </div>
+            <div className="w-4 h-4 rounded-full bg-[#FAF7F1]/10 flex items-center justify-center">
+              <Instagram className="w-2 h-2" />
+            </div>
+            <div className="w-4 h-4 rounded-full bg-[#FAF7F1]/10 flex items-center justify-center">
+              <Twitter className="w-2 h-2" />
+            </div>
+            <div className="w-4 h-4 rounded-full bg-[#FAF7F1]/10 flex items-center justify-center">
+              <Linkedin className="w-2 h-2" />
+            </div>
+          </div>
+          <span className="text-[8px] font-mono text-[#BE8C70] font-bold pl-2 border-l border-[#FAF7F1]/20">
+            {formatPageNum(pageNum, totalPages)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface DayPageItem {
   day: ItineraryDay;
   dayNumber: number;
   header: { weekday: string; dateText: string };
   images: string[];
+  estimatedHeight: number;
 }
 
-interface DayPageGroup {
-  items: DayPageItem[];
+function estimateDayHeight(day: ItineraryDay): number {
+  let h = 48;
+  const desc = day.description || "";
+  const descLines = Math.ceil(desc.length / 90);
+  h += Math.max(1, descLines) * 14;
+
+  if (day.activities && day.activities.length > 0) {
+    h += day.activities.length * 16;
+  }
+  if (day.optionalActivities) {
+    const count = Array.isArray(day.optionalActivities) ? day.optionalActivities.length : 1;
+    h += count * 14 + 18;
+  }
+  if (day.meals) {
+    h += 16;
+  }
+  if (day.stay) {
+    h += 18;
+  }
+  const images = day.imageUrls && day.imageUrls.length > 0
+    ? day.imageUrls
+    : day.imageUrl ? [day.imageUrl] : [];
+  if (images.length === 1) {
+    h += 110;
+  } else if (images.length >= 2) {
+    h += 95;
+  }
+  return h;
 }
 
-/**
- * Intelligently partitions itinerary days across pages:
- * - Fits 3 days per page as standard editorial density (or 2 if heavily detailed/imaged)
- * - Balances days evenly so pages don't have awkward single-item overflows
- * - Eliminates excessive empty space while preventing page-break collisions
- */
-function partitionDaysIntoPages(
+export type PageLayoutType =
+  | "cover"
+  | "days"
+  | "days-and-all"
+  | "days-and-services"
+  | "services"
+  | "services-and-investment"
+  | "investment";
+
+export interface PlannedPage {
+  pageNumber: number;
+  type: PageLayoutType;
+  headerTitle: string;
+  dayItems?: DayPageItem[];
+  accentIndex?: number;
+  accentHeightPx?: number;
+  showPanorama?: boolean;
+  includeInclusionsExclusions?: boolean;
+}
+
+export function planItineraryPages(
   days: ItineraryDay[],
+  stays: ItineraryStay[],
+  inclusions: string[],
+  exclusions: string[],
+  pricing: ItineraryPricing,
   parsedStartDate: Date | null
-): DayPageGroup[] {
-  const total = days.length;
-  if (total === 0) return [];
-
-  const items: DayPageItem[] = days.map((day, idx) => {
+): PlannedPage[] {
+  const dayItems: DayPageItem[] = days.map((day, idx) => {
     const dayNumber = idx + 1;
     const header = formatDayWeekdayDate(dayNumber, day.date, parsedStartDate);
     const images =
@@ -758,39 +1017,255 @@ function partitionDaysIntoPages(
         : day.imageUrl
         ? [day.imageUrl]
         : [];
-    return { day, dayNumber, header, images };
+    const estimatedHeight = estimateDayHeight(day);
+    return { day, dayNumber, header, images, estimatedHeight };
   });
 
-  let targetPagesCount = 1;
-  if (total <= 3) {
-    targetPagesCount = 1;
-  } else if (total === 4) {
-    targetPagesCount = 2;
-  } else if (total <= 6) {
-    targetPagesCount = 2;
-  } else if (total <= 9) {
-    targetPagesCount = 3;
-  } else if (total <= 12) {
-    targetPagesCount = 4;
+  // Section Heights Estimation
+  const staysCount = stays?.length || 0;
+  const accommodationsHeight = staysCount > 0 ? 32 + 16 + staysCount * 46 : 50;
+  const transportationHeight = 60;
+  const incCount = Math.max(inclusions.length, exclusions.length);
+  const inclusionsHeight = 32 + Math.max(1, incCount) * 15 + 24;
+  const servicesHeight = accommodationsHeight + transportationHeight + inclusionsHeight;
+
+  const lineItemsCount = pricing?.items?.length || 0;
+  const pricingHeight = (lineItemsCount > 0 ? 28 + lineItemsCount * 17 + 20 : 0) + 48 + (pricing?.notes ? 16 : 0);
+  const termsHeight = 110;
+  const guidelinesHeight = 80;
+  const trustHeight = 38;
+  const closingFooterHeight = 52;
+  const investmentHeight = pricingHeight + termsHeight + guidelinesHeight + trustHeight + closingFooterHeight + 20;
+
+  const totalPostHeight = servicesHeight + investmentHeight + 30;
+
+  const pages: PlannedPage[] = [];
+  let pageCounter = 1;
+
+  // 1. Cover Page
+  pages.push({
+    pageNumber: pageCounter++,
+    type: "cover",
+    headerTitle: "",
+  });
+
+  // 2. Single-Day Itinerary Special Case:
+  if (dayItems.length === 1) {
+    const day1Height = dayItems[0].estimatedHeight;
+    const compactAllHeight = day1Height + accommodationsHeight + transportationHeight + inclusionsHeight + pricingHeight + 140 + 38 + 52 + 50;
+    if (compactAllHeight <= 900) {
+      // Perfect 2-page dossier
+      pages.push({
+        pageNumber: pageCounter++,
+        type: "days-and-all",
+        headerTitle: "Day-To-Day Plan & Complete Services",
+        dayItems: [dayItems[0]],
+      });
+      return pages;
+    } else {
+      // 3 pages
+      pages.push({
+        pageNumber: pageCounter++,
+        type: "days-and-services",
+        headerTitle: "Day-To-Day Plan & Services",
+        dayItems: [dayItems[0]],
+      });
+      pages.push({
+        pageNumber: pageCounter++,
+        type: "investment",
+        headerTitle: "Investment, Terms & Policies",
+        includeInclusionsExclusions: true,
+      });
+      return pages;
+    }
+  }
+
+  // 3. Multi-Day Itineraries: Group days based on content height
+  const MAX_PAGE_DAY_H = 840;
+  const totalDaysH = dayItems.reduce((acc, it) => acc + it.estimatedHeight, 0);
+
+  let dayGroups: DayPageItem[][] = [];
+
+  if (totalDaysH <= MAX_PAGE_DAY_H) {
+    // All days fit on 1 page!
+    dayGroups = [dayItems];
   } else {
-    targetPagesCount = Math.ceil(total / 3);
+    // Check if days fit on 2 pages with balanced distribution
+    let bestTwoPageSplit: number | null = null;
+    let minDiff = Infinity;
+
+    for (let k = 1; k < dayItems.length; k++) {
+      const g1 = dayItems.slice(0, k);
+      const g2 = dayItems.slice(k);
+      const h1 = g1.reduce((acc, it) => acc + it.estimatedHeight, 0);
+      const h2 = g2.reduce((acc, it) => acc + it.estimatedHeight, 0);
+
+      if (h1 <= MAX_PAGE_DAY_H && h2 <= MAX_PAGE_DAY_H) {
+        const diff = Math.abs(h1 - h2);
+        if (diff < minDiff) {
+          minDiff = diff;
+          bestTwoPageSplit = k;
+        }
+      }
+    }
+
+    if (bestTwoPageSplit !== null) {
+      dayGroups = [
+        dayItems.slice(0, bestTwoPageSplit),
+        dayItems.slice(bestTwoPageSplit),
+      ];
+    } else {
+      // Check if days fit on 3 pages with balanced distribution
+      let bestThreePageSplit: [number, number] | null = null;
+      let minVariance = Infinity;
+
+      for (let j = 1; j < dayItems.length - 1; j++) {
+        for (let k = j + 1; k < dayItems.length; k++) {
+          const g1 = dayItems.slice(0, j);
+          const g2 = dayItems.slice(j, k);
+          const g3 = dayItems.slice(k);
+          const h1 = g1.reduce((acc, it) => acc + it.estimatedHeight, 0);
+          const h2 = g2.reduce((acc, it) => acc + it.estimatedHeight, 0);
+          const h3 = g3.reduce((acc, it) => acc + it.estimatedHeight, 0);
+
+          if (h1 <= MAX_PAGE_DAY_H && h2 <= MAX_PAGE_DAY_H && h3 <= MAX_PAGE_DAY_H) {
+            const avg = (h1 + h2 + h3) / 3;
+            const variance = Math.pow(h1 - avg, 2) + Math.pow(h2 - avg, 2) + Math.pow(h3 - avg, 2);
+            if (variance < minVariance) {
+              minVariance = variance;
+              bestThreePageSplit = [j, k];
+            }
+          }
+        }
+      }
+
+      if (bestThreePageSplit !== null) {
+        dayGroups = [
+          dayItems.slice(0, bestThreePageSplit[0]),
+          dayItems.slice(bestThreePageSplit[0], bestThreePageSplit[1]),
+          dayItems.slice(bestThreePageSplit[1]),
+        ];
+      } else {
+        // Fallback: Greedy packing with 840 threshold
+        let currentGroup: DayPageItem[] = [];
+        let currentH = 0;
+        for (let i = 0; i < dayItems.length; i++) {
+          const item = dayItems[i];
+          const gap = currentGroup.length === 0 ? 0 : 12;
+          if (currentGroup.length > 0 && currentH + gap + item.estimatedHeight > MAX_PAGE_DAY_H) {
+            dayGroups.push(currentGroup);
+            currentGroup = [item];
+            currentH = item.estimatedHeight;
+          } else {
+            currentGroup.push(item);
+            currentH += gap + item.estimatedHeight;
+          }
+        }
+        if (currentGroup.length > 0) {
+          dayGroups.push(currentGroup);
+        }
+      }
+    }
   }
 
-  const baseSize = Math.floor(total / targetPagesCount);
-  const remainder = total % targetPagesCount;
+  // 4. Plan Pages from Day Groups and Logistics
+  if (dayGroups.length === 1) {
+    const daysTotalH = dayGroups[0].reduce((s, it) => s + it.estimatedHeight, 0);
+    const hasPhotos = dayGroups[0].some((it) => it.images.length > 0);
+    const residualOnDayPage = 880 - daysTotalH;
 
-  const pageSizes: number[] = [];
-  for (let p = 0; p < targetPagesCount; p++) {
-    pageSizes.push(baseSize + (p < remainder ? 1 : 0));
+    pages.push({
+      pageNumber: pageCounter++,
+      type: "days",
+      headerTitle: "Day-To-Day Plan",
+      dayItems: dayGroups[0],
+      accentIndex: 0,
+      accentHeightPx: !hasPhotos && residualOnDayPage >= 160 ? Math.min(170, residualOnDayPage - 40) : 0,
+    });
+
+    if (totalPostHeight <= 880) {
+      pages.push({
+        pageNumber: pageCounter++,
+        type: "services-and-investment",
+        headerTitle: "Included Services & Investment",
+      });
+    } else {
+      pages.push({
+        pageNumber: pageCounter++,
+        type: "services",
+        headerTitle: "Included Accommodations & Logistics",
+        showPanorama: true,
+      });
+      pages.push({
+        pageNumber: pageCounter++,
+        type: "investment",
+        headerTitle: "Inclusions, Investment & Policies",
+        includeInclusionsExclusions: true,
+      });
+    }
+    return pages;
   }
 
-  let itemIdx = 0;
-  const pages: DayPageGroup[] = [];
+  // Multi-day page groups (> 1 page of days)
+  const lastGroup = dayGroups[dayGroups.length - 1];
+  const lastGroupH = lastGroup.reduce((s, it) => s + it.estimatedHeight, 0);
+  const canFitLogisticsOnLastDay = (lastGroupH + accommodationsHeight + transportationHeight <= 840) && (staysCount <= 4);
 
-  for (const size of pageSizes) {
-    const pageItems = items.slice(itemIdx, itemIdx + size);
-    pages.push({ items: pageItems });
-    itemIdx += size;
+  for (let gIdx = 0; gIdx < dayGroups.length; gIdx++) {
+    const isLastGroup = gIdx === dayGroups.length - 1;
+    const groupItems = dayGroups[gIdx];
+    const groupH = groupItems.reduce((s, it) => s + it.estimatedHeight, 0);
+    const hasPhotos = groupItems.some((it) => it.images.length > 0);
+    const residual = 880 - groupH;
+
+    if (isLastGroup && canFitLogisticsOnLastDay) {
+      pages.push({
+        pageNumber: pageCounter++,
+        type: "days-and-services",
+        headerTitle: "Day-To-Day Plan & Logistics",
+        dayItems: groupItems,
+      });
+
+      // The remaining page holds Inclusions, Investment, Terms & Closing Footer
+      pages.push({
+        pageNumber: pageCounter++,
+        type: "investment",
+        headerTitle: "Investment, Terms & Policies",
+        includeInclusionsExclusions: true,
+      });
+      return pages;
+    } else {
+      pages.push({
+        pageNumber: pageCounter++,
+        type: "days",
+        headerTitle: gIdx === 0 ? "Day-To-Day Plan" : "Day-To-Day Plan (Continued)",
+        dayItems: groupItems,
+        accentIndex: gIdx,
+        accentHeightPx: !hasPhotos && residual >= 160 ? Math.min(170, residual - 40) : 0,
+      });
+    }
+  }
+
+  // Post-itinerary pages (when logistics did not fit on the last day page)
+  if (totalPostHeight <= 880) {
+    pages.push({
+      pageNumber: pageCounter++,
+      type: "services-and-investment",
+      headerTitle: "Included Services & Investment",
+    });
+  } else {
+    pages.push({
+      pageNumber: pageCounter++,
+      type: "services",
+      headerTitle: "Included Accommodations & Logistics",
+      showPanorama: true,
+    });
+    pages.push({
+      pageNumber: pageCounter++,
+      type: "investment",
+      headerTitle: "Inclusions, Investment & Policies",
+      includeInclusionsExclusions: true,
+    });
   }
 
   return pages;
@@ -822,7 +1297,6 @@ export default function ItineraryPrintDocument({
 
   const {
     daysCount,
-    nightsCount,
     formattedDuration,
     startDateText,
     endDateText,
@@ -883,6 +1357,7 @@ export default function ItineraryPrintDocument({
 
   const currencySymbol = currency === "INR" ? "₹" : `${currency} `;
 
+  // Inclusion icons on cover page
   const incConfig = data.tripIncludes ?? {
     hotel: true,
     transport: true,
@@ -897,14 +1372,17 @@ export default function ItineraryPrintDocument({
     { key: "transfer", label: "Transfer", icon: Bus, active: incConfig.transfer ?? true },
   ].filter((b) => b.active);
 
-  const isSingleDay = daysCount === 1;
-  const dayPages = partitionDaysIntoPages(days, parsedStartDate);
+  // Plan pages using intelligent content packing
+  const plannedPages = planItineraryPages(
+    days,
+    stays,
+    inclusions,
+    activeExclusions,
+    pricing,
+    parsedStartDate
+  );
 
-  const totalPages = isSingleDay
-    ? 3
-    : 1 + dayPages.length + 1 + 1;
-
-  let currentPageNum = 1;
+  const totalPages = plannedPages.length;
 
   return (
     <div
@@ -980,293 +1458,242 @@ export default function ItineraryPrintDocument({
         }
       `}</style>
 
-      {/* ==================================================================== */}
-      {/* PAGE 1: Split Cover & Dark Espresso Trip Details Panel               */}
-      {/* ==================================================================== */}
-      <section className="brochure-page flex flex-col justify-between">
-        {/* Top Split: Information Column (Left) + Tall Photograph (Right) */}
-        <div className="flex-1 flex overflow-hidden min-h-0">
-          {/* Left Column (52%) */}
-          <div className="w-[52%] pl-[18mm] pr-6 pt-[16mm] pb-4 flex flex-col justify-between">
-            <div>
-              <BrandLogo variant="dark" />
+      {/* Render planned pages */}
+      {plannedPages.map((pagePlan, pIdx) => {
+        const pageNum = pagePlan.pageNumber;
+        const isLastPage = pageNum === totalPages;
 
-              <div className="text-[8.5px] font-bold tracking-[0.24em] uppercase text-[#685D56] mt-4 leading-relaxed">
-                A JOURNEY THROUGH
-                <br />
-                KERALA&apos;S TIMELESS BEAUTY
-              </div>
-
-              <h1
-                className="font-serif text-[32px] leading-[1.08] font-bold text-[#39271F] tracking-tight mt-3.5"
-                style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
-              >
-                {titleParts.line1}
-                {titleParts.line2 && (
-                  <>
-                    <br />
-                    {titleParts.line2}
-                  </>
-                )}
-              </h1>
-
-              {/* Editorial Summary or Brand Lead-in */}
-              <div className="text-[9px] font-serif italic text-[#685D56] mt-2.5 leading-snug line-clamp-2">
-                {summary || "A bespoke slow-luxury journey curated with private chauffeur transfers, handpicked accommodations, and immersive cultural heritage."}
-              </div>
-
-              <div className="flex items-center gap-3 mt-3">
-                <span
-                  className="font-serif text-[13px] font-semibold text-[#A45132] whitespace-nowrap"
-                  style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
-                >
-                  {formattedDuration}
-                </span>
-                <div className="w-16 h-px bg-[#BE8C70]" />
-              </div>
-
-              {/* Customer Greeting */}
-              <div className="mt-4">
-                <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-[#BE8C70] block">
-                  PROPOSAL PREPARED EXCLUSIVELY FOR
-                </span>
-                <span className="text-[14px] font-bold tracking-[0.08em] uppercase text-[#39271F] block mt-0.5">
-                  {customerName}
-                </span>
-              </div>
-
-              {/* YOUR TRIP INCLUDES */}
-              {includedBadges.length > 0 && (
-                <div className="mt-4">
-                  <div className="text-[8px] font-bold tracking-[0.2em] uppercase text-[#685D56] mb-2">
-                    YOUR TRIP INCLUDES
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {includedBadges.map((badge) => {
-                      const IconComponent = badge.icon;
-                      return (
-                        <div key={badge.key} className="flex flex-col items-center">
-                          <div className="w-7 h-7 rounded-full bg-[#F0E6DA] flex items-center justify-center text-[#39271F]">
-                            <IconComponent className="w-3 h-3 text-[#A45132]" />
-                          </div>
-                          <span className="text-[7.5px] font-bold text-[#39271F] mt-1">
-                            {badge.label}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 2-Column Info Grid */}
-            <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 pt-3.5 border-t border-[#E4DDD3]">
-              <div className="flex items-start gap-2">
-                <Phone className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
-                    Emergency Contacts
-                  </span>
-                  <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5">
-                    {emergencyContacts}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2">
-                <FileText className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
-                    Reference No.
-                  </span>
-                  <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5 font-mono">
-                    {referenceNumber}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2">
-                <User className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
-                    Curated By
-                  </span>
-                  <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5">
-                    {curatorName}
-                  </span>
-                  {curatorPhone && (
-                    <span className="text-[7.5px] text-[#685D56] block">({curatorPhone})</span>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-start gap-2">
-                <Calendar className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
-                <div>
-                  <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
-                    Created on
-                  </span>
-                  <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5 tabular-nums">
-                    {createdDate}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column (48%): Hero Photograph */}
-          <div className="w-[48%] relative h-full">
-            <ImageWithFallback
-              src={coverImageUrl || alleppeyFallbackImg}
-              fallback={alleppeyFallbackImg}
-              alt={title || "Kerala Destination Cover"}
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-
-        {/* Full-width Deep Espresso Trip Details Panel */}
-        <div className="bg-[#39271F] text-[#FAF7F1] px-[18mm] py-3.5 relative overflow-hidden shrink-0">
-          <svg
-            className="absolute right-0 bottom-0 h-full w-[45%] opacity-20 pointer-events-none"
-            viewBox="0 0 300 200"
-            preserveAspectRatio="none"
-          >
-            <path d="M 0,200 C 100,120 180,60 300,10 L 300,200 Z" fill="none" stroke="#BE8C70" strokeWidth="1.5" />
-            <path d="M 50,200 C 130,130 200,80 300,30 L 300,200 Z" fill="none" stroke="#BE8C70" strokeWidth="1.5" />
-            <path d="M 100,200 C 170,140 230,100 300,60 L 300,200 Z" fill="none" stroke="#BE8C70" strokeWidth="1.5" />
-          </svg>
-
-          <h2
-            className="font-serif text-[17px] font-bold text-[#FAF7F1] tracking-tight relative z-10"
-            style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
-          >
-            Trip Details &amp; Overview
-          </h2>
-
-          <div className="grid grid-cols-3 gap-y-2 gap-x-6 relative z-10 text-xs mt-2 mb-0.5">
-            <div className="col-span-1">
-              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
-                DESTINATION
-              </span>
-              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 leading-snug font-medium truncate" title={destinationText}>
-                {destinationText}
-              </span>
-            </div>
-            <div>
-              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
-                START DATE
-              </span>
-              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
-                {startDateText}
-              </span>
-            </div>
-            <div>
-              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
-                END DATE
-              </span>
-              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
-                {endDateText}
-              </span>
-            </div>
-            <div>
-              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
-                NIGHTS | DAYS
-              </span>
-              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
-                {formattedDuration}
-              </span>
-            </div>
-            <div className="col-span-2">
-              <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
-                TOTAL PASSENGER
-              </span>
-              <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold">
-                {adults} Adult{adults > 1 ? "s" : ""}
-                {children > 0 ? ` · ${children} Child${children > 1 ? "ren" : ""}` : ""}
-                {infants > 0 ? ` · ${infants} Infant${infants > 1 ? "s" : ""}` : ""}
-              </span>
-            </div>
-          </div>
-
-          <div className="text-right text-[8.5px] font-mono text-[#BE8C70] relative z-10 pt-0.5">
-            {formatPageNum(currentPageNum++, totalPages)}
-          </div>
-        </div>
-      </section>
-
-      {/* ==================================================================== */}
-      {/* ITINERARY DAY PAGES (Dynamically balanced, zero empty voids)         */}
-      {/* ==================================================================== */}
-      {isSingleDay ? (
-        /* 1-DAY ITINERARY: Day 1 + Logistics + Scenic Accent on Page 2 */
-        (() => {
-          const firstDay = days[0];
-          const firstHeader = formatDayWeekdayDate(1, firstDay?.date, parsedStartDate);
-          const firstImages =
-            firstDay?.imageUrls && firstDay.imageUrls.length > 0
-              ? firstDay.imageUrls
-              : firstDay?.imageUrl
-              ? [firstDay.imageUrl]
-              : [];
-          const thisPageNum = currentPageNum++;
-
-          return (
-            <section className="brochure-page px-[18mm] pt-[15mm] pb-[12mm] flex flex-col justify-between">
-              <div>
-                <PageHeader title="Day-To-Day Plan &amp; Services" />
-
-                <ItineraryDayBlock
-                  dayNumber={1}
-                  header={firstHeader}
-                  title={firstDay?.subtitle || firstDay?.title}
-                  description={firstDay?.description}
-                  activities={firstDay?.activities}
-                  optionalActivities={firstDay?.optionalActivities}
-                  meals={firstDay?.meals}
-                  stay={firstDay?.stay}
-                  images={firstImages}
-                  isLastOnPage={true}
-                />
-
-                <div className="mt-3 pt-2.5 border-t border-[#E4DDD3] space-y-2.5">
-                  <TransportationSection transportation={transportation} />
-                  <InclusionsExclusionsSection
-                    inclusions={inclusions}
-                    exclusions={activeExclusions}
-                  />
-                  <DayPageAtmosphereAccent accentIndex={0} />
-                </div>
-              </div>
-
-              <PageFooterIndicator
-                pageNum={thisPageNum}
-                totalPages={totalPages}
-                referenceNumber={referenceNumber}
-              />
-            </section>
-          );
-        })()
-      ) : (
-        /* STANDARD MULTI-DAY PAGES */
-        dayPages.map((pageGroup, pageIdx) => {
-          const thisPageNum = currentPageNum++;
-          const totalDaysOnPage = pageGroup.items.length;
-          const hasManyImages = pageGroup.items.some((i) => i.images.length > 0);
-          const needsBalancing = totalDaysOnPage <= 2 || (!hasManyImages && totalDaysOnPage === 3);
-
+        if (pagePlan.type === "cover") {
           return (
             <section
-              key={`day-page-${pageIdx}`}
-              className="brochure-page px-[18mm] pt-[15mm] pb-[12mm] flex flex-col justify-between"
+              key={`page-${pageNum}`}
+              className="brochure-page flex flex-col justify-between"
             >
-              <div>
-                <PageHeader title="Day-To-Day Plan" />
+              <div className="flex-1 flex overflow-hidden min-h-0">
+                {/* Left Column (52%) */}
+                <div className="w-[52%] pl-[18mm] pr-6 pt-[16mm] pb-4 flex flex-col justify-between">
+                  <div>
+                    <BrandLogo variant="dark" />
 
-                {pageGroup.items.map((item, itemIdx) => {
-                  const isLast = itemIdx === pageGroup.items.length - 1;
-                  return (
+                    <div className="text-[8.5px] font-bold tracking-[0.24em] uppercase text-[#685D56] mt-4 leading-relaxed">
+                      A JOURNEY THROUGH
+                      <br />
+                      KERALA&apos;S TIMELESS BEAUTY
+                    </div>
+
+                    <h1
+                      className="font-serif text-[32px] leading-[1.08] font-bold text-[#39271F] tracking-tight mt-3.5"
+                      style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
+                    >
+                      {titleParts.line1}
+                      {titleParts.line2 && (
+                        <>
+                          <br />
+                          {titleParts.line2}
+                        </>
+                      )}
+                    </h1>
+
+                    <div className="text-[9px] font-serif italic text-[#685D56] mt-2.5 leading-snug line-clamp-2">
+                      {summary || "A bespoke slow-luxury journey curated with private chauffeur transfers, handpicked accommodations, and immersive cultural heritage."}
+                    </div>
+
+                    <div className="flex items-center gap-3 mt-3">
+                      <span
+                        className="font-serif text-[13px] font-semibold text-[#A45132] whitespace-nowrap"
+                        style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
+                      >
+                        {formattedDuration}
+                      </span>
+                      <div className="w-16 h-px bg-[#BE8C70]" />
+                    </div>
+
+                    {/* Customer Greeting */}
+                    <div className="mt-4">
+                      <span className="text-[8px] font-bold tracking-[0.2em] uppercase text-[#BE8C70] block">
+                        PROPOSAL PREPARED EXCLUSIVELY FOR
+                      </span>
+                      <span className="text-[14px] font-bold tracking-[0.08em] uppercase text-[#39271F] block mt-0.5">
+                        {customerName}
+                      </span>
+                    </div>
+
+                    {/* Included Badges */}
+                    {includedBadges.length > 0 && (
+                      <div className="mt-4">
+                        <div className="text-[8px] font-bold tracking-[0.2em] uppercase text-[#685D56] mb-2">
+                          YOUR TRIP INCLUDES
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {includedBadges.map((badge) => {
+                            const IconComponent = badge.icon;
+                            return (
+                              <div key={badge.key} className="flex flex-col items-center">
+                                <div className="w-7 h-7 rounded-full bg-[#F0E6DA] flex items-center justify-center text-[#39271F]">
+                                  <IconComponent className="w-3 h-3 text-[#A45132]" />
+                                </div>
+                                <span className="text-[7.5px] font-bold text-[#39271F] mt-1">
+                                  {badge.label}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 2-Column Metadata Grid */}
+                  <div className="grid grid-cols-2 gap-y-2.5 gap-x-4 pt-3.5 border-t border-[#E4DDD3]">
+                    <div className="flex items-start gap-2">
+                      <Phone className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
+                          Emergency Contacts
+                        </span>
+                        <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5">
+                          {emergencyContacts}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <FileText className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
+                          Reference No.
+                        </span>
+                        <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5 font-mono">
+                          {referenceNumber}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <User className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
+                          Curated By
+                        </span>
+                        <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5">
+                          {curatorName}
+                        </span>
+                        {curatorPhone && (
+                          <span className="text-[7.5px] text-[#685D56] block">({curatorPhone})</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <Calendar className="w-3.5 h-3.5 text-[#BE8C70] shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-[7.5px] tracking-wider uppercase text-[#685D56] block font-semibold">
+                          Created on
+                        </span>
+                        <span className="text-[8px] font-bold text-[#282421] block leading-tight mt-0.5 tabular-nums">
+                          {createdDate}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Hero Photograph */}
+                <div className="w-[48%] relative h-full">
+                  <ImageWithFallback
+                    src={coverImageUrl || alleppeyFallbackImg}
+                    fallback={alleppeyFallbackImg}
+                    alt={title || "Kerala Destination Cover"}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+
+              {/* Bottom Deep Espresso Panel */}
+              <div className="bg-[#39271F] text-[#FAF7F1] px-[18mm] py-3.5 relative overflow-hidden shrink-0">
+                <svg
+                  className="absolute right-0 bottom-0 h-full w-[45%] opacity-20 pointer-events-none"
+                  viewBox="0 0 300 200"
+                  preserveAspectRatio="none"
+                >
+                  <path d="M 0,200 C 100,120 180,60 300,10 L 300,200 Z" fill="none" stroke="#BE8C70" strokeWidth="1.5" />
+                  <path d="M 50,200 C 130,130 200,80 300,30 L 300,200 Z" fill="none" stroke="#BE8C70" strokeWidth="1.5" />
+                  <path d="M 100,200 C 170,140 230,100 300,60 L 300,200 Z" fill="none" stroke="#BE8C70" strokeWidth="1.5" />
+                </svg>
+
+                <h2
+                  className="font-serif text-[17px] font-bold text-[#FAF7F1] tracking-tight relative z-10"
+                  style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
+                >
+                  Trip Details &amp; Overview
+                </h2>
+
+                <div className="grid grid-cols-3 gap-y-2 gap-x-6 relative z-10 text-xs mt-2 mb-0.5">
+                  <div className="col-span-1">
+                    <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+                      DESTINATION
+                    </span>
+                    <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 leading-snug font-medium truncate" title={destinationText}>
+                      {destinationText}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+                      START DATE
+                    </span>
+                    <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
+                      {startDateText}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+                      END DATE
+                    </span>
+                    <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
+                      {endDateText}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+                      NIGHTS | DAYS
+                    </span>
+                    <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold font-sans tabular-nums">
+                      {formattedDuration}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-[7.5px] font-sans tracking-widest uppercase text-[#BE8C70] block font-semibold">
+                      TOTAL PASSENGER
+                    </span>
+                    <span className="text-[9.5px] text-[#FAF7F1] block mt-0.5 font-bold">
+                      {adults} Adult{adults > 1 ? "s" : ""}
+                      {children > 0 ? ` · ${children} Child${children > 1 ? "ren" : ""}` : ""}
+                      {infants > 0 ? ` · ${infants} Infant${infants > 1 ? "s" : ""}` : ""}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-right text-[8.5px] font-mono text-[#BE8C70] relative z-10 pt-0.5">
+                  {formatPageNum(pageNum, totalPages)}
+                </div>
+              </div>
+            </section>
+          );
+        }
+
+        // Standard Interior Page Container
+        return (
+          <section
+            key={`page-${pageNum}`}
+            className="brochure-page px-[18mm] pt-[14mm] pb-[12mm] flex flex-col justify-between"
+          >
+            <div className="w-full flex-1 flex flex-col">
+              <PageHeader title={pagePlan.headerTitle} />
+
+              {/* A. DAYS ONLY PAGE */}
+              {pagePlan.type === "days" && (
+                <div className="flex-1 flex flex-col">
+                  {pagePlan.dayItems!.map((item, idx) => (
                     <ItineraryDayBlock
                       key={`day-${item.dayNumber}`}
                       dayNumber={item.dayNumber}
@@ -1278,278 +1705,207 @@ export default function ItineraryPrintDocument({
                       meals={item.day.meals}
                       stay={item.day.stay}
                       images={item.images}
-                      isLastOnPage={isLast}
+                      isLastOnPage={idx === pagePlan.dayItems!.length - 1}
                     />
-                  );
-                })}
+                  ))}
+                  {Boolean(pagePlan.accentHeightPx && pagePlan.accentHeightPx > 0) && (
+                    <DayPageAtmosphereAccent
+                      accentIndex={pagePlan.accentIndex || 0}
+                      heightPx={pagePlan.accentHeightPx}
+                    />
+                  )}
+                </div>
+              )}
 
-                {/* Intelligent space balancer: anchors page and eliminates dead bottom space */}
-                {needsBalancing && (
-                  <DayPageAtmosphereAccent accentIndex={pageIdx} />
-                )}
-              </div>
-
-              <PageFooterIndicator
-                pageNum={thisPageNum}
-                totalPages={totalPages}
-                referenceNumber={referenceNumber}
-              />
-            </section>
-          );
-        })
-      )}
-
-      {/* ==================================================================== */}
-      {/* INCLUDED SERVICES & ACCOMMODATIONS PAGE                              */}
-      {/* ==================================================================== */}
-      {!isSingleDay &&
-        (() => {
-          const thisPageNum = currentPageNum++;
-          return (
-            <section className="brochure-page px-[18mm] pt-[15mm] pb-[12mm] flex flex-col justify-between">
-              <div className="space-y-3">
-                <PageHeader title="Included Services &amp; Accommodations" />
-
-                <AccommodationsSection
-                  stays={stays}
-                  destinationText={destinationText}
-                />
-
-                <TransportationSection transportation={transportation} />
-
-                <InclusionsExclusionsSection
-                  inclusions={inclusions}
-                  exclusions={activeExclusions}
-                />
-
-                {/* Editorial Destination Panorama */}
-                <div className="relative w-full h-[145px] rounded overflow-hidden mt-2 shrink-0 border border-[#E4DDD3]/60 shadow-xs">
-                  <ImageWithFallback
-                    src={coverImageUrl || kumarakomFallbackImg}
-                    fallback={kumarakomFallbackImg}
-                    alt="Kerala Backwaters Destination View"
-                    className="w-full h-full object-cover"
+              {/* B. DAYS + ALL SERVICES (1-Day Journey Dossier) */}
+              {pagePlan.type === "days-and-all" && (
+                <div className="space-y-2.5">
+                  <ItineraryDayBlock
+                    dayNumber={1}
+                    header={pagePlan.dayItems![0].header}
+                    title={pagePlan.dayItems![0].day.subtitle || pagePlan.dayItems![0].day.title}
+                    description={pagePlan.dayItems![0].day.description}
+                    activities={pagePlan.dayItems![0].day.activities}
+                    optionalActivities={pagePlan.dayItems![0].day.optionalActivities}
+                    meals={pagePlan.dayItems![0].day.meals}
+                    stay={pagePlan.dayItems![0].day.stay}
+                    images={pagePlan.dayItems![0].images}
+                    isLastOnPage={true}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent flex items-end p-3">
-                    <span className="text-[9px] font-serif italic text-white/95 tracking-wide">
-                      Curated slow luxury across God&apos;s Own Country — handcrafted with excellence by Escora Holidays
-                    </span>
-                  </div>
-                </div>
-              </div>
 
-              <PageFooterIndicator
-                pageNum={thisPageNum}
-                totalPages={totalPages}
-                referenceNumber={referenceNumber}
-              />
-            </section>
-          );
-        })()}
-
-      {/* ==================================================================== */}
-      {/* FINAL PAGE: Budget & Pricing, Terms, Trust Guarantees & Closing Bar */}
-      {/* ==================================================================== */}
-      {(() => {
-        const thisPageNum = currentPageNum++;
-        const hasLineItems = pricing?.items && pricing.items.length > 0;
-
-        return (
-          <section className="brochure-page px-[18mm] pt-[15mm] pb-[12mm] flex flex-col justify-between">
-            <div className="space-y-2.5">
-              <PageHeader title="Investment, Terms &amp; Policies" />
-
-              {/* Itemized Pricing Breakdown Table (if line items present) */}
-              {hasLineItems && (
-                <div className="bg-[#FAF7F1] border border-[#E4DDD3] rounded-t p-2.5 text-[8px] space-y-1">
-                  <span className="text-[8.5px] font-bold uppercase tracking-wider text-[#685D56] block mb-1">
-                    Itemized Investment Breakdown
-                  </span>
-                  {pricing.items.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between text-[#39271F] py-0.5 border-b border-[#E4DDD3]/50 last:border-b-0"
-                    >
-                      <span className="text-[#685D56]">{item.label}</span>
-                      <span className="font-sans font-bold tabular-nums">
-                        {currencySymbol}
-                        {Number(item.amount).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                  ))}
-
-                  {discountAmount > 0 && (
-                    <div className="flex items-center justify-between text-[#183D2E] py-0.5 pt-1 border-t border-[#E4DDD3]">
-                      <span className="font-medium">Special Applied Privilege / Discount</span>
-                      <span className="font-bold tabular-nums">- {currencySymbol}{discountAmount.toLocaleString("en-IN")}</span>
-                    </div>
+                  {stays.length > 0 && (
+                    <AccommodationsSection
+                      stays={stays}
+                      destinationText={destinationText}
+                    />
                   )}
 
-                  {taxesAmount > 0 && (
-                    <div className="flex items-center justify-between text-[#685D56] py-0.5">
-                      <span className="font-medium">Applicable Taxes &amp; GST</span>
-                      <span className="font-bold tabular-nums">+ {currencySymbol}{taxesAmount.toLocaleString("en-IN")}</span>
-                    </div>
-                  )}
+                  <TransportationSection transportation={transportation} />
+
+                  <InclusionsExclusionsSection
+                    inclusions={inclusions}
+                    exclusions={activeExclusions}
+                  />
+
+                  <InvestmentPricingSection
+                    pricing={pricing}
+                    currencySymbol={currencySymbol}
+                    computedPricingTotal={computedPricingTotal}
+                    discountAmount={discountAmount}
+                    taxesAmount={taxesAmount}
+                  />
+
+                  <TermsAndGuidelinesSection
+                    hotelTerms={hotelTerms}
+                    paymentTerms={paymentTerms}
+                    importantInfo={importantInfo}
+                    compact={true}
+                  />
+
+                  <TrustSafeguardsBar />
                 </div>
               )}
 
-              {/* Total Package Investment Banner */}
-              <div
-                className={`bg-[#A45132] text-[#FAF7F1] px-4 py-2.5 ${
-                  hasLineItems ? "rounded-b" : "rounded"
-                } flex items-center justify-between shadow-xs`}
-              >
-                <div>
-                  <span className="text-[9.5px] font-bold tracking-widest uppercase block">
-                    TOTAL PACKAGE INVESTMENT
-                  </span>
-                  <span className="text-[7.5px] text-[#F5EBE1] block mt-0.5">
-                    All-inclusive quote per specified itinerary, private transfers &amp; verified stays
-                  </span>
-                </div>
-                <span
-                  className="font-serif text-[20px] font-bold tracking-tight tabular-nums"
-                  style={{ fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
-                >
-                  {computedPricingTotal > 0 ? (
-                    <>
-                      <span className="font-sans mr-0.5">{currencySymbol}</span>
-                      {Number(computedPricingTotal).toLocaleString("en-IN")}
-                    </>
-                  ) : (
-                    <span className="text-xs font-sans font-medium">Bespoke Quote on Request</span>
-                  )}
-                </span>
-              </div>
+              {/* C. DAYS + SERVICES (Multi-Day Itinerary Flow) */}
+              {pagePlan.type === "days-and-services" && (
+                <div className="space-y-2.5">
+                  {pagePlan.dayItems!.map((item, idx) => (
+                    <ItineraryDayBlock
+                      key={`day-${item.dayNumber}`}
+                      dayNumber={item.dayNumber}
+                      header={item.header}
+                      title={item.day.subtitle || item.day.title}
+                      description={item.day.description}
+                      activities={item.day.activities}
+                      optionalActivities={item.day.optionalActivities}
+                      meals={item.day.meals}
+                      stay={item.day.stay}
+                      images={item.images}
+                      isLastOnPage={idx === pagePlan.dayItems!.length - 1}
+                    />
+                  ))}
 
-              {pricing?.notes && (
-                <div className="text-[8px] italic text-[#685D56] leading-tight">
-                  * {pricing.notes}
+                  <AccommodationsSection
+                    stays={stays}
+                    destinationText={destinationText}
+                  />
+
+                  <TransportationSection transportation={transportation} />
                 </div>
               )}
 
-              {/* Terms & Conditions (2 Columns) */}
-              <div className="grid grid-cols-2 gap-2.5 pt-0.5">
-                {/* Hotel Terms */}
-                <div className="bg-[#F0E6DA] rounded p-2.5 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
-                      <Bed className="w-3.5 h-3.5 text-[#A45132]" />
-                      <span>Hotel Terms &amp; Policies</span>
-                    </div>
-                    <ul className="text-[7.75px] leading-[1.38] text-[#4E463C] space-y-1 list-disc list-inside">
-                      {hotelTerms.slice(0, 4).map((term, idx) => (
-                        <li key={idx}>{term}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+              {/* D. UNIFIED SERVICES & INVESTMENT (High-efficiency 3-Day Dossier) */}
+              {pagePlan.type === "services-and-investment" && (
+                <div className="flex-1 flex flex-col justify-between pt-1">
+                  <AccommodationsSection
+                    stays={stays}
+                    destinationText={destinationText}
+                  />
 
-                {/* Payment Terms */}
-                <div className="bg-[#F0E6DA] rounded p-2.5 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
-                      <FileText className="w-3.5 h-3.5 text-[#A45132]" />
-                      <span>Payment &amp; Booking Terms</span>
-                    </div>
-                    <ul className="text-[7.75px] leading-[1.38] text-[#4E463C] space-y-1 list-disc list-inside">
-                      {paymentTerms.slice(0, 4).map((term, idx) => (
-                        <li key={idx}>{term}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
+                  <TransportationSection transportation={transportation} />
 
-              {/* Important Travel Guidelines */}
-              <div className="bg-[#F0E6DA] rounded p-2.5">
-                <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-[#39271F] mb-1">
-                  <Info className="w-3.5 h-3.5 text-[#A45132]" />
-                  <span>Important Travel Guidelines &amp; Protocol</span>
-                </div>
-                <ul className="text-[7.75px] leading-[1.38] text-[#4E463C] space-y-0.5 list-disc list-inside">
-                  {importantInfo.slice(0, 4).map((info, idx) => (
-                    <li key={idx}>{info}</li>
-                  ))}
-                </ul>
-              </div>
+                  <InclusionsExclusionsSection
+                    inclusions={inclusions}
+                    exclusions={activeExclusions}
+                  />
 
-              {/* Escora Trust, Google Review & Concierge Safeguards Bar */}
-              <div className="bg-[#FAF7F1] border border-[#E4DDD3] rounded p-2 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                  </svg>
-                  <div>
-                    <div className="flex items-center gap-1">
-                      <span className="text-[9px] font-bold text-[#39271F] leading-tight">Google Review · 5.0 Rating</span>
-                      <div className="flex items-center text-[#F59E0B] text-[10px] leading-none">
-                        <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                  <InvestmentPricingSection
+                    pricing={pricing}
+                    currencySymbol={currencySymbol}
+                    computedPricingTotal={computedPricingTotal}
+                    discountAmount={discountAmount}
+                    taxesAmount={taxesAmount}
+                  />
+
+                  <TermsAndGuidelinesSection
+                    hotelTerms={hotelTerms}
+                    paymentTerms={paymentTerms}
+                    importantInfo={importantInfo}
+                    compact={stays.length >= 4}
+                  />
+
+                  <TrustSafeguardsBar />
+                </div>
+              )}
+
+              {/* E. STANDALONE SERVICES PAGE */}
+              {pagePlan.type === "services" && (
+                <div className="space-y-3.5">
+                  <AccommodationsSection
+                    stays={stays}
+                    destinationText={destinationText}
+                  />
+
+                  <TransportationSection transportation={transportation} />
+
+                  {pagePlan.showPanorama && (
+                    <div className="relative w-full h-[185px] rounded overflow-hidden mt-3 shrink-0 border border-[#E4DDD3]/60 shadow-xs">
+                      <ImageWithFallback
+                        src={coverImageUrl || kumarakomFallbackImg}
+                        fallback={kumarakomFallbackImg}
+                        alt="Kerala Backwaters Destination View"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/20 to-transparent flex items-end p-3.5">
+                        <span className="text-[9.5px] font-serif italic text-white/95 tracking-wide">
+                          Curated slow luxury across God&apos;s Own Country — handcrafted with excellence by Escora Holidays
+                        </span>
                       </div>
                     </div>
-                    <span className="text-[7.5px] text-[#685D56] block">Verified International Traveller Feedback</span>
-                  </div>
+                  )}
                 </div>
+              )}
 
-                <div className="flex items-center gap-3 border-l border-[#E4DDD3] pl-3">
-                  <div className="flex items-center gap-1.5 text-[8px] text-[#183D2E]">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#183D2E]" />
-                    <span className="font-semibold">24/7 On-Trip Concierge</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[8px] text-[#A45132]">
-                    <Award className="w-3.5 h-3.5 text-[#A45132]" />
-                    <span className="font-semibold">Kerala Tourism Accredited</span>
-                  </div>
+              {/* F. STANDALONE INVESTMENT PAGE */}
+              {pagePlan.type === "investment" && (
+                <div className={`flex-1 flex flex-col ${pagePlan.includeInclusionsExclusions ? "space-y-2.5" : "space-y-4"}`}>
+                  {pagePlan.includeInclusionsExclusions && (
+                    <InclusionsExclusionsSection
+                      inclusions={inclusions}
+                      exclusions={activeExclusions}
+                    />
+                  )}
+
+                  <InvestmentPricingSection
+                    pricing={pricing}
+                    currencySymbol={currencySymbol}
+                    computedPricingTotal={computedPricingTotal}
+                    discountAmount={discountAmount}
+                    taxesAmount={taxesAmount}
+                    compact={Boolean(pagePlan.includeInclusionsExclusions)}
+                  />
+
+                  <TermsAndGuidelinesSection
+                    hotelTerms={hotelTerms}
+                    paymentTerms={paymentTerms}
+                    importantInfo={importantInfo}
+                    compact={Boolean(pagePlan.includeInclusionsExclusions)}
+                  />
+
+                  <TrustSafeguardsBar />
                 </div>
-              </div>
+              )}
             </div>
 
-            {/* Closing Deep Espresso Agency Footer */}
-            <div className="w-full mt-2.5 shrink-0">
-              <div className="bg-[#39271F] text-[#FAF7F1] rounded px-4 py-2 flex items-center justify-between">
-                <BrandLogo variant="white" />
-                <div className="flex items-center gap-4 text-[8px]">
-                  <div className="flex items-center gap-1.5">
-                    <Phone className="w-3 h-3 text-[#BE8C70]" />
-                    <span>{agencyPhone}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Mail className="w-3 h-3 text-[#BE8C70]" />
-                    <span>{agencyEmail}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <Globe className="w-3 h-3 text-[#BE8C70]" />
-                    <span>{agencyWebsite.replace(/^https?:\/\//, "")}</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 text-[#FAF7F1]">
-                    <div className="w-4 h-4 rounded-full bg-[#FAF7F1]/10 flex items-center justify-center">
-                      <Facebook className="w-2 h-2" />
-                    </div>
-                    <div className="w-4 h-4 rounded-full bg-[#FAF7F1]/10 flex items-center justify-center">
-                      <Instagram className="w-2 h-2" />
-                    </div>
-                    <div className="w-4 h-4 rounded-full bg-[#FAF7F1]/10 flex items-center justify-center">
-                      <Twitter className="w-2 h-2" />
-                    </div>
-                    <div className="w-4 h-4 rounded-full bg-[#FAF7F1]/10 flex items-center justify-center">
-                      <Linkedin className="w-2 h-2" />
-                    </div>
-                  </div>
-                  <span className="text-[8px] font-mono text-[#BE8C70] font-bold pl-2 border-l border-[#FAF7F1]/20">
-                    {formatPageNum(thisPageNum, totalPages)}
-                  </span>
-                </div>
-              </div>
-            </div>
+            {/* Bottom Footer */}
+            {isLastPage ? (
+              <ClosingAgencyFooter
+                agencyPhone={agencyPhone}
+                agencyEmail={agencyEmail}
+                agencyWebsite={agencyWebsite}
+                pageNum={pageNum}
+                totalPages={totalPages}
+              />
+            ) : (
+              <PageFooterIndicator
+                pageNum={pageNum}
+                totalPages={totalPages}
+                referenceNumber={referenceNumber}
+              />
+            )}
           </section>
         );
-      })()}
+      })}
     </div>
   );
 }

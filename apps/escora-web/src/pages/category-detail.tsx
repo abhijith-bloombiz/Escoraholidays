@@ -429,8 +429,8 @@ export default function CategoryDetail() {
         <div className="container relative z-10 mx-auto px-6 md:px-12">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12 md:mb-14">
-              <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center justify-center gap-2 mb-3">
-                <span className="text-[#B58D5D]">✦</span> EVERY JOURNEY INCLUDES
+              <p className="section-label text-center mb-3">
+                EVERY JOURNEY INCLUDES
               </p>
               <h2 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal tracking-tight leading-[1.08]">
                 What's <em className="italic font-light">Included</em>
@@ -454,8 +454,8 @@ export default function CategoryDetail() {
       <section className="bg-[#FAF8F5] py-20 md:py-24">
         <div className="container mx-auto px-6 md:px-12 max-w-6xl">
           <div className="mb-10 md:mb-12">
-            <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center gap-2 mb-2">
-              <span className="text-[#B58D5D]">✦</span> EXPERIENCES
+            <p className="section-label mb-2">
+              EXPERIENCES
             </p>
             <h2 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal tracking-tight leading-[1.08]">
               Journey <em className="italic font-light">Highlights</em>
@@ -518,8 +518,8 @@ export default function CategoryDetail() {
       {/* 5. Ready to Begin? */}
       <section className="relative bg-[#EFF4F0] py-20 md:py-24 border-t border-[#E2EAE4] overflow-hidden text-center">
         <div className="container relative z-10 mx-auto px-6 md:px-12">
-          <p className="text-[#B58D5D] text-[11px] md:text-xs font-mono tracking-[0.25em] uppercase flex items-center justify-center gap-2 mb-3">
-            <span className="text-[#B58D5D]">✦</span> READY TO BEGIN?
+          <p className="section-label text-center mb-3">
+            READY TO BEGIN?
           </p>
           <h2 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal tracking-tight leading-[1.08] max-w-2xl mx-auto mb-5">
             Let us compose your<br />

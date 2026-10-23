@@ -311,6 +311,7 @@ const ESCORA_RETREAT_CARDS = [
 
 const TESTIMONIALS = [
   {
+    id: 1,
     cat: "Honeymoon · Mar 2025",
     quote: '"They moved a sunset for us. Or it felt that way. A boat appeared on a backwater I\'d been told didn\'t exist — and a chef I\'d long admired was on it."',
     av: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80",
@@ -322,6 +323,7 @@ const TESTIMONIALS = [
     delay: "",
   },
   {
+    id: 2,
     cat: "Family · Dec 2024",
     quote: '"Our family of seven, ages 6 to 78. The itinerary anticipated every single one of us."',
     av: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80",
@@ -333,6 +335,7 @@ const TESTIMONIALS = [
     delay: "d1",
   },
   {
+    id: 3,
     cat: "Wellness · Oct 2024",
     quote: '"Escora did not arrange a holiday — they arranged a <em>recovery</em>."',
     av: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
@@ -575,7 +578,8 @@ export default function Home() {
   }, [categoriesData]);
 
   const testimonials = useMemo(() => {
-    return (testimonialsData || []).map((t: any) => ({
+    if (!testimonialsData || testimonialsData.length === 0) return TESTIMONIALS;
+    return testimonialsData.map((t) => ({
       id: t.id,
       name: t.name,
       quote: t.quote,
@@ -711,19 +715,21 @@ export default function Home() {
       {/* ═══════════════════════ TROPICAL LAGOON HERO ═══════════════════════ */}
       <TropicalLagoonHero />
 
-      {/* ═══════════════════════ SCROLL-TRIGGERED PINNED SECTIONS WITH REVERSE REVEAL TRANSITIONS ═══════════════════════ */}
-      <PinnedJourneyExperience>
-        {/* ── Slide 0: WHY ESCORA ── */}
-        <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
-          <div className="why-esc-inner">
-            {/* ── Left panel: editorial copy ── */}
-            <div className="why-esc-left">
-              <div className="why-esc-eyebrow rv" data-pinned-reveal>
-                <span className="dot" />WHY ESCORA
-              </div>
-              <h2 className="why-esc-heading rv d1" data-pinned-reveal>
-                Why the world's discerning travellers{" "}
-                <em className="why-esc-heading-em">choose Escora</em>
+      {/* ═══════════════════════ TRAVEL BY TYPE ═══════════════════════ */}
+      <section
+        className="cat-section"
+        id="categories"
+        ref={categoriesRef}
+      >
+        <div className="wrap">
+          <div className="cat-section-head">
+            <div className="cat-section-head-left">
+              <div className="eyebrow rv">Travel by Type</div>
+              <h2 className="display-md rv d2" style={{ maxWidth: "20ch" }}>
+                {travelTypeItems.length > 0
+                  ? `${travelTypeItems.length === 8 ? "Eight" : travelTypeItems.length} ways to discover `
+                  : "Discover "}
+                <em style={{ fontStyle: "italic" }}>Kerala</em>.
               </h2>
               <p className="why-esc-desc rv d2" data-pinned-reveal>
                 We don't sell packages. We compose journeys — built entirely around you, from the first conversation to the final farewell.
@@ -743,6 +749,53 @@ export default function Home() {
                 WATCH OUR STORY
               </button>
             </div>
+          </div>
+
+          <TravelTypeCoverflow
+            items={travelTypeItems}
+            isLoading={isCategoriesLoading && travelTypeItems.length === 0}
+            isError={isCategoriesError && travelTypeItems.length === 0}
+            onRetry={refetchCategories}
+          />
+        </div>
+      </section>
+
+      {/* ═══════════════════════ 3D DESTINATION EXPLORER ═══════════════════════ */}
+      <Kerala3DDestinationExplorer
+        ref={exploreSectionRef}
+        id="explore-kerala"
+        destinations={destinationsData}
+      />
+
+      {/* ═══════════════════════ WHY ESCORA — LUXURY EDITORIAL ═══════════════════════ */}
+      <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
+        <div className="why-esc-inner">
+          {/* ── Left panel: editorial copy ── */}
+          <div className="why-esc-left">
+            <div className="why-esc-eyebrow rv">
+              WHY ESCORA
+            </div>
+            <h2 className="why-esc-heading rv d1">
+              Why the world's discerning travellers{" "}
+              <em className="why-esc-heading-em">choose Escora</em>
+            </h2>
+            <p className="why-esc-desc rv d2">
+              We don't sell packages. We compose journeys — built entirely around you, from the first conversation to the final farewell.
+            </p>
+            <button
+              type="button"
+              className="why-esc-play-btn rv d3"
+              onClick={() => setWhyVideoOpen(true)}
+              aria-label="Watch our Kerala story video"
+            >
+              <span className="why-esc-play-circle" aria-hidden="true">
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
+                  <path d="M9 6L1 11V1L9 6Z" fill="currentColor" />
+                </svg>
+              </span>
+              WATCH OUR STORY
+            </button>
+          </div>
 
           {/* ── Right panel: 3×2 benefits grid ── */}
           <div className="why-esc-right">
@@ -874,8 +927,7 @@ export default function Home() {
           {/* Header Row: Left Eyebrow & Title, Right Top Lede */}
           <div className="retreat-header-row">
             <div className="retreat-header-left">
-              <div className="retreat-eyebrow rv" data-pinned-reveal>
-                <span className="dot" />
+              <div className="retreat-eyebrow rv">
                 ESCORA RETREAT
               </div>
               <h2 className="retreat-title rv d1" data-pinned-reveal>
@@ -1038,10 +1090,8 @@ export default function Home() {
         <div className="testi-corner-leaf testi-leaf-br" aria-hidden="true" />
 
         <div className="testi-carousel-header">
-          <div className="testi-eyebrow rv" data-pinned-reveal>
-            <span className="testi-eyebrow-line" />
+          <div className="testi-eyebrow rv">
             <span>TRAVELLERS SAY IT BETTER</span>
-            <span className="testi-eyebrow-line" />
           </div>
           <h2 className="testi-title rv d1" data-pinned-reveal>
             Real Stories. <em>Lasting Memories.</em>
@@ -1051,8 +1101,8 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="testi-carousel-wrapper" data-pinned-reveal>
-          {isTestimonialsLoading ? (
+        <div className="testi-carousel-wrapper">
+          {isTestimonialsLoading && testimonials.length === 0 ? (
             <div className="flex items-center justify-center py-24 text-center">
               <div className="flex flex-col items-center gap-3">
                 <div className="w-10 h-10 border-2 border-[#c59a58]/30 border-t-[#c59a58] rounded-full animate-spin" />
@@ -1061,7 +1111,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-          ) : isTestimonialsError ? (
+          ) : isTestimonialsError && testimonials.length === 0 ? (
             <div className="flex items-center justify-center py-20 text-center">
               <div className="flex flex-col items-center gap-3 max-w-sm px-4">
                 <p className="text-xs font-mono uppercase tracking-[0.2em] text-red-400">

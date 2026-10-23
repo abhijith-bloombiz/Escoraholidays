@@ -417,7 +417,7 @@ export default function JournalDetail() {
         <section className="jd-related">
           <div className="jd-related-inner">
             <div className="jd-related-head">
-              <div className="jd-related-eyebrow"><span className="jd-dot" />More from the Journal</div>
+              <div className="jd-related-eyebrow">More from the Journal</div>
               <Link href="/journal" className="jd-related-all">View all →</Link>
             </div>
             <div className="jd-related-grid">

@@ -616,8 +616,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
               ══════════════════════════════════════════════════════════════ */}
           <div className="kerala-3d-editorial-head">
             <div className="kerala-3d-head-left">
-              <div className="kerala-3d-eyebrow" data-pinned-reveal>
-                <span className="dot" />
+              <div className="kerala-3d-eyebrow">
                 EXPLORE KERALA
               </div>
               <h2 className="kerala-3d-title" data-pinned-reveal>

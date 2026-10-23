@@ -178,8 +178,7 @@ export default function FromYourIdeaToKerala() {
         {/* ─── Header: Matching Travel by Type editorial specifications with Fonarto non-italic ─── */}
         <header className="how-header">
           <div className="how-header-left">
-            <div className="how-eyebrow" data-pinned-reveal>
-              <span className="dot" />
+            <div className="how-eyebrow">
               HOW IT WORKS
             </div>
             <h2 className="how-title display-md" data-pinned-reveal>

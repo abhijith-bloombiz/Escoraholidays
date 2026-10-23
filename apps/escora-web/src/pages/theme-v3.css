@@ -160,11 +160,10 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   min-height: 72px;
   padding: 16px 36px 16px 40px;
   border-radius: 20px;
-  border: none;
+  border: 1px solid rgba(0, 0, 0, 0.06);
   font-family: var(--f-body);
-  background: transparent;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: #ffffff;
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03);
   transform: translate3d(0, 0, 0);
   opacity: 1;
   visibility: visible;
@@ -173,7 +172,8 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
               visibility 0.35s,
               top 0.35s cubic-bezier(0.16, 1, 0.3, 1),
               width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-              padding 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+              padding 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s ease;
   will-change: transform, opacity;
 }
 
@@ -201,53 +201,45 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   position: absolute;
   inset: 0;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.44);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.26) 100%);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: #ffffff;
   border: none;
   box-shadow:
-    0 10px 32px rgba(19, 51, 36, 0.06),
-    0 2px 6px rgba(0, 0, 0, 0.02);
+    0 10px 32px rgba(0, 0, 0, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.03);
   pointer-events: none;
   z-index: 1;
   transition: background .4s, box-shadow .4s, opacity .4s;
 }
 
-/* When in Hero section on homepage: preserve luxury frosted glass */
+/* When in Hero section on homepage: solid white */
 .v3-nav.is-over-hero {
-  background: transparent;
+  background: #ffffff;
 }
 
 .v3-nav.is-over-hero::before {
-  background: rgba(255, 255, 255, 0.44);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.62) 0%, rgba(255, 255, 255, 0.26) 100%);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: #ffffff;
   border: none;
   box-shadow:
-    0 10px 32px rgba(19, 51, 36, 0.06),
-    0 2px 6px rgba(0, 0, 0, 0.02);
+    0 10px 32px rgba(0, 0, 0, 0.08),
+    0 2px 6px rgba(0, 0, 0, 0.03);
   opacity: 1;
 }
 
-/* When scrolled down: Maintain SAME width and height across all sections */
+/* When scrolled down: Maintain SAME width, height, and solid white background */
 .v3-nav.is-scrolled {
   top: 14px;
   width: min(var(--container, 1440px), calc(100vw - 44px));
   min-height: 72px;
   padding: 16px 36px 16px 40px;
+  background: #ffffff;
 }
 
 .v3-nav.is-scrolled::before {
-  background: rgba(255, 255, 255, 0.70);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.46) 100%);
-  backdrop-filter: blur(24px) saturate(190%);
-  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  background: #ffffff;
   border: none;
   box-shadow:
-    0 14px 40px rgba(19, 51, 36, 0.08),
-    0 3px 10px rgba(0, 0, 0, 0.03);
+    0 14px 40px rgba(0, 0, 0, 0.10),
+    0 3px 10px rgba(0, 0, 0, 0.04);
 }
 
 .v3-nav-brand { display: flex; align-items: center; z-index: 2; margin-right: auto; }
@@ -345,11 +337,9 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   transform: translateX(-50%);
   width: 400px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.84);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  box-shadow: none;
+  background: #ffffff;
+  border: 1px solid rgba(26, 63, 44, 0.08);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.10), 0 4px 12px rgba(0, 0, 0, 0.04);
   z-index: 50;
   display: grid;
   grid-template-rows: 0fr;
@@ -415,21 +405,16 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
 }
 
 .v3-nav.is-scrolled .v3-nav-panel {
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(26px) saturate(180%);
-  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  background: #ffffff;
 }
 
 .v3-nav.is-scrolled .v3-nav-panel.open,
 .v3-nav.is-scrolled .v3-nav-dd:hover .v3-nav-panel {
-  background: rgba(255, 255, 255, 0.90);
-  backdrop-filter: blur(26px) saturate(180%);
-  -webkit-backdrop-filter: blur(26px) saturate(180%);
-  border-color: rgba(255, 255, 255, 0.95);
+  background: #ffffff;
+  border-color: rgba(26, 63, 44, 0.08);
   box-shadow:
-    0 24px 52px rgba(26, 63, 44, 0.14),
-    0 6px 18px rgba(0, 0, 0, 0.05),
-    inset 0 1px 1px rgba(255, 255, 255, 1);
+    0 24px 52px rgba(0, 0, 0, 0.12),
+    0 6px 18px rgba(0, 0, 0, 0.04);
 }
 .v3-nav-panel a {
   display: flex;

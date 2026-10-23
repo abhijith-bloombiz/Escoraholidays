@@ -434,7 +434,6 @@ export default function PinnedJourneyExperience({ children }: PinnedJourneyExper
         <div ref={bgRef} className="pinned-journey-bg" />
         <div className="pinned-journey-ambient-glow" />
 
-
         {/* Stacked Slides Container */}
         <div className="pinned-journey-slides-container">
           {children.map((child, idx) => (

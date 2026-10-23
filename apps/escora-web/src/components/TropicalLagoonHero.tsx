@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import gsap from "gsap";
 import "./TropicalLagoonHero.css";
 
 export interface DestinationSlide {
@@ -35,18 +36,6 @@ export const HERO_SLIDES: DestinationSlide[] = [
     alt: "Rolling tea plantation hills and misty valleys in Munnar, Kerala",
     objectPositionDesktop: "center center",
     objectPositionMobile: "55% center",
-  },
-  {
-    id: 2,
-    filename: "2-Alleppy.png",
-    image: "/assets/herobg/2-Alleppy.png",
-    destination: "Alleppey",
-    category: "BACKWATERS",
-    badge: "02 · ALLEPPEY",
-    tagline: "Vembanad Waterways & Palm Canopy",
-    alt: "Serene Alleppey backwaters with traditional kettuvallam houseboats and tall palms",
-    objectPositionDesktop: "65% center",
-    objectPositionMobile: "68% center",
   },
   {
     id: 3,
@@ -98,7 +87,7 @@ export const HERO_SLIDES: DestinationSlide[] = [
   },
 ];
 
-const SLIDE_DURATION_MS = 6000; // 6 seconds per destination slide (within 5-7s range)
+const SLIDE_DURATION_MS = 6000; // 6 seconds per destination slide
 
 interface TropicalLagoonHeroProps {
   onExploreClick?: () => void;
@@ -106,16 +95,21 @@ interface TropicalLagoonHeroProps {
 
 export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHeroProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [previousIndex, setPreviousIndex] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
-  const [progressKey, setProgressKey] = useState(0);
 
   const heroRootRef = useRef<HTMLElement>(null);
+  const cardButtonRef = useRef<HTMLButtonElement>(null);
+  const expandingCardRef = useRef<HTMLDivElement>(null);
+  const expandingImgRef = useRef<HTMLImageElement>(null);
+  const isTransitioningRef = useRef(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Single source of truth for active slide & destination
+  // Active full-screen slide
   const activeSlide = HERO_SLIDES[currentIndex];
-  const activeDestination = activeSlide.destination;
+
+  // Preview card displaying the next upcoming slide
+  const nextSlideIdx = (currentIndex + 1) % HERO_SLIDES.length;
+  const nextPreviewSlide = HERO_SLIDES[nextSlideIdx];
 
   // Preload all 6 images immediately to eliminate flashes, blank frames or loading lags
   useEffect(() => {
@@ -126,35 +120,128 @@ export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHer
     });
   }, []);
 
-  // Safe slide transition handler
-  const goToSlide = useCallback((newIndex: number) => {
-    setCurrentIndex((prev) => {
-      if (prev === newIndex) return prev;
-      setPreviousIndex(prev);
-      return newIndex;
+  // Cinematic card expansion animation to become full-screen hero background
+  const animateCardToBackground = useCallback((targetIndex: number) => {
+    if (isTransitioningRef.current) return;
+    if (typeof window === "undefined") return;
+
+    const heroEl = heroRootRef.current;
+    const cardEl = cardButtonRef.current;
+    const expandingEl = expandingCardRef.current;
+    const expandingImg = expandingImgRef.current;
+
+    if (!heroEl || !cardEl || !expandingEl || !expandingImg) {
+      setCurrentIndex(targetIndex);
+      return;
+    }
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+      setCurrentIndex(targetIndex);
+      return;
+    }
+
+    isTransitioningRef.current = true;
+
+    const targetSlide = HERO_SLIDES[targetIndex];
+
+    // Measure exact position and dimensions of the preview card relative to the hero root
+    const heroRect = heroEl.getBoundingClientRect();
+    const cardRect = cardEl.getBoundingClientRect();
+
+    const startTop = cardRect.top - heroRect.top;
+    const startLeft = cardRect.left - heroRect.left;
+    const startWidth = cardRect.width;
+    const startHeight = cardRect.height;
+    const cardBorderRadius = window.getComputedStyle(cardEl).borderRadius || "18px";
+
+    // Set target image attributes on the expanding clone
+    expandingImg.src = targetSlide.image;
+    expandingImg.alt = targetSlide.alt;
+    expandingImg.style.setProperty("--pos-desktop", targetSlide.objectPositionDesktop);
+    expandingImg.style.setProperty("--pos-mobile", targetSlide.objectPositionMobile);
+
+    // Cancel any active tweens
+    gsap.killTweensOf(expandingEl);
+    gsap.killTweensOf(cardEl);
+
+    // Set initial position of expanding card to overlay preview card exactly
+    gsap.set(expandingEl, {
+      top: startTop,
+      left: startLeft,
+      width: startWidth,
+      height: startHeight,
+      borderRadius: cardBorderRadius,
+      opacity: 1,
+      border: "none",
+      boxShadow: "0 16px 38px rgba(0, 0, 0, 0.42)",
+      display: "block",
     });
-    setProgressKey((k) => k + 1);
+
+    // Hide preview card immediately (expanding clone takes over seamlessly)
+    gsap.set(cardEl, { opacity: 0 });
+
+    // Smooth cinematic expansion: growing proportionally from bottom-right to fill the entire hero
+    const tl = gsap.timeline({
+      defaults: { ease: "power3.inOut" },
+    });
+
+    tl.to(expandingEl, {
+      top: 0,
+      left: 0,
+      width: heroRect.width,
+      height: heroRect.height,
+      borderRadius: 0,
+      boxShadow: "0 0 0 rgba(0, 0, 0, 0)",
+      duration: 1.35,
+      onComplete: () => {
+        // 1. Commit active slide index to state
+        setCurrentIndex(targetIndex);
+
+        // 2. Wait for React double-rAF paint of base background before hiding expanding card
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            gsap.set(expandingEl, { display: "none" });
+
+            // 3. Reveal next preview card smoothly from 0% to 100%
+            gsap.set(cardEl, { transition: "none" });
+            gsap.fromTo(
+              cardEl,
+              {
+                opacity: 0,
+                scale: 0,
+                transformOrigin: "bottom right",
+              },
+              {
+                opacity: 1,
+                scale: 1,
+                duration: 0.85,
+                ease: "power3.out",
+                clearProps: "transform,transformOrigin,transition",
+                onComplete: () => {
+                  isTransitioningRef.current = false;
+                },
+              }
+            );
+          });
+        });
+      },
+    });
   }, []);
 
   const nextSlide = useCallback(() => {
-    setCurrentIndex((prev) => {
-      const next = (prev + 1) % HERO_SLIDES.length;
-      setPreviousIndex(prev);
-      return next;
-    });
-    setProgressKey((k) => k + 1);
-  }, []);
+    if (isTransitioningRef.current) return;
+    const next = (currentIndex + 1) % HERO_SLIDES.length;
+    animateCardToBackground(next);
+  }, [currentIndex, animateCardToBackground]);
 
   const prevSlide = useCallback(() => {
-    setCurrentIndex((prev) => {
-      const prevIdx = (prev - 1 + HERO_SLIDES.length) % HERO_SLIDES.length;
-      setPreviousIndex(prev);
-      return prevIdx;
-    });
-    setProgressKey((k) => k + 1);
-  }, []);
+    if (isTransitioningRef.current) return;
+    const prev = (currentIndex - 1 + HERO_SLIDES.length) % HERO_SLIDES.length;
+    animateCardToBackground(prev);
+  }, [currentIndex, animateCardToBackground]);
 
-  // Automatic slideshow transition every 6 seconds
+  // Automatic slideshow transition every 6 seconds in a continuous seamless loop
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -173,14 +260,14 @@ export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHer
     };
   }, [currentIndex, isPaused, nextSlide]);
 
-  // Smooth scroll to #categories for Explore Kerala button
+  // Smooth scroll to next section for Explore Kerala button
   const handleScrollDown = (e: React.MouseEvent) => {
     e.preventDefault();
     if (onExploreClick) {
       onExploreClick();
       return;
     }
-    const nextSection = document.getElementById("categories");
+    const nextSection = document.getElementById("why-escora") || document.getElementById("categories");
     if (nextSection) {
       if ((window as any).__lenis) {
         (window as any).__lenis.scrollTo(nextSection, { offset: 0, duration: 1.4 });
@@ -213,187 +300,123 @@ export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHer
         tabIndex={0}
       >
         {/* ────────────────────────────────────────────────────────────
-            LAYER 1: CINEMATIC DESTINATION SLIDESHOW (6 SUPPLIED IMAGES)
+            LAYER 1: CINEMATIC DESTINATION BASE BACKGROUND
         ──────────────────────────────────────────────────────────── */}
         <div className="esh-slides-layer" aria-hidden="true">
-          {HERO_SLIDES.map((slide, idx) => {
-            const isActive = idx === currentIndex;
-            const isPrevious = idx === previousIndex;
-
-            return (
-              <div
-                key={slide.id}
-                className={`esh-slide${isActive ? " is-active" : ""}${isPrevious ? " is-previous" : ""}`}
-              >
-                <img
-                  src={slide.image}
-                  alt={slide.alt}
-                  className="esh-img"
-                  fetchPriority={idx === 0 ? "high" : "low"}
-                  loading={idx === 0 ? "eager" : "lazy"}
-                  style={
-                    {
-                      "--pos-desktop": slide.objectPositionDesktop,
-                      "--pos-mobile": slide.objectPositionMobile,
-                    } as React.CSSProperties
-                  }
-                  onError={(e) => {
-                    // Graceful fallback if any image load hiccups
-                    (e.target as HTMLElement).style.display = "none";
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div>
-
-
-        {/* ────────────────────────────────────────────────────────────
-            LAYER 3: HERO CONTENT & ANIMATED DESTINATION NAME
-        ──────────────────────────────────────────────────────────── */}
-        <div className="esh-content-wrap">
-          {/* Eyebrow Tagline */}
-          <div className="esh-eyebrow-row">
-            <span className="esh-eyebrow-dot" />
-            <span className="esh-eyebrow">KERALA, BEYOND ORDINARY</span>
-          </div>
-
-          {/* Prominent Animated Destination Name Display */}
-          <div className="esh-title-stage" aria-live="polite">
-            <div
-              key={activeDestination}
-              className="esh-title-motion"
-            >
-              <h1 className="esh-title">
-                <span className="esh-title-text">{activeDestination}</span>
-              </h1>
-            </div>
-          </div>
-
-          {/* Preserved Editorial Description */}
-          <p className="esh-description">
-            Serene backwaters, lush landscapes<br />
-            and vibrant traditions — a journey<br />
-            that stays with you.
-          </p>
-
-          {/* Preserved Primary CTA Button */}
-          <div className="esh-actions">
-            <a
-              href="#categories"
-              onClick={handleScrollDown}
-              className="esh-cta"
-              aria-label="Explore Kerala private journeys"
-            >
-              <span className="esh-cta-icon" aria-hidden="true">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </span>
-              <span className="esh-cta-label">Explore Kerala</span>
-            </a>
-          </div>
-        </div>
-
-        {/* ────────────────────────────────────────────────────────────
-            LAYER 4: SLIDESHOW CONTROLS & DURATION PROGRESS BAR
-        ──────────────────────────────────────────────────────────── */}
-        <div className="esh-nav-controls" aria-label="Slideshow controls">
-          {/* Prev Arrow */}
-          <button
-            type="button"
-            className="esh-nav-arrow"
-            onClick={prevSlide}
-            aria-label="Previous destination image"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-
-          {/* Slide Counter (01 / 06) */}
-          <div className="esh-counter">
-            <span className="esh-counter-current">
-              {String(currentIndex + 1).padStart(2, "0")}
-            </span>
-            <span className="esh-counter-sep">/</span>
-            <span className="esh-counter-total">
-              {String(HERO_SLIDES.length).padStart(2, "0")}
-            </span>
-          </div>
-
-          {/* Next Arrow */}
-          <button
-            type="button"
-            className="esh-nav-arrow"
-            onClick={nextSlide}
-            aria-label="Next destination image"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-
-          {/* Subtle Progress Bar */}
-          <div className="esh-progress-track" aria-hidden="true">
-            <div
-              key={progressKey}
-              className={`esh-progress-bar${isPaused ? " is-paused" : ""}`}
-              style={{ animationDuration: `${SLIDE_DURATION_MS}ms` }}
+          <div className="esh-slide is-active">
+            <img
+              src={activeSlide.image}
+              alt={activeSlide.alt}
+              className="esh-img"
+              fetchPriority="high"
+              loading="eager"
+              style={
+                {
+                  "--pos-desktop": activeSlide.objectPositionDesktop,
+                  "--pos-mobile": activeSlide.objectPositionMobile,
+                } as React.CSSProperties
+              }
             />
           </div>
         </div>
 
         {/* ────────────────────────────────────────────────────────────
-            LAYER 5: RIGHT-SIDE VERTICAL CATEGORIES & MILESTONES
+            LAYER 2: EXPANDING CARD MORPH TRANSITION
         ──────────────────────────────────────────────────────────── */}
-        <div className="esh-right-panel" aria-hidden="true">
-          {/* Vertical Editorial Categories */}
-          <div className="esh-categories">
-            <span className={`esh-cat-tag${activeSlide.category === "BACKWATERS" ? " active" : ""}`}>
-              BACKWATERS
-            </span>
-            <span className={`esh-cat-tag${activeSlide.category === "HILLS" ? " active" : ""}`}>
-              HILLS
-            </span>
-            <span className={`esh-cat-tag${activeSlide.category === "BEACHES" ? " active" : ""}`}>
-              BEACHES
-            </span>
-            <span className={`esh-cat-tag${activeSlide.category === "CULTURE" ? " active" : ""}`}>
-              CULTURE
-            </span>
+        <div
+          ref={expandingCardRef}
+          className="esh-expanding-card"
+          aria-hidden="true"
+        >
+          <img
+            ref={expandingImgRef}
+            src={nextPreviewSlide.image}
+            alt=""
+            className="esh-expanding-img"
+          />
+        </div>
+
+        {/* ────────────────────────────────────────────────────────────
+            LAYER 3: HERO CONTENT & ANIMATED DESTINATION NAME
+        ──────────────────────────────────────────────────────────── */}
+        <div className="esh-content-wrap">
+          {/* Eyebrow: Gold Accent Line + GOD'S OWN COUNTRY */}
+          <div className="esh-eyebrow-row">
+            <span className="esh-eyebrow-line" aria-hidden="true" />
+            <span className="esh-eyebrow">GOD&apos;S OWN COUNTRY</span>
           </div>
 
-          {/* Milestone Vertical Slide Indicators for all 6 slides */}
-          <div className="esh-milestones">
-            {HERO_SLIDES.map((slide, idx) => {
-              const isCurrent = idx === currentIndex;
-              return (
-                <button
-                  key={slide.id}
-                  type="button"
-                  onClick={() => goToSlide(idx)}
-                  className={`esh-milestone-btn${isCurrent ? " is-active" : ""}`}
-                  aria-label={`Go to slide ${idx + 1}: ${slide.destination}`}
-                  title={`${slide.destination} (${idx + 1}/6)`}
-                >
-                  <span className="esh-milestone-number">
-                    {String(idx + 1).padStart(2, "0")}
-                  </span>
-                  {isCurrent && <span className="esh-milestone-dot" />}
-                </button>
-              );
-            })}
+          {/* Main Title: KERALA */}
+          <div className="esh-title-stage" aria-live="polite">
+            <div className="esh-title-motion" key={currentIndex}>
+              <h1 className="esh-title">
+                <span className="esh-title-text">KERALA</span>
+              </h1>
+            </div>
+          </div>
+
+          {/* Subtitle / Tagline: Where Every Journey Feels Like Home */}
+          <h2 className="esh-subtitle">
+            Where Every Journey<br />Feels Like Home
+          </h2>
+
+          {/* Editorial Description */}
+          <p className="esh-description">
+            Backwaters, mountains, beaches and culture —<br />
+            discover the many shades of Kerala with Escora.
+          </p>
+        </div>
+
+        {/* ────────────────────────────────────────────────────────────
+            LAYER 4: BOTTOM CENTER ALIGNED "EXPLORE KERALA" CTA BUTTON
+        ──────────────────────────────────────────────────────────── */}
+        <div className="esh-bottom-cta">
+          <a
+            href="#categories"
+            onClick={handleScrollDown}
+            className="esh-cta"
+            aria-label="Explore Kerala private journeys"
+          >
+            <span className="esh-cta-icon" aria-hidden="true">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </span>
+            <span className="esh-cta-label">Explore Kerala</span>
+          </a>
+        </div>
+
+        {/* ────────────────────────────────────────────────────────────
+            LAYER 4: RIGHT-SIDE SINGLE PREVIEW CARD (IMAGE ONLY)
+        ──────────────────────────────────────────────────────────── */}
+        <div className="esh-right-wrapper">
+          <div className="esh-hero-cards-row" role="region" aria-label="Next destination">
+            <button
+              ref={cardButtonRef}
+              type="button"
+              className="esh-hero-card"
+              onClick={nextSlide}
+              aria-label={`Next: ${nextPreviewSlide.destination}`}
+              title={`Next: ${nextPreviewSlide.destination}`}
+            >
+              <img
+                src={nextPreviewSlide.image}
+                alt={nextPreviewSlide.alt}
+                className="esh-card-img"
+                loading="lazy"
+                decoding="async"
+              />
+            </button>
           </div>
         </div>
       </header>

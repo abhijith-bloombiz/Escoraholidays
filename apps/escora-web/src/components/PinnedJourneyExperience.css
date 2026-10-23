@@ -122,6 +122,10 @@
   box-sizing: border-box;
 }
 
+.pinned-journey-slide .how-it-works-section {
+  padding: clamp(48px, 6vh, 80px) 0;
+}
+
 /* ─── Bottom Scroll Cue Indicator Removed ─── */
 .pinned-journey-scroll-hint {
   display: none !important;
@@ -139,8 +143,5 @@
   .pinned-journey-slide [data-pinned-reveal] {
     transition: opacity 0.3s ease !important;
     transform: none !important;
-  }
-  .pinned-journey-scroll-chevron {
-    animation: none;
   }
 }

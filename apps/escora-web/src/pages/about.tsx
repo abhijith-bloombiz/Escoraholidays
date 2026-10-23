@@ -28,65 +28,31 @@ export default function About() {
       `}</style>
       <div className="about-page bg-[#FAF8F5] text-[#183628]" style={{ overflowX: "hidden" }}>
 
-        {/* 1. Hero Section */}
-        <section className="relative pt-28 sm:pt-32 lg:pt-36 pb-14 sm:pb-20 overflow-hidden border-b border-[#E8EEEA]">
-          {/* Right landscape backwater image fading seamlessly into warm ivory #FAF8F5 */}
-          <div 
-            className="absolute top-0 right-0 h-full w-full lg:w-[60%] xl:w-[56%] pointer-events-none select-none z-0 opacity-25 lg:opacity-100"
+        {/* 1. Hero Section (Matching Explore Kerala layout & decoration image) ── */}
+        <section className="dest-hero-section border-b border-[#E8EEEA]">
+          <div
+            className="dest-hero-bg"
+            style={{ backgroundImage: `url(${whyEscoraBg})` }}
             aria-hidden="true"
-          >
-            <img
-              src={alleppeyBackwaters}
-              alt="Kerala Backwaters Houseboat"
-              className="w-full h-full object-cover object-[center_right] lg:object-[75%_center]"
-              style={{
-                maskImage:
-                  "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 20%, rgba(0,0,0,0.7) 50%, #000 85%), linear-gradient(to top, transparent 0%, #000 15%)",
-                WebkitMaskImage:
-                  "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 20%, rgba(0,0,0,0.7) 50%, #000 85%), linear-gradient(to top, transparent 0%, #000 15%)",
-                maskComposite: "intersect",
-                WebkitMaskComposite: "source-in",
-              }}
-            />
-            {/* Broad ivory gradient overlay for buttery smooth blending */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background:
-                  "linear-gradient(to right, #FAF8F5 0%, rgba(250,248,245,0.8) 22%, rgba(250,248,245,0.2) 58%, transparent 100%), linear-gradient(to top, #FAF8F5 0%, transparent 14%)",
-              }}
-            />
-          </div>
+          />
+          <div className="dest-hero-gradient" aria-hidden="true" />
 
-          <div className="container mx-auto px-6 sm:px-8 max-w-7xl relative z-10">
-            <div className="max-w-2xl lg:max-w-xl xl:max-w-2xl">
-              <div className="flex items-center gap-3 mb-5">
-                <p className="font-mono text-[#8C7355] text-xs tracking-[0.25em] uppercase font-medium">
-                  Our Story
-                </p>
-                <span className="w-10 h-[1px] bg-[#8C7355]/50 inline-block" />
-              </div>
-              <h1
-                className="font-editorial text-3xl sm:text-5xl lg:text-[62px] text-[#183628] font-normal leading-[1.12] mb-6"
-                style={{ overflowWrap: "anywhere", wordBreak: "break-word" }}
-              >
+          <div className="dest-wrap">
+            <div className="dest-hero-content">
+              <h1 className="dest-hero-title">
                 Designed for<br />
-                <em className="italic font-normal">those who travel deeply</em>
+                <em>Deep Travel</em>
               </h1>
-              <p
-                className="font-sans text-[#4A5D53] text-base sm:text-lg leading-relaxed max-w-xl"
-                style={{ overflowWrap: "anywhere" }}
-              >
-                Escora is a boutique destination management studio rooted in Kerala, crafting private journeys
-                for travellers who seek meaning over itineraries.
+              <p className="dest-hero-desc">
+                Escora is a boutique destination management studio rooted in Kerala, crafting private journeys for travellers who seek meaning over itineraries.
               </p>
             </div>
           </div>
         </section>
 
         {/* 2. Philosophy Section — REVERSED LAYOUT (Image on Left, Text on Right) */}
-        <section className="py-16 sm:py-24 overflow-hidden">
-          <div className="container mx-auto px-6 sm:px-8 max-w-6xl">
+        <section className="pt-8 pb-16 sm:pt-10 sm:pb-20 overflow-hidden">
+          <div className="dest-wrap">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
               {/* Left: Philosophy landscape image (Munnar tea plantations) */}
               <div className="lg:col-span-6 reveal-up">

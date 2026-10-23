@@ -61,16 +61,12 @@ export default function DestinationsV3() {
 
           <div className="dest-wrap">
             <div className="dest-hero-content">
-              <span className="dest-eyebrow">
-                <span className="dest-eyebrow-accent" />
-                EXPLORE KERALA
-              </span>
               <h1 className="dest-hero-title">
                 Curated<br />
                 <em>Destinations</em>
               </h1>
               <p className="dest-hero-desc">
-                From misty tea gardens to serene backwaters and offbeat hidden gems, discover the varied landscapes that make Kerala God&apos;s Own Country.
+                From misty tea gardens to serene backwaters, discover the varied landscapes that make Kerala God&apos;s Own Country.
               </p>
             </div>
           </div>

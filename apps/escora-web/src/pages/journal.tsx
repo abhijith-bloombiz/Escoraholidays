@@ -3,6 +3,7 @@ import { useListJournalPosts } from "@workspace/api-client-react";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useSeo } from "@/hooks/useSeo";
 import { Link } from "wouter";
+import whyEscoraBg from "@assets/escora/why-escora-bg.jpeg";
 
 const CATEGORIES = ["All", "Travelogue", "Culture", "Heritage", "Cuisine", "Wellness", "News"];
 
@@ -72,170 +73,173 @@ export default function Journal() {
 
   return (
     <Layout>
-      {/* Page Hero */}
-      <section className="relative page-hero-top bg-bg border-b border-line">
-        <div className="container mx-auto px-6 md:px-12 text-center reveal-up">
-          <p className="section-label mb-6 block"><span className="dot" />Travelogue</p>
-          <h1 className="font-serif text-3xl sm:text-5xl md:text-7xl text-ink leading-[1.1] font-light max-w-4xl mx-auto mb-6 sm:mb-8">
-            The Escora <em className="text-gold italic">Journal</em>
-          </h1>
-          <p className="font-sans text-ink-soft max-w-2xl mx-auto leading-relaxed">
-            Stories, reflections, and dispatches from God's Own Country. 
-          </p>
-        </div>
-      </section>
+      <div className="dest-page">
+        {/* ── Page Hero (Matching Explore Kerala layout & decoration image) ── */}
+        <section className="dest-hero-section">
+          <div
+            className="dest-hero-bg"
+            style={{ backgroundImage: `url(${whyEscoraBg})` }}
+            aria-hidden="true"
+          />
+          <div className="dest-hero-gradient" aria-hidden="true" />
 
-      {/* Filter section — Compact single row with Explore topics dropdown */}
-      <section className="py-4 sm:py-5 bg-[#FAF8F5] border-b border-[#E2EAE4] sticky top-[80px] z-40 backdrop-blur-md bg-[#FAF8F5]/95">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="flex items-center justify-center flex-wrap gap-2 sm:gap-2.5">
-            {/* Category pills */}
-            {CATEGORIES.map(cat => {
-              const isSelected = activeFilter === cat;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => {
-                    setActiveFilter(cat);
-                    setActiveTag(null);
-                  }}
-                  className={`h-8 px-4 rounded-full text-xs font-sans tracking-wide transition-all duration-200 cursor-pointer ${
-                    isSelected
-                      ? "bg-[#183628] text-white font-medium shadow-xs"
-                      : "bg-white/85 hover:bg-white text-[#38483D] border border-[#D5DFD8] hover:border-[#183628]/40"
-                  }`}
-                >
-                  {cat}
-                </button>
-              );
-            })}
+          <div className="dest-wrap">
+            <div className="dest-hero-content">
+              <h1 className="dest-hero-title">
+                Stories &<br />
+                <em>Dispatches</em>
+              </h1>
+              <p className="dest-hero-desc">
+                Stories, reflections, and insider dispatches from the backwaters, mist-shrouded ghats, and coastal heritage of God&apos;s Own Country.
+              </p>
+            </div>
+          </div>
+        </section>
 
-            {/* Subtle divider before topics control on desktop */}
-            {allTags.length > 0 && (
-              <span className="hidden md:inline-block w-px h-4 bg-[#D5DFD8] mx-1 self-center" aria-hidden="true" />
-            )}
-
-            {/* "Explore topics" Dropdown Control */}
-            {allTags.length > 0 && (
-              <div className="relative inline-block" ref={dropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setIsTopicsOpen(prev => !prev)}
-                  className={`h-8 px-3.5 rounded-full text-xs font-sans font-medium tracking-wide inline-flex items-center gap-1.5 transition-all duration-200 cursor-pointer ${
-                    activeTag
-                      ? "bg-[#183628] text-white shadow-xs"
-                      : isTopicsOpen
-                      ? "bg-white text-[#183628] border border-[#183628] shadow-xs"
-                      : "bg-white/85 hover:bg-white text-[#38483D] border border-[#D5DFD8] hover:border-[#183628]/40"
-                  }`}
-                  aria-expanded={isTopicsOpen}
-                  aria-haspopup="true"
-                >
-                  <span>{activeTag ? `#${activeTag}` : "Explore topics"}</span>
-                  <svg
-                    className={`w-3.5 h-3.5 text-current transition-transform duration-200 ${isTopicsOpen ? "rotate-180" : ""}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
+        {/* ── Category & Topic Filters (Matching Explore Kerala chips style) ── */}
+        <section className="dest-filters-section">
+          <div className="dest-wrap">
+            <div className="dest-chips" role="tablist" aria-label="Journal Categories">
+              {/* Category pills */}
+              {CATEGORIES.map(cat => {
+                const isSelected = activeFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => {
+                      setActiveFilter(cat);
+                      setActiveTag(null);
+                    }}
+                    className={`dest-chip ${isSelected ? "is-active" : ""}`}
+                    aria-pressed={isSelected}
+                    role="tab"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+                    {cat}
+                  </button>
+                );
+              })}
 
-                {/* Popover */}
-                {isTopicsOpen && (
-                  <div className="absolute right-0 md:left-1/2 md:-translate-x-1/2 mt-2 z-50 w-72 sm:w-80 p-3.5 bg-white rounded-2xl border border-[#D5DFD8] shadow-lg animate-in fade-in zoom-in-95 duration-150">
-                    <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-[#E2EAE4]">
-                      <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#637568]">
-                        Filter by topic
-                      </span>
-                      {activeTag && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveTag(null);
-                            setIsTopicsOpen(false);
-                          }}
-                          className="text-[11px] font-sans text-[#B58D5D] hover:underline cursor-pointer"
-                        >
-                          Clear topic
-                        </button>
-                      )}
-                    </div>
+              {/* "Explore topics" Dropdown Control */}
+              {allTags.length > 0 && (
+                <div className="relative inline-block" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsTopicsOpen(prev => !prev)}
+                    className={`dest-chip inline-flex items-center gap-1.5 ${
+                      activeTag
+                        ? "is-active"
+                        : isTopicsOpen
+                        ? "!border-[#1A3F2C] !text-[#1A3F2C]"
+                        : ""
+                    }`}
+                    aria-expanded={isTopicsOpen}
+                    aria-haspopup="true"
+                  >
+                    <span>{activeTag ? `#${activeTag}` : "Explore topics"}</span>
+                    <svg
+                      className={`w-3.5 h-3.5 text-current transition-transform duration-200 ${isTopicsOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
 
-                    <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1">
-                      {allTags.map(tag => {
-                        const isTagSelected = activeTag === tag;
-                        return (
+                  {/* Popover */}
+                  {isTopicsOpen && (
+                    <div className="absolute left-0 mt-2 z-50 w-72 sm:w-80 p-3.5 bg-white rounded-2xl border border-[#D5DFD8] shadow-lg animate-in fade-in zoom-in-95 duration-150">
+                      <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-[#E2EAE4]">
+                        <span className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#637568]">
+                          Filter by topic
+                        </span>
+                        {activeTag && (
                           <button
-                            key={tag}
                             type="button"
                             onClick={() => {
-                              setActiveTag(isTagSelected ? null : tag);
+                              setActiveTag(null);
                               setIsTopicsOpen(false);
                             }}
-                            className={`font-mono text-[11px] tracking-wide px-2.5 py-1 rounded-full transition-all cursor-pointer ${
-                              isTagSelected
-                                ? "bg-[#183628] text-white font-medium"
-                                : "bg-[#EFF4F0] hover:bg-[#E2EAE4] text-[#38483D] border border-transparent hover:border-[#D5DFD8]"
-                            }`}
+                            className="text-[11px] font-sans text-[#8C7355] hover:underline cursor-pointer"
                           >
-                            #{tag}
+                            Clear topic
                           </button>
-                        );
-                      })}
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap gap-1.5 max-h-56 overflow-y-auto pr-1">
+                        {allTags.map(tag => {
+                          const isTagSelected = activeTag === tag;
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => {
+                                setActiveTag(isTagSelected ? null : tag);
+                                setIsTopicsOpen(false);
+                              }}
+                              className={`font-mono text-[11px] tracking-wide px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                                isTagSelected
+                                  ? "bg-[#1A3F2C] text-white font-medium"
+                                  : "bg-[#EFF4F0] hover:bg-[#E2EAE4] text-[#38483D] border border-transparent hover:border-[#D5DFD8]"
+                              }`}
+                            >
+                              #{tag}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </div>
+              )}
 
-            {/* Active topic badge with quick remove ✕ */}
-            {activeTag && (
-              <button
-                type="button"
-                onClick={() => setActiveTag(null)}
-                className="h-8 pl-3 pr-2 rounded-full text-xs font-sans bg-[#EFF4F0] text-[#183628] border border-[#D5DFD8] hover:border-[#B58D5D] hover:bg-[#E2EAE4] inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                title="Remove topic filter"
-              >
-                <span>#{activeTag}</span>
-                <span className="text-xs leading-none text-[#637568] hover:text-[#183628] font-semibold">✕</span>
-              </button>
-            )}
+              {/* Active topic badge with quick remove ✕ */}
+              {activeTag && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTag(null)}
+                  className="dest-chip border-[#8C7355] text-[#8C7355] hover:bg-[#8C7355] hover:text-white inline-flex items-center gap-1.5"
+                  title="Remove topic filter"
+                >
+                  <span>#{activeTag}</span>
+                  <span className="text-xs leading-none font-semibold">✕</span>
+                </button>
+              )}
 
-            {/* Reset button if any filter is active */}
-            {(activeFilter !== "All" || activeTag !== null) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveFilter("All");
-                  setActiveTag(null);
-                }}
-                className="h-8 px-3 rounded-full text-xs font-sans uppercase tracking-wider text-[#B58D5D] border border-[#B58D5D] hover:bg-[#B58D5D] hover:text-white transition-colors cursor-pointer"
-              >
-                Reset
-              </button>
-            )}
+              {/* Reset button if any filter is active */}
+              {(activeFilter !== "All" || activeTag !== null) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveFilter("All");
+                    setActiveTag(null);
+                  }}
+                  className="dest-chip border-[#8C7355] text-[#8C7355] hover:bg-[#8C7355] hover:text-white"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
 
       {/* Featured Post */}
       {featuredPost && (
-        <section className="page-section bg-bg border-b border-line">
-          <div className="container mx-auto px-6 md:px-12">
+        <section className="pt-2 pb-14 bg-[#FAF8F5] border-b border-[#E2EAE4]">
+          <div className="dest-wrap">
             <Link href={`/journal/${featuredPost.id}`} className="group block reveal-up portal-card">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div className="aspect-[4/3] w-full overflow-hidden relative">
+                <div className="aspect-[4/3] w-full overflow-hidden relative rounded-2xl">
                   <img 
                     src={featuredPost.imageUrl || "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80"} 
                     alt={featuredPost.title} 
                     className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                   />
-                  <div className="absolute top-6 left-6">
-                    <span className="bg-bg/80 backdrop-blur text-gold font-mono text-[10px] uppercase tracking-widest px-3 py-1">
+                  <div className="absolute top-5 left-5">
+                    <span className="bg-bg/85 backdrop-blur text-gold font-mono text-[10px] uppercase tracking-widest px-3 py-1 rounded-full">
                       Featured • {featuredPost.category}
                     </span>
                   </div>
@@ -258,7 +262,7 @@ export default function Journal() {
                   
                   <div className="flex items-center gap-4">
                     {(featuredPost as { authorImageUrl?: string }).authorImageUrl ? (
-                      <img src={(featuredPost as { authorImageUrl?: string }).authorImageUrl} alt={featuredPost.authorName || "Author"} className="w-10 h-10 rounded-full object-cover grayscale" />
+                      <img src={(featuredPost as { authorImageUrl?: string }).authorImageUrl} alt={featuredPost.authorName || "Author"} className="w-10 h-10 rounded-full object-cover" />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-bg-3 border border-line flex items-center justify-center text-gold font-serif">
                         {featuredPost.authorName?.charAt(0) || "A"}
@@ -277,14 +281,14 @@ export default function Journal() {
       )}
 
       {/* Grid Posts */}
-      <section className="page-section bg-bg">
-        <div className="container mx-auto px-6 md:px-12">
+      <section className="pt-8 pb-20 bg-[#FAF8F5]">
+        <div className="dest-wrap">
           {isLoading ? (
             <div className="flex justify-center items-center py-32">
               <div className="w-12 h-12 border-t border-gold animate-spin rounded-full"></div>
             </div>
           ) : gridPosts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {gridPosts.map((post, i) => (
                 <Link 
                   key={post.id} 
@@ -292,37 +296,37 @@ export default function Journal() {
                   className="group block reveal-up portal-card flex flex-col h-full"
                   style={{ transitionDelay: `${(i % 3) * 0.15}s` }}
                 >
-                  <div className="aspect-[4/3] w-full overflow-hidden relative mb-6">
+                  <div className="aspect-[4/3] w-full overflow-hidden relative mb-5 rounded-2xl">
                     <img 
                       src={post.imageUrl || "https://images.unsplash.com/photo-1444927714506-8492d94b4e3d?auto=format&fit=crop&w=800&q=80"} 
                       alt={post.title} 
-                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 grayscale group-hover:grayscale-0"
+                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                     />
-                    <div className="absolute top-6 left-6">
-                      <span className="bg-bg/80 backdrop-blur text-gold font-mono text-[10px] uppercase tracking-widest px-3 py-1">
+                    <div className="absolute top-5 left-5">
+                      <span className="bg-bg/85 backdrop-blur text-gold font-mono text-[10px] uppercase tracking-widest px-3 py-1 rounded-full">
                         {post.category}
                       </span>
                     </div>
                   </div>
                   
                   <div className="flex-1 flex flex-col">
-                    <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-widest text-ink-mute mb-4">
+                    <div className="flex items-center gap-3 text-[10px] font-mono uppercase tracking-widest text-ink-mute mb-3">
                       <span>{new Date(post.publishedAt || new Date()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
                       <span className="w-1 h-1 rounded-full bg-line" />
                       <span>{post.readTimeMinutes} Min Read</span>
                     </div>
                     
-                    <h3 className="font-serif text-2xl text-ink leading-tight mb-4 group-hover:text-gold transition-colors line-clamp-3">
+                    <h3 className="font-serif text-2xl text-ink leading-tight mb-3 group-hover:text-gold transition-colors line-clamp-3">
                       {post.title}
                     </h3>
                     
-                    <p className="font-sans text-ink-soft text-sm leading-relaxed mb-6 line-clamp-3 flex-1">
+                    <p className="font-sans text-ink-soft text-sm leading-relaxed mb-5 line-clamp-3 flex-1">
                       {post.excerpt}
                     </p>
                     
-                    <div className="mt-auto flex items-center gap-3 text-gold font-mono text-xs uppercase tracking-widest">
+                    <div className="mt-auto flex items-center gap-2.5 text-gold font-mono text-xs uppercase tracking-widest group-hover:text-[#183628] transition-colors">
                       <span>Read Story</span>
-                      <span className="w-6 h-[1px] bg-gold group-hover:w-10 transition-all" />
+                      <span className="w-6 h-[1px] bg-current group-hover:w-10 transition-all duration-300" />
                     </div>
                   </div>
                 </Link>
@@ -341,6 +345,7 @@ export default function Journal() {
           )}
         </div>
       </section>
+      </div>
     </Layout>
   );
 }

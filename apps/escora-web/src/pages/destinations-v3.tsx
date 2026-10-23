@@ -172,7 +172,6 @@ export default function DestinationsV3() {
               <div className="dest-cta-content">
                 <div className="dest-cta-eyebrow">
                   <span>READY TO EXPLORE</span>
-                  <span className="dest-cta-eyebrow-line" />
                 </div>
                 <h2 className="dest-cta-title">
                   Every place, woven into<br />

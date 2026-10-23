@@ -277,6 +277,19 @@ const DESKTOP_SLOTS: SlotDef[] = [
   { slotName: "top-center", x: 0, y: -160, rotate: 0, scale: 0.88, zIndex: 4, isCenter: false, row: "top", col: "center" },
 ];
 
+const REVEAL_DELAYS_BY_SLOT: Record<string, string> = {
+  center: "0.08s",
+  "top-right": "0.38s",
+  "top-left": "0.46s",
+  "bottom-right": "0.54s",
+  "bottom-left": "0.62s",
+  "top-center": "0.70s",
+  "bottom-center": "0.78s",
+  "mobile-center": "0.08s",
+  "mobile-right": "0.40s",
+  "mobile-left": "0.50s",
+};
+
 const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestinationExplorerProps>(
   ({ id = "explore-kerala", destinations }, ref) => {
     const [activeIdx, setActiveIdx] = useState(0);
@@ -295,6 +308,10 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
     const handleOpen360 = useCallback((destItem: DestinationItem) => {
       setActive360Dest(destItem);
     }, []);
+
+    const [isCardsRevealed, setIsCardsRevealed] = useState(true);
+    const [isEntranceAnimating, setIsEntranceAnimating] = useState(false);
+    const entranceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const stageRef = useRef<HTMLDivElement>(null);
     const sectionInternalRef = useRef<HTMLElement | null>(null);
@@ -323,10 +340,47 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
       return () => window.removeEventListener("resize", checkMobile);
     }, []);
 
-    // IntersectionObserver to only auto-animate when section is in viewport
+    // IntersectionObserver & Pinned Slide Observer to trigger card reveal entrance
     useEffect(() => {
-      const el = sectionInternalRef.current;
-      if (!el || typeof IntersectionObserver === "undefined") {
+      const stageEl = stageRef.current;
+      if (!stageEl) return;
+
+      const pinnedSlide = stageEl.closest(".pinned-journey-slide");
+      if (pinnedSlide) {
+        const updateState = () => {
+          const isActive =
+            pinnedSlide.classList.contains("is-active") ||
+            pinnedSlide.classList.contains("is-initial-active") ||
+            (pinnedSlide as HTMLElement).style.visibility === "visible";
+          if (isActive) {
+            setIsCardsRevealed(true);
+            setIsEntranceAnimating(true);
+            setIsInView(true);
+            if (entranceTimerRef.current) clearTimeout(entranceTimerRef.current);
+            entranceTimerRef.current = setTimeout(() => {
+              setIsEntranceAnimating(false);
+            }, 1850);
+          } else {
+            setIsCardsRevealed(false);
+            setIsEntranceAnimating(false);
+            setIsInView(false);
+            if (entranceTimerRef.current) clearTimeout(entranceTimerRef.current);
+          }
+        };
+
+        updateState();
+
+        const observer = new MutationObserver(updateState);
+        observer.observe(pinnedSlide, { attributes: true, attributeFilter: ["class", "style"] });
+
+        return () => {
+          observer.disconnect();
+          if (entranceTimerRef.current) clearTimeout(entranceTimerRef.current);
+        };
+      }
+
+      if (typeof IntersectionObserver === "undefined") {
+        setIsCardsRevealed(true);
         setIsInView(true);
         return;
       }
@@ -334,12 +388,51 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
       const observer = new IntersectionObserver(
         ([entry]) => {
           setIsInView(entry.isIntersecting);
+
+          if (entry.isIntersecting) {
+            setIsCardsRevealed((prev) => {
+              if (!prev) {
+                setIsEntranceAnimating(true);
+                if (entranceTimerRef.current) clearTimeout(entranceTimerRef.current);
+                entranceTimerRef.current = setTimeout(() => {
+                  setIsEntranceAnimating(false);
+                }, 1850);
+                return true;
+              }
+              return prev;
+            });
+          } else {
+            const rect = entry.boundingClientRect;
+            if (rect.top > window.innerHeight || rect.bottom < 0) {
+              setIsCardsRevealed(false);
+              setIsEntranceAnimating(false);
+              if (entranceTimerRef.current) clearTimeout(entranceTimerRef.current);
+            }
+          }
         },
-        { threshold: 0.12 }
+        { rootMargin: "0px 0px -10% 0px", threshold: 0 }
       );
 
-      observer.observe(el);
-      return () => observer.disconnect();
+      observer.observe(stageEl);
+
+      // Check if cards stage component is already in viewport on mount (only if user is already scrolled down)
+      if (typeof window !== "undefined" && window.scrollY > 200) {
+        const rect = stageEl.getBoundingClientRect();
+        if (rect.top >= 0 && rect.top < window.innerHeight * 0.85 && rect.bottom > window.innerHeight * 0.15) {
+          setIsCardsRevealed(true);
+          setIsEntranceAnimating(true);
+          setIsInView(true);
+          if (entranceTimerRef.current) clearTimeout(entranceTimerRef.current);
+          entranceTimerRef.current = setTimeout(() => {
+            setIsEntranceAnimating(false);
+          }, 1850);
+        }
+      }
+
+      return () => {
+        observer.disconnect();
+        if (entranceTimerRef.current) clearTimeout(entranceTimerRef.current);
+      };
     }, []);
 
     // Tab visibility handling: pause timer when browser tab is inactive
@@ -435,14 +528,17 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
 
     // Navigation callbacks
     const handleNext = useCallback(() => {
+      setIsEntranceAnimating(false);
       setActiveIdx((prev) => (prev + 1) % total);
     }, [total]);
 
     const handlePrev = useCallback(() => {
+      setIsEntranceAnimating(false);
       setActiveIdx((prev) => (prev - 1 + total) % total);
     }, [total]);
 
     const handleSelectCard = useCallback((index: number) => {
+      setIsEntranceAnimating(false);
       setActiveIdx(index);
     }, []);
 
@@ -522,10 +618,9 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
           <div className="kerala-3d-editorial-head">
             <div className="kerala-3d-head-left">
               <div className="kerala-3d-eyebrow">
-                <span className="dot" />
                 EXPLORE KERALA
               </div>
-              <h2 className="kerala-3d-title">
+              <h2 className="kerala-3d-title" data-pinned-reveal>
                 Stories, <span className="accent-gold">waiting for yours.</span>
               </h2>
             </div>
@@ -536,7 +631,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
               ══════════════════════════════════════════════════════════════ */}
           <div className="kerala-3d-stage">
             {/* ── Left Column: 3D Kerala Relief Map ── */}
-            <div className="kerala-3d-left-col">
+            <div className="kerala-3d-left-col" data-pinned-reveal>
               <div className="kerala-3d-map-wrap" aria-label="3D Kerala Relief Model">
                 <Kerala3DMapCanvas
                   selectedDistrict={selectedDistrict}
@@ -549,6 +644,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
             {/* ── Right Column: 7-Card Arch Showcase Stage ── */}
             <div
               ref={stageRef}
+              data-pinned-reveal
               className={`kerala-arch-stage-container ${isMobile ? "is-mobile-view" : ""}`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -577,7 +673,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
             </button>
 
             {/* Stage Cards Plane */}
-            <div className="kerala-arch-stage">
+            <div className={`kerala-arch-stage ${isCardsRevealed ? "stage-revealed" : "stage-not-revealed"} ${isEntranceAnimating ? "is-entrance-animating" : ""}`}>
               {items.map((item, idx) => {
                 // Calculate circular offset from activeIdx
                 const diff = ((idx - activeIdx) % total + total) % total;
@@ -634,6 +730,7 @@ const Kerala3DDestinationExplorer = React.forwardRef<HTMLElement, Kerala3DDestin
                         "--rot": `${slot.rotate}deg`,
                         "--scale": slot.scale,
                         "--zIndex": slot.zIndex,
+                        "--reveal-delay": REVEAL_DELAYS_BY_SLOT[slot.slotName] || "0.45s",
                         zIndex: slot.zIndex,
                       } as React.CSSProperties
                     }

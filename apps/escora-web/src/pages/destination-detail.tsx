@@ -140,7 +140,7 @@ export default function DestinationDetail() {
       <section className="page-section bg-bg">
         <div className="container mx-auto px-6 md:px-12">
           <div className="max-w-3xl mx-auto">
-            <p className="section-label mb-4 text-center"><span className="dot" />Overview</p>
+            <p className="section-label mb-4 text-center">Overview</p>
             <p className="font-sans text-ink-soft text-lg leading-relaxed text-center">
               {dest.description || dest.shortDesc}
             </p>
@@ -151,7 +151,7 @@ export default function DestinationDetail() {
               <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
                 <div>
                   <p className="section-label mb-2">
-                    <span className="dot" />{isMultiStop ? "Sample Multi-Destination Itinerary" : "Sample Itinerary"}
+                    {isMultiStop ? "Sample Multi-Destination Itinerary" : "Sample Itinerary"}
                   </p>
                   <h3 className="font-serif text-xl sm:text-2xl md:text-3xl text-ink">{itineraryTemplate.title}</h3>
                   {isMultiStop && itineraryMatch && (
@@ -224,7 +224,7 @@ export default function DestinationDetail() {
         <section className="page-section bg-bg-2 border-y border-line">
           <div className="container mx-auto px-6 md:px-12">
             <div className="max-w-4xl mx-auto">
-              <p className="section-label mb-3"><span className="dot" />Things to Do</p>
+              <p className="section-label mb-3">Things to Do</p>
               <h2 className="font-serif text-4xl md:text-5xl text-ink font-light mb-12">
                 {dest.name} <em className="italic">Highlights</em>
               </h2>
@@ -246,7 +246,7 @@ export default function DestinationDetail() {
         <section className="page-section-sm bg-bg">
           <div className="container mx-auto px-6 md:px-12">
             <div className="max-w-3xl mx-auto border border-line rounded p-8 md:p-10">
-              <p className="section-label mb-4"><span className="dot" />How to Reach</p>
+              <p className="section-label mb-4">How to Reach</p>
               <p className="font-sans text-ink-soft leading-relaxed">{howToReach}</p>
             </div>
           </div>
@@ -257,7 +257,7 @@ export default function DestinationDetail() {
       {otherDestinations.length > 0 && (
         <section className="page-section bg-bg-2 border-t border-line">
           <div className="container mx-auto px-6 md:px-12">
-            <p className="section-label mb-3"><span className="dot" />Keep Exploring</p>
+            <p className="section-label mb-3">Keep Exploring</p>
             <h2 className="font-serif text-4xl md:text-5xl text-ink font-light mb-12">
               More of <em className="italic">Kerala</em>
             </h2>
@@ -287,7 +287,7 @@ export default function DestinationDetail() {
       {/* CTA */}
       <section className="page-section bg-bg border-t border-line">
         <div className="container mx-auto px-6 md:px-12 text-center">
-          <p className="section-label mb-4"><span className="dot" />Ready to begin?</p>
+          <p className="section-label mb-4">Ready to begin?</p>
           <h2 className="font-serif text-4xl md:text-5xl text-ink font-light mb-6 max-w-2xl mx-auto">
             Let us compose your<br /><em className="italic">{dest.name}</em> journey
           </h2>

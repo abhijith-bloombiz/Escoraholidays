@@ -68,11 +68,10 @@ export default function About() {
               {/* Right: Philosophy heading and text */}
               <div className="lg:col-span-6 reveal-up relative">
                 <div className="max-w-xl">
-                  <div className="flex items-center gap-3 mb-5">
-                    <p className="font-mono text-[#8C7355] text-xs tracking-[0.25em] uppercase font-medium">
+                  <div className="mb-5">
+                    <p className="section-label">
                       Philosophy
                     </p>
-                    <span className="w-10 h-[1px] bg-[#8C7355]/50 inline-block" />
                   </div>
                   <h2
                     className="font-editorial text-2xl sm:text-4xl lg:text-[42px] text-[#183628] font-normal leading-[1.18] mb-6"
@@ -106,11 +105,10 @@ export default function About() {
         {/* 3. Brand Values Section ("What guides us") */}
         <section className="bg-[#EFF4F0] border-y border-[#DCE5DF] py-16 sm:py-20 relative overflow-hidden">
           <div className="container mx-auto px-6 sm:px-8 max-w-6xl">
-            <div className="flex items-center gap-3 mb-12">
-              <p className="font-mono text-[#8C7355] text-xs tracking-[0.25em] uppercase font-medium">
+            <div className="mb-12">
+              <p className="section-label">
                 What guides us
               </p>
-              <span className="w-10 h-[1px] bg-[#8C7355]/50 inline-block" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-[#D2DCD5]">
@@ -164,11 +162,10 @@ export default function About() {
           <div className="container mx-auto px-6 sm:px-8 max-w-6xl">
             {/* Eyebrow & Headline */}
             <div className="reveal-up mb-10 sm:mb-12">
-              <div className="flex items-center gap-3 mb-5">
-                <p className="font-mono text-[#8C7355] text-xs tracking-[0.25em] uppercase font-medium">
+              <div className="mb-5">
+                <p className="section-label">
                   The people behind the journeys
                 </p>
-                <span className="w-10 h-[1px] bg-[#8C7355]/50 inline-block" />
               </div>
               <h2
                 className="font-editorial text-4xl sm:text-5xl lg:text-[62px] text-[#293D1F] font-normal leading-[1.08] tracking-tight"

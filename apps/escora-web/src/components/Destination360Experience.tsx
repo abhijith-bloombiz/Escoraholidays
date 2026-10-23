@@ -516,7 +516,6 @@ export default function Destination360Experience({ destinations }: Destination36
             <div className="dest-360-editorial-block">
               {/* Eyebrow Label matching The Escora Way standard */}
               <div className="dest-360-eyebrow">
-                <span className="dot" />
                 <span>360° DESTINATION EXPERIENCE</span>
               </div>
 

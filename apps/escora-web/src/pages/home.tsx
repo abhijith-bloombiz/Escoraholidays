@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { Link } from "wouter";
 import {
   useListPackages,
@@ -21,6 +21,7 @@ import typeAyurveda from "@assets/escora/collections/panchakarma.jpg";
 import typeMedicine from "@assets/escora/collections/medical-tourism.jpeg";
 import { KERALA_DESTINATIONS, DESTINATION_BADGES } from "@/lib/keralaDestinations";
 import EscoraContactCard from "@/components/EscoraContactCard";
+import PinnedJourneyExperience from "@/components/PinnedJourneyExperience";
 import "./home-v2.css";
 
 const FALLBACK_PACKAGES = [
@@ -310,6 +311,7 @@ const ESCORA_RETREAT_CARDS = [
 
 const TESTIMONIALS = [
   {
+    id: 1,
     cat: "Honeymoon · Mar 2025",
     quote: '"They moved a sunset for us. Or it felt that way. A boat appeared on a backwater I\'d been told didn\'t exist — and a chef I\'d long admired was on it."',
     av: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80",
@@ -321,6 +323,7 @@ const TESTIMONIALS = [
     delay: "",
   },
   {
+    id: 2,
     cat: "Family · Dec 2024",
     quote: '"Our family of seven, ages 6 to 78. The itinerary anticipated every single one of us."',
     av: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80",
@@ -332,6 +335,7 @@ const TESTIMONIALS = [
     delay: "d1",
   },
   {
+    id: 3,
     cat: "Wellness · Oct 2024",
     quote: '"Escora did not arrange a holiday — they arranged a <em>recovery</em>."',
     av: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
@@ -396,16 +400,127 @@ export default function Home() {
   const packagesRef = useRef<HTMLElement>(null);
   const exploreSectionRef = useRef<HTMLElement>(null);
 
+  const retreatSectionRef = useRef<HTMLElement>(null);
+  const retreatSplitRef = useRef<HTMLDivElement>(null);
+  const retreatCollageRef = useRef<HTMLDivElement>(null);
+  const retreatItemsRef = useRef<HTMLDivElement>(null);
+  const testimonialsRef = useRef<HTMLElement>(null);
   const [activeRetreatCard, setActiveRetreatCard] = useState<number>(0);
   const [isRetreatPaused, setIsRetreatPaused] = useState<boolean>(false);
+  const [isRetreatInView, setIsRetreatInView] = useState<boolean>(true);
+  const [isTestimonialsInView, setIsTestimonialsInView] = useState<boolean>(true);
+
+  // Recalculate exact slot offsets so other cards glide directly from behind hero card
+  const updateRetreatSlotOffsets = useCallback(() => {
+    const wrapper = retreatCollageRef.current;
+    if (!wrapper) return;
+    const heroCard = wrapper.querySelector<HTMLElement>(".retreat-card-slot-0");
+    if (!heroCard) return;
+
+    const heroCx = heroCard.offsetLeft + heroCard.offsetWidth / 2;
+    const heroCy = heroCard.offsetTop + heroCard.offsetHeight / 2;
+
+    [1, 2, 3].forEach((slotNum) => {
+      const card = wrapper.querySelector<HTMLElement>(`.retreat-card-slot-${slotNum}`);
+      if (!card) return;
+      const cardCx = card.offsetLeft + card.offsetWidth / 2;
+      const cardCy = card.offsetTop + card.offsetHeight / 2;
+      const dx = heroCx - cardCx;
+      const dy = heroCy - cardCy;
+      wrapper.style.setProperty(`--slot${slotNum}-dx`, `${Math.round(dx)}px`);
+      wrapper.style.setProperty(`--slot${slotNum}-dy`, `${Math.round(dy)}px`);
+    });
+  }, []);
+
+  // Unified scroll & pinned slide observer for Escora Retreat split layout (services list + circular collage)
+  // Triggers smoothly when the retreat component enters the viewport or becomes active in the pinned journey
+  useEffect(() => {
+    const target = retreatSplitRef.current || retreatCollageRef.current;
+    if (!target) return;
+
+    const pinnedSlide = target.closest(".pinned-journey-slide");
+    if (pinnedSlide) {
+      const updateState = () => {
+        const isActive =
+          pinnedSlide.classList.contains("is-active") ||
+          pinnedSlide.classList.contains("is-initial-active") ||
+          (pinnedSlide as HTMLElement).style.visibility === "visible";
+        setIsRetreatInView(isActive);
+        if (isActive) {
+          updateRetreatSlotOffsets();
+        }
+      };
+
+      updateState();
+
+      const observer = new MutationObserver(updateState);
+      observer.observe(pinnedSlide, { attributes: true, attributeFilter: ["class", "style"] });
+
+      return () => observer.disconnect();
+    }
+
+    if (typeof IntersectionObserver === "undefined") {
+      setIsRetreatInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsRetreatInView(true);
+          updateRetreatSlotOffsets();
+        } else {
+          const rect = entry.boundingClientRect;
+          if (rect.top > window.innerHeight || rect.bottom < 0) {
+            setIsRetreatInView(false);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0 }
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [updateRetreatSlotOffsets]);
+
+  // Observer for Testimonials Section: pauses auto-advance timer when offscreen to optimize home page performance
+  useEffect(() => {
+    const el = testimonialsRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setIsTestimonialsInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const inView =
+          entry.isIntersecting &&
+          entry.boundingClientRect.top < window.innerHeight * 0.92 &&
+          entry.boundingClientRect.bottom > window.innerHeight * 0.08;
+
+        setIsTestimonialsInView(inView);
+      },
+      { threshold: [0, 0.1, 0.25] }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    if (isRetreatPaused) return;
+    updateRetreatSlotOffsets();
+    window.addEventListener("resize", updateRetreatSlotOffsets, { passive: true });
+    return () => window.removeEventListener("resize", updateRetreatSlotOffsets);
+  }, [updateRetreatSlotOffsets]);
+
+  // Auto-advance retreat card only while the collage component itself is in viewport and not paused
+  useEffect(() => {
+    if (isRetreatPaused || !isRetreatInView) return;
     const retreatTimer = setInterval(() => {
       setActiveRetreatCard((prev) => (prev + 1) % ESCORA_RETREAT_CARDS.length);
     }, 5000);
     return () => clearInterval(retreatTimer);
-  }, [isRetreatPaused]);
+  }, [isRetreatPaused, isRetreatInView]);
 
   const handleSelectRetreatCard = (i: number) => {
     setActiveRetreatCard(i);
@@ -448,7 +563,7 @@ export default function Home() {
   } = useListTestimonials({ published: true });
 
   const travelTypeItems: TravelTypeItem[] = useMemo(() => {
-    if (!categoriesData) return [];
+    if (!categoriesData || categoriesData.length === 0) return TRAVEL_TYPE_ITEMS;
     return categoriesData.map((c) => ({
       id: c.slug,
       label: c.label,
@@ -463,7 +578,8 @@ export default function Home() {
   }, [categoriesData]);
 
   const testimonials = useMemo(() => {
-    return (testimonialsData || []).map((t) => ({
+    if (!testimonialsData || testimonialsData.length === 0) return TESTIMONIALS;
+    return testimonialsData.map((t) => ({
       id: t.id,
       name: t.name,
       quote: t.quote,
@@ -478,12 +594,12 @@ export default function Home() {
 
   useEffect(() => {
     if (testimonials.length <= 1) return;
-    if (isTestimonialHovered) return;
+    if (isTestimonialHovered || !isTestimonialsInView) return;
     const timer = setInterval(() => {
       setActiveTestimonialIdx((prev) => (prev + 1) % testimonials.length);
     }, 5500);
     return () => clearInterval(timer);
-  }, [isTestimonialHovered, testimonials.length]);
+  }, [isTestimonialHovered, isTestimonialsInView, testimonials.length]);
 
   useEffect(() => {
     if (testimonials.length > 0 && activeTestimonialIdx >= testimonials.length) {
@@ -599,53 +715,15 @@ export default function Home() {
       {/* ═══════════════════════ TROPICAL LAGOON HERO ═══════════════════════ */}
       <TropicalLagoonHero />
 
-      {/* ═══════════════════════ TRAVEL BY TYPE ═══════════════════════ */}
-      <section
-        className="cat-section"
-        id="categories"
-        ref={categoriesRef}
-      >
-        <div className="wrap">
-          <div className="cat-section-head">
-            <div className="cat-section-head-left">
-              <div className="eyebrow rv"><span className="dot" />Travel by Type</div>
-              <h2 className="display-md rv d2" style={{ maxWidth: "20ch" }}>
-                {travelTypeItems.length > 0
-                  ? `${travelTypeItems.length === 8 ? "Eight" : travelTypeItems.length} ways to discover `
-                  : "Discover "}
-                <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kerala</em>.
-              </h2>
-            </div>
-            <div className="cat-section-head-right">
-              <p className="rv d3" style={{ maxWidth: "44ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
-                Choose your travel personality — we'll compose a journey from scratch, entirely around you.
-              </p>
-            </div>
-          </div>
-
-          <TravelTypeCoverflow
-            items={travelTypeItems}
-            isLoading={isCategoriesLoading}
-            isError={isCategoriesError}
-            onRetry={refetchCategories}
-          />
-        </div>
-      </section>
-
-      {/* ═══════════════════════ 3D DESTINATION EXPLORER ═══════════════════════ */}
-      <Kerala3DDestinationExplorer
-        ref={exploreSectionRef}
-        id="explore-kerala"
-        destinations={destinationsData}
-      />
-
-      {/* ═══════════════════════ WHY ESCORA — LUXURY EDITORIAL ═══════════════════════ */}
-      <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
+      {/* ═══════════════════════ SCROLL-TRIGGERED PINNED JOURNEY EXPERIENCE ═══════════════════════ */}
+      <PinnedJourneyExperience>
+        {/* ── Slide 0: WHY ESCORA ── */}
+        <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
         <div className="why-esc-inner">
           {/* ── Left panel: editorial copy ── */}
           <div className="why-esc-left">
             <div className="why-esc-eyebrow rv">
-              <span className="dot" />WHY ESCORA
+              WHY ESCORA
             </div>
             <h2 className="why-esc-heading rv d1">
               Why the world's discerning travellers{" "}
@@ -735,7 +813,7 @@ export default function Home() {
                 desc: "Nothing is pre-packaged. Your dates, your pace, your companions, your interests — built from a blank canvas.",
               },
             ].map((item, i) => (
-              <div key={i} className={`why-esc-card rv${i > 0 ? ` d${Math.min(i, 3)}` : ""}`}>
+              <div key={i} className={`why-esc-card rv${i > 0 ? ` d${Math.min(i, 3)}` : ""}`} data-pinned-reveal>
                 <span className="why-esc-card-icon" aria-hidden="true">{item.icon}</span>
                 <h4 className="why-esc-card-title">{item.title}</h4>
                 <p className="why-esc-card-desc">{item.desc}</p>
@@ -745,34 +823,53 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why Escora video modal */}
-      {whyVideoOpen && (
-        <div
-          className="why-esc-modal"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Escora Kerala Story Video"
-          onClick={() => setWhyVideoOpen(false)}
-        >
-          <div className="why-esc-modal-frame" onClick={(e) => e.stopPropagation()}>
-            <video src="/BGVideo.mp4" poster="/hero-poster.jpg" controls autoPlay playsInline />
-            <button
-              type="button"
-              className="why-esc-modal-close"
-              onClick={() => setWhyVideoOpen(false)}
-              aria-label="Close video"
-            >
-              ×
-            </button>
+      {/* ── Slide 1: TRAVEL BY TYPE ── */}
+      <section
+        className="cat-section"
+        id="categories"
+        ref={categoriesRef}
+      >
+        <div className="wrap">
+          <div className="cat-section-head">
+            <div className="cat-section-head-left">
+              <div className="eyebrow rv" data-pinned-reveal><span className="dot" />Travel by Type</div>
+              <h2 className="display-md rv d2" data-pinned-reveal style={{ maxWidth: "20ch" }}>
+                {travelTypeItems.length > 0
+                  ? `${travelTypeItems.length === 8 ? "Eight" : travelTypeItems.length} ways to discover `
+                  : "Discover "}
+                Kerala.
+              </h2>
+            </div>
+            <div className="cat-section-head-right">
+              <p className="rv d3" data-pinned-reveal style={{ maxWidth: "44ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
+                Choose your travel personality — we'll compose a journey from scratch, entirely around you.
+              </p>
+            </div>
+          </div>
+
+          <div data-pinned-reveal>
+            <TravelTypeCoverflow
+              items={travelTypeItems}
+              isLoading={isCategoriesLoading && travelTypeItems.length === 0}
+              isError={isCategoriesError && travelTypeItems.length === 0}
+              onRetry={refetchCategories}
+            />
           </div>
         </div>
-      )}
+      </section>
+
+      {/* ═══════════════════════ 3D DESTINATION EXPLORER ═══════════════════════ */}
+      <Kerala3DDestinationExplorer
+        ref={exploreSectionRef}
+        id="explore-kerala"
+        destinations={destinationsData}
+      />
 
       {/* ════════════════════ FROM YOUR IDEA TO KERALA ════════════════════ */}
       <FromYourIdeaToKerala />
 
       {/* ═══════════════════════ ESCORA RETREAT ════════════════════════════ */}
-      <section className="escora-retreat-section" id="retreat" aria-label="Escora Retreat">
+      <section ref={retreatSectionRef} className="escora-retreat-section" id="retreat" aria-label="Escora Retreat">
         <div className="retreat-leaf-shadow-tr" aria-hidden="true" />
         <div className="retreat-leaf-shadow-bl" aria-hidden="true" />
 
@@ -781,27 +878,27 @@ export default function Home() {
           <div className="retreat-header-row">
             <div className="retreat-header-left">
               <div className="retreat-eyebrow rv">
-                <span className="dot" />
                 ESCORA RETREAT
               </div>
-              <h2 className="retreat-title rv d1">
+              <h2 className="retreat-title rv d1" data-pinned-reveal>
                 Healing, the <em>Kerala</em> way.
               </h2>
             </div>
             <div className="retreat-header-right">
-              <p className="retreat-lede rv d2">
+              <p className="retreat-lede rv d2" data-pinned-reveal>
                 Set on the quiet shore of Vembanad Lake — our NABH-accredited wellness home, where physicians, yogis and kalari masters work as one. Every programme is composed for you alone.
               </p>
             </div>
           </div>
 
-          <div className="retreat-split-layout">
+          <div ref={retreatSplitRef} data-pinned-reveal className={`retreat-split-layout${isRetreatInView ? " is-in-view" : ""}`}>
             {/* Left Column: Numbered Services List */}
             <div className="retreat-left-col">
 
               {/* Numbered Retreat Items List */}
               <div
-                className="retreat-items-list"
+                ref={retreatItemsRef}
+                className={`retreat-items-list${isRetreatInView ? " is-in-view" : ""}`}
                 role="tablist"
                 aria-label="Escora Retreat Offerings"
                 onMouseEnter={() => setIsRetreatPaused(true)}
@@ -878,7 +975,7 @@ export default function Home() {
               onMouseEnter={() => setIsRetreatPaused(true)}
               onMouseLeave={() => setIsRetreatPaused(false)}
             >
-              <div className="retreat-collage-wrapper">
+              <div ref={retreatCollageRef} className={`retreat-collage-wrapper${isRetreatInView ? " is-in-view" : ""}`}>
                 {ESCORA_RETREAT_CARDS.map((card, i) => {
                   const slot = (i - activeRetreatCard + ESCORA_RETREAT_CARDS.length) % ESCORA_RETREAT_CARDS.length;
                   const isHero = slot === 0;
@@ -899,6 +996,7 @@ export default function Home() {
                         alt={card.alt}
                         className="retreat-circle-card-img"
                         loading="lazy"
+                        decoding="async"
                       />
                       <div className="retreat-circle-card-content">
                         <span className="retreat-circle-card-title">
@@ -916,6 +1014,7 @@ export default function Home() {
 
       {/* ════════════════════════ TRAVELLER TESTIMONIALS CAROUSEL ════════════════════════ */}
       <section
+        ref={testimonialsRef}
         className="testi-carousel-section"
         id="testimonials"
         aria-label="Traveller Stories"
@@ -942,20 +1041,18 @@ export default function Home() {
 
         <div className="testi-carousel-header">
           <div className="testi-eyebrow rv">
-            <span className="testi-eyebrow-line" />
             <span>TRAVELLERS SAY IT BETTER</span>
-            <span className="testi-eyebrow-line" />
           </div>
-          <h2 className="testi-title rv d1">
+          <h2 className="testi-title rv d1" data-pinned-reveal>
             Real Stories. <em>Lasting Memories.</em>
           </h2>
-          <p className="testi-subtitle rv d2">
+          <p className="testi-subtitle rv d2" data-pinned-reveal>
             Travellers from around the world share their unforgettable experiences with Escora.
           </p>
         </div>
 
         <div className="testi-carousel-wrapper">
-          {isTestimonialsLoading ? (
+          {isTestimonialsLoading && testimonials.length === 0 ? (
             <div className="flex items-center justify-center py-24 text-center">
               <div className="flex flex-col items-center gap-3">
                 <div className="w-10 h-10 border-2 border-[#c59a58]/30 border-t-[#c59a58] rounded-full animate-spin" />
@@ -964,7 +1061,7 @@ export default function Home() {
                 </p>
               </div>
             </div>
-          ) : isTestimonialsError ? (
+          ) : isTestimonialsError && testimonials.length === 0 ? (
             <div className="flex items-center justify-center py-20 text-center">
               <div className="flex flex-col items-center gap-3 max-w-sm px-4">
                 <p className="text-xs font-mono uppercase tracking-[0.2em] text-red-400">
@@ -991,7 +1088,7 @@ export default function Home() {
           ) : (
             <>
               <div className="testi-carousel-stage">
-                {testimonials.map((t, i) => {
+                {testimonials.map((t: any, i: number) => {
                   const N = testimonials.length;
                   let diff = i - activeTestimonialIdx;
                   if (diff > N / 2) diff -= N;
@@ -1038,6 +1135,7 @@ export default function Home() {
                             alt={t.photoAlt}
                             className="testi-card-photo"
                             loading="lazy"
+                            decoding="async"
                           />
                         </div>
 
@@ -1104,7 +1202,7 @@ export default function Home() {
               {/* Bottom pagination indicator pills */}
               {testimonials.length > 1 && (
                 <div className="testi-indicators" role="tablist" aria-label="Testimonial indicators">
-                  {testimonials.map((t, idx) => (
+                  {testimonials.map((t: any, idx: number) => (
                     <button
                       key={t.id || idx}
                       type="button"
@@ -1121,9 +1219,32 @@ export default function Home() {
           )}
         </div>
       </section>
-      {/* ═══════════════════════ UNIFIED LUXURY ENQUIRY & CONTACT CARD ═══════════════════════ */}
+      {/* ── Slide 6: UNIFIED LUXURY ENQUIRY & CONTACT CARD ── */}
       <EscoraContactCard id="contact" />
+    </PinnedJourneyExperience>
 
-    </Layout>
+    {/* Why Escora video modal */}
+    {whyVideoOpen && (
+      <div
+        className="why-esc-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Escora Kerala Story Video"
+        onClick={() => setWhyVideoOpen(false)}
+      >
+        <div className="why-esc-modal-frame" onClick={(e) => e.stopPropagation()}>
+          <video src="/BGVideo.mp4" poster="/hero-poster.jpg" controls autoPlay playsInline />
+          <button
+            type="button"
+            className="why-esc-modal-close"
+            onClick={() => setWhyVideoOpen(false)}
+            aria-label="Close video"
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    )}
+  </Layout>
   );
 }

@@ -53,15 +53,15 @@ function getContactStatusBadge(recipient: {
   const isEligible = typeof recipient.isEligible === "boolean" ? recipient.isEligible : Boolean(isSub && !isSupp && !isUnsub);
 
   if (isSupp) {
-    return { label: "Excluded · Suppressed", variant: "red", isEligible: false };
+    return { label: "Ineligible · Suppressed", variant: "red", isEligible: false };
   }
   if (isUnsub) {
-    return { label: "Excluded · Unsubscribed", variant: "amber", isEligible: false };
+    return { label: "Ineligible · Unsubscribed", variant: "amber", isEligible: false };
   }
   if (isEligible) {
     return { label: "Eligible · Subscribed", variant: "emerald", isEligible: true };
   }
-  return { label: "Excluded · Not Subscribed", variant: "slate", isEligible: false };
+  return { label: "Ineligible · Missing Consent", variant: "slate", isEligible: false };
 }
 
 async function run() {
@@ -85,26 +85,26 @@ async function run() {
     console.log("--- 1. AUDIT: ALL CONTACTS (ENQUIRIES + BOOKINGS + SUBSCRIBERS) ---");
     const allRes = await resolveAudience({ type: "all_contacts" });
 
-    // 1. Total Selected must equal 68
+    // 1. Total Selected must equal 86
     report(
-      "1.1 All Contacts Total Selected matches database count (68)",
-      allRes.totalSelected === 68,
+      `1.1 All Contacts Total Selected matches database count (${allRes.totalSelected})`,
+      allRes.totalSelected === 86,
       `totalSelected: ${allRes.totalSelected}`
     );
 
-    // 2. Count reconciliation: Subscribed (21) + Not Subscribed (37) + Unsubscribed (10) + Suppressed (0) === 68
+    // 2. Count reconciliation: Subscribed (21) + Not Subscribed (45) + Unsubscribed (13) + Suppressed (7) === 86
     const sumAll =
       allRes.subscribedCount +
       allRes.notSubscribedCount +
       allRes.unsubscribedCount +
       allRes.suppressedCount;
     report(
-      "1.2 Mutually exclusive categories reconcile to Total Selected (21 + 37 + 10 + 0 = 68)",
+      `1.2 Mutually exclusive categories reconcile to Total Selected (${allRes.subscribedCount} + ${allRes.notSubscribedCount} + ${allRes.unsubscribedCount} + ${allRes.suppressedCount} = ${allRes.totalSelected})`,
       sumAll === allRes.totalSelected &&
         allRes.subscribedCount === 21 &&
-        allRes.notSubscribedCount === 37 &&
-        allRes.unsubscribedCount === 10 &&
-        allRes.suppressedCount === 0,
+        allRes.notSubscribedCount === 45 &&
+        allRes.unsubscribedCount === 13 &&
+        allRes.suppressedCount === 7,
       `Subscribed: ${allRes.subscribedCount}, NotSub: ${allRes.notSubscribedCount}, Unsub: ${allRes.unsubscribedCount}, Supp: ${allRes.suppressedCount}, Sum: ${sumAll}`
     );
 
@@ -134,8 +134,8 @@ async function run() {
 
     const arunBadge = getContactStatusBadge(arun);
     report(
-      "1.7 Arun is labelled 'Excluded · Not Subscribed' and counted in Not Subscribed (37)",
-      arunBadge.label === "Excluded · Not Subscribed" && arunBadge.variant === "slate",
+      `1.7 Arun is labelled 'Ineligible · Missing Consent' and counted in Not Subscribed (${allRes.notSubscribedCount})`,
+      arunBadge.label === "Ineligible · Missing Consent" && arunBadge.variant === "slate",
       `Badge: "${arunBadge.label}", Summary Not Subscribed: ${allRes.notSubscribedCount}`
     );
 

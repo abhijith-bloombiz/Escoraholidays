@@ -166,12 +166,10 @@ export default function FromYourIdeaToKerala() {
       aria-label="From your idea to Kerala — How it works"
     >
       {/* ─── Atmospheric Decorative Background Watermarks ─── */}
-      <div className="how-art-leaves-tl" aria-hidden="true" />
-      <div className="how-art-houseboat-br" aria-hidden="true" />
       <div className="how-ambient-glow" aria-hidden="true" />
 
-      <div className="how-container" ref={stageRef}>
-        {/* ─── Header: Eyebrow + Fonarto Title + Right Intro & Pill Button ─── */}
+      <div className="how-container wrap" ref={stageRef}>
+        {/* ─── Header: Eyebrow + Fonarto Title ─── */}
         <header className="how-header">
           <div className="how-header-left" data-pinned-reveal>
             <div className="how-eyebrow">
@@ -182,27 +180,6 @@ export default function FromYourIdeaToKerala() {
             <h2 className="how-title">
               From your idea to Kerala.
             </h2>
-          </div>
-
-          <div className="how-header-right" data-pinned-reveal>
-            <p className="how-intro">
-              Planning an Escora journey is simple, personal and handled<br className="how-intro-br" />
-              thoughtfully every step of the way.
-            </p>
-            <Link href="/plan" className="how-cta-pill-btn" aria-label="Plan your journey">
-              <span className="how-cta-pill-text">PLAN YOUR JOURNEY</span>
-              <span className="how-cta-pill-circle" aria-hidden="true">
-                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                  <path
-                    d="M2.5 7H11.5M11.5 7L7.5 3M11.5 7L7.5 11"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </span>
-            </Link>
           </div>
         </header>
 
@@ -305,16 +282,16 @@ export default function FromYourIdeaToKerala() {
                 {current.desc}
               </p>
 
-              {/* Direct CTA action link */}
+              {/* Direct CTA pill button */}
               <div className="how-showcase-action-row">
-                <Link href={current.ctaLink} className="how-showcase-start-link" aria-label={current.ctaText}>
-                  <span className="how-start-text">{current.ctaText}</span>
-                  <span className="how-showcase-arrow" aria-hidden="true">
-                    <svg width="28" height="12" viewBox="0 0 32 12" fill="none">
+                <Link href={current.ctaLink} className="how-cta-pill-btn" aria-label="Plan your journey">
+                  <span className="how-cta-pill-text">PLAN YOUR JOURNEY</span>
+                  <span className="how-cta-pill-circle" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
                       <path
-                        d="M0 6H30M30 6L24 1M30 6L24 11"
+                        d="M2.5 7H11.5M11.5 7L7.5 3M11.5 7L7.5 11"
                         stroke="currentColor"
-                        strokeWidth="1.8"
+                        strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
@@ -324,7 +301,7 @@ export default function FromYourIdeaToKerala() {
               </div>
             </div>
 
-            {/* Bottom Navigation Arrows & Progress Counter */}
+            {/* Bottom Navigation Arrows */}
             <div className="how-showcase-nav-row">
               <div className="how-showcase-nav-arrows">
                 <button
@@ -343,16 +320,6 @@ export default function FromYourIdeaToKerala() {
                 >
                   <ChevronRight size={16} />
                 </button>
-              </div>
-
-              <div className="how-showcase-counter">
-                <span className="how-counter-text">{current.stepNum} / 06</span>
-                <div className="how-counter-track">
-                  <div
-                    className="how-counter-bar"
-                    style={{ width: `${((activeStep + 1) / STEPS.length) * 100}%` }}
-                  />
-                </div>
               </div>
             </div>
           </div>

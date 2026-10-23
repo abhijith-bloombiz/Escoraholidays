@@ -53,7 +53,7 @@
   height: 100%;
   z-index: 5;
   pointer-events: none;
-  opacity: 0.35;
+  opacity: 0;
   background:
     /* Left-to-right editorial vignette keeping left text area deeply legible */
     linear-gradient(

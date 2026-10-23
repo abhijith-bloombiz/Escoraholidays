@@ -281,45 +281,47 @@
   transition: none !important;
 }
 
-/* ─── Top Category Tag / Badge on Each Card (Matches Reference Image) ─── */
+/* ─── Top Category Tag / Badge on Each Card (Removed per user request) ─── */
 .travel-type-coverflow-wrap .coverflow-card-badge,
-.travel-type-coverflow-wrap .coverflow-card-top-tag {
-  position: absolute;
-  top: clamp(16px, 2.2vh, 24px);
-  left: clamp(16px, 2vw, 24px);
-  z-index: 15;
-  pointer-events: none;
-}
-
+.travel-type-coverflow-wrap .coverflow-card-top-tag,
 .travel-type-coverflow-wrap .coverflow-badge-pill,
-.travel-type-coverflow-wrap .tt-card-tag-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 7px 18px;
-  border-radius: 8px;
-  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
-  font-size: 12.5px;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  color: #143323 !important;
-  background: #FFFFFF !important;
-  border: 1px solid rgba(255, 255, 255, 0.95) !important;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.16);
-  user-select: none;
-  white-space: nowrap;
-  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+.travel-type-coverflow-wrap .tt-card-tag-pill,
+.coverflow-card-badge,
+.coverflow-badge-pill {
+  display: none !important;
 }
 
-/* Active center card: badge remains crisp white with dark green text */
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-badge-pill,
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .tt-card-tag-pill {
-  background: #FFFFFF !important;
-  color: #143323 !important;
-  font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.98) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+/* ─── Card Texts: Crisp White Typography over Imagery ─── */
+.travel-type-coverflow-wrap .coverflow-center-title,
+.travel-type-coverflow-wrap h3.coverflow-center-title,
+.travel-type-coverflow-wrap .coverflow-card h3,
+.travel-type-coverflow-wrap .coverflow-center-title *,
+.travel-type-coverflow-wrap .coverflow-center-title em,
+.coverflow-card .coverflow-center-title,
+.coverflow-card .coverflow-center-title *,
+.coverflow-card .coverflow-center-title em {
+  color: #ffffff !important;
+  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.6) !important;
+}
+
+.travel-type-coverflow-wrap .coverflow-center-desc,
+.coverflow-card .coverflow-center-desc {
+  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif) !important;
+  font-size: clamp(12.5px, 0.95vw, 14px) !important;
+  font-weight: 400 !important;
+  line-height: 1.55 !important;
+  color: #ffffff !important;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9), 0 1px 4px rgba(0, 0, 0, 0.7) !important;
+  margin: 10px auto 0 !important;
+  max-width: 34ch !important;
+  text-align: center !important;
+  transform: translateZ(24px) !important;
+}
+
+.travel-type-coverflow-wrap .coverflow-loc-label,
+.coverflow-card .coverflow-loc-label {
+  color: rgba(255, 255, 255, 0.92) !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7) !important;
 }
 
 /* ─── Card Content (Center Card Only) ─── */

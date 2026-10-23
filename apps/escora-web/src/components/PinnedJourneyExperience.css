@@ -122,57 +122,14 @@
   box-sizing: border-box;
 }
 
-/* ─── Bottom Scroll Cue Indicator ─── */
+/* ─── Bottom Scroll Cue Indicator Removed ─── */
 .pinned-journey-scroll-hint {
-  position: absolute;
-  bottom: clamp(14px, 2.5vh, 28px);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  z-index: 25;
-  pointer-events: none;
-  font-family: var(--f-body), 'Plus Jakarta Sans', system-ui, sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: #B58D5D;
-  opacity: 0.85;
-  transition: opacity 0.4s ease;
-}
-
-.pinned-journey-scroll-chevron {
-  width: 14px;
-  height: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: pinnedScrollBounce 2.2s infinite ease-in-out;
-}
-
-@keyframes pinnedScrollBounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(4px);
-  }
-}
-
-/* Hide scroll hint on the very last slide */
-.pinned-journey-stage.is-last-slide .pinned-journey-scroll-hint {
-  opacity: 0;
-  pointer-events: none;
+  display: none !important;
 }
 
 /* Hide navigation dots on smaller mobile screens for maximum content space */
 @media (max-width: 768px) {
   .pinned-journey-nav {
-    display: none;
-  }
-  .pinned-journey-scroll-hint {
     display: none;
   }
 }

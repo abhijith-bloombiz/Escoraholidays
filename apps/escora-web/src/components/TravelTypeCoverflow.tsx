@@ -465,10 +465,7 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
                   />
                   <div className="coverflow-card-scrim" />
 
-                  {/* ─── Top Category Tag / Badge on Each Card (Matches Reference Image) ─── */}
-                  <div className="coverflow-card-badge">
-                    <span className="coverflow-badge-pill">{item.label}</span>
-                  </div>
+
 
                   {/* Center (Active) card editorial content with 3D depth */}
                   <div className="coverflow-center-top">

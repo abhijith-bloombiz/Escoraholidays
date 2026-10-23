@@ -466,7 +466,7 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   text-decoration: none; white-space: nowrap;
 }
 .v3-nav-cta {
-  background: #e8d2ac; color: #1A3F2C;
+  background: #000000; color: #ffffff;
   padding: 12px 24px; border-radius: 999px;
   font-size: 14.5px; font-weight: 600; text-decoration: none; white-space: nowrap;
   display: inline-flex; align-items: center; justify-content: center;

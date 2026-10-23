@@ -237,38 +237,18 @@ export default function NavbarV3() {
       // Prevent micro-flickering by requiring a minimum scroll movement
       if (Math.abs(diff) > DELTA_MIN) {
         if (diff > 0) {
-          // Scrolling down beyond hero -> hide immediately even if cursor is near top
           lastScrollDownTime.current = Date.now();
-          clearScrollStopTimer();
-          if (!isOverNavbar.current) {
-            isOverTrigger.current = false;
-            updateScrollVisible(false);
-            setHoverVisible(false);
-          } else {
-            // Keep visible only while actively hovering over the navbar itself
-            updateScrollVisible(false);
-          }
+        }
+        clearScrollStopTimer();
+        // Beyond hero: do not show navbar on scroll (including reverse scroll)
+        if (!isOverNavbar.current) {
+          isOverTrigger.current = false;
+          updateScrollVisible(false);
+          setHoverVisible(false);
         } else {
-          // Scrolling up beyond hero -> reveal immediately
-          updateScrollVisible(true);
-          clearScrollStopTimer();
-          scrollStopTimer.current = setTimeout(() => {
-            if (!isInHero() && !isOverNavbar.current && !isOverTrigger.current && !menuOpen && !collectionsOpen) {
-              updateScrollVisible(false);
-              setHoverVisible(false);
-            }
-          }, 1500);
+          updateScrollVisible(false);
         }
         lastScrollY.current = currentScrollY;
-      } else if (diff < 0 && isScrollVisibleRef.current) {
-        // While upward scrolling continues, refresh stop timer
-        clearScrollStopTimer();
-        scrollStopTimer.current = setTimeout(() => {
-          if (!isInHero() && !isOverNavbar.current && !isOverTrigger.current && !menuOpen && !collectionsOpen) {
-            updateScrollVisible(false);
-            setHoverVisible(false);
-          }
-        }, 1500);
       }
 
       ticking = false;

@@ -715,60 +715,10 @@ export default function Home() {
       {/* ═══════════════════════ TROPICAL LAGOON HERO ═══════════════════════ */}
       <TropicalLagoonHero />
 
-      {/* ═══════════════════════ TRAVEL BY TYPE ═══════════════════════ */}
-      <section
-        className="cat-section"
-        id="categories"
-        ref={categoriesRef}
-      >
-        <div className="wrap">
-          <div className="cat-section-head">
-            <div className="cat-section-head-left">
-              <div className="eyebrow rv">Travel by Type</div>
-              <h2 className="display-md rv d2" style={{ maxWidth: "20ch" }}>
-                {travelTypeItems.length > 0
-                  ? `${travelTypeItems.length === 8 ? "Eight" : travelTypeItems.length} ways to discover `
-                  : "Discover "}
-                <em style={{ fontStyle: "italic" }}>Kerala</em>.
-              </h2>
-              <p className="why-esc-desc rv d2" data-pinned-reveal>
-                We don't sell packages. We compose journeys — built entirely around you, from the first conversation to the final farewell.
-              </p>
-              <button
-                type="button"
-                className="why-esc-play-btn rv d3"
-                data-pinned-reveal
-                onClick={() => setWhyVideoOpen(true)}
-                aria-label="Watch our Kerala story video"
-              >
-                <span className="why-esc-play-circle" aria-hidden="true">
-                  <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
-                    <path d="M9 6L1 11V1L9 6Z" fill="currentColor" />
-                  </svg>
-                </span>
-                WATCH OUR STORY
-              </button>
-            </div>
-          </div>
-
-          <TravelTypeCoverflow
-            items={travelTypeItems}
-            isLoading={isCategoriesLoading && travelTypeItems.length === 0}
-            isError={isCategoriesError && travelTypeItems.length === 0}
-            onRetry={refetchCategories}
-          />
-        </div>
-      </section>
-
-      {/* ═══════════════════════ 3D DESTINATION EXPLORER ═══════════════════════ */}
-      <Kerala3DDestinationExplorer
-        ref={exploreSectionRef}
-        id="explore-kerala"
-        destinations={destinationsData}
-      />
-
-      {/* ═══════════════════════ WHY ESCORA — LUXURY EDITORIAL ═══════════════════════ */}
-      <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
+      {/* ═══════════════════════ SCROLL-TRIGGERED PINNED JOURNEY EXPERIENCE ═══════════════════════ */}
+      <PinnedJourneyExperience>
+        {/* ── Slide 0: WHY ESCORA ── */}
+        <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
         <div className="why-esc-inner">
           {/* ── Left panel: editorial copy ── */}
           <div className="why-esc-left">

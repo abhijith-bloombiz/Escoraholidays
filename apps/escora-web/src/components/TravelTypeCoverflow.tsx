@@ -89,6 +89,37 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
     const el = carouselRef.current;
     if (!el) return;
 
+    const pinnedSlide = el.closest(".pinned-journey-slide");
+    if (pinnedSlide) {
+      const updateState = () => {
+        const isActive =
+          pinnedSlide.classList.contains("is-active") ||
+          pinnedSlide.classList.contains("is-initial-active") ||
+          (pinnedSlide as HTMLElement).style.visibility === "visible";
+
+        if (isActive) {
+          setEntranceState("revealing");
+          if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+          revealTimerRef.current = setTimeout(() => {
+            setEntranceState("complete");
+          }, 1200);
+        } else {
+          setEntranceState("pending");
+          if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+        }
+      };
+
+      updateState();
+
+      const observer = new MutationObserver(updateState);
+      observer.observe(pinnedSlide, { attributes: true, attributeFilter: ["class", "style"] });
+
+      return () => {
+        observer.disconnect();
+        if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
+      };
+    }
+
     if (typeof IntersectionObserver === "undefined") {
       setEntranceState("complete");
       return;

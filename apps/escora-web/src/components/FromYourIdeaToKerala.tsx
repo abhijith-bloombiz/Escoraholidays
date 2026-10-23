@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import "./FromYourIdeaToKerala.css";
 
@@ -87,19 +87,89 @@ const STEPS: JourneyStep[] = [
 export default function FromYourIdeaToKerala() {
   const [activeStep, setActiveStep] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const [isStageInView, setIsStageInView] = useState(true);
+  const sectionRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
 
-  // Auto-looping timer: reveals each card's contents one after another sequentially
+  // ─── Bidirectional Scroll Reveal Observer for Cards Stage Component ───
   useEffect(() => {
-    if (isPaused) return;
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    const cards = stage.querySelectorAll<HTMLElement>(".how-card");
+    const pinnedSlide = stage.closest(".pinned-journey-slide");
+
+    if (pinnedSlide) {
+      // Pinned transition system: trigger reveal when this slide is active, reverse when inactive
+      const updateState = () => {
+        const isActive =
+          pinnedSlide.classList.contains("is-active") ||
+          pinnedSlide.classList.contains("is-initial-active") ||
+          (pinnedSlide as HTMLElement).style.visibility === "visible";
+        setIsStageInView(isActive);
+        if (isActive) {
+          stage.classList.add("stage-in-view");
+          cards.forEach((card) => card.classList.add("is-revealed", "card-in-view"));
+        } else {
+          stage.classList.remove("stage-in-view");
+          cards.forEach((card) => card.classList.remove("is-revealed", "card-in-view"));
+          setActiveStep(0);
+        }
+      };
+
+      updateState();
+
+      const observer = new MutationObserver(updateState);
+      observer.observe(pinnedSlide, { attributes: true, attributeFilter: ["class", "style"] });
+
+      return () => observer.disconnect();
+    }
+
+    // Standard IntersectionObserver for unpinned pages
+    if (typeof IntersectionObserver === "undefined") {
+      setIsStageInView(true);
+      return;
+    }
+
+    const stageObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsStageInView(true);
+          stage.classList.add("stage-in-view");
+          cards.forEach((card) => card.classList.add("is-revealed", "card-in-view"));
+        } else {
+          const rect = entry.boundingClientRect;
+          if (rect.top > window.innerHeight || rect.bottom < 0) {
+            setIsStageInView(false);
+            stage.classList.remove("stage-in-view");
+            cards.forEach((card) => card.classList.remove("is-revealed", "card-in-view"));
+            setActiveStep(0);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0 }
+    );
+
+    stageObserver.observe(stage);
+    return () => stageObserver.disconnect();
+  }, []);
+
+  // Auto-looping timer: reveals each card's contents sequentially when cards stage is in view
+  useEffect(() => {
+    if (isPaused || !isStageInView) return;
     const timer = setInterval(() => {
       setActiveStep((prev) => (prev + 1) % STEPS.length);
     }, 4000);
     return () => clearInterval(timer);
-  }, [isPaused]);
-
+  }, [isPaused, isStageInView]);
 
   return (
-    <section className="how-it-works-section" id="how-it-works" aria-label="From your idea to Kerala — How it works">
+    <section
+      ref={sectionRef}
+      className="how-it-works-section"
+      id="how-it-works"
+      aria-label="From your idea to Kerala — How it works"
+    >
       {/* Decorative botanical shadow casting */}
       <div className="how-palm-shadow-tr" aria-hidden="true" />
       <div className="how-palm-shadow-bl" aria-hidden="true" />
@@ -111,16 +181,16 @@ export default function FromYourIdeaToKerala() {
             <div className="how-eyebrow">
               HOW IT WORKS
             </div>
-            <h2 className="how-title display-md">
+            <h2 className="how-title display-md" data-pinned-reveal>
               From your idea <span className="how-title-em">to Kerala.</span>
             </h2>
           </div>
 
           <div className="how-header-right">
-            <p className="how-intro">
+            <p className="how-intro" data-pinned-reveal>
               Planning an Escora journey is simple, personal and handled thoughtfully every step of the way.
             </p>
-            <Link href="/plan" className="how-cta-btn" aria-label="Plan your journey">
+            <Link href="/plan" className="how-cta-btn" data-pinned-reveal aria-label="Plan your journey">
               <span>PLAN YOUR JOURNEY</span>
               <span className="how-cta-arrow" aria-hidden="true">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -139,13 +209,23 @@ export default function FromYourIdeaToKerala() {
 
         {/* ─── 4-Column Architectural Grid: 1(bigger), 2(top/bottom), 2(top/bottom), 1(bigger) ─── */}
         <div
-          className={`how-journey-stage active-is-${activeStep}`}
+          ref={stageRef}
+          className={`how-journey-stage active-is-${activeStep}${isStageInView ? " stage-in-view" : ""}`}
+          data-pinned-reveal
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
           <div className="how-cards-stage" role="tablist" aria-label="Journey planning steps">
             {STEPS.map((step, idx) => {
               const isActive = activeStep === idx;
+              const isLeftCard = idx === 0;
+              const isRightCard = idx === STEPS.length - 1;
+              const revealClass = isLeftCard
+                ? "how-card-left"
+                : isRightCard
+                ? "how-card-right"
+                : "how-card-scale";
+
               return (
                 <button
                   key={step.stepNum}
@@ -153,7 +233,9 @@ export default function FromYourIdeaToKerala() {
                   role="tab"
                   id={`how-tab-${step.stepNum}`}
                   aria-selected={isActive}
-                  className={`how-card ${step.colClass} ${step.shapeClass} ${isActive ? "is-active" : ""}`}
+                  className={`how-card ${step.colClass} ${step.shapeClass} ${revealClass} how-card-step-${step.stepIndex} ${
+                    isActive ? "is-active" : ""
+                  }`}
                   onClick={() => setActiveStep(idx)}
                   onMouseEnter={() => {
                     setActiveStep(idx);
@@ -167,6 +249,7 @@ export default function FromYourIdeaToKerala() {
                       alt={step.imageAlt}
                       className="how-card-img"
                       loading="lazy"
+                      decoding="async"
                     />
 
                     {/* Contents inside the image card: centered numbering, heading & revealable description */}

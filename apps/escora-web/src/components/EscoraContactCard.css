@@ -327,7 +327,7 @@
 }
 
 .escora-input-pill:focus-within {
-  border-color: #B58D5D;
+  border: none !important;
   background: #FFFFFF !important;
   box-shadow: 0 0 0 3px rgba(181, 141, 93, 0.16);
 }
@@ -373,7 +373,8 @@ html.theme-v3 .escora-enquiry-card select:focus,
   justify-content: center;
   color: #B58D5D;
   flex-shrink: 0;
-  margin-right: 9px;
+  margin-right: 10px;
+  pointer-events: none;
 }
 
 .escora-pill-icon svg {
@@ -383,7 +384,7 @@ html.theme-v3 .escora-enquiry-card select:focus,
 
 .escora-pill-icon.rupee-symbol {
   font-family: var(--font-sans, system-ui, sans-serif);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #B58D5D;
   margin-right: 8px;
@@ -406,7 +407,7 @@ html.theme-v3 .escora-enquiry-card select:focus,
   font-family: var(--font-sans, system-ui, sans-serif);
   font-size: 13px;
   font-weight: 500;
-  color: #143323;
+  color: #143323 !important;
   cursor: pointer;
   padding: 0 2px 0 0 !important;
   outline: none !important;
@@ -417,7 +418,7 @@ html.theme-v3 .escora-enquiry-card select:focus,
 .escora-phone-prefix-arrow {
   color: #708076;
   font-size: 10px;
-  margin-right: 7px;
+  margin-right: 8px;
   pointer-events: none;
   line-height: 1;
 }
@@ -435,7 +436,7 @@ html.theme-v3 .escora-enquiry-card select:focus,
   min-width: 0;
 }
 
-/* Inputs and selects */
+/* Inputs and selects inside pill */
 .escora-text-input,
 .escora-select-input {
   width: 100%;
@@ -453,9 +454,10 @@ html.theme-v3 .escora-enquiry-card select:focus,
 }
 
 .escora-text-input::placeholder {
-  color: #93A299;
+  color: #93A299 !important;
   font-size: 12.5px;
   font-weight: 400;
+  opacity: 1;
 }
 
 .escora-select-input {
@@ -468,6 +470,7 @@ html.theme-v3 .escora-enquiry-card select:focus,
 .escora-select-input option {
   background: #FFFFFF;
   color: #143323;
+  padding: 8px 12px;
 }
 
 .escora-select-chevron {

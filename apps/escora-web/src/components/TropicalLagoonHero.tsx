@@ -87,7 +87,7 @@ export const HERO_SLIDES: DestinationSlide[] = [
   },
 ];
 
-const SLIDE_DURATION_MS = 6000; // 6 seconds per destination slide
+const SLIDE_DURATION_MS = 2000; // 2 seconds per destination slide
 
 interface TropicalLagoonHeroProps {
   onExploreClick?: () => void;
@@ -95,7 +95,6 @@ interface TropicalLagoonHeroProps {
 
 export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHeroProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
 
   const heroRootRef = useRef<HTMLElement>(null);
   const cardButtonRef = useRef<HTMLButtonElement>(null);
@@ -241,12 +240,12 @@ export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHer
     animateCardToBackground(prev);
   }, [currentIndex, animateCardToBackground]);
 
-  // Automatic slideshow transition every 6 seconds in a continuous seamless loop
+  // Automatic slideshow transition in a continuous seamless loop
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion || isPaused) {
+    if (prefersReducedMotion) {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
@@ -258,7 +257,7 @@ export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHer
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [currentIndex, isPaused, nextSlide]);
+  }, [currentIndex, nextSlide]);
 
   // Smooth scroll to next section for Explore Kerala button
   const handleScrollDown = (e: React.MouseEvent) => {
@@ -294,8 +293,6 @@ export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHer
         ref={heroRootRef}
         aria-label="Escora Holidays Kerala Destination Showcase"
         data-hero="true"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
         onKeyDown={handleKeyDown}
         tabIndex={0}
       >

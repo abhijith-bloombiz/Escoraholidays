@@ -122,7 +122,7 @@
 .dest-360-eyebrow {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 12px;
   font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
   font-size: 12px;
   font-weight: 700;
@@ -134,12 +134,7 @@
 }
 
 .dest-360-eyebrow .dot {
-  width: 5.5px;
-  height: 5.5px;
-  border-radius: 50%;
-  background-color: #B58D5D;
-  display: inline-block;
-  flex-shrink: 0;
+  display: none;
 }
 
 /* Heading: See Kerala from Every Angle. */

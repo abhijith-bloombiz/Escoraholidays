@@ -154,12 +154,10 @@ export default function Journeys() {
         
         <div className="relative z-10 container mx-auto px-6 md:px-12 max-w-7xl">
           <div className="max-w-2xl lg:max-w-xl xl:max-w-2xl">
-            <div className="flex items-center gap-2.5 mb-3 sm:mb-4">
-              <span className="text-[#8C7355] text-xs">✦</span>
-              <p className="text-[#8C7355] text-[11px] sm:text-xs font-mono tracking-[0.28em] uppercase font-medium">
+            <div className="mb-3 sm:mb-4">
+              <p className="section-label">
                 ITINERARIES
               </p>
-              <span className="w-8 h-[1px] bg-[#8C7355]/40 inline-block" />
             </div>
             <h1 className="font-editorial text-3xl sm:text-5xl lg:text-[62px] text-[#183628] leading-[1.08] font-normal tracking-tight mb-3 sm:mb-4">
               Immaculate <em className="italic font-light">Journeys</em>

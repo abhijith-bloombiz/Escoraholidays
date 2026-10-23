@@ -120,7 +120,7 @@
 
 :root {
   --v3-deep: #1A3F2C;
-  --v3-botanical: #293D1F;
+  --v3-botanical: #25432F;
   --v3-forest: #3F5630;
   --v3-sage: #597043;
   --v3-soft: #788A63;
@@ -253,7 +253,7 @@ h1, h2, h3, h4, h5, h6,
   font-style: normal !important;
 }
 
-/* Base heading color: Dark Botanical #293D1F unless explicitly light/white or inside dark themes/elements */
+/* Base heading color: Deep Botanical #25432F unless explicitly light/white or inside dark themes/elements */
 h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
 h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
 h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
@@ -272,7 +272,7 @@ h6:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([dat
 .display-sm:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
 .font-heading:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
 .heading-font:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) {
-  color: var(--v3-botanical, #293D1F);
+  color: #25432F !important;
 }
 
 /* Remove italic style from any element inside headings */
@@ -286,15 +286,15 @@ h1 *, h2 *, h3 *, h4 *, h5 *, h6 *,
   font-style: normal !important;
 }
 
-/* Ensure em, accent words, and highlights inside headings also use #293D1F */
-h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em,
-h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em,
-h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em,
-.display-xl em, .display-lg em, .display-md em, .display-sm em,
-.kerala-3d-title em, .kerala-3d-title .accent-gold, .kerala-3d-title .italic-gold,
-.retreat-title em, .testi-title em, .enquiry-title em,
-.escora-way-heading em, .escora-way-heading .italic-gold {
-  color: var(--v3-botanical, #293D1F);
+/* Ensure em, accent words, and highlights inside headings also use #25432F unless explicitly styled with inline color */
+h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em:not([style*="color"]),
+h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em:not([style*="color"]),
+h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) em:not([style*="color"]),
+.display-xl em:not([style*="color"]), .display-lg em:not([style*="color"]), .display-md em:not([style*="color"]), .display-sm em:not([style*="color"]),
+.kerala-3d-title em:not([style*="color"]),
+.retreat-title em:not([style*="color"]), .testi-title em:not([style*="color"]), .enquiry-title em:not([style*="color"]),
+.escora-way-heading em:not([style*="color"]) {
+  color: #25432F !important;
 }
 
 .font-serif {
@@ -614,7 +614,8 @@ html.lenis, html.lenis body {
 
 /* ==========================================================================
    UNIFIED SECTION LABEL / EYEBROW SYSTEM
-   Styling reference: "THE ESCORA WAY" section label
+   Finalized Design: Two thin horizontal lines, one on each side of label text
+   Text & Lines: Warm Heritage Gold #B58D5D
    ========================================================================== */
 .section-label,
 .eyebrow,
@@ -629,10 +630,13 @@ html.lenis, html.lenis body {
 .enquiry-panel-eyebrow,
 .v3dest-eyebrow,
 .v3-eyebrow,
-.jd-related-eyebrow {
+.jd-related-eyebrow,
+.dest-eyebrow,
+.dest-cta-eyebrow,
+.escora-intro-eyebrow {
   display: inline-flex !important;
   align-items: center !important;
-  gap: 9px !important;
+  gap: 12px !important;
   font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif) !important;
   font-size: 12px !important;
   font-weight: 700 !important;
@@ -642,6 +646,71 @@ html.lenis, html.lenis body {
   line-height: 1.2 !important;
 }
 
+/* Two thin horizontal lines, one on each side */
+.section-label::before,
+.section-label::after,
+.eyebrow::before,
+.eyebrow::after,
+.escora-way-eyebrow::before,
+.escora-way-eyebrow::after,
+.kerala-3d-eyebrow::before,
+.kerala-3d-eyebrow::after,
+.dest-360-eyebrow::before,
+.dest-360-eyebrow::after,
+.why-esc-eyebrow::before,
+.why-esc-eyebrow::after,
+.how-eyebrow::before,
+.how-eyebrow::after,
+.retreat-eyebrow::before,
+.retreat-eyebrow::after,
+.testi-eyebrow::before,
+.testi-eyebrow::after,
+.enquiry-eyebrow::before,
+.enquiry-eyebrow::after,
+.enquiry-panel-eyebrow::before,
+.enquiry-panel-eyebrow::after,
+.v3dest-eyebrow::before,
+.v3dest-eyebrow::after,
+.v3-eyebrow::before,
+.v3-eyebrow::after,
+.jd-related-eyebrow::before,
+.jd-related-eyebrow::after,
+.dest-eyebrow::before,
+.dest-eyebrow::after,
+.dest-cta-eyebrow::before,
+.dest-cta-eyebrow::after,
+.escora-intro-eyebrow::before,
+.escora-intro-eyebrow::after {
+  content: "" !important;
+  display: inline-block !important;
+  width: clamp(20px, 3.2vw, 32px) !important;
+  height: 1px !important;
+  background-color: #B58D5D !important;
+  flex-shrink: 0 !important;
+}
+
+/* Child text elements inside section labels get #B58D5D */
+.section-label *,
+.eyebrow *,
+.escora-way-eyebrow *,
+.kerala-3d-eyebrow *,
+.dest-360-eyebrow *,
+.why-esc-eyebrow *,
+.how-eyebrow *,
+.retreat-eyebrow *,
+.testi-eyebrow *,
+.enquiry-eyebrow *,
+.enquiry-panel-eyebrow *,
+.v3dest-eyebrow *,
+.v3-eyebrow *,
+.jd-related-eyebrow *,
+.dest-eyebrow *,
+.dest-cta-eyebrow *,
+.escora-intro-eyebrow * {
+  color: #B58D5D !important;
+}
+
+/* Completely remove dots and old manual single lines */
 .section-label .dot,
 .eyebrow .dot,
 .escora-way-eyebrow .dot,
@@ -657,16 +726,11 @@ html.lenis, html.lenis body {
 .v3dest-eyebrow .dot,
 .v3-eyebrow .dot,
 .jd-related-eyebrow .jd-dot,
-.jd-related-eyebrow .dot {
-  width: 5.5px !important;
-  height: 5.5px !important;
-  border-radius: 50% !important;
-  background-color: #B58D5D !important;
-  display: inline-block !important;
-  flex-shrink: 0 !important;
-  margin: 0 !important;
-  transform: none !important;
-  box-shadow: none !important;
+.jd-related-eyebrow .dot,
+.dest-eyebrow-accent,
+.dest-cta-eyebrow-line,
+.testi-eyebrow-line {
+  display: none !important;
 }
 
 .section-label.text-center,
@@ -674,13 +738,10 @@ html.lenis, html.lenis body {
 .text-center > .eyebrow,
 .testi-eyebrow {
   justify-content: center !important;
-}
-
-.testi-eyebrow-line {
-  width: 28px !important;
-  height: 1px !important;
-  background: #B58D5D !important;
-  opacity: 0.7 !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: flex !important;
+  width: fit-content !important;
 }
 
 @media (max-width: 768px) {
@@ -697,9 +758,50 @@ html.lenis, html.lenis body {
   .enquiry-panel-eyebrow,
   .v3dest-eyebrow,
   .v3-eyebrow,
-  .jd-related-eyebrow {
+  .jd-related-eyebrow,
+  .dest-eyebrow,
+  .dest-cta-eyebrow,
+  .escora-intro-eyebrow {
     font-size: 10.5px !important;
     letter-spacing: 0.18em !important;
+    gap: 9px !important;
+  }
+
+  .section-label::before,
+  .section-label::after,
+  .eyebrow::before,
+  .eyebrow::after,
+  .escora-way-eyebrow::before,
+  .escora-way-eyebrow::after,
+  .kerala-3d-eyebrow::before,
+  .kerala-3d-eyebrow::after,
+  .dest-360-eyebrow::before,
+  .dest-360-eyebrow::after,
+  .why-esc-eyebrow::before,
+  .why-esc-eyebrow::after,
+  .how-eyebrow::before,
+  .how-eyebrow::after,
+  .retreat-eyebrow::before,
+  .retreat-eyebrow::after,
+  .testi-eyebrow::before,
+  .testi-eyebrow::after,
+  .enquiry-eyebrow::before,
+  .enquiry-eyebrow::after,
+  .enquiry-panel-eyebrow::before,
+  .enquiry-panel-eyebrow::after,
+  .v3dest-eyebrow::before,
+  .v3dest-eyebrow::after,
+  .v3-eyebrow::before,
+  .v3-eyebrow::after,
+  .jd-related-eyebrow::before,
+  .jd-related-eyebrow::after,
+  .dest-eyebrow::before,
+  .dest-eyebrow::after,
+  .dest-cta-eyebrow::before,
+  .dest-cta-eyebrow::after,
+  .escora-intro-eyebrow::before,
+  .escora-intro-eyebrow::after {
+    width: 20px !important;
   }
 }
 

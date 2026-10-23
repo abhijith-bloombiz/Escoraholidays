@@ -612,12 +612,12 @@ export default function Home() {
         <div className="wrap">
           <div className="cat-section-head">
             <div className="cat-section-head-left">
-              <div className="eyebrow rv"><span className="dot" />Travel by Type</div>
+              <div className="eyebrow rv">Travel by Type</div>
               <h2 className="display-md rv d2" style={{ maxWidth: "20ch" }}>
                 {travelTypeItems.length > 0
                   ? `${travelTypeItems.length === 8 ? "Eight" : travelTypeItems.length} ways to discover `
                   : "Discover "}
-                <em style={{ fontStyle: "italic", color: "var(--gold-bright)" }}>Kerala</em>.
+                <em style={{ fontStyle: "italic" }}>Kerala</em>.
               </h2>
             </div>
             <div className="cat-section-head-right">
@@ -649,7 +649,7 @@ export default function Home() {
           {/* ── Left panel: editorial copy ── */}
           <div className="why-esc-left">
             <div className="why-esc-eyebrow rv">
-              <span className="dot" />WHY ESCORA
+              WHY ESCORA
             </div>
             <h2 className="why-esc-heading rv d1">
               Why the world's discerning travellers{" "}
@@ -785,7 +785,6 @@ export default function Home() {
           <div className="retreat-header-row">
             <div className="retreat-header-left">
               <div className="retreat-eyebrow rv">
-                <span className="dot" />
                 ESCORA RETREAT
               </div>
               <h2 className="retreat-title rv d1">
@@ -946,9 +945,7 @@ export default function Home() {
 
         <div className="testi-carousel-header">
           <div className="testi-eyebrow rv">
-            <span className="testi-eyebrow-line" />
             <span>TRAVELLERS SAY IT BETTER</span>
-            <span className="testi-eyebrow-line" />
           </div>
           <h2 className="testi-title rv d1">
             Real Stories. <em>Lasting Memories.</em>

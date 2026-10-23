@@ -1,19 +1,22 @@
 /* ==========================================================================
-   ESCORA LUXURY CONTACT & ENQUIRY CARD — PERFECT PIXEL-EXACT STYLING
-   Matches Reference Mockup:
-   - Compact luxury proportion (~1080px max-width)
-   - Background: Pure warm ivory #FCF8F0 seamlessly blending into the right-hand
-     Kerala scenery (houseboat, palms, misty hills) with ZERO black/grey artifacts.
-   - Inputs: Crisp white rounded boxes, gold icons, unified phone pill.
-   - Heading: "Let's Plan Your" + "Kerala Journey" with gold palm tree on baseline.
-   - Primary button: Deep botanical green with leaf illustration on right.
-   - Secondary button: Clean white WhatsApp pill with green badge.
+   ESCORA LUXURY CONTACT & ENQUIRY CARD — TWO-COLUMN EDITORIAL STYLING
+   Layout Structure:
+   - Left Column: Journey introduction & 3 contact info rows (WhatsApp, Email, Office)
+   - Right Column: Existing luxury enquiry form card
+   Design Specifications:
+   - Container max-width: 1240px, responsive 2-column grid
+   - Deep green heading with gold accent on "canvas."
+   - Clean card background #FCF8F0 without right-side image
+   - Subtle muted sage-green outer card border (#CCD7D2)
+   - Warm gold primary button (#B58D5D) with white text & arrow icon
+   - Subtle sage-green border on secondary WHATSAPP US button (#CCD7D2)
+   - Single-box input design: NO nested borders, NO inner backgrounds, NO secondary rounded rects
    ========================================================================== */
 
 .escora-enquiry-section {
   position: relative;
   background-color: #FFFFFF;
-  padding: clamp(36px, 5vh, 72px) 0;
+  padding: clamp(40px, 6vh, 80px) 0;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -42,39 +45,171 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: 1080px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 0 clamp(16px, 2.5vw, 28px);
+  padding: 0 clamp(20px, 3.5vw, 44px);
   box-sizing: border-box;
 }
 
-/* ─── Main Unified Luxury Card ─── */
+/* ─── Two-Column Layout ─── */
+.escora-two-column-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.32fr);
+  gap: clamp(36px, 4.5vw, 68px);
+  align-items: center;
+  width: 100%;
+}
+
+/* ─── Left Column: Introduction & Contact Details ─── */
+.escora-intro-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.escora-intro-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-heading, var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #B58D5D;
+  margin-bottom: 12px;
+  line-height: 1.2;
+}
+
+.escora-intro-heading {
+  font-family: var(--font-heading, var(--font-display, var(--f-display, 'Playfair Display', Georgia, serif)));
+  font-size: clamp(34px, 3.5vw, 48px);
+  line-height: 1.1;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: #25432F;
+  margin: 0 0 16px 0;
+}
+
+.escora-intro-accent {
+  font-style: italic;
+  color: #B58D5D;
+  font-weight: 400;
+}
+
+.escora-intro-desc {
+  font-family: var(--font-sans, var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif));
+  font-size: clamp(13px, 0.95vw, 14.5px);
+  font-weight: 400;
+  line-height: 1.65;
+  color: #55685D;
+  margin: 0 0 clamp(24px, 3.2vh, 36px) 0;
+  max-width: 44ch;
+}
+
+/* ─── Contact Details Rows ─── */
+.escora-contact-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.escora-contact-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(204, 215, 210, 0.5);
+}
+
+.escora-contact-detail-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.escora-contact-icon-badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(26, 63, 44, 0.05);
+  border: 1px solid rgba(204, 215, 210, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #143323;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.escora-contact-wa-svg {
+  width: 17px;
+  height: 17px;
+  color: #25D366;
+  fill: currentColor;
+}
+
+.escora-contact-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.escora-contact-label {
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #788A63;
+  line-height: 1.2;
+}
+
+.escora-contact-link,
+.escora-contact-text-val {
+  font-family: var(--font-sans, var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif));
+  font-size: 13.5px;
+  color: #143323;
+  line-height: 1.5;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.escora-contact-link:hover {
+  color: #B58D5D;
+}
+
+/* ─── Right Column: Form Column ─── */
+.escora-form-col {
+  min-width: 0;
+  width: 100%;
+}
+
+/* ─── Main Unified Luxury Card (No Background Image, Subtle Sage-Green Border) ─── */
 .escora-enquiry-card {
   position: relative;
   width: 100%;
-  border-radius: clamp(26px, 3vw, 36px);
-  background-color: #FCF8F0;
-  background-image: url("/assets/enquiry/escora-card-full-bg.jpg");
-  background-repeat: no-repeat;
-  background-position: right center;
-  background-size: cover;
-  border: 1.5px solid rgba(197, 154, 88, 0.45);
+  border-radius: clamp(24px, 2.5vw, 32px);
+  background: #FCF8F0;
+  background-image: none !important;
+  border: 1.5px solid #CCD7D2;
   box-shadow: 
-    0 26px 70px -15px rgba(20, 51, 35, 0.12),
-    0 4px 18px -4px rgba(0, 0, 0, 0.04),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.95);
+    0 24px 60px -15px rgba(20, 51, 35, 0.08),
+    0 4px 18px -4px rgba(0, 0, 0, 0.03);
   overflow: hidden;
   display: flex;
   box-sizing: border-box;
 }
 
-/* ─── Left Side: Form Content & Controls ─── */
+/* ─── Card Form Wrapper: Full width, spacious balanced padding ─── */
 .escora-card-form-wrap {
   position: relative;
   z-index: 3;
-  width: 58%;
-  max-width: 580px;
-  padding: clamp(28px, 3.8vh, 44px) clamp(24px, 3vw, 42px);
+  width: 100%;
+  max-width: 100%;
+  padding: clamp(28px, 3.5vh, 40px) clamp(20px, 2.6vw, 36px);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -96,7 +231,7 @@
 
 .escora-card-heading {
   font-family: var(--font-heading, var(--font-display, var(--f-display, 'Playfair Display', Georgia, serif)));
-  font-size: clamp(32px, 3.4vw, 44px);
+  font-size: clamp(28px, 2.6vw, 38px);
   line-height: 1.08;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -105,6 +240,7 @@
   flex-direction: column;
 }
 
+/* Line 1: Deep Green */
 .escora-heading-line1 {
   color: #143323 !important;
 }
@@ -116,40 +252,41 @@
   position: relative;
 }
 
+/* Line 2: Exact same deep green as Line 1 */
 .escora-heading-line2 {
   font-style: italic;
   font-family: var(--font-heading, var(--font-display, var(--f-display, 'Playfair Display', Georgia, serif)));
-  color: #B58D5D;
+  color: #143323 !important;
   font-weight: 400;
 }
 
-/* Golden Palm Tree from Image 3 */
+/* Golden Palm Tree Icon on baseline */
 .escora-heading-palm-img {
   display: inline-block;
-  height: clamp(32px, 3.6vw, 44px);
+  height: clamp(28px, 3vw, 38px);
   width: auto;
   object-fit: contain;
   vertical-align: baseline;
-  transform: translateY(6px);
+  transform: translateY(5px);
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(181, 141, 93, 0.2));
 }
 
 .escora-card-subtitle {
   font-family: var(--font-sans, var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif));
-  font-size: clamp(12.5px, 0.95vw, 13.5px);
+  font-size: clamp(12px, 0.9vw, 13px);
   font-weight: 400;
   line-height: 1.5;
   color: #55685D;
-  margin: 0 0 clamp(16px, 2.2vh, 22px) 0;
-  max-width: 48ch;
+  margin: 0 0 clamp(16px, 2vh, 22px) 0;
+  max-width: 50ch;
 }
 
 /* ─── Form Elements Grid ─── */
 .escora-form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(10px, 1.3vh, 13px) clamp(10px, 1.2vw, 16px);
+  gap: clamp(10px, 1.4vh, 14px) clamp(10px, 1.4vw, 16px);
   margin-bottom: clamp(12px, 1.6vh, 16px);
 }
 
@@ -173,27 +310,63 @@
   margin: 0;
 }
 
-/* ─── Luxury Input Pill Box (Pure White, Smooth Gold Border) ─── */
+/* ─── Single Clean Input Container (Pure White, Subtle Sage Border) ─── */
 .escora-input-pill {
   position: relative;
   display: flex;
   align-items: center;
-  height: clamp(40px, 4.6vh, 44px);
+  height: clamp(40px, 4.4vh, 44px);
   background: #FFFFFF !important;
   border-radius: 12px;
-  border: 1.5px solid rgba(214, 206, 192, 0.9);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
+  border: 1.5px solid #CCD7D2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   padding: 0 12px;
-  transition: all 0.22s ease;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .escora-input-pill:focus-within {
   border-color: #B58D5D;
   background: #FFFFFF !important;
-  box-shadow: 0 0 0 3px rgba(181, 141, 93, 0.18), 0 3px 10px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 0 0 3px rgba(181, 141, 93, 0.16);
 }
 
+/* ─── Elimination of Double-Box / Nested Borders & Inner Backgrounds ─── */
+html.theme-v3 .escora-enquiry-card input:not([type="checkbox"]):not([type="radio"]),
+html.theme-v3 .escora-enquiry-card select,
+.escora-input-pill input,
+.escora-input-pill select,
+.escora-text-input,
+.escora-select-input,
+.escora-phone-prefix-select {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  margin: 0 !important;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+html.theme-v3 .escora-enquiry-card input:not([type="checkbox"]):not([type="radio"]):focus,
+html.theme-v3 .escora-enquiry-card select:focus,
+.escora-input-pill input:focus,
+.escora-input-pill select:focus,
+.escora-text-input:focus,
+.escora-select-input:focus,
+.escora-phone-prefix-select:focus {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Icons inside the single container */
 .escora-pill-icon {
   display: flex;
   align-items: center;
@@ -213,7 +386,7 @@
   font-size: 15px;
   font-weight: 600;
   color: #B58D5D;
-  margin-right: 7px;
+  margin-right: 8px;
 }
 
 /* Unified phone selector */
@@ -221,18 +394,22 @@
   display: flex;
   align-items: center;
   width: 100%;
+  height: 100%;
+  min-width: 0;
 }
 
 .escora-phone-prefix-select {
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   font-family: var(--font-sans, system-ui, sans-serif);
   font-size: 13px;
   font-weight: 500;
   color: #143323;
   cursor: pointer;
-  padding: 0 2px 0 0;
-  outline: none;
+  padding: 0 2px 0 0 !important;
+  outline: none !important;
   appearance: none;
   -webkit-appearance: none;
 }
@@ -242,13 +419,20 @@
   font-size: 10px;
   margin-right: 7px;
   pointer-events: none;
+  line-height: 1;
 }
 
 .escora-phone-divider {
   width: 1px;
   height: 16px;
-  background: rgba(214, 206, 192, 0.9);
+  background: #CCD7D2;
   margin-right: 9px;
+  flex-shrink: 0;
+}
+
+.escora-phone-wrap .escora-text-input {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Inputs and selects */
@@ -256,13 +440,16 @@
 .escora-select-input {
   width: 100%;
   height: 100%;
-  border: none;
+  border: none !important;
+  border-radius: 0 !important;
   background: transparent !important;
+  background-color: transparent !important;
   font-family: var(--font-sans, var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif));
   font-size: 13px;
   color: #143323;
-  outline: none;
-  padding: 0;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
 .escora-text-input::placeholder {
@@ -275,6 +462,7 @@
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
+  padding-right: 26px !important;
 }
 
 .escora-select-input option {
@@ -285,6 +473,8 @@
 .escora-select-chevron {
   position: absolute;
   right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   color: #708076;
   pointer-events: none;
   display: flex;
@@ -296,7 +486,7 @@
   display: flex;
   align-items: flex-start;
   gap: 9px;
-  margin: 2px 0 clamp(14px, 1.8vh, 18px) 0;
+  margin: 3px 0 clamp(14px, 1.8vh, 18px) 0;
   user-select: none;
 }
 
@@ -306,10 +496,10 @@
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  border: 1.5px solid rgba(181, 141, 93, 0.65);
-  background: #FFFFFF;
+  border: 1.5px solid #CCD7D2 !important;
+  background: #FFFFFF !important;
   cursor: pointer;
-  margin-top: 1.5px;
+  margin-top: 2px;
   display: grid;
   place-content: center;
   flex-shrink: 0;
@@ -317,8 +507,8 @@
 }
 
 .escora-custom-checkbox:checked {
-  background: #143323;
-  border-color: #143323;
+  background: #143323 !important;
+  border-color: #143323 !important;
 }
 
 .escora-custom-checkbox:checked::before {
@@ -343,20 +533,20 @@
 .escora-buttons-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 12px;
   align-items: center;
 }
 
-/* Primary Button: SEND ENQUIRY → with Leaf Pattern */
+/* Primary Button: SEND ENQUIRY → Muted Warm Gold with Leaf Pattern */
 .escora-submit-btn {
   position: relative;
-  height: clamp(42px, 4.8vh, 46px);
+  height: clamp(42px, 4.6vh, 46px);
   border-radius: 9999px;
-  background: #143323;
+  background: #B58D5D;
   color: #FFFFFF !important;
   border: none;
   font-family: var(--font-sans, var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif));
-  font-size: clamp(11px, 0.82vw, 12.5px);
+  font-size: clamp(11px, 0.8vw, 12px);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -366,16 +556,16 @@
   gap: 8px;
   cursor: pointer;
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(20, 51, 35, 0.22);
+  box-shadow: 0 4px 14px rgba(181, 141, 93, 0.28);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
-  padding: 0 20px;
+  padding: 0 18px;
 }
 
 .escora-submit-btn:hover {
-  background: #1a422e;
+  background: #A67D4E;
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(20, 51, 35, 0.3);
+  box-shadow: 0 8px 22px rgba(181, 141, 93, 0.38);
 }
 
 .escora-submit-btn:active {
@@ -388,7 +578,7 @@
   transform: none;
 }
 
-/* Leaf Illustration inside right of submit button (Image 4) */
+/* Leaf Illustration inside right of submit button */
 .escora-btn-leaf-img {
   position: absolute;
   right: -6px;
@@ -396,52 +586,52 @@
   height: 115%;
   width: auto;
   pointer-events: none;
-  opacity: 0.22;
+  opacity: 0.26;
   filter: brightness(1.6) invert(1);
   mix-blend-mode: screen;
   transition: opacity 0.3s ease, transform 0.4s ease;
 }
 
 .escora-submit-btn:hover .escora-btn-leaf-img {
-  opacity: 0.34;
+  opacity: 0.38;
   transform: scale(1.05) rotate(2deg);
 }
 
-/* Secondary Button: WHATSAPP US → */
+/* Secondary Button: WHATSAPP US → White Background with Subtle Sage-Green Border */
 .escora-wa-btn {
   position: relative;
-  height: clamp(42px, 4.8vh, 46px);
+  height: clamp(42px, 4.6vh, 46px);
   border-radius: 9999px;
   background: #FFFFFF !important;
   color: #143323 !important;
-  border: 1.5px solid rgba(197, 154, 88, 0.45);
+  border: 1.5px solid #CCD7D2;
   font-family: var(--font-sans, var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif));
-  font-size: clamp(11px, 0.82vw, 12.5px);
+  font-size: clamp(11px, 0.8vw, 12px);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 8px;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   text-decoration: none;
-  padding: 0 20px;
+  padding: 0 18px;
 }
 
 .escora-wa-btn:hover {
   background: #FAF8F5 !important;
-  border-color: #B58D5D;
+  border-color: #8FA698;
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(20, 51, 35, 0.1);
+  box-shadow: 0 6px 18px rgba(20, 51, 35, 0.08);
   color: #143323 !important;
 }
 
 .escora-wa-icon-svg {
-  width: 19px;
-  height: 19px;
+  width: 18px;
+  height: 18px;
   color: #25D366;
   fill: currentColor;
   flex-shrink: 0;
@@ -493,7 +683,7 @@
   font-size: 14px;
   line-height: 1.6;
   color: #55685D;
-  max-width: 42ch;
+  max-width: 44ch;
   margin: 0 0 22px 0;
 }
 
@@ -503,21 +693,23 @@
 }
 
 /* ─── Responsive Adjustments ─── */
-@media (max-width: 900px) {
-  .escora-enquiry-card {
-    background-image: none;
-    background-color: #FCF8F0;
+@media (max-width: 1024px) {
+  .escora-two-column-layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
   }
-  .escora-card-form-wrap {
-    width: 100%;
+  .escora-intro-desc {
     max-width: 100%;
-    padding: 32px 22px;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
+  .escora-enquiry-container {
+    padding: 0 16px;
+  }
   .escora-form-grid {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
   .escora-buttons-row {
     grid-template-columns: 1fr;
@@ -527,6 +719,9 @@
     padding: 24px 16px;
   }
   .escora-heading-palm-img {
-    height: 30px;
+    height: 28px;
+  }
+  .escora-intro-heading {
+    font-size: 32px;
   }
 }

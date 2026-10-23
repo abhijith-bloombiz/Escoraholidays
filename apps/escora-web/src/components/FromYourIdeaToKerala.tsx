@@ -109,7 +109,6 @@ export default function FromYourIdeaToKerala() {
         <header className="how-header">
           <div className="how-header-left">
             <div className="how-eyebrow">
-              <span className="dot" />
               HOW IT WORKS
             </div>
             <h2 className="how-title display-md">

@@ -396,6 +396,32 @@ export default function Home() {
   });
   const createEnquiry = useCreateEnquiry();
 
+  const whyEscoraRef = useRef<HTMLElement>(null);
+  const [isWhyEscoraInView, setIsWhyEscoraInView] = useState(false);
+
+  useEffect(() => {
+    const el = whyEscoraRef.current;
+    if (!el) return;
+
+    if (typeof IntersectionObserver === "undefined") {
+      setIsWhyEscoraInView(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsWhyEscoraInView(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const categoriesRef = useRef<HTMLElement>(null);
   const packagesRef = useRef<HTMLElement>(null);
   const exploreSectionRef = useRef<HTMLElement>(null);
@@ -646,7 +672,12 @@ export default function Home() {
       {/* ═══════════════════════ SCROLL-TRIGGERED PINNED JOURNEY EXPERIENCE ═══════════════════════ */}
       <PinnedJourneyExperience>
         {/* ── Slide 0: WHY ESCORA ── */}
-        <section className="why-esc-section" id="why-escora" aria-label="Why choose Escora">
+        <section
+          ref={whyEscoraRef}
+          className={`why-esc-section why-esc-animated${isWhyEscoraInView ? " is-in-view" : ""}`}
+          id="why-escora"
+          aria-label="Why choose Escora"
+        >
         <div className="why-esc-inner">
           {/* ── Left panel: editorial copy ── */}
           <div className="why-esc-left">
@@ -654,25 +685,35 @@ export default function Home() {
               WHY ESCORA
             </div>
             <h2 className="why-esc-heading rv d1">
-              Why the world's discerning travellers{" "}
-              <em className="why-esc-heading-em">choose Escora</em>
+              <span className="why-esc-heading-line">
+                <span className="why-esc-word-inner">Why the world's</span>
+              </span>{" "}
+              <span className="why-esc-heading-line">
+                <span className="why-esc-word-inner">discerning</span>
+              </span>{" "}
+              <span className="why-esc-heading-line">
+                <span className="why-esc-word-inner">travellers choose</span>
+              </span>{" "}
+              <span className="why-esc-heading-line">
+                <span className="why-esc-word-inner why-esc-heading-em">Escora</span>
+              </span>
             </h2>
             <p className="why-esc-desc rv d2">
               We don't sell packages. We compose journeys — built entirely around you, from the first conversation to the final farewell.
             </p>
-            <button
-              type="button"
-              className="why-esc-play-btn rv d3"
-              onClick={() => setWhyVideoOpen(true)}
-              aria-label="Watch our Kerala story video"
+            <a
+              href="/contact"
+              className="why-esc-contact-btn rv d3"
+              aria-label="Contact Escora Holidays"
             >
-              <span className="why-esc-play-circle" aria-hidden="true">
-                <svg width="10" height="12" viewBox="0 0 10 12" fill="none">
-                  <path d="M9 6L1 11V1L9 6Z" fill="currentColor" />
+              <span className="why-esc-contact-circle" aria-hidden="true">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                  <polyline points="12 5 19 12 12 19" />
                 </svg>
               </span>
-              WATCH OUR STORY
-            </button>
+              <span className="why-esc-contact-label">CONTACT</span>
+            </a>
           </div>
 
           {/* ── Right panel: 3×2 benefits grid ── */}
@@ -680,7 +721,7 @@ export default function Home() {
             {[
               {
                 icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                     <circle cx="9" cy="7" r="4"/>
                     <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
@@ -692,7 +733,7 @@ export default function Home() {
               },
               {
                 icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/>
                     <path d="M12 6v6l4 2"/>
                   </svg>
@@ -702,7 +743,7 @@ export default function Home() {
               },
               {
                 icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                     <polyline points="9 22 9 12 15 12 15 22"/>
                   </svg>
@@ -712,7 +753,7 @@ export default function Home() {
               },
               {
                 icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/>
                     <line x1="2" y1="12" x2="22" y2="12"/>
                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
@@ -723,7 +764,7 @@ export default function Home() {
               },
               {
                 icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.26h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
                   </svg>
                 ),
@@ -732,7 +773,7 @@ export default function Home() {
               },
               {
                 icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="9 11 12 14 22 4"/>
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
                   </svg>
@@ -741,7 +782,12 @@ export default function Home() {
                 desc: "Nothing is pre-packaged. Your dates, your pace, your companions, your interests — built from a blank canvas.",
               },
             ].map((item, i) => (
-              <div key={i} className={`why-esc-card rv${i > 0 ? ` d${Math.min(i, 3)}` : ""}`} data-pinned-reveal>
+              <div
+                key={i}
+                className={`why-esc-card why-esc-card-${i} rv${i > 0 ? ` d${Math.min(i, 3)}` : ""}`}
+                data-card-index={i}
+                data-pinned-reveal
+              >
                 <span className="why-esc-card-icon" aria-hidden="true">{item.icon}</span>
                 <h4 className="why-esc-card-title">{item.title}</h4>
                 <p className="why-esc-card-desc">{item.desc}</p>

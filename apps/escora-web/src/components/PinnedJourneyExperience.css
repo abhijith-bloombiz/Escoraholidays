@@ -126,6 +126,11 @@
   padding: clamp(48px, 6vh, 80px) 0;
 }
 
+/* ─── Bottom Scroll Cue Indicator Removed ─── */
+.pinned-journey-scroll-hint {
+  display: none !important;
+}
+
 /* Hide navigation dots on smaller mobile screens for maximum content space */
 @media (max-width: 768px) {
   .pinned-journey-nav {

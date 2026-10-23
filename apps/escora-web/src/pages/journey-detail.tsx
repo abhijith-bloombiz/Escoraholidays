@@ -56,7 +56,7 @@ export default function JourneyDetail() {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const createOrder = useCreateOrder();
+  const createEnquiry = useCreateEnquiry();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -432,10 +432,10 @@ export default function JourneyDetail() {
                   {/* Submit Button */}
                   <button 
                     type="submit"
-                    disabled={createOrder.isPending}
+                    disabled={createEnquiry.isPending}
                     className="w-full bg-[#1A3F2C] hover:bg-[#255239] text-white rounded-full py-3.5 px-6 font-mono uppercase tracking-widest text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-xs hover:shadow active:scale-[0.99] disabled:opacity-50 mt-3 cursor-pointer"
                   >
-                    {createOrder.isPending ? (
+                    {createEnquiry.isPending ? (
                       <>
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         <span>Sending Request…</span>

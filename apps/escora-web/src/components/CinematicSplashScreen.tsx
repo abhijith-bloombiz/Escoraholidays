@@ -28,7 +28,7 @@ const PARTICLES = [
 ];
 
 export default function CinematicSplashScreen({
-  duration = 1800,
+  duration = 3200,
   alwaysShow = true,
   onComplete,
 }: CinematicSplashScreenProps) {

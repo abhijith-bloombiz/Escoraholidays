@@ -10,7 +10,7 @@ import {
 import Layout from "@/components/layout/Layout";
 import { useSeo } from "@/hooks/useSeo";
 import { TravelTypeCoverflow, TravelTypeItem, formatTravelCategoryTitle } from "@/components/TravelTypeCoverflow";
-import { Flower2, SunMedium, Swords, HeartPulse } from "lucide-react";
+import { Flower2, SunMedium, Swords, HeartPulse, ArrowRight } from "lucide-react";
 import Kerala3DDestinationExplorer from "@/components/Kerala3DDestinationExplorer";
 import FromYourIdeaToKerala from "@/components/FromYourIdeaToKerala";
 import TropicalLagoonHero from "@/components/TropicalLagoonHero";
@@ -401,62 +401,33 @@ export default function Home() {
   const exploreSectionRef = useRef<HTMLElement>(null);
 
   const retreatSectionRef = useRef<HTMLElement>(null);
-  const retreatSplitRef = useRef<HTMLDivElement>(null);
-  const retreatCollageRef = useRef<HTMLDivElement>(null);
-  const retreatItemsRef = useRef<HTMLDivElement>(null);
+  const retreatCardsRef = useRef<HTMLDivElement>(null);
   const testimonialsRef = useRef<HTMLElement>(null);
-  const [activeRetreatCard, setActiveRetreatCard] = useState<number>(0);
+  const [activeRetreatCard, setActiveRetreatCard] = useState<number>(-1);
   const [isRetreatPaused, setIsRetreatPaused] = useState<boolean>(false);
-  const [isRetreatInView, setIsRetreatInView] = useState<boolean>(true);
+  const [isRetreatInView, setIsRetreatInView] = useState<boolean>(false);
   const [isTestimonialsInView, setIsTestimonialsInView] = useState<boolean>(true);
 
-  // Recalculate exact slot offsets so other cards glide directly from behind hero card
-  const updateRetreatSlotOffsets = useCallback(() => {
-    const wrapper = retreatCollageRef.current;
-    if (!wrapper) return;
-    const heroCard = wrapper.querySelector<HTMLElement>(".retreat-card-slot-0");
-    if (!heroCard) return;
-
-    const heroCx = heroCard.offsetLeft + heroCard.offsetWidth / 2;
-    const heroCy = heroCard.offsetTop + heroCard.offsetHeight / 2;
-
-    [1, 2, 3].forEach((slotNum) => {
-      const card = wrapper.querySelector<HTMLElement>(`.retreat-card-slot-${slotNum}`);
-      if (!card) return;
-      const cardCx = card.offsetLeft + card.offsetWidth / 2;
-      const cardCy = card.offsetTop + card.offsetHeight / 2;
-      const dx = heroCx - cardCx;
-      const dy = heroCy - cardCy;
-      wrapper.style.setProperty(`--slot${slotNum}-dx`, `${Math.round(dx)}px`);
-      wrapper.style.setProperty(`--slot${slotNum}-dy`, `${Math.round(dy)}px`);
-    });
-  }, []);
-
-  // Unified scroll & pinned slide observer for Escora Retreat split layout (services list + circular collage)
-  // Triggers smoothly when the retreat component enters the viewport or becomes active in the pinned journey
+  // Buttery-smooth reveal observer for Escora Retreat cards
   useEffect(() => {
-    const target = retreatSplitRef.current || retreatCollageRef.current;
-    if (!target) return;
+    const targetEl = retreatCardsRef.current || retreatSectionRef.current;
+    if (!targetEl) return;
 
-    const pinnedSlide = target.closest(".pinned-journey-slide");
+    const pinnedSlide = targetEl.closest(".pinned-journey-slide");
     if (pinnedSlide) {
-      const updateState = () => {
+      const updateFromSlide = () => {
         const isActive =
           pinnedSlide.classList.contains("is-active") ||
-          pinnedSlide.classList.contains("is-initial-active") ||
-          (pinnedSlide as HTMLElement).style.visibility === "visible";
+          pinnedSlide.classList.contains("is-initial-active");
         setIsRetreatInView(isActive);
-        if (isActive) {
-          updateRetreatSlotOffsets();
-        }
       };
-
-      updateState();
-
-      const observer = new MutationObserver(updateState);
-      observer.observe(pinnedSlide, { attributes: true, attributeFilter: ["class", "style"] });
-
-      return () => observer.disconnect();
+      updateFromSlide();
+      const mutObs = new MutationObserver(updateFromSlide);
+      mutObs.observe(pinnedSlide, {
+        attributes: true,
+        attributeFilter: ["class", "style", "aria-hidden"],
+      });
+      return () => mutObs.disconnect();
     }
 
     if (typeof IntersectionObserver === "undefined") {
@@ -464,63 +435,20 @@ export default function Home() {
       return;
     }
 
-    const observer = new IntersectionObserver(
+    // Strictly trigger animation only when cards reach the viewport
+    const obs = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsRetreatInView(true);
-          updateRetreatSlotOffsets();
-        } else {
-          const rect = entry.boundingClientRect;
-          if (rect.top > window.innerHeight || rect.bottom < 0) {
-            setIsRetreatInView(false);
-          }
-        }
+        setIsRetreatInView(entry.isIntersecting);
       },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0 }
+      {
+        rootMargin: "0px 0px -10% 0px",
+        threshold: 0.18,
+      }
     );
 
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [updateRetreatSlotOffsets]);
-
-  // Observer for Testimonials Section: pauses auto-advance timer when offscreen to optimize home page performance
-  useEffect(() => {
-    const el = testimonialsRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
-      setIsTestimonialsInView(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const inView =
-          entry.isIntersecting &&
-          entry.boundingClientRect.top < window.innerHeight * 0.92 &&
-          entry.boundingClientRect.bottom > window.innerHeight * 0.08;
-
-        setIsTestimonialsInView(inView);
-      },
-      { threshold: [0, 0.1, 0.25] }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
+    obs.observe(targetEl);
+    return () => obs.disconnect();
   }, []);
-
-  useEffect(() => {
-    updateRetreatSlotOffsets();
-    window.addEventListener("resize", updateRetreatSlotOffsets, { passive: true });
-    return () => window.removeEventListener("resize", updateRetreatSlotOffsets);
-  }, [updateRetreatSlotOffsets]);
-
-  // Auto-advance retreat card only while the collage component itself is in viewport and not paused
-  useEffect(() => {
-    if (isRetreatPaused || !isRetreatInView) return;
-    const retreatTimer = setInterval(() => {
-      setActiveRetreatCard((prev) => (prev + 1) % ESCORA_RETREAT_CARDS.length);
-    }, 5000);
-    return () => clearInterval(retreatTimer);
-  }, [isRetreatPaused, isRetreatInView]);
 
   const handleSelectRetreatCard = (i: number) => {
     setActiveRetreatCard(i);
@@ -870,144 +798,112 @@ export default function Home() {
 
       {/* ═══════════════════════ ESCORA RETREAT ════════════════════════════ */}
       <section ref={retreatSectionRef} className="escora-retreat-section" id="retreat" aria-label="Escora Retreat">
-        <div className="retreat-leaf-shadow-tr" aria-hidden="true" />
-        <div className="retreat-leaf-shadow-bl" aria-hidden="true" />
-
         <div className="retreat-container">
           {/* Header Row: Left Eyebrow & Title, Right Top Lede */}
           <div className="retreat-header-row">
             <div className="retreat-header-left">
-              <div className="retreat-eyebrow rv">
-                ESCORA RETREAT
+              <div className="retreat-eyebrow">
+                <span className="retreat-eyebrow-dash" />
+                <span>ESCORA RETREAT</span>
+                <span className="retreat-eyebrow-dash" />
               </div>
-              <h2 className="retreat-title rv d1" data-pinned-reveal>
-                Healing, the <em>Kerala</em> way.
+              <h2 className="retreat-title">
+                Healing, the Kerala way.
               </h2>
             </div>
             <div className="retreat-header-right">
-              <p className="retreat-lede rv d2" data-pinned-reveal>
+              <p className="retreat-lede">
                 Set on the quiet shore of Vembanad Lake — our NABH-accredited wellness home, where physicians, yogis and kalari masters work as one. Every programme is composed for you alone.
               </p>
             </div>
           </div>
 
-          <div ref={retreatSplitRef} data-pinned-reveal className={`retreat-split-layout${isRetreatInView ? " is-in-view" : ""}`}>
-            {/* Left Column: Numbered Services List */}
-            <div className="retreat-left-col">
+          {/* 4 Unique Editorial Retreat Cards */}
+          <div
+            ref={retreatCardsRef}
+            className={`retreat-cards-grid${isRetreatInView ? " is-revealed" : ""}`}
+            role="tablist"
+            aria-label="Escora Retreat Experiences"
+          >
+            {ESCORA_RETREAT_CARDS.map((card, i) => {
+              const isActive = activeRetreatCard === i;
+              return (
+                <article
+                  key={card.step}
+                  role="tab"
+                  aria-selected={isActive}
+                  tabIndex={0}
+                  style={{ "--card-index": i } as React.CSSProperties}
+                  className={`retreat-card${isActive ? " is-active" : ""}`}
+                  onClick={() => handleSelectRetreatCard(i)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      handleSelectRetreatCard(i);
+                    }
+                  }}
+                >
+                  {/* Top Photo Frame with Inset Floating Badges */}
+                  <div className="retreat-card-media">
+                    <img
+                      src={card.img}
+                      alt={card.alt}
+                      className="retreat-card-img"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="retreat-card-media-overlay" aria-hidden="true" />
 
-              {/* Numbered Retreat Items List */}
-              <div
-                ref={retreatItemsRef}
-                className={`retreat-items-list${isRetreatInView ? " is-in-view" : ""}`}
-                role="tablist"
-                aria-label="Escora Retreat Offerings"
-                onMouseEnter={() => setIsRetreatPaused(true)}
-                onMouseLeave={() => setIsRetreatPaused(false)}
-              >
-                {ESCORA_RETREAT_CARDS.map((card, i) => {
-                  const isActive = activeRetreatCard === i;
-                  return (
-                    <div
-                      key={card.step}
-                      role="tab"
-                      aria-selected={isActive}
-                      tabIndex={0}
-                      className={`retreat-item${isActive ? " is-active" : ""}`}
-                      onClick={() => handleSelectRetreatCard(i)}
-                      onMouseEnter={() => handleSelectRetreatCard(i)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          handleSelectRetreatCard(i);
-                        }
-                      }}
-                    >
-                      <div className="retreat-item-header">
-                        <span className="retreat-item-num">{card.step}.</span>
-                        <h3 className="retreat-item-title">{card.name}</h3>
-                        <span className="retreat-item-chevron" aria-hidden="true">
-                          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M6 9l6 6 6-6" />
-                          </svg>
+                    {/* Step Number Frosted Chip */}
+                    <span className={`retreat-card-step-chip${isActive ? " is-active" : ""}`}>
+                      {card.step}
+                    </span>
+
+                    {/* Category Icon Frosted Chip */}
+                    <span className={`retreat-card-icon-chip${isActive ? " is-active" : ""}`}>
+                      {card.icon}
+                    </span>
+                  </div>
+
+                  {/* Editorial Body Content */}
+                  <div className="retreat-card-body">
+                    <h3 className="retreat-card-title">
+                      {card.name}
+                    </h3>
+
+                    <p className="retreat-card-desc">
+                      {card.desc}
+                    </p>
+
+                    {/* Pill Tags */}
+                    <div className="retreat-card-tags">
+                      {card.tags.map((tag, tIdx) => (
+                        <span key={tIdx} className="retreat-card-tag">
+                          {tag}
                         </span>
-                      </div>
-
-                      {/* Smooth collapsible accordion popup */}
-                      <div className="retreat-item-collapse" aria-hidden={!isActive}>
-                        <div className="retreat-item-collapse-inner">
-                          <div className="retreat-item-popup-content">
-                            <p className="retreat-item-desc">{card.desc}</p>
-
-                            <div className="retreat-item-tags">
-                              {card.tags.map((tag, tIdx) => (
-                                <span key={tIdx} className="retreat-item-tag">
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-
-                            <div className="retreat-item-cta-row">
-                              <a
-                                href="#contact"
-                                className="retreat-item-enquire-btn"
-                                onClick={(e) => handleRetreatCardClick(i, e)}
-                                tabIndex={isActive ? 0 : -1}
-                              >
-                                <span>Enquire about {card.name}</span>
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M5 12h14" />
-                                  <path d="M12 5l7 7-7 7" />
-                                </svg>
-                              </a>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Right Column: Fluid Swapping Circular Visual Collage */}
-            <div
-              className="retreat-right-col"
-              onMouseEnter={() => setIsRetreatPaused(true)}
-              onMouseLeave={() => setIsRetreatPaused(false)}
-            >
-              <div ref={retreatCollageRef} className={`retreat-collage-wrapper${isRetreatInView ? " is-in-view" : ""}`}>
-                {ESCORA_RETREAT_CARDS.map((card, i) => {
-                  const slot = (i - activeRetreatCard + ESCORA_RETREAT_CARDS.length) % ESCORA_RETREAT_CARDS.length;
-                  const isHero = slot === 0;
-
-                  return (
-                    <button
-                      key={card.step}
-                      type="button"
-                      className={`retreat-circle-card retreat-card-slot-${slot}${isHero ? " is-hero" : ""}`}
-                      onClick={() => handleSelectRetreatCard(i)}
-                      aria-label={isHero ? `Featured: ${card.name}` : `Select ${card.name}`}
-                      aria-current={isHero ? "true" : undefined}
-                      title={card.name}
+                    {/* Interactive Bottom Enquiry Row */}
+                    <div
+                      className="retreat-card-action-row"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRetreatCardClick(i, e);
+                      }}
+                      role="button"
                       tabIndex={0}
+                      aria-label={`Enquire about ${card.name}`}
                     >
-                      <img
-                        src={card.img}
-                        alt={card.alt}
-                        className="retreat-circle-card-img"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="retreat-circle-card-content">
-                        <span className="retreat-circle-card-title">
-                          {card.name}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                      <span className="retreat-card-action-label">Enquire programme</span>
+                      <span className={`retreat-card-action-btn${isActive ? " is-active" : ""}`}>
+                        <ArrowRight size={13} strokeWidth={2.4} />
+                      </span>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>

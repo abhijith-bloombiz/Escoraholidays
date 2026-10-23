@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useSeo } from "@/hooks/useSeo";
 import { Link } from "wouter";
 import journeysHero from "@assets/escora/destinations/kovalam-clean.jpg";
+import whyEscoraBg from "@assets/escora/why-escora-bg.jpeg";
 import alleppeyBackwaters from "@assets/escora/collections/alleppey-backwaters.jpeg";
 import munnarTeaEstate from "@assets/escora/collections/munnar-tea-estate.jpeg";
 import fortKochiSunset from "@assets/escora/destinations/fort-kochi.jpg";
@@ -122,100 +123,74 @@ export default function Journeys() {
 
   return (
     <Layout>
-      {/* 1. Page Hero */}
-      <section className="relative w-full overflow-hidden pt-28 pb-10 sm:pt-32 sm:pb-12 lg:pt-36 lg:pb-14 bg-[#FAF8F5]">
-        {/* Right landscape coastal sunset image fading softly into warm ivory */}
-        <div 
-          className="absolute top-0 right-0 h-full w-full lg:w-[60%] xl:w-[56%] pointer-events-none select-none z-0 opacity-25 lg:opacity-100"
-          aria-hidden="true"
-        >
-          <img 
-            src={journeysHero} 
-            alt="Kerala Coastal Journeys" 
-            className="w-full h-full object-cover object-[center_right] lg:object-[80%_center]"
-            style={{
-              maskImage:
-                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 20%, rgba(0,0,0,0.7) 48%, #000 80%), linear-gradient(to top, transparent 0%, #000 18%)",
-              WebkitMaskImage:
-                "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.2) 20%, rgba(0,0,0,0.7) 48%, #000 80%), linear-gradient(to top, transparent 0%, #000 18%)",
-              maskComposite: "intersect",
-              WebkitMaskComposite: "source-in",
-            }}
-          />
-          {/* Soft horizontal warm ivory gradient overlay */}
+      <div className="dest-page">
+        {/* ── Page Hero (Matching Explore Kerala layout & decoration image) ── */}
+        <section className="dest-hero-section">
           <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                "linear-gradient(to right, #FAF8F5 0%, rgba(250,248,245,0.85) 20%, rgba(250,248,245,0.2) 55%, transparent 100%), linear-gradient(to top, #FAF8F5 0%, transparent 20%)",
-            }}
+            className="dest-hero-bg"
+            style={{ backgroundImage: `url(${whyEscoraBg})` }}
+            aria-hidden="true"
           />
-        </div>
-        
-        <div className="relative z-10 container mx-auto px-6 md:px-12 max-w-7xl">
-          <div className="max-w-2xl lg:max-w-xl xl:max-w-2xl">
-            <div className="mb-3 sm:mb-4">
-              <p className="section-label">
-                ITINERARIES
+          <div className="dest-hero-gradient" aria-hidden="true" />
+
+          <div className="dest-wrap">
+            <div className="dest-hero-content">
+              <h1 className="dest-hero-title">
+                Immaculate<br />
+                <em>Journeys</em>
+              </h1>
+              <p className="dest-hero-desc">
+                Thoughtfully crafted paths through Kerala&apos;s most extraordinary landscapes and heritage homes.
               </p>
             </div>
-            <h1 className="font-editorial text-3xl sm:text-5xl lg:text-[62px] text-[#183628] leading-[1.08] font-normal tracking-tight mb-3 sm:mb-4">
-              Immaculate <em className="italic font-light">Journeys</em>
-            </h1>
-            <p className="font-sans text-[#4A5D53] text-sm sm:text-base leading-relaxed max-w-xl">
-              Thoughtfully crafted paths through Kerala's most extraordinary landscapes and heritage homes.
-            </p>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 2. Filter Panel */}
-      <section className="bg-[#FAF8F5] pb-8 sm:pb-10">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="bg-[#EFF4F0] rounded-2xl md:rounded-3xl p-4 sm:p-5 md:p-6 max-w-4xl mx-auto border border-[#E2EAE4] shadow-xs">
-            {/* Row 1: Category chips */}
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5">
-              {CATEGORIES.map(cat => {
-                const isSelected = activeFilter === cat;
+        {/* ── Category & Duration Filters (Matching Explore Kerala chips style) ── */}
+        <section className="dest-filters-section">
+          <div className="dest-wrap">
+            <div className="dest-chips" role="tablist" aria-label="Journey Categories">
+              {CATEGORIES.map((cat) => {
+                const isActive = activeFilter === cat;
                 return (
                   <button
                     key={cat}
+                    type="button"
                     onClick={() => setActiveFilter(cat)}
-                    className={`font-sans text-xs tracking-wide px-4 sm:px-5 py-2 rounded-full transition-all duration-200 cursor-pointer ${
-                      isSelected
-                        ? "bg-[#183628] text-white font-medium shadow-xs"
-                        : "bg-white/90 hover:bg-white text-[#38483D] border border-[#D5DFD8] hover:border-[#B58D5D]"
-                    }`}
+                    className={`dest-chip ${isActive ? "is-active" : ""}`}
+                    aria-pressed={isActive}
+                    role="tab"
                   >
                     {cat}
                   </button>
                 );
               })}
-            </div>
 
-            {/* Row 2: Secondary dropdowns */}
-            <div className="flex flex-wrap items-center justify-center gap-3 mt-3 sm:mt-3.5 pt-1">
+              {/* Duration Filter Dropdown in matching chip style */}
               <select
                 value={durationIdx}
-                onChange={e => setDurationIdx(Number(e.target.value))}
-                className="bg-white/95 border border-[#D5DFD8] text-[#38483D] font-sans text-xs rounded-full px-4 py-2 focus:outline-none focus:border-[#183628] shadow-xs cursor-pointer hover:border-[#B58D5D] transition-colors"
+                onChange={(e) => setDurationIdx(Number(e.target.value))}
+                className="dest-chip cursor-pointer bg-white"
+                aria-label="Filter by duration"
               >
                 {DURATION_FILTERS.map((f, i) => (
-                  <option key={f.label} value={i} className="bg-white text-ink">
+                  <option key={f.label} value={i}>
                     {f.label}
                   </option>
                 ))}
               </select>
 
+              {/* Destination Filter Dropdown in matching chip style */}
               {destinationNames.length > 0 && (
                 <select
                   value={destFilter}
-                  onChange={e => setDestFilter(e.target.value)}
-                  className="bg-white/95 border border-[#D5DFD8] text-[#38483D] font-sans text-xs rounded-full px-4 py-2 focus:outline-none focus:border-[#183628] shadow-xs cursor-pointer hover:border-[#B58D5D] transition-colors"
+                  onChange={(e) => setDestFilter(e.target.value)}
+                  className="dest-chip cursor-pointer bg-white"
+                  aria-label="Filter by destination"
                 >
-                  <option value="All" className="bg-white text-ink">All Destinations</option>
-                  {destinationNames.map(d => (
-                    <option key={d} value={d} className="bg-white text-ink">
+                  <option value="All">All Destinations</option>
+                  {destinationNames.map((d) => (
+                    <option key={d} value={d}>
                       {d}
                     </option>
                   ))}
@@ -224,20 +199,20 @@ export default function Journeys() {
 
               {(durationIdx > 0 || destFilter !== "All") && (
                 <button
+                  type="button"
                   onClick={() => { setDurationIdx(0); setDestFilter("All"); }}
-                  className="font-sans text-xs uppercase tracking-wider text-[#B58D5D] border border-[#B58D5D] rounded-full px-4 py-1.5 hover:bg-[#B58D5D] hover:text-white transition-colors cursor-pointer"
+                  className="dest-chip border-[#8C7355] text-[#8C7355] hover:bg-[#8C7355] hover:text-white"
                 >
-                  Clear
+                  Reset Filters
                 </button>
               )}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* 3. Packages Grid */}
-      <section className="bg-[#FAF8F5] pb-20 md:pb-24">
-        <div className="container mx-auto px-6 md:px-12 max-w-6xl">
+        {/* 3. Packages Grid */}
+        <section className="bg-[#FAF8F5] pb-20 md:pb-24 pt-2">
+          <div className="dest-wrap">
           {isLoading ? (
             <div className="flex justify-center items-center py-20">
               <div className="w-10 h-10 border-2 border-[#183628] border-t-transparent animate-spin rounded-full"></div>
@@ -325,6 +300,7 @@ export default function Journeys() {
           )}
         </div>
       </section>
+      </div>
     </Layout>
   );
 }

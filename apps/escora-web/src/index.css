@@ -846,3 +846,154 @@ html.lenis, html.lenis body {
   background-color: #556B5F;
 }
 
+/* ============================================================
+   ESCORA — Curated Editorial Header System (Explore Kerala Style)
+   Shared across Destinations, Journeys, Journal, and About pages
+   ============================================================ */
+
+.dest-page {
+  background-color: #FAF8F5;
+  min-height: 100vh;
+  color: #172A1F;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.dest-wrap {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 3.5vw, 48px);
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Hero Section ── */
+.dest-hero-section {
+  position: relative;
+  padding-top: clamp(98px, 8.5vw, 114px);
+  padding-bottom: clamp(10px, 1.8vw, 18px);
+  overflow: hidden;
+  background-color: #FAF8F5;
+}
+
+.dest-hero-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: right 30%;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.95;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 22%, rgba(0,0,0,0.2) 42%, rgba(0,0,0,0.75) 68%, #000 90%),
+                      linear-gradient(to bottom, #000 70%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, transparent 22%, rgba(0,0,0,0.2) 42%, rgba(0,0,0,0.75) 68%, #000 90%),
+              linear-gradient(to bottom, #000 70%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+
+.dest-hero-gradient {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #FAF8F5 0%, #FAF8F5 26%, rgba(250, 248, 245, 0.82) 46%, rgba(250, 248, 245, 0.15) 72%, transparent 100%),
+              linear-gradient(to top, #FAF8F5 0%, rgba(250, 248, 245, 0) 24%);
+  pointer-events: none;
+}
+
+.dest-hero-content {
+  position: relative;
+  z-index: 3;
+  max-width: 680px;
+}
+
+.dest-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #8C7355;
+}
+
+.dest-eyebrow-accent {
+  width: 24px;
+  height: 1px;
+  background-color: #8C7355;
+  opacity: 0.7;
+}
+
+.dest-hero-title {
+  font-family: 'Fonarto', 'Playfair Display', Georgia, serif;
+  font-size: clamp(32px, 3.8vw, 54px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: #293D1F;
+  margin: 0 0 10px 0;
+}
+
+.dest-hero-title em {
+  font-style: italic;
+  font-weight: 400;
+  color: #4E6252;
+}
+
+.dest-hero-desc {
+  font-family: 'Inter', var(--f-body, system-ui, sans-serif);
+  font-size: clamp(14px, 1.05vw, 15.5px);
+  line-height: 1.5;
+  color: #5A6B5D;
+  max-width: 52ch;
+  margin: 0;
+}
+
+/* ── Filter Chips ── */
+.dest-filters-section {
+  padding: 8px 0 16px 0;
+  position: relative;
+  z-index: 5;
+  background-color: #FAF8F5;
+}
+
+.dest-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.dest-chip {
+  font-family: 'Inter', var(--f-body, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 22px;
+  border-radius: 9999px;
+  cursor: pointer;
+  background: #FFFFFF;
+  border: 1px solid #D6DFD9;
+  color: #2C3F34;
+  transition: all 0.22s ease-out;
+  outline: none;
+}
+
+.dest-chip:hover {
+  border-color: #1A3F2C;
+  color: #1A3F2C;
+  background: #FAFDFB;
+}
+
+.dest-chip.is-active {
+  background: #1A3F2C;
+  border-color: #1A3F2C;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(26, 63, 44, 0.16);
+}
+
+

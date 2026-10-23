@@ -61,7 +61,7 @@
 }
 .jd-author-av {
   width: 48px; height: 48px; border-radius: 50%;
-  object-fit: cover; filter: grayscale(20%);
+  object-fit: cover;
   flex-shrink: 0;
 }
 .jd-author-av-placeholder {
@@ -213,7 +213,7 @@
 }
 .jd-author-card-av {
   width: 72px; height: 72px; border-radius: 50%;
-  object-fit: cover; filter: grayscale(20%); flex-shrink: 0;
+  object-fit: cover; flex-shrink: 0;
 }
 .jd-author-card-role {
   font-family: var(--f-mono); font-size: 9.5px;

@@ -84,14 +84,14 @@ html.theme-v3 h6 {
   font-style: normal !important;
 }
 
-/* Base heading color: Deep Botanical #25432F unless explicitly light/white or inside dark themes/elements */
-html.theme-v3 h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
-html.theme-v3 h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
-html.theme-v3 h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
-html.theme-v3 h4:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
-html.theme-v3 h5:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
-html.theme-v3 h6:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
-html.theme-v3 .font-serif:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) {
+/* Base heading color: Deep Botanical #25432F unless explicitly light/white or inside dark themes/elements/hero */
+html.theme-v3 h1:not(.text-white):not([class*="text-white"]):not(.esh-root *):not(.tropical-hero-root *):not(#hero *):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+html.theme-v3 h2:not(.text-white):not([class*="text-white"]):not(.esh-root *):not(.tropical-hero-root *):not(#hero *):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+html.theme-v3 h3:not(.text-white):not([class*="text-white"]):not(.esh-root *):not(.tropical-hero-root *):not(#hero *):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+html.theme-v3 h4:not(.text-white):not([class*="text-white"]):not(.esh-root *):not(.tropical-hero-root *):not(#hero *):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+html.theme-v3 h5:not(.text-white):not([class*="text-white"]):not(.esh-root *):not(.tropical-hero-root *):not(#hero *):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+html.theme-v3 h6:not(.text-white):not([class*="text-white"]):not(.esh-root *):not(.tropical-hero-root *):not(#hero *):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *),
+html.theme-v3 .font-serif:not(.text-white):not([class*="text-white"]):not(.esh-root *):not(.tropical-hero-root *):not(#hero *):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *) {
   color: var(--v3-botanical, #25432F);
 }
 
@@ -158,7 +158,7 @@ html.theme-v3 .cat-card .c-name { color: var(--v3-white); }
   display: flex; align-items: center; justify-content: space-between; gap: 16px;
   width: min(var(--container, 1440px), calc(100vw - 44px));
   min-height: 72px;
-  padding: 16px 36px 16px 40px;
+  padding: 8px 28px;
   border-radius: 20px;
   border: 1px solid rgba(0, 0, 0, 0.06);
   font-family: var(--f-body);

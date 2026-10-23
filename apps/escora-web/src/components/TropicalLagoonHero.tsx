@@ -349,21 +349,25 @@ export default function TropicalLagoonHero({ onExploreClick }: TropicalLagoonHer
           {/* Main Title: KERALA */}
           <div className="esh-title-stage" aria-live="polite">
             <div className="esh-title-motion" key={currentIndex}>
-              <h1 className="esh-title">
-                <span className="esh-title-text">KERALA</span>
+              <h1 className="esh-title text-white">
+                <span className="esh-title-text text-white">KERALA</span>
               </h1>
             </div>
           </div>
 
           {/* Subtitle / Tagline: Where Every Journey Feels Like Home */}
-          <h2 className="esh-subtitle">
+          <h2 className="esh-subtitle text-white">
             Where Every Journey<br />Feels Like Home
           </h2>
 
           {/* Editorial Description */}
-          <p className="esh-description">
-            Backwaters, mountains, beaches and culture —<br />
-            discover the many shades of Kerala with Escora.
+          <p className="esh-description text-white">
+
+<br />
+<br />
+            <br />
+            <br />
+            <b></b>
           </p>
         </div>
 

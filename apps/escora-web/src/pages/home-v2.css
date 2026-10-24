@@ -3166,6 +3166,11 @@ h3.retreat-card-title {
   max-width: 1440px;
   margin: 0 auto;
   overflow: visible;
+
+  /* GSAP scroll reveal custom properties — defaults to 1 */
+  --testi-reveal-center: 1;
+  --testi-reveal-sides: 1;
+  --testi-reveal-ui: 1;
 }
 
 .testi-carousel-stage {
@@ -3183,6 +3188,12 @@ h3.retreat-card-title {
   height: clamp(310px, 40vh, 360px);
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.5s ease, filter 0.5s ease;
   will-change: transform, opacity;
+}
+
+/* While scrubbing across pinned slides, disable CSS transition on carousel items for instantaneous 1:1 scroll responsiveness */
+.pinned-journey-slide:not(.is-active) .testi-carousel-item,
+.testi-carousel-wrapper.is-scrubbing .testi-carousel-item {
+  transition: none !important;
 }
 
 .testi-carousel-item.is-center {
@@ -3328,7 +3339,8 @@ h3.retreat-card-title {
   place-items: center;
   cursor: pointer;
   z-index: 10;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  opacity: var(--testi-reveal-ui, 1);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease, opacity 0.3s ease;
 }
 
 .testi-nav-arrow.prev {
@@ -3354,6 +3366,9 @@ h3.retreat-card-title {
   justify-content: center;
   gap: 8px;
   margin-top: clamp(14px, 1.8vh, 22px);
+  opacity: var(--testi-reveal-ui, 1);
+  transform: translateY(calc((1 - var(--testi-reveal-ui, 1)) * 14px));
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .testi-indicator-pill {

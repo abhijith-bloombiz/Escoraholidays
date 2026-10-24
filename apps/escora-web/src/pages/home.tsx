@@ -403,6 +403,23 @@ export default function Home() {
     const el = whyEscoraRef.current;
     if (!el) return;
 
+    const pinnedSlide = el.closest(".pinned-journey-slide");
+    if (pinnedSlide) {
+      const updateFromSlide = () => {
+        const isActive =
+          pinnedSlide.classList.contains("is-active") ||
+          pinnedSlide.classList.contains("is-initial-active");
+        setIsWhyEscoraInView(isActive);
+      };
+      updateFromSlide();
+      const mutObs = new MutationObserver(updateFromSlide);
+      mutObs.observe(pinnedSlide, {
+        attributes: true,
+        attributeFilter: ["class", "style", "aria-hidden"],
+      });
+      return () => mutObs.disconnect();
+    }
+
     if (typeof IntersectionObserver === "undefined") {
       setIsWhyEscoraInView(true);
       return;
@@ -412,7 +429,6 @@ export default function Home() {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsWhyEscoraInView(true);
-          observer.disconnect();
         }
       },
       { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
@@ -671,183 +687,184 @@ export default function Home() {
 
       {/* ═══════════════════════ SCROLL-TRIGGERED PINNED JOURNEY EXPERIENCE ═══════════════════════ */}
       <PinnedJourneyExperience>
-        {/* ── Slide 0: WHY ESCORA ── */}
+        {/* ── Slide 0: TRAVEL BY TYPE ── */}
+        <section
+          className="cat-section"
+          id="categories"
+          ref={categoriesRef}
+        >
+          <div className="wrap">
+            <div className="cat-section-head">
+              <div className="cat-section-head-left">
+                <div className="eyebrow rv" data-pinned-reveal><span className="dot" />Travel by Type</div>
+                <h2 className="display-md rv d2" data-pinned-reveal style={{ maxWidth: "20ch" }}>
+                  {travelTypeItems.length > 0
+                    ? `${travelTypeItems.length === 8 ? "Eight" : travelTypeItems.length} ways to discover `
+                    : "Discover "}
+                  Kerala.
+                </h2>
+              </div>
+              <div className="cat-section-head-right">
+                <p className="rv d3" data-pinned-reveal style={{ maxWidth: "44ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
+                  Choose your travel personality — we'll compose a journey from scratch, entirely around you.
+                </p>
+              </div>
+            </div>
+
+            <div className="travel-type-coverflow-holder">
+              <TravelTypeCoverflow
+                items={travelTypeItems}
+                isLoading={isCategoriesLoading && travelTypeItems.length === 0}
+                isError={isCategoriesError && travelTypeItems.length === 0}
+                onRetry={refetchCategories}
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ── Slide 1: 3D DESTINATION EXPLORER ── */}
+        <Kerala3DDestinationExplorer
+          ref={exploreSectionRef}
+          id="explore-kerala"
+          destinations={destinationsData}
+        />
+
+        {/* ── Slide 2: FROM YOUR IDEA TO KERALA (HOW IT WORKS) ── */}
+        <FromYourIdeaToKerala />
+
+        {/* ── Slide 3: WHY ESCORA ── */}
         <section
           ref={whyEscoraRef}
           className={`why-esc-section why-esc-animated${isWhyEscoraInView ? " is-in-view" : ""}`}
           id="why-escora"
           aria-label="Why choose Escora"
         >
-        <div className="why-esc-inner">
-          {/* ── Left panel: editorial copy ── */}
-          <div className="why-esc-left">
-            <div className="why-esc-eyebrow rv">
-              WHY ESCORA
-            </div>
-            <h2 className="why-esc-heading rv d1">
-              <span className="why-esc-heading-line">
-                <span className="why-esc-word-inner">Why the world's</span>
-              </span>{" "}
-              <span className="why-esc-heading-line">
-                <span className="why-esc-word-inner">discerning</span>
-              </span>{" "}
-              <span className="why-esc-heading-line">
-                <span className="why-esc-word-inner">travellers choose</span>
-              </span>{" "}
-              <span className="why-esc-heading-line">
-                <span className="why-esc-word-inner why-esc-heading-em">Escora</span>
-              </span>
-            </h2>
-            <p className="why-esc-desc rv d2">
-              We don't sell packages. We compose journeys — built entirely around you, from the first conversation to the final farewell.
-            </p>
-            <a
-              href="/contact"
-              className="why-esc-contact-btn rv d3"
-              aria-label="Contact Escora Holidays"
-            >
-              <span className="why-esc-contact-circle" aria-hidden="true">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                  <polyline points="12 5 19 12 12 19" />
-                </svg>
-              </span>
-              <span className="why-esc-contact-label">CONTACT</span>
-            </a>
-          </div>
-
-          {/* ── Right panel: 3×2 benefits grid ── */}
-          <div className="why-esc-right">
-            {[
-              {
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                    <circle cx="9" cy="7" r="4"/>
-                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                  </svg>
-                ),
-                title: "Completely Private Journeys",
-                desc: "No shared buses. No fixed departures. Every element of your trip is exclusive to you and your group.",
-              },
-              {
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M12 6v6l4 2"/>
-                  </svg>
-                ),
-                title: "Kerala Specialists",
-                desc: "One destination. A decade of local expertise. We know every road, every estate, every chef worth knowing.",
-              },
-              {
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-                    <polyline points="9 22 9 12 15 12 15 22"/>
-                  </svg>
-                ),
-                title: "Handpicked Stays",
-                desc: "Every hotel, homestay and houseboat is personally inspected by our team before it earns a place in your itinerary.",
-              },
-              {
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/>
-                    <line x1="2" y1="12" x2="22" y2="12"/>
-                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                  </svg>
-                ),
-                title: "Local Curators",
-                desc: "Your guides, planners and hosts are people who actually live in Kerala — born here, rooted here, and fluent in English.",
-              },
-              {
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.26h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
-                  </svg>
-                ),
-                title: "24 × 7 Concierge",
-                desc: "Support before, during and after travel. A real person answers — not a chatbot.",
-              },
-              {
-                icon: (
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 11 12 14 22 4"/>
-                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                  </svg>
-                ),
-                title: "Fully Tailored",
-                desc: "Nothing is pre-packaged. Your dates, your pace, your companions, your interests — built from a blank canvas.",
-              },
-            ].map((item, i) => (
-              <div
-                key={i}
-                className={`why-esc-card why-esc-card-${i} rv${i > 0 ? ` d${Math.min(i, 3)}` : ""}`}
-                data-card-index={i}
-                data-pinned-reveal
-              >
-                <span className="why-esc-card-icon" aria-hidden="true">{item.icon}</span>
-                <h4 className="why-esc-card-title">{item.title}</h4>
-                <p className="why-esc-card-desc">{item.desc}</p>
+          <div className="why-esc-inner">
+            {/* ── Left panel: editorial copy ── */}
+            <div className="why-esc-left">
+              <div className="why-esc-eyebrow rv" data-pinned-reveal>
+                WHY ESCORA
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Slide 1: TRAVEL BY TYPE ── */}
-      <section
-        className="cat-section"
-        id="categories"
-        ref={categoriesRef}
-      >
-        <div className="wrap">
-          <div className="cat-section-head">
-            <div className="cat-section-head-left">
-              <div className="eyebrow rv" data-pinned-reveal><span className="dot" />Travel by Type</div>
-              <h2 className="display-md rv d2" data-pinned-reveal style={{ maxWidth: "20ch" }}>
-                {travelTypeItems.length > 0
-                  ? `${travelTypeItems.length === 8 ? "Eight" : travelTypeItems.length} ways to discover `
-                  : "Discover "}
-                Kerala.
+              <h2 className="why-esc-heading rv d1" data-pinned-reveal>
+                <span className="why-esc-heading-line">
+                  <span className="why-esc-word-inner">Why the world's</span>
+                </span>{" "}
+                <span className="why-esc-heading-line">
+                  <span className="why-esc-word-inner">discerning</span>
+                </span>{" "}
+                <span className="why-esc-heading-line">
+                  <span className="why-esc-word-inner">travellers choose</span>
+                </span>{" "}
+                <span className="why-esc-heading-line">
+                  <span className="why-esc-word-inner why-esc-heading-em">Escora</span>
+                </span>
               </h2>
-            </div>
-            <div className="cat-section-head-right">
-              <p className="rv d3" data-pinned-reveal style={{ maxWidth: "44ch", color: "var(--ink-mute)", fontSize: 14, lineHeight: 1.65, textAlign: "right" }}>
-                Choose your travel personality — we'll compose a journey from scratch, entirely around you.
+              <p className="why-esc-desc rv d2" data-pinned-reveal>
+                We don't sell packages. We compose journeys — built entirely around you, from the first conversation to the final farewell.
               </p>
+              <a
+                href="/contact"
+                className="why-esc-contact-btn rv d3"
+                data-pinned-reveal
+                aria-label="Contact Escora Holidays"
+              >
+                <span className="why-esc-contact-circle" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                    <polyline points="12 5 19 12 12 19" />
+                  </svg>
+                </span>
+                <span className="why-esc-contact-label">CONTACT</span>
+              </a>
+            </div>
+
+            {/* ── Right panel: 3×2 benefits grid ── */}
+            <div className="why-esc-right">
+              {[
+                {
+                  icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  ),
+                  title: "Completely Private Journeys",
+                  desc: "No shared buses. No fixed departures. Every element of your trip is exclusive to you and your group.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M12 6v6l4 2"/>
+                    </svg>
+                  ),
+                  title: "Kerala Specialists",
+                  desc: "One destination. A decade of local expertise. We know every road, every estate, every chef worth knowing.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                      <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                  ),
+                  title: "Handpicked Stays",
+                  desc: "Every hotel, homestay and houseboat is personally inspected by our team before it earns a place in your itinerary.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/>
+                      <line x1="2" y1="12" x2="22" y2="12"/>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                  ),
+                  title: "Local Curators",
+                  desc: "Your guides, planners and hosts are people who actually live in Kerala — born here, rooted here, and fluent in English.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.26h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                  ),
+                  title: "24 × 7 Concierge",
+                  desc: "Support before, during and after travel. A real person answers — not a chatbot.",
+                },
+                {
+                  icon: (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 11 12 14 22 4"/>
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                  ),
+                  title: "Fully Tailored",
+                  desc: "Nothing is pre-packaged. Your dates, your pace, your companions, your interests — built from a blank canvas.",
+                },
+              ].map((item, i) => (
+                <div
+                  key={i}
+                  className={`why-esc-card why-esc-card-${i} rv${i > 0 ? ` d${Math.min(i, 3)}` : ""}`}
+                  data-card-index={i}
+                  data-pinned-reveal
+                >
+                  <span className="why-esc-card-icon" aria-hidden="true">{item.icon}</span>
+                  <h4 className="why-esc-card-title">{item.title}</h4>
+                  <p className="why-esc-card-desc">{item.desc}</p>
+                </div>
+              ))}
             </div>
           </div>
-
-          <div data-pinned-reveal>
-            <TravelTypeCoverflow
-              items={travelTypeItems}
-              isLoading={isCategoriesLoading && travelTypeItems.length === 0}
-              isError={isCategoriesError && travelTypeItems.length === 0}
-              onRetry={refetchCategories}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════ 3D DESTINATION EXPLORER ═══════════════════════ */}
-      <Kerala3DDestinationExplorer
-        ref={exploreSectionRef}
-        id="explore-kerala"
-        destinations={destinationsData}
-      />
-
-      {/* ════════════════════ FROM YOUR IDEA TO KERALA ════════════════════ */}
-      <FromYourIdeaToKerala />
+        </section>
 
       {/* ═══════════════════════ ESCORA RETREAT ════════════════════════════ */}
       <section ref={retreatSectionRef} className="escora-retreat-section" id="retreat" aria-label="Escora Retreat">
         <div className="retreat-container">
           {/* Header Row: Left Eyebrow & Title, Right Top Lede */}
           <div className="retreat-header-row">
-            <div className="retreat-header-left">
+            <div className="retreat-header-left" data-pinned-reveal>
               <div className="retreat-eyebrow">
                 <span className="retreat-eyebrow-dash" />
                 <span>ESCORA RETREAT</span>
@@ -857,7 +874,7 @@ export default function Home() {
                 Healing, the Kerala way.
               </h2>
             </div>
-            <div className="retreat-header-right">
+            <div className="retreat-header-right" data-pinned-reveal>
               <p className="retreat-lede">
                 Set on the quiet shore of Vembanad Lake — our NABH-accredited wellness home, where physicians, yogis and kalari masters work as one. Every programme is composed for you alone.
               </p>
@@ -881,6 +898,7 @@ export default function Home() {
                   tabIndex={0}
                   style={{ "--card-index": i } as React.CSSProperties}
                   className={`retreat-card${isActive ? " is-active" : ""}`}
+                  data-pinned-reveal
                   onClick={() => handleSelectRetreatCard(i)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
@@ -1048,11 +1066,15 @@ export default function Home() {
                         transform: isCenter
                           ? "translateX(0) scale(1)"
                           : isLeft
-                          ? "translateX(calc(-100% - 24px)) scale(0.96)"
+                          ? "translateX(calc(-100% - 24px - (1 - var(--testi-reveal-sides, 1)) * clamp(220px, 26vw, 420px))) scale(calc(0.88 + 0.08 * var(--testi-reveal-sides, 1)))"
                           : isRight
-                          ? "translateX(calc(100% + 24px)) scale(0.96)"
+                          ? "translateX(calc(100% + 24px + (1 - var(--testi-reveal-sides, 1)) * clamp(220px, 26vw, 420px))) scale(calc(0.88 + 0.08 * var(--testi-reveal-sides, 1)))"
                           : "translateX(0) scale(0.85)",
-                        opacity: isCenter ? 1 : Math.abs(diff) === 1 ? 0.68 : 0,
+                        opacity: isCenter
+                          ? "var(--testi-reveal-center, 1)"
+                          : Math.abs(diff) === 1
+                          ? "calc(0.68 * var(--testi-reveal-sides, 1))"
+                          : 0,
                         pointerEvents: isCenter ? "auto" : Math.abs(diff) === 1 ? "auto" : "none",
                         zIndex: isCenter ? 5 : 2,
                       }}
@@ -1069,7 +1091,21 @@ export default function Home() {
                         }
                       }}
                     >
-                      <div className="testi-card">
+                      <div
+                        className="testi-card"
+                        style={
+                          isCenter
+                            ? {
+                                clipPath:
+                                  "inset(calc((1 - var(--testi-reveal-center, 1)) * 50%) 0 round 28px)",
+                                transform:
+                                  "scaleY(calc(0.04 + 0.96 * var(--testi-reveal-center, 1)))",
+                                transformOrigin: "center center",
+                                willChange: "clip-path, transform",
+                              }
+                            : undefined
+                        }
+                      >
                         {/* Left side: Travel Photo */}
                         <div className="testi-card-photo-wrap">
                           <img

@@ -9,6 +9,9 @@
   position: relative;
   width: 100%;
   box-sizing: border-box;
+  margin-top: -100vh;
+  margin-top: -100dvh;
+  z-index: 10;
 }
 
 .pinned-journey-stage {
@@ -22,7 +25,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #FAF8F5;
+  background-color: #FFFFFF;
+  box-shadow: 0 -24px 70px rgba(0, 0, 0, 0.45), 0 -4px 16px rgba(0, 0, 0, 0.25);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Background Crossfade Canvas */
@@ -32,7 +37,7 @@
   width: 100%;
   height: 100%;
   z-index: 0;
-  background-color: #FAF8F5;
+  background-color: #FFFFFF;
   transition: background-color 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
 }
@@ -87,7 +92,7 @@
   pointer-events: auto;
 }
 
-/* Text, headings and lists: staggered bottom-to-top reveal coordinated with active pinned slide */
+/* In pinned slides, GSAP manages high-performance 60fps transitions directly */
 .pinned-journey-slide.is-initial-active .rv,
 .pinned-journey-slide.is-active .rv {
   opacity: 1;
@@ -97,7 +102,12 @@
 .pinned-journey-slide:not(.is-active):not(.is-initial-active) .rv {
   opacity: 0;
   transform: translateY(32px);
-  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+/* Suppress CSS transitions while GSAP drives the active sequential transition */
+.pinned-journey-wrapper.is-transitioning .rv,
+.pinned-journey-wrapper.is-transitioning [data-pinned-reveal] {
+  transition: none !important;
 }
 
 /* Inside pinned slides, adjust child sections so they fit vertically centered without nested scrollbars */

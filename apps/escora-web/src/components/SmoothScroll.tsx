@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import Lenis from "lenis";
+import { PINNED_SLIDE_CONFIGS } from "./PinnedJourneyExperience";
 import "lenis/dist/lenis.css";
 
 declare global {
@@ -68,19 +69,10 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
           hash = href.substring(1);
         }
         if (hash) {
-          const PINNED_HASH_MAP: Record<string, number> = {
-            "#why-escora": 0,
-            "#categories": 1,
-            "#explore-kerala": 2,
-            "#how-it-works": 3,
-            "#retreat": 4,
-            "#testimonials": 5,
-            "#contact": 6,
-          };
-
-          if (hash in PINNED_HASH_MAP && window.__pinnedJourney) {
+          const slideIdx = PINNED_SLIDE_CONFIGS.findIndex((s) => `#${s.id}` === hash);
+          if (slideIdx !== -1 && window.__pinnedJourney) {
             e.preventDefault();
-            window.__pinnedJourney.goToSlide(PINNED_HASH_MAP[hash]);
+            window.__pinnedJourney.goToSlide(slideIdx);
             return;
           }
 

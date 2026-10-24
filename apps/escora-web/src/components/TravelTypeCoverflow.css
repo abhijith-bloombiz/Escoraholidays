@@ -12,9 +12,15 @@
   outline: none;
   overflow: visible;
   padding: 10px 0 clamp(20px, 3vh, 36px) 0;
+
+  /* GSAP Scroll Reveal CSS custom properties — defaults to 1 when fully revealed */
+  --tt-reveal-center: 1;
+  --tt-reveal-inner: 1;
+  --tt-reveal-outer: 1;
+  --tt-reveal-ui: 1;
 }
 
-/* ─── Category Filter Badges / Tags Bar (Matches User Reference Image) ─── */
+/* ─── Category Filter Badges / Tags Bar ─── */
 .travel-type-coverflow-wrap .travel-type-badge-bar {
   display: flex;
   flex-wrap: wrap;
@@ -75,7 +81,7 @@
   position: relative;
   width: 100%;
   max-width: 1540px;
-  height: clamp(500px, 56vh, 590px);
+  height: clamp(520px, 58vh, 600px);
   margin: 0 auto;
   touch-action: pan-y;
 }
@@ -95,14 +101,14 @@
   cursor: grabbing;
 }
 
-/* ─── Base Card Proportions: 28px Rounded Corners ─── */
+/* ─── Base Card Proportions: Crisp 10px Rounded Corners Matching Reference ─── */
 .travel-type-coverflow-wrap .coverflow-card {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: clamp(285px, 21.5vw, 330px);
-  height: clamp(480px, 53vh, 550px);
-  border-radius: 28px;
+  width: clamp(280px, 21.5vw, 325px);
+  height: clamp(480px, 54vh, 550px);
+  border-radius: 10px;
   background: transparent;
   cursor: pointer;
   outline: none;
@@ -111,8 +117,8 @@
   -webkit-user-select: none;
   will-change: transform, opacity;
   filter: none !important;
-  transition: transform 0.72s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   transform-style: preserve-3d;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -120,38 +126,35 @@
   perspective: 1000px;
 }
 
-/* ─── Inner Card Box: Flawless Crystal Edge (Zero dark lines or bleed) ─── */
+/* ─── Inner Card Box: Luxury Tangible Card Stock with Deep Shadow ─── */
 .travel-type-coverflow-wrap .coverflow-card-inner {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 28px;
+  border-radius: 10px;
   overflow: hidden;
   border: none !important;
-  background: transparent;
-  /* Ultra-smooth luxury edge: Inset highlight sits on top of photo without any dark background bleeding */
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22),
-              0 22px 50px -12px rgba(0, 0, 0, 0.32),
-              0 8px 18px -4px rgba(0, 0, 0, 0.16);
+  background: #111;
+  box-shadow: 0 18px 45px -8px rgba(0, 0, 0, 0.48),
+              0 6px 18px -4px rgba(0, 0, 0, 0.28);
   transform-style: preserve-3d;
   transform: rotateY(var(--edge-tilt-y, 0deg));
   transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 0.4s ease;
   will-change: transform;
-  -webkit-mask-image: -webkit-radial-gradient(white, black);
   isolation: isolate;
 }
 
 .travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-card-inner {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26),
-              0 26px 56px -12px rgba(0, 0, 0, 0.40),
-              0 10px 22px -4px rgba(0, 0, 0, 0.20);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32),
+              0 24px 54px -10px rgba(0, 0, 0, 0.52),
+              0 8px 22px -4px rgba(0, 0, 0, 0.30);
 }
 
 .travel-type-coverflow-wrap .coverflow-card[data-offset="0"]:hover .coverflow-card-inner {
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.38),
-              0 32px 68px -12px rgba(0, 0, 0, 0.48),
-              0 12px 26px -4px rgba(0, 0, 0, 0.24);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45),
+              0 30px 65px -12px rgba(0, 0, 0, 0.58),
+              0 10px 26px -4px rgba(0, 0, 0, 0.34);
 }
 
 .travel-type-coverflow-wrap .coverflow-card-img {
@@ -160,315 +163,311 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 0; /* Clipped cleanly by parent container mask without subpixel gaps */
+  border-radius: 10px;
   display: block;
   pointer-events: none;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .travel-type-coverflow-wrap .coverflow-card[data-offset="0"]:hover .coverflow-card-img {
-  transform: scale(1.04);
+  transform: scale(1.03);
 }
 
-/* ─── Bottom Scrim: Clean, zero darkness at top so photo stays 100% vivid ─── */
+/* ─── Scrim Gradients ─── */
 .travel-type-coverflow-wrap .coverflow-card-scrim {
   position: absolute;
   inset: 0;
-  border-radius: 0;
+  border-radius: 10px;
   background: linear-gradient(
     180deg,
     rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0) 44%,
-    rgba(0, 0, 0, 0.18) 64%,
-    rgba(0, 0, 0, 0.62) 84%,
-    rgba(0, 0, 0, 0.86) 100%
+    rgba(0, 0, 0, 0) 48%,
+    rgba(0, 0, 0, 0.32) 72%,
+    rgba(0, 0, 0, 0.80) 92%,
+    rgba(0, 0, 0, 0.92) 100%
   );
   pointer-events: none;
+  transition: opacity 0.4s ease;
 }
 
-/* ─── Horizontal Layered Positions: Cards Switch from Left/Right (Not Behind) ─── */
-/* Locked z-index rules ensure cards never overlap or jump on hover */
+.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-card-scrim {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.42) 0%,
+    rgba(0, 0, 0, 0.12) 16%,
+    rgba(0, 0, 0, 0) 36%,
+    rgba(0, 0, 0, 0.28) 58%,
+    rgba(0, 0, 0, 0.75) 82%,
+    rgba(0, 0, 0, 0.94) 100%
+  );
+}
 
-/* Center Card (Offset 0): Sharp crystal focus, scale 1.0, highest z-index 30 */
+/* ─── 5-Card Fan Layered Positions with Scroll-Driven Reveal ─── */
+
+/* Center Card (Offset 0): Scales 90% to 100% on scroll reveal, upright 0deg tilt */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="0"],
 .travel-type-coverflow-wrap .coverflow-card[data-offset="0"]:hover {
-  transform: translate3d(-50%, -50%, 0) scale(1);
-  filter: none;
-  opacity: 1;
+  transform: translate3d(-50%, -50%, 0) scale(calc(0.90 + 0.10 * var(--tt-reveal-center, 1))) rotateZ(0deg);
+  opacity: var(--tt-reveal-center, 1);
   z-index: 30 !important;
   cursor: pointer;
   pointer-events: auto;
 }
 
-/* Immediate Left (Offset -1): Slides horizontally to the left */
+/* Immediate Left (Offset -1): Fans out from behind center card with -2.5deg tilt */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="-1"],
 .travel-type-coverflow-wrap .coverflow-card[data-offset="-1"]:hover {
-  transform: translate3d(calc(-50% - clamp(235px, 18vw, 275px)), -50%, 0) scale(0.85);
-  filter: none;
-  opacity: 0.92;
+  transform: translate3d(
+    calc(-50% - clamp(190px, 16vw, 230px) * var(--tt-reveal-inner, 1)),
+    calc(-50% + 1% * var(--tt-reveal-inner, 1)),
+    0
+  ) scale(calc(0.82 + 0.10 * var(--tt-reveal-inner, 1))) rotateZ(calc(-2.5deg * var(--tt-reveal-inner, 1)));
+  opacity: calc(var(--tt-reveal-inner, 1) * 0.95);
   z-index: 20 !important;
   pointer-events: auto;
 }
 
-/* Immediate Right (Offset 1): Slides horizontally to the right */
+/* Immediate Right (Offset 1): Fans out from behind center card with +2.5deg tilt */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="1"],
 .travel-type-coverflow-wrap .coverflow-card[data-offset="1"]:hover {
-  transform: translate3d(calc(-50% + clamp(235px, 18vw, 275px)), -50%, 0) scale(0.85);
-  filter: none;
-  opacity: 0.92;
+  transform: translate3d(
+    calc(-50% + clamp(190px, 16vw, 230px) * var(--tt-reveal-inner, 1)),
+    calc(-50% + 1% * var(--tt-reveal-inner, 1)),
+    0
+  ) scale(calc(0.82 + 0.10 * var(--tt-reveal-inner, 1))) rotateZ(calc(2.5deg * var(--tt-reveal-inner, 1)));
+  opacity: calc(var(--tt-reveal-inner, 1) * 0.95);
   z-index: 20 !important;
   pointer-events: auto;
 }
 
-/* Outer Left (Offset -2): Positioned further to the left */
+/* Outer Left (Offset -2): Fans out from behind inner left card with -5deg tilt */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="-2"],
 .travel-type-coverflow-wrap .coverflow-card[data-offset="-2"]:hover {
-  transform: translate3d(calc(-50% - clamp(435px, 33vw, 500px)), -50%, 0) scale(0.72);
-  filter: none;
-  opacity: 0.82;
+  transform: translate3d(
+    calc(-50% - clamp(365px, 30vw, 440px) * var(--tt-reveal-outer, 1)),
+    calc(-50% + 3% * var(--tt-reveal-outer, 1)),
+    0
+  ) scale(calc(0.72 + 0.13 * var(--tt-reveal-outer, 1))) rotateZ(calc(-5deg * var(--tt-reveal-outer, 1)));
+  opacity: calc(var(--tt-reveal-outer, 1) * 0.85);
   z-index: 10 !important;
   pointer-events: auto;
 }
 
-/* Outer Right (Offset 2): Positioned further to the right */
+/* Outer Right (Offset 2): Fans out from behind inner right card with +5deg tilt */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="2"],
 .travel-type-coverflow-wrap .coverflow-card[data-offset="2"]:hover {
-  transform: translate3d(calc(-50% + clamp(435px, 33vw, 500px)), -50%, 0) scale(0.72);
-  filter: none;
-  opacity: 0.82;
+  transform: translate3d(
+    calc(-50% + clamp(365px, 30vw, 440px) * var(--tt-reveal-outer, 1)),
+    calc(-50% + 3% * var(--tt-reveal-outer, 1)),
+    0
+  ) scale(calc(0.72 + 0.13 * var(--tt-reveal-outer, 1))) rotateZ(calc(5deg * var(--tt-reveal-outer, 1)));
+  opacity: calc(var(--tt-reveal-outer, 1) * 0.85);
   z-index: 10 !important;
   pointer-events: auto;
 }
 
-/* Off-screen Left Edge (Offset -3): Slides out horizontally to the far LEFT */
+/* Off-screen Left Edge (Offset -3) */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="-3"] {
-  transform: translate3d(calc(-50% - clamp(640px, 49vw, 740px)), -50%, 0) scale(0.62);
-  filter: none;
+  transform: translate3d(calc(-50% - clamp(560px, 45vw, 660px)), -50%, 0) scale(0.65);
   opacity: 0;
   pointer-events: none;
   z-index: 5 !important;
 }
 
-/* Off-screen Right Edge (Offset 3): Slides in horizontally from the far RIGHT */
+/* Off-screen Right Edge (Offset 3) */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="3"] {
-  transform: translate3d(calc(-50% + clamp(640px, 49vw, 740px)), -50%, 0) scale(0.62);
-  filter: none;
+  transform: translate3d(calc(-50% + clamp(560px, 45vw, 660px)), -50%, 0) scale(0.65);
   opacity: 0;
   pointer-events: none;
   z-index: 5 !important;
 }
 
-/* Far Left Hidden (hidden-left): Off-screen left waiting to slide in */
+/* Far Left Hidden */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="hidden-left"] {
-  transform: translate3d(calc(-50% - clamp(860px, 65vw, 990px)), -50%, 0) scale(0.55);
-  filter: none;
+  transform: translate3d(calc(-50% - clamp(750px, 60vw, 900px)), -50%, 0) scale(0.55);
   opacity: 0;
   pointer-events: none;
   z-index: 1 !important;
 }
 
-/* Far Right Hidden (hidden-right): Off-screen right waiting to slide in */
+/* Far Right Hidden */
 .travel-type-coverflow-wrap .coverflow-card[data-offset="hidden-right"] {
-  transform: translate3d(calc(-50% + clamp(860px, 65vw, 990px)), -50%, 0) scale(0.55);
-  filter: none;
+  transform: translate3d(calc(-50% + clamp(750px, 60vw, 900px)), -50%, 0) scale(0.55);
   opacity: 0;
   pointer-events: none;
   z-index: 1 !important;
 }
 
-/* When a card wraps around circular boundary, transition is silenced so it repositions off-screen instantly */
+/* When a card wraps around circular boundary, transition is silenced */
 .travel-type-coverflow-wrap .coverflow-card.is-wrapping {
   transition: none !important;
 }
 
-/* ─── Top Category Tag / Badge on Each Card (Removed per user request) ─── */
-.travel-type-coverflow-wrap .coverflow-card-badge,
-.travel-type-coverflow-wrap .coverflow-card-top-tag,
-.travel-type-coverflow-wrap .coverflow-badge-pill,
-.travel-type-coverflow-wrap .tt-card-tag-pill,
-.coverflow-card-badge,
-.coverflow-badge-pill {
-  display: none !important;
-}
-
-/* ─── Card Texts: Crisp White Typography over Imagery ─── */
-.travel-type-coverflow-wrap .coverflow-center-title,
-.travel-type-coverflow-wrap h3.coverflow-center-title,
-.travel-type-coverflow-wrap .coverflow-card h3,
-.travel-type-coverflow-wrap .coverflow-center-title *,
-.travel-type-coverflow-wrap .coverflow-center-title em,
-.coverflow-card .coverflow-center-title,
-.coverflow-card .coverflow-center-title *,
-.coverflow-card .coverflow-center-title em {
-  color: #ffffff !important;
-  text-shadow: 0 4px 18px rgba(0, 0, 0, 0.8), 0 2px 6px rgba(0, 0, 0, 0.6) !important;
-}
-
-.travel-type-coverflow-wrap .coverflow-center-desc,
-.coverflow-card .coverflow-center-desc {
-  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif) !important;
-  font-size: clamp(12.5px, 0.95vw, 14px) !important;
-  font-weight: 400 !important;
-  line-height: 1.55 !important;
-  color: #ffffff !important;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.9), 0 1px 4px rgba(0, 0, 0, 0.7) !important;
-  margin: 10px auto 0 !important;
-  max-width: 34ch !important;
-  text-align: center !important;
-  transform: translateZ(24px) !important;
-}
-
-.travel-type-coverflow-wrap .coverflow-loc-label,
-.coverflow-card .coverflow-loc-label {
-  color: rgba(255, 255, 255, 0.92) !important;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7) !important;
-}
-
-/* ─── Card Content (Center Card Only) ─── */
-.travel-type-coverflow-wrap .tt-card-content {
+/* ─── Side Card Bottom-Left Badge (Category Name + Gold Underline Bar) ─── */
+.travel-type-coverflow-wrap .coverflow-side-badge {
   position: absolute;
-  bottom: clamp(22px, 3vh, 28px);
-  left: clamp(20px, 2.2vw, 26px);
-  right: clamp(20px, 2.2vw, 26px);
+  bottom: 24px;
+  left: 22px;
+  z-index: 12;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 12px;
-  z-index: 10;
+  flex-direction: column;
+  align-items: flex-start;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.35s ease;
+}
+
+.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-side-badge {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.travel-type-coverflow-wrap .side-badge-label {
+  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  line-height: 1.2;
+}
+
+.travel-type-coverflow-wrap .side-badge-gold-line {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #c59a58;
+  margin-top: 5px;
+  border-radius: 1px;
+}
+
+/* ─── Center Card Top: KERALA, INDIA + Accent Line ─── */
+.travel-type-coverflow-wrap .coverflow-center-top {
+  position: absolute;
+  top: 24px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 12;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s;
+}
+
+.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-center-top {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.travel-type-coverflow-wrap .coverflow-loc-label {
+  font-family: var(--f-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ffffff !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.85) !important;
+}
+
+.travel-type-coverflow-wrap .coverflow-loc-line {
+  display: block;
+  width: 32px;
+  height: 1.5px;
+  background: rgba(255, 255, 255, 0.55);
+  margin-top: 6px;
+  border-radius: 1px;
+}
+
+/* ─── Center Card Bottom: All-Caps Serif Title, Description & EXPLORE CTA ─── */
+.travel-type-coverflow-wrap .coverflow-center-bottom {
+  position: absolute;
+  bottom: 26px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 12;
   pointer-events: none;
   opacity: 0;
   transform: translateY(8px);
   transition: opacity 0.4s ease 0.1s, transform 0.4s ease 0.1s;
 }
 
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .tt-card-content {
+.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-center-bottom {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
 }
 
-.travel-type-coverflow-wrap .tt-card-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-}
-
-.travel-type-coverflow-wrap .tt-card-title,
-.travel-type-coverflow-wrap h3.tt-card-title,
-.travel-type-coverflow-wrap .coverflow-card h3 {
-  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
-  font-size: clamp(20px, 1.8vw, 25px);
-  font-weight: 700;
+.travel-type-coverflow-wrap .coverflow-center-title {
+  font-family: 'Cormorant Garamond', 'Playfair Display', 'Fonarto', Georgia, serif !important;
+  font-size: clamp(26px, 2.3vw, 35px) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  line-height: 1.08 !important;
+  text-transform: uppercase !important;
   color: #ffffff !important;
-  line-height: 1.15;
-  margin: 0 0 3px 0;
-  letter-spacing: -0.015em;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+  margin: 0 !important;
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.85), 0 1px 4px rgba(0, 0, 0, 0.7) !important;
 }
 
-.travel-type-coverflow-wrap .tt-card-count {
-  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
-  font-size: clamp(12.5px, 0.95vw, 14px);
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.88);
-  line-height: 1.3;
-  margin: 0;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.55);
+.travel-type-coverflow-wrap .coverflow-center-desc {
+  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, sans-serif) !important;
+  font-size: clamp(12px, 0.88vw, 13.5px) !important;
+  font-weight: 400 !important;
+  line-height: 1.55 !important;
+  color: rgba(255, 255, 255, 0.94) !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85) !important;
+  margin: 12px auto 0 !important;
+  max-width: 32ch !important;
+  text-align: center !important;
 }
 
-/* ─── Circular Icon Button (Bottom Right) ─── */
-.travel-type-coverflow-wrap .tt-card-view-btn {
+/* ─── Explore CTA with Gold Underline ─── */
+.travel-type-coverflow-wrap .coverflow-explore-cta {
   display: inline-flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  min-width: 38px;
-  min-height: 38px;
-  padding: 0;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.85);
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: #ffffff !important;
-  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
-  text-decoration: none;
+  margin-top: 16px;
   cursor: pointer;
-  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  outline: none;
-}
-
-.travel-type-coverflow-wrap .tt-card-view-btn svg {
   transition: transform 0.25s ease;
-  color: #ffffff !important;
-  stroke: #ffffff !important;
 }
 
-.travel-type-coverflow-wrap .tt-card-view-btn:hover {
-  background: #ffffff;
-  color: #143323 !important;
-  border-color: #ffffff;
-  transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+.travel-type-coverflow-wrap .coverflow-explore-cta:hover {
+  transform: translateY(-2px);
 }
 
-.travel-type-coverflow-wrap .tt-card-view-btn:hover svg {
-  transform: translateX(2px);
-  color: #143323 !important;
-  stroke: #143323 !important;
+.travel-type-coverflow-wrap .coverflow-explore-cta .cta-text {
+  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
-/* ─── Smooth Hover Description Reveal ─── */
-.travel-type-coverflow-wrap .tt-card-reveal {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transform: translateY(6px);
-  transition: max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.35s ease,
-              transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              margin-top 0.35s ease;
-  margin-top: 0;
+.travel-type-coverflow-wrap .coverflow-explore-cta .cta-gold-line {
+  display: block;
+  width: 28px;
+  height: 2px;
+  background: #c59a58;
+  margin-top: 5px;
+  border-radius: 1px;
+  transition: width 0.25s ease;
 }
 
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"]:hover .tt-card-reveal {
-  max-height: 140px;
-  opacity: 1;
-  transform: translateY(0);
-  margin-top: 8px;
+.travel-type-coverflow-wrap .coverflow-explore-cta:hover .cta-gold-line {
+  width: 38px;
 }
 
-.travel-type-coverflow-wrap .tt-card-desc {
-  font-family: var(--f-sans, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif);
-  font-size: clamp(12px, 0.9vw, 13.5px);
-  font-weight: 400;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.94);
-  margin: 0;
-  max-width: 32ch;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.85);
-}
-
-/* Deepen scrim slightly on active card hover for optimal description contrast */
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"] .coverflow-card-scrim {
-  transition: background 0.45s ease;
-}
-
-.travel-type-coverflow-wrap .coverflow-card[data-offset="0"]:hover .coverflow-card-scrim {
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0) 0%,
-    rgba(0, 0, 0, 0.08) 28%,
-    rgba(0, 0, 0, 0.38) 52%,
-    rgba(0, 0, 0, 0.82) 75%,
-    rgba(0, 0, 0, 0.95) 100%
-  );
-}
-
-/* ─── Side Chevron Navigation Buttons (Subtle Accessibility) ─── */
+/* ─── Side Chevron Navigation Buttons ─── */
 .travel-type-coverflow-wrap .coverflow-nav-btn {
   position: absolute;
   top: 50%;
@@ -489,6 +488,7 @@
   transition: all 0.25s ease;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
   outline: none;
+  opacity: var(--tt-reveal-ui, 1);
 }
 
 .travel-type-coverflow-wrap .coverflow-nav-btn:hover {
@@ -513,6 +513,8 @@
   align-items: center;
   gap: 8px;
   margin-top: clamp(20px, 3vh, 32px);
+  opacity: var(--tt-reveal-ui, 1);
+  transition: opacity 0.3s ease;
 }
 
 .travel-type-coverflow-wrap .coverflow-dot {
@@ -539,114 +541,60 @@
   box-shadow: 0 2px 8px rgba(20, 51, 35, 0.3);
 }
 
-/* ==========================================================================
-   3D Coverflow Scroll Reveal Choreography
-   Center card expands 0% -> 100%, side cards fan out from behind sequentially
-   ========================================================================== */
-
-/* State 1: Smooth initial state before full viewport interaction */
-.travel-type-coverflow-wrap.coverflow-entrance-pending .travel-type-badge-bar,
-.travel-type-coverflow-wrap.coverflow-entrance-pending .coverflow-nav-btn,
-.travel-type-coverflow-wrap.coverflow-entrance-pending .coverflow-pagination {
-  opacity: 0.8;
-}
-
-.travel-type-coverflow-wrap.coverflow-entrance-pending .coverflow-card {
-  opacity: 0.85;
-}
-
-/* State 2: Scroll Reveal — Center card reveals 0% to 100%, others fan out from behind */
-.travel-type-coverflow-wrap.coverflow-entrance-revealing .travel-type-badge-bar {
-  opacity: 1 !important;
-  transition: opacity 0.5s ease 0.1s !important;
-}
-
-/* 1. Center card (Offset 0): Expands smoothly from 0% to 100% */
-.travel-type-coverflow-wrap.coverflow-entrance-revealing .coverflow-card[data-offset="0"] {
-  transform: translate3d(-50%, -50%, 0) scale(1) !important;
-  opacity: 1 !important;
-  filter: none !important;
-  transition: transform 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.45s ease-out !important;
-  transition-delay: 0s !important;
-}
-
-/* 2. Immediate neighbors (Offset -1 and 1): Fan out from behind center card */
-.travel-type-coverflow-wrap.coverflow-entrance-revealing .coverflow-card[data-offset="-1"] {
-  transform: translate3d(calc(-50% - clamp(235px, 18vw, 275px)), -50%, 0) scale(0.85) !important;
-  opacity: 0.92 !important;
-  filter: none !important;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.55s ease-out !important;
-  transition-delay: 0.18s !important;
-}
-
-.travel-type-coverflow-wrap.coverflow-entrance-revealing .coverflow-card[data-offset="1"] {
-  transform: translate3d(calc(-50% + clamp(235px, 18vw, 275px)), -50%, 0) scale(0.85) !important;
-  opacity: 0.92 !important;
-  filter: none !important;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.55s ease-out !important;
-  transition-delay: 0.18s !important;
-}
-
-/* 3. Outer cards (Offset -2 and 2): Fan out from behind one after another */
-.travel-type-coverflow-wrap.coverflow-entrance-revealing .coverflow-card[data-offset="-2"] {
-  transform: translate3d(calc(-50% - clamp(435px, 33vw, 500px)), -50%, 0) scale(0.72) !important;
-  opacity: 0.82 !important;
-  filter: none !important;
-  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.6s ease-out !important;
-  transition-delay: 0.36s !important;
-}
-
-.travel-type-coverflow-wrap.coverflow-entrance-revealing .coverflow-card[data-offset="2"] {
-  transform: translate3d(calc(-50% + clamp(435px, 33vw, 500px)), -50%, 0) scale(0.72) !important;
-  opacity: 0.82 !important;
-  filter: none !important;
-  transition: transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.6s ease-out !important;
-  transition-delay: 0.36s !important;
-}
-
-/* 4. Controls fade in smoothly */
-.travel-type-coverflow-wrap.coverflow-entrance-revealing .coverflow-nav-btn {
-  opacity: 1 !important;
-  transition: opacity 0.45s ease 0.45s, transform 0.25s ease !important;
-}
-
-.travel-type-coverflow-wrap.coverflow-entrance-revealing .coverflow-pagination {
-  opacity: 1 !important;
-  transition: opacity 0.45s ease 0.5s !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .travel-type-coverflow-wrap.coverflow-entrance-pending .travel-type-badge-bar,
-  .travel-type-coverflow-wrap.coverflow-entrance-pending .coverflow-card,
-  .travel-type-coverflow-wrap.coverflow-entrance-pending .coverflow-nav-btn,
-  .travel-type-coverflow-wrap.coverflow-entrance-pending .coverflow-pagination {
-    transform: none !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
+  .travel-type-coverflow-wrap {
+    --tt-reveal-center: 1 !important;
+    --tt-reveal-inner: 1 !important;
+    --tt-reveal-outer: 1 !important;
+    --tt-reveal-ui: 1 !important;
   }
+  .travel-type-coverflow-wrap .coverflow-card {
+    transition: none !important;
+  }
+}
+
+/* ─── Suppress CSS Transitions During Active Timeline Transitions ─── */
+.pinned-journey-wrapper.is-transitioning .travel-type-coverflow-wrap .coverflow-card {
+  transition: none !important;
+}
+
+.pinned-journey-wrapper.is-transitioning .travel-type-coverflow-wrap .coverflow-center-top,
+.pinned-journey-wrapper.is-transitioning .travel-type-coverflow-wrap .coverflow-center-bottom,
+.pinned-journey-wrapper.is-transitioning .travel-type-coverflow-wrap .coverflow-side-badge {
+  transition: none !important;
 }
 
 /* ─── Responsive Adjustments ─── */
 @media (max-width: 900px) {
-
   .travel-type-coverflow-wrap .coverflow-card[data-offset="-1"] {
-    transform: translate3d(calc(-50% - 200px), -50%, 0) scale(0.85);
+    transform: translate3d(
+      calc(-50% - 170px * var(--tt-reveal-inner, 1)),
+      calc(-50% + 1% * var(--tt-reveal-inner, 1)),
+      0
+    ) scale(calc(0.82 + 0.08 * var(--tt-reveal-inner, 1))) rotateZ(calc(-2.5deg * var(--tt-reveal-inner, 1)));
   }
   .travel-type-coverflow-wrap .coverflow-card[data-offset="1"] {
-    transform: translate3d(calc(-50% + 200px), -50%, 0) scale(0.85);
+    transform: translate3d(
+      calc(-50% + 170px * var(--tt-reveal-inner, 1)),
+      calc(-50% + 1% * var(--tt-reveal-inner, 1)),
+      0
+    ) scale(calc(0.82 + 0.08 * var(--tt-reveal-inner, 1))) rotateZ(calc(2.5deg * var(--tt-reveal-inner, 1)));
   }
   .travel-type-coverflow-wrap .coverflow-card[data-offset="-2"] {
-    transform: translate3d(calc(-50% - 370px), -50%, 0) scale(0.72);
-    opacity: 0.35;
+    transform: translate3d(
+      calc(-50% - 320px * var(--tt-reveal-outer, 1)),
+      calc(-50% + 3% * var(--tt-reveal-outer, 1)),
+      0
+    ) scale(calc(0.70 + 0.10 * var(--tt-reveal-outer, 1))) rotateZ(calc(-5deg * var(--tt-reveal-outer, 1)));
+    opacity: calc(var(--tt-reveal-outer, 1) * 0.45);
   }
   .travel-type-coverflow-wrap .coverflow-card[data-offset="2"] {
-    transform: translate3d(calc(-50% + 370px), -50%, 0) scale(0.72);
-    opacity: 0.35;
+    transform: translate3d(
+      calc(-50% + 320px * var(--tt-reveal-outer, 1)),
+      calc(-50% + 3% * var(--tt-reveal-outer, 1)),
+      0
+    ) scale(calc(0.70 + 0.10 * var(--tt-reveal-outer, 1))) rotateZ(calc(5deg * var(--tt-reveal-outer, 1)));
+    opacity: calc(var(--tt-reveal-outer, 1) * 0.45);
   }
 }
 
@@ -658,22 +606,28 @@
     width: 82vw;
     max-width: 310px;
     height: 440px;
-    border-radius: 24px;
+    border-radius: 10px;
   }
   .travel-type-coverflow-wrap .coverflow-card-inner,
   .travel-type-coverflow-wrap .coverflow-card-img,
   .travel-type-coverflow-wrap .coverflow-card-scrim {
-    border-radius: 24px;
+    border-radius: 10px;
   }
   .travel-type-coverflow-wrap .coverflow-card[data-offset="-1"] {
-    transform: translate3d(calc(-50% - 150px), -50%, 0) scale(0.84);
-    filter: none !important;
-    opacity: 0.75;
+    transform: translate3d(
+      calc(-50% - 130px * var(--tt-reveal-inner, 1)),
+      -50%,
+      0
+    ) scale(calc(0.82 + 0.04 * var(--tt-reveal-inner, 1))) rotateZ(calc(-2deg * var(--tt-reveal-inner, 1)));
+    opacity: calc(var(--tt-reveal-inner, 1) * 0.75);
   }
   .travel-type-coverflow-wrap .coverflow-card[data-offset="1"] {
-    transform: translate3d(calc(-50% + 150px), -50%, 0) scale(0.84);
-    filter: none !important;
-    opacity: 0.75;
+    transform: translate3d(
+      calc(-50% + 130px * var(--tt-reveal-inner, 1)),
+      -50%,
+      0
+    ) scale(calc(0.82 + 0.04 * var(--tt-reveal-inner, 1))) rotateZ(calc(2deg * var(--tt-reveal-inner, 1)));
+    opacity: calc(var(--tt-reveal-inner, 1) * 0.75);
   }
   .travel-type-coverflow-wrap .coverflow-card[data-offset="-2"],
   .travel-type-coverflow-wrap .coverflow-card[data-offset="2"],

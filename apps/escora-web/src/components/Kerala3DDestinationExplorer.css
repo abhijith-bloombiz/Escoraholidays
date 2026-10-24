@@ -16,7 +16,7 @@
   flex-direction: column;
   justify-content: center;
   background-color: #FAF8F5;
-  padding: clamp(18px, 2.2vh, 28px) 0 clamp(20px, 2.5vh, 32px) 0;
+  padding: clamp(18px, 2.2vh, 28px) clamp(24px, 4vw, 64px) clamp(20px, 2.5vh, 32px);
   overflow: hidden;
   box-sizing: border-box;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
@@ -29,9 +29,9 @@
   position: relative;
   z-index: 2;
   width: 100%;
-  max-width: var(--container, 1440px);
+  max-width: min(var(--container, 1400px), calc(100% - clamp(32px, 5vw, 80px)));
   margin: 0 auto;
-  padding: 0 var(--gutter, clamp(20px, 4vw, 64px));
+  padding: 0 clamp(20px, 3vw, 48px);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -216,8 +216,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  flex: 0 0 clamp(290px, 25vw, 365px);
-  max-width: 380px;
+  flex: 0 0 clamp(320px, 28vw, 420px);
+  max-width: 440px;
   width: 100%;
   z-index: 5;
 }
@@ -226,8 +226,8 @@
 .kerala-3d-map-wrap {
   position: relative;
   width: 100%;
-  max-width: 365px;
-  height: clamp(500px, 56vh, 570px);
+  max-width: 440px;
+  height: clamp(520px, 62vh, 630px);
 }
 
 /* Floating District Markers on 3D Map (Midnight Navy & Antique Gold) */
@@ -378,6 +378,75 @@
   line-height: 1.45;
   color: #374B63;
   margin: 0 0 6px 0;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PALM TREE HAND-DRAWN SKETCH ILLUSTRATION (LEFT BOTTOM OF MAP)
+   Drawing mask reveals from left to right along stroke angle
+   ══════════════════════════════════════════════════════════════ */
+.kerala-map-tree-illustration {
+  position: absolute;
+  bottom: clamp(6px, 1.2vh, 16px);
+  left: clamp(4px, 0.6vw, 12px);
+  width: clamp(155px, 14vw, 215px);
+  z-index: 8;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.kerala-map-tree-sketch-wrap {
+  position: relative;
+  width: 100%;
+  /* Drawing mask reveals from left to right along stroke angle */
+  -webkit-mask-image: linear-gradient(
+    100deg,
+    #000000 0%,
+    #000000 calc(var(--tree-draw-progress, 0) * 100%),
+    rgba(0, 0, 0, 0.35) calc(var(--tree-draw-progress, 0) * 100% + 4%),
+    transparent calc(var(--tree-draw-progress, 0) * 100% + 14%)
+  );
+  mask-image: linear-gradient(
+    100deg,
+    #000000 0%,
+    #000000 calc(var(--tree-draw-progress, 0) * 100%),
+    rgba(0, 0, 0, 0.35) calc(var(--tree-draw-progress, 0) * 100% + 4%),
+    transparent calc(var(--tree-draw-progress, 0) * 100% + 14%)
+  );
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  will-change: mask-image, -webkit-mask-image;
+}
+
+.kerala-map-tree-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 123 / 66;
+  object-fit: contain;
+  /* Multiply blending completely eliminates the #FCF8F0 background into #FAF8F5 */
+  mix-blend-mode: multiply;
+  filter: contrast(1.1) brightness(0.96);
+}
+
+/* Subtle glowing gold artist pen lead/spark at the drawing edge */
+.kerala-map-tree-pen-spark {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--tree-draw-progress, 0) * 100%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #D6B66F;
+  box-shadow:
+    0 0 8px 2px rgba(214, 182, 111, 0.85),
+    0 0 16px 5px rgba(181, 141, 93, 0.45);
+  transform: translate(-50%, -50%);
+  opacity: var(--tree-spark-opacity, 0);
+  pointer-events: none;
+  transition: opacity 0.15s ease;
 }
 
 /* ══════════════════════════════════════════════════════════════

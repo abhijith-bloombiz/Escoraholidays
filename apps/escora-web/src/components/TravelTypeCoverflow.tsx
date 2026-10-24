@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation } from "wouter";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import "./TravelTypeCoverflow.css";
 
 export interface TravelTypeItem {
@@ -24,34 +24,48 @@ export interface TravelTypeCoverflowProps {
   onActiveIndexChange?: (index: number) => void;
 }
 
-export function formatTravelCategoryTitle(label: string, slug?: string): React.ReactNode {
-  const s = (slug || "").toLowerCase().trim();
-  if (s === "honeymoon") return <>Honey-<br/><em>moon</em></>;
-  if (s === "backwaters") return <>Back-<br/><em>waters</em></>;
-  if (s === "beaches") return <>Kerala<br/><em>Beaches</em></>;
-  if (s === "nature-wildlife") return <>Nature &amp;<br/><em>Wildlife</em></>;
-  if (s === "health-wellness") return <>Health &amp;<br/><em>Wellness</em></>;
-  if (s === "historical-heritage") return <>Historical<br/><em>&amp; Heritage</em></>;
-  if (s === "hill-stations") return <>Hill<br/><em>Stations</em></>;
-  if (s === "functional-medicine") return <>Functional<br/><em>Medicine</em></>;
+export function getCardBottomBadgeLabel(item: TravelTypeItem): string {
+  const id = (item.id || "").toLowerCase().trim();
+  if (id === "hill-stations") return "HILL STATIONS";
+  if (id === "backwaters") return "BACKWATERS";
+  if (id === "beaches") return "KERALA BEACHES";
+  if (id === "functional-medicine") return "FUNCTIONAL MEDICINE";
+  if (id === "historical-heritage") return "HISTORICAL & HERITAGE";
+  if (id === "nature-wildlife") return "NATURE & WILDLIFE";
+  if (id === "health-wellness") return "HEALTH & WELLNESS";
+  if (id === "honeymoon") return "HONEYMOON";
 
-  const text = (label || "").trim();
+  return (item.label || item.id || "").toUpperCase();
+}
+
+export function formatCardEditorialTitle(item: TravelTypeItem): React.ReactNode {
+  const id = (item.id || "").toLowerCase().trim();
+  if (id === "beaches") return <>KERALA<br/>BEACHES</>;
+  if (id === "backwaters") return <>KERALA<br/>BACKWATERS</>;
+  if (id === "honeymoon") return <>KERALA<br/>HONEYMOON</>;
+  if (id === "hill-stations") return <>HILL<br/>STATIONS</>;
+  if (id === "functional-medicine") return <>FUNCTIONAL<br/>MEDICINE</>;
+  if (id === "historical-heritage") return <>HISTORICAL &amp;<br/>HERITAGE</>;
+  if (id === "nature-wildlife") return <>NATURE &amp;<br/>WILDLIFE</>;
+  if (id === "health-wellness") return <>HEALTH &amp;<br/>WELLNESS</>;
+
+  const text = (item.label || item.id || "").toUpperCase().trim();
   if (text.includes("&")) {
     const parts = text.split("&");
-    return <>{parts[0].trim()} &amp;<br /><em>{parts.slice(1).join("&").trim()}</em></>;
+    return <>{parts[0].trim()} &amp;<br />{parts.slice(1).join("&").trim()}</>;
   }
   const words = text.split(/\s+/);
   if (words.length > 1) {
     const firstPart = words.slice(0, -1).join(" ");
     const lastWord = words[words.length - 1];
-    return <>{firstPart}<br /><em>{lastWord}</em></>;
+    return <>{firstPart}<br />{lastWord}</>;
   }
-  return <em>{text}</em>;
+  return text;
 }
 
-const getCardDisplayName = (item: TravelTypeItem) => {
-  return (item.label || "").toUpperCase();
-};
+export function formatTravelCategoryTitle(label: string, slug?: string): React.ReactNode {
+  return formatCardEditorialTitle({ id: slug || "", label } as TravelTypeItem);
+}
 
 export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   items,
@@ -61,8 +75,12 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   activeIndex: controlledIndex,
   onActiveIndexChange,
 }) => {
-  // Center card initially on index 2 (matching reference design) or 0 if fewer items
-  const [internalIndex, setInternalIndex] = useState(() => (items.length > 2 ? 2 : 0));
+  // Center card initially on Beaches (matching reference image) or index 2/0
+  const [internalIndex, setInternalIndex] = useState(() => {
+    const beachesIdx = items.findIndex((it) => it.id === "beaches");
+    if (beachesIdx !== -1) return beachesIdx;
+    return items.length > 2 ? 2 : 0;
+  });
   const activeIndex = controlledIndex !== undefined ? controlledIndex : internalIndex;
   const [, navigate] = useLocation();
   const [isPaused, setIsPaused] = useState(false);
@@ -80,7 +98,8 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
   // Sync center card selection when items load dynamically
   useEffect(() => {
     if (controlledIndex === undefined && internalIndex === 0 && items.length > 2) {
-      setInternalIndex(2);
+      const beachesIdx = items.findIndex((it) => it.id === "beaches");
+      setInternalIndex(beachesIdx !== -1 ? beachesIdx : 2);
     }
   }, [items.length, controlledIndex, internalIndex]);
 
@@ -91,33 +110,8 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
 
     const pinnedSlide = el.closest(".pinned-journey-slide");
     if (pinnedSlide) {
-      const updateState = () => {
-        const isActive =
-          pinnedSlide.classList.contains("is-active") ||
-          pinnedSlide.classList.contains("is-initial-active") ||
-          (pinnedSlide as HTMLElement).style.visibility === "visible";
-
-        if (isActive) {
-          setEntranceState("revealing");
-          if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-          revealTimerRef.current = setTimeout(() => {
-            setEntranceState("complete");
-          }, 1200);
-        } else {
-          setEntranceState("pending");
-          if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-        }
-      };
-
-      updateState();
-
-      const observer = new MutationObserver(updateState);
-      observer.observe(pinnedSlide, { attributes: true, attributeFilter: ["class", "style"] });
-
-      return () => {
-        observer.disconnect();
-        if (revealTimerRef.current) clearTimeout(revealTimerRef.current);
-      };
+      setEntranceState("complete");
+      return;
     }
 
     if (typeof IntersectionObserver === "undefined") {
@@ -465,9 +459,13 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
                   />
                   <div className="coverflow-card-scrim" />
 
+                  {/* Side Card bottom-left badge: Category name + gold line (matches reference design) */}
+                  <div className="coverflow-side-badge">
+                    <span className="side-badge-label">{getCardBottomBadgeLabel(item)}</span>
+                    <span className="side-badge-gold-line" />
+                  </div>
 
-
-                  {/* Center (Active) card editorial content with 3D depth */}
+                  {/* Center (Active) card editorial content */}
                   <div className="coverflow-center-top">
                     <span className="coverflow-loc-label">KERALA, INDIA</span>
                     <span className="coverflow-loc-line" />
@@ -475,25 +473,19 @@ export const TravelTypeCoverflow: React.FC<TravelTypeCoverflowProps> = ({
 
                   <div className="coverflow-center-bottom">
                     <h3 className="coverflow-center-title">
-                      {item.name || formatTravelCategoryTitle(item.label, item.id)}
+                      {formatCardEditorialTitle(item)}
                     </h3>
                     <p className="coverflow-center-desc">{item.desc}</p>
-                    <div className="coverflow-explore-cta">
-                      <span className="cta-text">EXPLORE →</span>
-                      <span className="cta-gold-line" />
-                    </div>
-
-                    <a
-                      href={item.link}
-                      className="tt-card-view-btn"
+                    <div
+                      className="coverflow-explore-cta"
                       onClick={(e) => {
                         e.stopPropagation();
                         navigate(item.link);
                       }}
-                      aria-label={`View all ${item.label} journeys`}
                     >
-                      <ArrowRight size={16} strokeWidth={2.2} />
-                    </a>
+                      <span className="cta-text">EXPLORE →</span>
+                      <span className="cta-gold-line" />
+                    </div>
                   </div>
                 </div>
               </div>

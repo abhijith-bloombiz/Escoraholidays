@@ -45,6 +45,9 @@ export default function CinematicSplashScreen({
     if (exitingRef.current) return;
     exitingRef.current = true;
     setIsExiting(true);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("escora:splash-exiting"));
+    }
   }, []);
 
   // Handle immediate skip via Esc, Space, Enter, or Click
@@ -196,6 +199,11 @@ export default function CinematicSplashScreen({
         // Fully revealed: complete and unmount
         setIsComplete(true);
         onCompleteRef.current?.();
+        if (typeof window !== "undefined") {
+          document.documentElement.classList.remove("escora-splash-active");
+          document.documentElement.classList.add("escora-splash-done");
+          window.dispatchEvent(new CustomEvent("escora:splash-done"));
+        }
         try {
           sessionStorage.setItem("escora_splash_viewed", "true");
         } catch {
@@ -216,10 +224,20 @@ export default function CinematicSplashScreen({
 
   // Lifetime lifecycle & skip listeners
   useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.documentElement.classList.add("escora-splash-active");
+      document.documentElement.classList.remove("escora-splash-done");
+    }
+
     if (!alwaysShow) {
       try {
         if (sessionStorage.getItem("escora_splash_viewed") === "true") {
           setIsComplete(true);
+          if (typeof document !== "undefined") {
+            document.documentElement.classList.remove("escora-splash-active");
+            document.documentElement.classList.add("escora-splash-done");
+            window.dispatchEvent(new CustomEvent("escora:splash-done"));
+          }
           return;
         }
       } catch {
@@ -238,6 +256,10 @@ export default function CinematicSplashScreen({
       exitingRef.current = false;
       setIsExiting(false);
       setIsComplete(false);
+      if (typeof document !== "undefined") {
+        document.documentElement.classList.add("escora-splash-active");
+        document.documentElement.classList.remove("escora-splash-done");
+      }
     };
     window.addEventListener("escora:replay-splash", onReplay);
 
@@ -249,6 +271,10 @@ export default function CinematicSplashScreen({
       clearTimeout(timer);
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("escora:replay-splash", onReplay);
+      if (typeof document !== "undefined") {
+        document.documentElement.classList.remove("escora-splash-active");
+        document.documentElement.classList.add("escora-splash-done");
+      }
     };
   }, [alwaysShow, duration, handleSkip, triggerExit]);
 

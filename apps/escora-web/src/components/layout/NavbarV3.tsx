@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useEffect, useRef, useState } from "react";
+import escoraLogoLight from "@assets/escora/escora-logo-light.png";
 import escoraLogoDark from "@assets/escora/escora-logo-dark.png";
 import escoraMark from "@assets/escora/escora-logo-mark.png";
 
@@ -14,13 +15,13 @@ const COLLECTIONS = [
   { label: "Historical & Heritage", slug: "historical-heritage" },
 ];
 
-const LINKS_AFTER = [
+const NAV_LINKS = [
   { href: "/journeys", label: "Journeys" },
-  { href: "/destinations", label: "Explore Kerala" },
   { href: "/journal", label: "Journal" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ];
+const LINKS_AFTER = NAV_LINKS;
 
 function WaveText({ text }: { text: string }) {
   const [isWaving, setIsWaving] = useState(false);
@@ -87,6 +88,44 @@ export default function NavbarV3() {
   const [collectionsOpen, setCollectionsOpen] = useState(false);
   const [mobileCollectionsOpen, setMobileCollectionsOpen] = useState(false);
 
+  // Track whether splash screen has completed before revealing navbar
+  const [splashReady, setSplashReady] = useState(() => {
+    if (typeof window === "undefined") return true;
+    if (document.documentElement.classList.contains("escora-splash-done")) return true;
+    if (!document.querySelector(".cinematic-splash-wrapper")) return true;
+    return false;
+  });
+
+  useEffect(() => {
+    if (splashReady) return;
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onSplashReveal = () => {
+      // Small delay: allows organic liquid bloom to punch through first, then navbar blooms 0% -> 100%
+      timer = setTimeout(() => {
+        setSplashReady(true);
+      }, 180);
+    };
+
+    const onSplashDone = () => {
+      setSplashReady(true);
+    };
+
+    window.addEventListener("escora:splash-exiting", onSplashReveal);
+    window.addEventListener("escora:splash-done", onSplashDone);
+
+    const fallbackTimer = setTimeout(() => {
+      setSplashReady(true);
+    }, 3800);
+
+    return () => {
+      if (timer) clearTimeout(timer);
+      clearTimeout(fallbackTimer);
+      window.removeEventListener("escora:splash-exiting", onSplashReveal);
+      window.removeEventListener("escora:splash-done", onSplashDone);
+    };
+  }, [splashReady]);
+
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollStopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isOverNavbar = useRef(false);
@@ -105,7 +144,7 @@ export default function NavbarV3() {
   );
 
   const overHero = location === "/" && !scrolled && !menuOpen;
-  const isVisible = menuOpen || collectionsOpen || scrollVisible || hoverVisible;
+  const isVisible = splashReady && (menuOpen || collectionsOpen || scrollVisible || hoverVisible);
 
   // Cached hero boundary calculation (measured on mount and resize, not on every scroll tick)
   const updateHeroMetrics = () => {
@@ -381,6 +420,7 @@ export default function NavbarV3() {
 
   const isActive = (href: string) => (href === "/" ? location === "/" : location.startsWith(href));
 
+
   return (
     <>
       <div
@@ -394,79 +434,82 @@ export default function NavbarV3() {
         className={`v3-nav${overHero ? " is-over-hero" : ""}${scrolled ? " is-scrolled" : ""}${!isVisible ? " is-hidden" : ""}`}
         onMouseEnter={handleNavEnter}
         onMouseLeave={handleNavLeave}
+        aria-label="Main Navigation"
       >
-        <Link href="/" className="v3-nav-brand" aria-label="Escora — Home">
-          <img src={escoraLogoDark} alt="Escora" />
-        </Link>
-
-        <div className="v3-nav-links nav-links-row">
-          <Link href="/" className={`v3-nav-link${isActive("/") ? " active" : ""}`}>
-            <WaveText text="Home" />
+        {/* Left: Brand Logo */}
+        <div className="v3-nav-brand">
+          <Link href="/" className="v3-nav-brand-link" aria-label="Escora Holidays — Home">
+            <img src={escoraLogoDark} alt="Escora Holidays" className="v3-brand-img" />
           </Link>
+        </div>
 
-          <div className="v3-nav-dd" onMouseEnter={openCollections} onMouseLeave={scheduleCloseCollections}>
-            <Link
-              href="/collections/honeymoon"
-              className={`v3-nav-link${location.startsWith("/collections") ? " active" : ""}`}
-              aria-haspopup="true"
-              aria-expanded={collectionsOpen}
-            >
-              <WaveText text="Collections" />
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: collectionsOpen ? "rotate(180deg)" : "none", transition: "transform .3s cubic-bezier(0.16, 1, 0.3, 1)" }}>
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
+        {/* Center: Navigation Menus */}
+        <div className="v3-nav-center">
+          <div className="v3-nav-links">
+            <Link href="/" className={`v3-nav-link${isActive("/") ? " active" : ""}`}>
+              <WaveText text="Home" />
             </Link>
-            <div className={`v3-nav-panel${collectionsOpen ? " open" : ""}`}>
-              <div className="v3-nav-panel-inner">
-                <div className="v3-nav-panel-grid">
-                  {COLLECTIONS.map((c) => (
-                    <Link key={c.slug} href={`/collections/${c.slug}`} className={location === `/collections/${c.slug}` ? "active" : ""}>
-                      <WaveText text={c.label} />
-                    </Link>
-                  ))}
+
+            <div className="v3-nav-dd" onMouseEnter={openCollections} onMouseLeave={scheduleCloseCollections}>
+              <Link
+                href="/collections/honeymoon"
+                className={`v3-nav-link${location.startsWith("/collections") ? " active" : ""}`}
+                aria-haspopup="true"
+                aria-expanded={collectionsOpen}
+              >
+                <WaveText text="Collections" />
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={`v3-dd-chevron${collectionsOpen ? " open" : ""}`}>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </Link>
+              <div className={`v3-nav-panel${collectionsOpen ? " open" : ""}`}>
+                <div className="v3-nav-panel-inner">
+                  <div className="v3-nav-panel-grid">
+                    {COLLECTIONS.map((c) => (
+                      <Link key={c.slug} href={`/collections/${c.slug}`} className={location === `/collections/${c.slug}` ? "active" : ""}>
+                        <WaveText text={c.label} />
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {NAV_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className={`v3-nav-link${isActive(l.href) ? " active" : ""}`}>
+                <WaveText text={l.label} />
+              </Link>
+            ))}
           </div>
-
-          {LINKS_AFTER.map((l) => (
-            <Link key={l.href} href={l.href} className={`v3-nav-link${isActive(l.href) ? " active" : ""}`}>
-              <WaveText text={l.label} />
-            </Link>
-          ))}
         </div>
 
-        <div className="v3-nav-right nav-right-desktop">
+        {/* Right: Action Button & Mobile Burger */}
+        <div className="v3-nav-right">
           <Link
             href="/plan"
-            className="v3-nav-cta"
-            aria-label="Plan a Journey"
+            className="v3-nav-cta-btn"
+            aria-label="Plan Your Journey"
           >
-            <span>Plan a Journey</span>
+            <span className="v3-nav-cta-circle" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
+            </span>
+            <span className="v3-nav-cta-text">Plan Your Journey</span>
           </Link>
-        </div>
 
-        {/* Phones use the bottom tab bar instead of the burger menu. */}
-        <div className="v3-nav-phone-cta-wrap">
-          <Link
-            href="/plan"
-            className="v3-nav-cta v3-nav-cta-phone"
-            aria-label="Plan a Journey"
+          <button
+            className="v3-nav-burger"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
           >
-            <span>Plan a Journey</span>
-          </Link>
+            <span style={{ transform: menuOpen ? "translateY(6.5px) rotate(45deg)" : "none" }} />
+            <span style={{ opacity: menuOpen ? 0 : 1 }} />
+            <span style={{ transform: menuOpen ? "translateY(-6.5px) rotate(-45deg)" : "none" }} />
+          </button>
         </div>
-
-        <button
-          className="v3-nav-burger nav-hamburger"
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-        >
-          <span style={{ transform: menuOpen ? "translateY(6.5px) rotate(45deg)" : "none" }} />
-          <span style={{ opacity: menuOpen ? 0 : 1 }} />
-          <span style={{ transform: menuOpen ? "translateY(-6.5px) rotate(-45deg)" : "none" }} />
-        </button>
       </nav>
 
       <div className={`v3-mobile-menu${menuOpen ? " open" : ""}`}>
@@ -482,16 +525,23 @@ export default function NavbarV3() {
             <Link key={c.slug} href={`/collections/${c.slug}`}>{c.label}</Link>
           ))}
         </div>
-        {LINKS_AFTER.map((l) => (
+        {NAV_LINKS.map((l) => (
           <Link key={l.href} href={l.href} className={isActive(l.href) ? "active" : ""}>{l.label}</Link>
         ))}
 
         <Link
           href="/plan"
           onClick={() => setMenuOpen(false)}
-          className="v3-mobile-cta"
+          className="v3-capsule-btn v3-mobile-capsule-btn"
+          aria-label="Plan Your Journey"
         >
-          Plan a Journey
+          <span className="v3-capsule-btn-circle" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </span>
+          <span className="v3-capsule-btn-text">Plan Your Journey</span>
         </Link>
 
         <a href="tel:+918157003344" className="v3-mobile-phone">+91 8157 003 344</a>

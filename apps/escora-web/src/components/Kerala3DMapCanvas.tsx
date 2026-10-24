@@ -155,6 +155,17 @@ interface PinScreenPosition {
   visible: boolean;
 }
 
+declare global {
+  interface Window {
+    __kerala3DMap?: {
+      setRevealProgress: (progress: number) => void;
+      triggerReveal: () => void;
+      resetReveal: () => void;
+      ensureRevealed: () => void;
+    };
+  }
+}
+
 interface Kerala3DMapCanvasProps {
   selectedDistrict: string | null;
   activeDestId?: string;
@@ -167,6 +178,7 @@ export default function Kerala3DMapCanvas({
   onSelectDistrict,
 }: Kerala3DMapCanvasProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const treeContainerRef = useRef<HTMLDivElement>(null);
   const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
   const [pinPositions, setPinPositions] = useState<PinScreenPosition[]>([]);
   const [isRevealed, setIsRevealed] = useState(false);
@@ -208,8 +220,8 @@ export default function Kerala3DMapCanvas({
     const dims = { w: width, h: height };
 
     // Calibrated isometric perspective camera so entire Kerala relief and all pins fit cleanly within viewport
-    const camera = new THREE.PerspectiveCamera(39, width / height, 0.1, 100);
-    camera.position.set(0.15, -6.3, 9.4);
+    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
+    camera.position.set(0.15, -5.9, 8.85);
     camera.lookAt(0.14, 0.15, 0);
 
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
@@ -247,7 +259,7 @@ export default function Kerala3DMapCanvas({
     // ── Scaling & Geographic Centering ──
     const centerLon = 76.14;
     const centerLat = 10.25;
-    const scale = 1.58;
+    const scale = 1.76;
 
     const bedrockMaterial = new THREE.MeshStandardMaterial({
       color: 0x0e1b2b, // Deep Midnight Navy bedrock base
@@ -580,24 +592,100 @@ export default function Kerala3DMapCanvas({
       }
     };
 
-    // ── Sequential Reveal Animations (Looping Forward and Backward) ──
-    const ensureRevealed = () => {
-      revealTimelineRef.current?.progress(1);
-      isRevealedRef.current = true;
-      setIsRevealed(true);
+    // ── Unified Reveal Logic & GSAP Scrub Pipeline ──
+    const currentProgressRef = { p: 0 };
 
-      districtGroups.forEach((grp, name) => {
-        const st = districtRevealStates.get(name);
-        if (st) {
-          st.scale = 1;
-          st.offsetY = 0;
-          st.offsetZ = 0;
+    const setRevealProgress = (progress: number) => {
+      const p = Math.max(0, Math.min(1, progress));
+      currentProgressRef.p = p;
+      isVisible = p > 0;
+
+      if (p >= 0.96) {
+        if (!isRevealedRef.current) {
+          isRevealedRef.current = true;
+          setIsRevealed(true);
         }
-        grp.scale.set(1, 1, 1);
-        const { centroidX, centroidY } = grp.userData;
-        grp.position.set(centroidX, centroidY, 0);
+      } else if (p <= 0.04) {
+        if (isRevealedRef.current) {
+          isRevealedRef.current = false;
+          setIsRevealed(false);
+        }
+      }
+
+      // Update 14 districts in North to South cascade
+      const count = NORTH_TO_SOUTH_DISTRICTS.length;
+      NORTH_TO_SOUTH_DISTRICTS.forEach((name, idx) => {
+        const st = districtRevealStates.get(name);
+        const grp = districtGroups.get(name);
+        if (!st || !grp) return;
+
+        // Cascade window from North (idx = 0) to South (idx = 13)
+        const start = (idx / count) * 0.52;
+        const end = start + 0.48;
+        const raw = Math.max(0, Math.min(1, (p - start) / (end - start)));
+        // Smooth cubic ease out
+        const eased = 1 - Math.pow(1 - raw, 2.8);
+
+        st.scale = eased;
+        st.offsetY = (1 - eased) * 0.42;
+        st.offsetZ = (1 - eased) * -0.32;
+
+        grp.scale.set(eased, eased, eased);
+        grp.position.set(
+          grp.userData.centroidX,
+          grp.userData.centroidY + st.offsetY,
+          st.offsetZ
+        );
       });
-      wakeLoop();
+
+      // Update Palm Tree drawing effect (starts drawing when cascade reaches ~22%, completes by ~94%)
+      const treeStart = 0.22;
+      const treeEnd = 0.94;
+      const treeRaw = Math.max(0, Math.min(1, (p - treeStart) / (treeEnd - treeStart)));
+      const treeEased = treeRaw < 0.5 ? 2 * treeRaw * treeRaw : 1 - Math.pow(-2 * treeRaw + 2, 2) / 2;
+      if (treeContainerRef.current) {
+        treeContainerRef.current.style.setProperty("--tree-draw-progress", `${treeEased}`);
+        const sparkOpacity = treeEased > 0.02 && treeEased < 0.98 ? Math.sin(treeEased * Math.PI) : 0;
+        treeContainerRef.current.style.setProperty("--tree-spark-opacity", `${sparkOpacity}`);
+        treeContainerRef.current.style.opacity = p > 0.04 ? "1" : "0";
+      }
+
+      // Update Pins projection & visibility directly
+      const w = dims.w;
+      const h = dims.h;
+      MAP_PINS.forEach((pin) => {
+        const el = pinElementsRef.current.get(pin.id);
+        if (!el) return;
+        const st = districtRevealStates.get(pin.district);
+        const currentScale = st ? Math.max(0, Math.min(1, st.scale)) : 1;
+        const currentOffsetY = st ? st.offsetY : 0;
+        const currentOffsetZ = st ? st.offsetZ : 0;
+        const topo = DISTRICT_TOPOGRAPHY[pin.district] || { depth: 0.32 };
+        const mesh = districtMeshes.get(pin.district);
+        const zOffset = mesh ? mesh.position.z : 0;
+
+        const x = (pin.lon - centerLon) * scale;
+        const y = (pin.lat - centerLat) * scale;
+        tempVec.set(x, y + currentOffsetY, topo.depth + 0.12 + zOffset + currentOffsetZ);
+        tempVec.project(camera);
+
+        const screenX = ((tempVec.x + 1) / 2) * w;
+        const screenY = ((-tempVec.y + 1) / 2) * h;
+
+        const opacity = Math.max(0, Math.min(1, (currentScale - 0.22) / 0.78));
+        el.style.left = `${screenX}px`;
+        el.style.top = `${screenY}px`;
+        el.style.opacity = `${opacity}`;
+        el.style.transform = `translate(-50%, -50%) scale(${0.35 + 0.65 * currentScale})`;
+        el.style.pointerEvents = opacity > 0.75 ? "auto" : "none";
+      });
+
+      // Synchronously render to ensure lockstep accuracy with GSAP timeline scrub
+      renderer.render(scene, camera);
+    };
+
+    const ensureRevealed = () => {
+      setRevealProgress(1);
     };
     ensureRevealedRef.current = ensureRevealed;
 
@@ -606,135 +694,65 @@ export default function Kerala3DMapCanvas({
         revealTimelineRef.current.kill();
         revealTimelineRef.current = null;
       }
-      isRevealedRef.current = false;
-      setIsRevealed(false);
-
-      NORTH_TO_SOUTH_DISTRICTS.forEach((name) => {
-        const st = districtRevealStates.get(name);
-        const grp = districtGroups.get(name);
-        if (st && grp) {
-          st.scale = 0;
-          st.offsetY = 0.38;
-          st.offsetZ = -0.32;
-          grp.scale.set(0, 0, 0);
-          grp.position.set(grp.userData.centroidX, grp.userData.centroidY + 0.38, -0.32);
-        }
-      });
-
-      // Reset pins to hidden state
-      MAP_PINS.forEach((pin) => {
-        const el = pinElementsRef.current.get(pin.id);
-        if (el) {
-          el.style.opacity = "0";
-          el.style.pointerEvents = "none";
-          el.style.transform = "translate(-50%, -50%) scale(0.35)";
-        }
-      });
-
-      wakeLoop();
+      setRevealProgress(0);
     };
 
     const triggerReveal = () => {
-      if (isRevealedRef.current) return;
-      isRevealedRef.current = true;
-      setIsRevealed(true);
-
-      const prefersReduced =
-        typeof window !== "undefined" &&
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      if (prefersReduced) {
-        ensureRevealed();
-        return;
-      }
-
+      if (currentProgressRef.p >= 0.98) return;
       if (revealTimelineRef.current) {
         revealTimelineRef.current.kill();
       }
 
-      // Smooth one-shot cascade from North (Kasaragod) down to South (Trivandrum)
-      const tl = gsap.timeline({
+      const proxy = { p: currentProgressRef.p };
+      const tl = gsap.to(proxy, {
+        p: 1,
+        duration: 1.15,
+        ease: "power2.out",
         onUpdate: () => {
-          wakeLoop();
-        },
-        onComplete: () => {
-          ensureRevealed();
+          setRevealProgress(proxy.p);
         },
       });
-      revealTimelineRef.current = tl;
-
-      NORTH_TO_SOUTH_DISTRICTS.forEach((name, idx) => {
-        const st = districtRevealStates.get(name);
-        const grp = districtGroups.get(name);
-        if (!st || !grp) return;
-
-        st.scale = 0;
-        st.offsetY = 0.38; // Coming from the top (North)
-        st.offsetZ = -0.32; // Popping up towards camera
-        grp.scale.set(0, 0, 0);
-        grp.position.set(grp.userData.centroidX, grp.userData.centroidY + 0.38, -0.32);
-
-        // Sequence from top (Kasaragod) down to bottom (Trivandrum) one by one in order
-        const delay = idx * 0.055;
-
-        tl.to(
-          st,
-          {
-            scale: 1,
-            offsetY: 0,
-            offsetZ: 0,
-            duration: 0.65,
-            ease: "power2.out",
-            onUpdate: () => {
-              const s = Math.max(0, st.scale);
-              grp.scale.set(s, s, s);
-              grp.position.y = grp.userData.centroidY + st.offsetY;
-              grp.position.z = st.offsetZ;
-            },
-          },
-          delay
-        );
-      });
+      revealTimelineRef.current = tl as any;
     };
 
-    // ── IntersectionObserver: Trigger reveal strictly when user scrolls and reaches map viewport ──
+    // Register global hook for GSAP ScrollTrigger timeline scrubbing
+    if (typeof window !== "undefined") {
+      window.__kerala3DMap = {
+        setRevealProgress,
+        triggerReveal,
+        resetReveal,
+        ensureRevealed,
+      };
+
+      // Check if Slide 2 is already active on page load
+      const parentSlide = container.closest(".pinned-journey-slide");
+      if (
+        parentSlide &&
+        (parentSlide.classList.contains("is-active") ||
+          parentSlide.classList.contains("is-initial-active"))
+      ) {
+        setRevealProgress(1);
+      } else {
+        setRevealProgress(0);
+      }
+    }
+
+    // Fallback IntersectionObserver for standalone view / non-pinned mode
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry) return;
-        isVisible = entry.isIntersecting;
-
         if (entry.isIntersecting) {
           isVisible = true;
-          if (!isRevealedRef.current) {
+          // Only trigger if not already driven by GSAP
+          if (currentProgressRef.p < 0.05 && !container.closest(".pinned-journey-stage")) {
             triggerReveal();
           }
           wakeLoop();
-        } else {
-          const rect = entry.boundingClientRect;
-          if (rect.top > window.innerHeight || rect.bottom < 0) {
-            isVisible = false;
-            resetReveal();
-            if (animId) {
-              cancelAnimationFrame(animId);
-              animId = 0;
-            }
-          }
         }
       },
       { rootMargin: "0px 0px -15% 0px", threshold: 0 }
     );
     observer.observe(container);
-
-    // Initial check: ONLY trigger if user reloads while already scrolled down to the map
-    // NEVER trigger on page load when user is at the top hero
-    if (typeof window !== "undefined" && window.scrollY > 300) {
-      const initialRect = container.getBoundingClientRect();
-      if (initialRect.top < window.innerHeight * 0.85 && initialRect.bottom > 0) {
-        isVisible = true;
-        triggerReveal();
-        wakeLoop();
-      }
-    }
 
     // Tab visibility handling: pause when browser tab is inactive, resume when tab is active
     const handleTabVisibility = () => {
@@ -768,6 +786,9 @@ export default function Kerala3DMapCanvas({
     window.addEventListener("resize", handleResize);
 
     return () => {
+      if (typeof window !== "undefined" && window.__kerala3DMap) {
+        delete window.__kerala3DMap;
+      }
       revealTimelineRef.current?.kill();
       observer.disconnect();
       document.removeEventListener("visibilitychange", handleTabVisibility);
@@ -855,6 +876,24 @@ export default function Kerala3DMapCanvas({
             </div>
           );
         })}
+      </div>
+
+      {/* ── Palm Tree Hand-Drawn Sketch Illustration (Left Bottom of Map) ── */}
+      <div
+        ref={treeContainerRef}
+        className="kerala-map-tree-illustration"
+        aria-hidden="true"
+      >
+        <div className="kerala-map-tree-sketch-wrap">
+          <img
+            src="/assets/kerala-map-tree.png"
+            alt=""
+            className="kerala-map-tree-img"
+            loading="lazy"
+            draggable={false}
+          />
+          <span className="kerala-map-tree-pen-spark" />
+        </div>
       </div>
 
       {/* Floating District Information Badge (ONLY displayed on hover!) */}

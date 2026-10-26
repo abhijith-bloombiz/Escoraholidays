@@ -191,7 +191,23 @@ export default function ItineraryBuilderPage() {
     defaultValues: emptyForm,
   });
 
-  const [templateChoice, setTemplateChoice] = useState<"blank" | string | null>(isEdit ? "blank" : null);
+  const [templateChoice, setTemplateChoice] = useState<"blank" | string | null>(() => {
+    if (isEdit) return "blank";
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      if (
+        sp.get("blank") === "true" ||
+        sp.get("aiDraft") === "true" ||
+        sp.get("fromEnquiry") ||
+        sp.get("linkedEnquiryId") ||
+        sp.get("enquiryId") ||
+        sp.get("ai") === "true"
+      ) {
+        return "blank";
+      }
+    }
+    return null;
+  });
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
@@ -585,7 +601,7 @@ export default function ItineraryBuilderPage() {
             if (returnToInboxEnquiryId) {
               navigate(`/enquiries?viewEnquiry=${returnToInboxEnquiryId}&createdProposalId=${created.id}`);
             } else {
-              navigate("/itineraries/create");
+              navigate("/itineraries");
             }
           },
           onError: (err: any) => {
@@ -609,7 +625,11 @@ export default function ItineraryBuilderPage() {
   };
 
   function handleCancel() {
-    const returnTarget = returnToInboxEnquiryId ? `/enquiries?viewEnquiry=${returnToInboxEnquiryId}` : "/itineraries/create";
+    const returnTarget = returnToInboxEnquiryId
+      ? `/enquiries?viewEnquiry=${returnToInboxEnquiryId}`
+      : isEdit
+      ? "/itineraries"
+      : "/itineraries/create";
     if (isDirty) {
       setPendingNavigation(returnTarget);
       setShowDiscardDialog(true);
@@ -983,7 +1003,13 @@ export default function ItineraryBuilderPage() {
       {/* Top Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={handleCancel}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCancel}
+            title={returnToInboxEnquiryId ? "Back to Inquiry" : isEdit ? "Back to Itineraries" : "Back to Templates"}
+            data-testid="button-back-itinerary"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -1000,12 +1026,14 @@ export default function ItineraryBuilderPage() {
             variant="outline"
             size="sm"
             onClick={() => {
+              const target = linkedEnquiryId || returnToInboxEnquiryId
+                ? `/itineraries/create?enquiryId=${linkedEnquiryId || returnToInboxEnquiryId}`
+                : "/itineraries/create";
               if (isDirty) {
-                setPendingNavigation("__change_template__");
+                setPendingNavigation(target);
                 setShowDiscardDialog(true);
               } else {
-                setTemplateChoice(null);
-                reset(emptyForm);
+                navigate(target);
               }
             }}
             data-testid="button-change-template"
@@ -2875,11 +2903,9 @@ export default function ItineraryBuilderPage() {
             <AlertDialogAction
               onClick={() => {
                 setShowDiscardDialog(false);
-                if (pendingNavigation === "__change_template__") {
-                  setTemplateChoice(null);
-                  reset(emptyForm);
-                } else if (pendingNavigation) {
+                if (pendingNavigation) {
                   navigate(pendingNavigation);
+                  setPendingNavigation(null);
                 }
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

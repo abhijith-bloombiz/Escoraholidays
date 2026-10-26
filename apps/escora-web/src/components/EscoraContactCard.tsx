@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ArrowRight,
   Check,
+  MessageSquare,
 } from "lucide-react";
 import "./EscoraContactCard.css";
 
@@ -72,6 +73,7 @@ export default function EscoraContactCard({ id = "contact", className = "" }: Es
     dates: "",
     pax: "2 adults (couple)",
     budget: "",
+    message: "",
     marketingConsent: false,
   });
 
@@ -88,12 +90,16 @@ export default function EscoraContactCard({ id = "contact", className = "" }: Es
     setError("");
 
     const fullPhone = `${form.countryCode} ${form.phone.trim()}`;
-    const message = [
+    const messageParts = [
       `Travel Type: ${form.type && form.type !== "Select journey type" ? form.type : "Not specified"}`,
       `Approximate Dates: ${form.dates || "Not specified"}`,
       `Travellers: ${form.pax || "Not specified"}`,
       `Budget: ${form.budget && form.budget !== "e.g. ₹5–10 lakhs" ? form.budget : "Not specified"}`,
-    ].join("\n");
+    ];
+    if (form.message.trim()) {
+      messageParts.push(`Message / Notes: ${form.message.trim()}`);
+    }
+    const message = messageParts.join("\n");
 
     createEnquiry.mutate(
       {
@@ -122,6 +128,7 @@ export default function EscoraContactCard({ id = "contact", className = "" }: Es
       form.dates ? `Dates: ${form.dates}` : "",
       form.pax ? `Travellers: ${form.pax}` : "",
       form.budget && form.budget !== "e.g. ₹5–10 lakhs" ? `Budget: ${form.budget}` : "",
+      form.message.trim() ? `Message: ${form.message.trim()}` : "",
     ].filter(Boolean);
 
     return `https://wa.me/918157003344?text=${encodeURIComponent(lines.join("\n"))}`;
@@ -428,6 +435,26 @@ export default function EscoraContactCard({ id = "contact", className = "" }: Es
                       <span className="escora-select-chevron" aria-hidden="true">
                         <ChevronDown size={16} strokeWidth={2} />
                       </span>
+                    </div>
+                  </div>
+
+                  {/* Field 8: MESSAGE / SPECIAL REQUESTS — Full Width */}
+                  <div className="escora-form-field full-width">
+                    <label className="escora-field-label" htmlFor="escora-message">
+                      MESSAGE / SPECIAL REQUESTS
+                    </label>
+                    <div className="escora-input-pill escora-textarea-pill">
+                      <span className="escora-pill-icon textarea-icon" aria-hidden="true">
+                        <MessageSquare size={18} strokeWidth={1.8} />
+                      </span>
+                      <textarea
+                        id="escora-message"
+                        rows={3}
+                        placeholder="Tell us about your preferences, places you'd love to visit, or any special requests..."
+                        className="escora-text-input escora-textarea-input"
+                        value={form.message}
+                        onChange={(e) => setForm({ ...form, message: e.target.value })}
+                      />
                     </div>
                   </div>
                 </div>

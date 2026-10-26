@@ -379,7 +379,7 @@ const CAT_STRIP_BTNS = [
 /* ── Enquiry form state ── */
 interface EnquiryForm {
   name: string; phone: string; email: string; type: string;
-  dates: string; pax: string; budget: string;
+  dates: string; pax: string; budget: string; message?: string;
   marketingConsent?: boolean;
 }
 
@@ -392,7 +392,7 @@ export default function Home() {
   const [enquiryError, setEnquiryError] = useState("");
 
   const [form, setForm] = useState<EnquiryForm>({
-    name: "", phone: "", email: "", type: "", dates: "", pax: "2 adults (couple)", budget: "", marketingConsent: false,
+    name: "", phone: "", email: "", type: "", dates: "", pax: "2 adults (couple)", budget: "", message: "", marketingConsent: false,
   });
   const createEnquiry = useCreateEnquiry();
 
@@ -648,11 +648,16 @@ export default function Home() {
     e.preventDefault();
     if (!form.name || !form.phone || !form.email) return;
     setEnquiryError("");
-    const message =
-      `Journey type: ${form.type || "Not specified"}\n` +
-      `Travellers: ${form.pax || "Not specified"}\n` +
-      `Approximate dates: ${form.dates || "Not specified"}\n` +
-      `Budget: ${form.budget || "Not specified"}`;
+    const messageParts = [
+      `Journey type: ${form.type || "Not specified"}`,
+      `Travellers: ${form.pax || "Not specified"}`,
+      `Approximate dates: ${form.dates || "Not specified"}`,
+      `Budget: ${form.budget || "Not specified"}`,
+    ];
+    if (form.message?.trim()) {
+      messageParts.push(`Message / Notes: ${form.message.trim()}`);
+    }
+    const message = messageParts.join("\n");
     createEnquiry.mutate(
       {
         data: {
@@ -676,7 +681,8 @@ export default function Home() {
       (form.type ? `\nJourney type: ${form.type}` : "") +
       (form.pax ? `\nTravellers: ${form.pax}` : "") +
       (form.dates ? `\nDates: ${form.dates}` : "") +
-      (form.budget ? `\nBudget: ${form.budget}` : "")
+      (form.budget ? `\nBudget: ${form.budget}` : "") +
+      (form.message ? `\nMessage: ${form.message}` : "")
     );
   }
 

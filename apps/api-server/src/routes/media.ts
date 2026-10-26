@@ -405,6 +405,13 @@ const handleUpload = async (req: Request, res: Response, next: NextFunction): Pr
 router.post("/media/upload", handleUpload);
 router.post("/media", handleUpload);
 
+router.options("/media/files/:name", (_req, res): void => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+  res.status(204).end();
+});
+
 router.get("/media/files/:name", (req, res): void => {
   const parsed = GetMediaFileParams.safeParse(req.params);
   if (!parsed.success) {
@@ -426,7 +433,10 @@ router.get("/media/files/:name", (req, res): void => {
     res.status(404).json({ error: "File not found" });
     return;
   }
-  // Security headers to prevent MIME-sniffing or cross-origin blocking
+  // Security and CORS headers to prevent MIME-sniffing or cross-origin blocking
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "*");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
   res.sendFile(filePath);

@@ -1,10 +1,18 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getListMediaQueryKey } from "@workspace/api-client-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { ImagePlus, X, Loader2, Upload, Link as LinkIcon, Check, RefreshCw, Film } from "lucide-react";
+import {
+  X,
+  Loader2,
+  Upload,
+  Link as LinkIcon,
+  RefreshCw,
+  AlertTriangle,
+  Image as ImageIcon,
+} from "lucide-react";
 
 interface ImageUploadFieldProps {
   value?: string;
@@ -40,6 +48,14 @@ export default function ImageUploadField({
   const [isDragging, setIsDragging] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlDraft, setUrlDraft] = useState("");
+  const [imageError, setImageError] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Reset error/loaded state whenever the external value changes
+  useEffect(() => {
+    setImageError(false);
+    setImageLoaded(false);
+  }, [value]);
 
   const boxHeight = size === "wide" ? "h-48" : size === "compact" ? "h-32" : "h-36";
 
@@ -73,6 +89,8 @@ export default function ImageUploadField({
         throw new Error(errorData.error || `Upload failed with status ${resp.status}`);
       }
       const media = await resp.json();
+      setImageError(false);
+      setImageLoaded(false);
       onChange(media.url as string);
       qc.invalidateQueries({ queryKey: getListMediaQueryKey() });
       toast({ title: "Media uploaded successfully", description: `Saved as ${media.filename || "media asset"}` });
@@ -105,6 +123,18 @@ export default function ImageUploadField({
       });
       return;
     }
+
+    if (/unsplash\.com\/photos\//i.test(trimmed)) {
+      toast({
+        title: "Unsplash Webpage URL Detected",
+        description:
+          "This is an Unsplash webpage link, not a direct photo file. On Unsplash, right-click the photo and choose 'Copy Image Address' (starts with https://images.unsplash.com/), or download the photo and upload it directly.",
+        variant: "destructive",
+      });
+    }
+
+    setImageError(false);
+    setImageLoaded(false);
     onChange(trimmed);
     qc.invalidateQueries({ queryKey: getListMediaQueryKey() });
     setUrlDraft("");
@@ -112,55 +142,77 @@ export default function ImageUploadField({
     toast({ title: "Image URL applied" });
   }
 
-  const isVideo =
-    value?.endsWith(".mp4") ||
-    value?.endsWith(".webm") ||
-    value?.endsWith(".mov") ||
-    value?.includes("video");
+  const isVideo = Boolean(
+    value &&
+      (value.endsWith(".mp4") ||
+        value.endsWith(".webm") ||
+        value.endsWith(".mov") ||
+        value.includes("video"))
+  );
+
+  const isUnsplashWeb = Boolean(value && /unsplash\.com\/photos\//i.test(value));
+  const hasDisplayError = imageError || isUnsplashWeb;
 
   // Preview Mode with image loaded
   if (value) {
     return (
       <div className="space-y-2">
-        <div className={`relative ${boxHeight} w-full rounded-lg overflow-hidden border border-border bg-muted/20 group`}>
-          {isVideo ? (
-            <video src={value} className="w-full h-full object-cover" muted playsInline />
-          ) : (
-            <img src={value} alt={label} className="w-full h-full object-cover" />
-          )}
-          <div className={`absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center ${size === "compact" ? "gap-1.5 p-2" : "gap-2 p-4"} text-center`}>
-            <p className="text-[11px] text-white/90 font-mono truncate max-w-full px-2">{value}</p>
-            <div className="flex items-center gap-1.5 flex-wrap justify-center">
+        {hasDisplayError ? (
+          // Elegant error recovery card
+          <div
+            className={`relative ${boxHeight} w-full rounded-lg border-2 border-dashed border-amber-300 dark:border-amber-700 bg-amber-500/10 dark:bg-amber-950/20 p-4 flex flex-col items-center justify-center text-center gap-2`}
+          >
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="h-5 w-5" />
+              <span className="text-xs font-semibold">
+                {isUnsplashWeb ? "Unsplash Webpage Link Detected" : "Unable to load image preview"}
+              </span>
+            </div>
+            <p className="text-[11px] text-amber-800/90 dark:text-amber-200/90 max-w-lg leading-snug">
+              {isUnsplashWeb ? (
+                <>
+                  Web browsers cannot display HTML webpages as photos. On Unsplash, right-click the photo and choose{" "}
+                  <strong>&ldquo;Copy Image Address&rdquo;</strong> (starts with <code>images.unsplash.com</code>), or download
+                  and upload the photo below.
+                </>
+              ) : (
+                "The link could not be decoded as an image. Please verify the URL points directly to an image file (.jpg, .png, .webp) or upload the file directly."
+              )}
+            </p>
+            <p className="text-[10px] font-mono text-muted-foreground bg-background/80 px-2 py-0.5 rounded truncate max-w-md border border-border">
+              {value}
+            </p>
+            <div className="flex items-center gap-1.5 pt-1 flex-wrap justify-center">
               <Button
                 type="button"
                 size="sm"
-                variant="secondary"
-                className="h-7 text-xs px-2"
+                variant="default"
+                className="h-7 text-xs px-2.5"
                 onClick={() => fileInput.current?.click()}
                 disabled={uploading}
                 data-testid="button-change-cover-image"
               >
-                {uploading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1" />}
-                Change
+                {uploading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Upload className="h-3 w-3 mr-1" />}
+                Upload Photo Instead
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                className="h-7 text-xs px-2 bg-background/80 hover:bg-background"
+                className="h-7 text-xs px-2.5 bg-background hover:bg-muted"
                 onClick={() => {
                   setUrlDraft(value);
                   setShowUrlInput(true);
                 }}
               >
                 <LinkIcon className="h-3 w-3 mr-1" />
-                URL
+                Edit URL
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant="destructive"
-                className="h-7 text-xs px-2"
+                className="h-7 text-xs px-2.5"
                 onClick={() => onChange("")}
                 data-testid="button-remove-cover-image"
               >
@@ -168,25 +220,149 @@ export default function ImageUploadField({
                 Remove
               </Button>
             </div>
+            <input
+              ref={fileInput}
+              type="file"
+              accept={ALLOWED_MIME_TYPES.join(",")}
+              className="hidden"
+              onChange={handleFileChange}
+              data-testid="input-file-cover-image"
+            />
           </div>
-          <input ref={fileInput} type="file" accept={ALLOWED_MIME_TYPES.join(",")} className="hidden" onChange={handleFileChange} />
-        </div>
+        ) : (
+          // Vibrant image preview with subtle hover controls
+          <div
+            className={`relative ${boxHeight} w-full rounded-lg overflow-hidden border border-border bg-muted/20 group`}
+          >
+            {!imageLoaded && !isVideo && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-muted/40 text-muted-foreground gap-1.5">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                <span className="text-[10px]">Loading preview…</span>
+              </div>
+            )}
+
+            {isVideo ? (
+              <video src={value} className="w-full h-full object-cover" muted playsInline />
+            ) : (
+              <img
+                src={value}
+                alt={label}
+                onLoad={() => setImageLoaded(true)}
+                onError={() => setImageError(true)}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              />
+            )}
+
+            {/* Floating luxury glassmorphism action bar on hover */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] text-white/90 font-mono bg-black/60 backdrop-blur-md px-2 py-0.5 rounded-full truncate max-w-[80%] border border-white/10">
+                  {value}
+                </span>
+                <span className="text-[9px] text-emerald-300 bg-emerald-950/80 backdrop-blur-md border border-emerald-500/30 px-2 py-0.5 rounded-full font-medium">
+                  Active Photo
+                </span>
+              </div>
+
+              <div className="flex items-center gap-1.5 justify-center">
+                <div className="inline-flex items-center gap-1.5 p-1 rounded-lg bg-black/60 backdrop-blur-md border border-white/20 shadow-xl">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    className="h-7 text-xs px-2.5 bg-white text-neutral-900 hover:bg-neutral-100 shadow-sm"
+                    onClick={() => fileInput.current?.click()}
+                    disabled={uploading}
+                    data-testid="button-change-cover-image"
+                  >
+                    {uploading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+                    Change
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs px-2.5 bg-black/40 text-white border-white/20 hover:bg-white/20 hover:text-white"
+                    onClick={() => {
+                      setUrlDraft(value);
+                      setShowUrlInput(true);
+                    }}
+                  >
+                    <LinkIcon className="h-3 w-3 mr-1" />
+                    URL
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    className="h-7 text-xs px-2.5 shadow-sm"
+                    onClick={() => onChange("")}
+                    data-testid="button-remove-cover-image"
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <input
+              ref={fileInput}
+              type="file"
+              accept={ALLOWED_MIME_TYPES.join(",")}
+              className="hidden"
+              onChange={handleFileChange}
+              data-testid="input-file-cover-image"
+            />
+          </div>
+        )}
 
         {showUrlInput && (
-          <div className="flex items-center gap-2 p-2 border rounded-md bg-card">
-            <Input
-              value={urlDraft}
-              onChange={(e) => setUrlDraft(e.target.value)}
-              placeholder="https://images.unsplash.com/... or /api/media/files/..."
-              className="text-xs h-8"
-              autoFocus
-            />
-            <Button type="button" size="sm" onClick={handleApplyUrl} className="h-8 text-xs">
-              Apply
-            </Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setShowUrlInput(false)} className="h-8 text-xs">
-              Cancel
-            </Button>
+          <div className="border border-border rounded-lg p-3 bg-card space-y-2 shadow-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                <LinkIcon className="h-3.5 w-3.5 text-primary" /> Direct Image URL
+              </span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs text-muted-foreground hover:text-foreground"
+                onClick={() => setShowUrlInput(false)}
+              >
+                Close
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                value={urlDraft}
+                onChange={(e) => setUrlDraft(e.target.value)}
+                placeholder="https://images.unsplash.com/... or /api/media/files/..."
+                className="text-xs h-8"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleApplyUrl();
+                  }
+                }}
+              />
+              <Button type="button" size="sm" onClick={handleApplyUrl} className="h-8 text-xs px-3">
+                Apply URL
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowUrlInput(false)}
+                className="h-8 text-xs"
+              >
+                Cancel
+              </Button>
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-snug">
+              💡 <strong>Tip:</strong> Paste direct photo links (e.g. <code>https://images.unsplash.com/...</code> or ending in <code>.jpg</code>, <code>.png</code>, <code>.webp</code>). For Unsplash, right-click the photo and select <em>&ldquo;Copy Image Address&rdquo;</em>.
+            </p>
           </div>
         )}
 
@@ -199,9 +375,11 @@ export default function ImageUploadField({
   return (
     <div className="space-y-2">
       {showUrlInput ? (
-        <div className="border border-border rounded-lg p-4 bg-card space-y-3">
+        <div className="border border-border rounded-lg p-4 bg-card space-y-3 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-foreground">Paste Direct Image URL</span>
+            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+              <LinkIcon className="h-3.5 w-3.5 text-primary" /> Paste Direct Image URL
+            </span>
             <Button
               type="button"
               variant="ghost"
@@ -219,11 +397,20 @@ export default function ImageUploadField({
               placeholder="https://images.unsplash.com/... or /api/media/files/..."
               className="text-xs"
               autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleApplyUrl();
+                }
+              }}
             />
             <Button type="button" size="sm" onClick={handleApplyUrl}>
               Apply URL
             </Button>
           </div>
+          <p className="text-[11px] text-muted-foreground leading-snug">
+            💡 <strong>Tip:</strong> Direct image URLs must end in <code>.jpg</code>, <code>.png</code>, <code>.webp</code>, or start with <code>https://images.unsplash.com/</code>. For Unsplash, right-click the photo on the website and select <em>&ldquo;Copy Image Address&rdquo;</em>.
+          </p>
         </div>
       ) : (
         <div>
@@ -283,7 +470,7 @@ export default function ImageUploadField({
             <button
               type="button"
               onClick={() => setShowUrlInput(true)}
-              className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
+              className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium cursor-pointer"
               data-testid="button-toggle-manual-url"
             >
               <LinkIcon className="h-3 w-3" /> Or enter image URL
@@ -296,4 +483,3 @@ export default function ImageUploadField({
     </div>
   );
 }
-

@@ -130,9 +130,16 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
       </div>
 
       <div className="bg-bg">
-        {itinerary.coverImageUrl && (
+        {itinerary.coverImageUrl && !/unsplash\.com\/photos\//i.test(itinerary.coverImageUrl) && (
           <div className="relative h-72 md:h-96 w-full overflow-hidden mt-24 md:mt-28">
-            <img src={itinerary.coverImageUrl} alt={itinerary.title} className="w-full h-full object-cover" />
+            <img
+              src={itinerary.coverImageUrl}
+              alt={itinerary.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget.parentElement as HTMLElement)?.style.setProperty("display", "none");
+              }}
+            />
             <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/30 to-transparent" />
           </div>
         )}

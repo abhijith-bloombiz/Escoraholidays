@@ -1026,24 +1026,25 @@ export default function ItineraryBuilderPage() {
           </div>
 
           <div className="flex items-center justify-end gap-2 shrink-0">
-            {/* Direct PDF Preview in New Tab */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-                const target = itineraryId
-                  ? `${basePath}/preview-itinerary?id=${itineraryId}`
-                  : `${basePath}/preview-itinerary?template=explora-trivandrum`;
-                window.open(target, "_blank");
-              }}
-              className="h-8 text-xs font-medium border-border hover:bg-muted text-foreground gap-1.5 shrink-0"
-              title="Preview standard Itinerary PDF Dossier"
-            >
-              <FileText className="h-3.5 w-3.5 text-primary" />
-              <span className="hidden sm:inline">PDF Preview</span>
-            </Button>
+            {/* Direct PDF Preview in New Tab (only shown in edit mode for saved itineraries) */}
+            {isEdit && itineraryId && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+                  const target = `${basePath}/preview-itinerary?id=${itineraryId}`;
+                  window.open(target, "_blank");
+                }}
+                className="h-8 text-xs font-medium border-border hover:bg-muted text-foreground gap-1.5 shrink-0"
+                title="Preview standard Itinerary PDF Dossier"
+                data-testid="button-pdf-preview"
+              >
+                <FileText className="h-3.5 w-3.5 text-primary" />
+                <span className="hidden sm:inline">PDF Preview</span>
+              </Button>
+            )}
 
             {/* AI Assistant Button */}
             <Button
@@ -2567,19 +2568,19 @@ export default function ItineraryBuilderPage() {
               <div className="flex items-center justify-between gap-2">
                 <CardTitle className="text-lg font-serif flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-primary" />
-                  7. Status, Publishing &amp; PDF Dossier
+                  7. Status, Publishing &amp; Concierge
                 </CardTitle>
                 <span className="text-xs font-sans font-medium text-muted-foreground hidden sm:inline">
                   Step 7 of 7 · Proposal Finalization
                 </span>
               </div>
               <CardDescription className="text-xs text-muted-foreground mt-1">
-                Configure proposal visibility, client sharing access, dedicated journey curator contacts, preview high-contrast PDF dossier, and perform pre-flight verification before publishing.
+                Configure proposal visibility, dedicated journey curator contacts, and perform pre-flight verification before publishing.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                {/* Left Column: Status, Itinerary PDF Option Card, Client Access, and Curator & Concierge */}
+                {/* Left Column: Status and Curator & Concierge */}
                 <div className="lg:col-span-7 space-y-6">
                   {/* Proposal Status Selection */}
                   <div className="space-y-3">
@@ -2651,170 +2652,6 @@ export default function ItineraryBuilderPage() {
                         </div>
                       )}
                     </div>
-                  </div>
-
-                  {/* High-Contrast Itinerary PDF Option Card */}
-                  <div className="border border-primary/30 rounded-lg p-4 bg-primary/5 space-y-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 font-serif text-sm font-semibold text-foreground">
-                          <FileText className="h-4 w-4 text-primary" />
-                          <span>Itinerary PDF Option (Official Dossier)</span>
-                          <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20">
-                            High Contrast &amp; Easy Reading
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground leading-relaxed">
-                          This proposal formats directly into Escora&apos;s luxury print dossier with readable typography (13px–15px), dark forest green &amp; warm Kerala gold styling, multi-image galleries, and all 7 structured sections.
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                      <Button
-                        type="button"
-                        variant="default"
-                        size="sm"
-                        onClick={() => {
-                          const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-                          const url = isEdit && itineraryId
-                            ? `${basePath}/preview-itinerary?id=${itineraryId}`
-                            : `${basePath}/preview-itinerary?template=explora-trivandrum`;
-                          window.open(url, "_blank");
-                        }}
-                        className="h-8 text-xs gap-1.5"
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        <span>{isEdit ? "Open PDF Preview" : "Preview Explora Sample PDF"}</span>
-                        <ExternalLink className="h-3 w-3 opacity-60 ml-0.5" />
-                      </Button>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
-                          window.open(`${basePath}/preview-itinerary?template=explora-trivandrum`, "_blank");
-                        }}
-                        className="h-8 text-xs text-muted-foreground hover:text-foreground"
-                      >
-                        Reference Explora PDF
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Client Access & Sharing URLs */}
-                  <div className="border rounded-lg p-4 bg-muted/20 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-serif text-sm font-semibold flex items-center gap-2 text-foreground">
-                        <ExternalLink className="h-4 w-4 text-primary" />
-                        Client Sharing &amp; Access URLs
-                      </h4>
-                      {isEdit && existing ? (
-                        <span className="text-[11px] text-muted-foreground font-mono">
-                          Ref: {existing.shareToken.slice(0, 8).toUpperCase()}
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-primary bg-primary/10 px-2 py-0.5 rounded-full font-medium">
-                          Token generated on save
-                        </span>
-                      )}
-                    </div>
-
-                    {isEdit && existing ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        {/* Itinerary Link */}
-                        <div className="border rounded-md p-3 bg-background space-y-1.5 shadow-2xs">
-                          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
-                            Client Dossier URL
-                          </span>
-                          <code className="text-[11px] block truncate text-foreground font-mono bg-muted/40 px-1.5 py-0.5 rounded">
-                            {SHARE_BASE_URL}/itinerary/{existing.shareToken}
-                          </code>
-                          <div className="flex items-center gap-2 pt-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs flex-1"
-                              onClick={() => {
-                                const url = `${SHARE_BASE_URL}/itinerary/${existing.shareToken}`;
-                                navigator.clipboard.writeText(url);
-                                toast({ title: "Copied Client Itinerary URL" });
-                              }}
-                            >
-                              <Copy className="h-3 w-3 mr-1" /> Copy
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 text-xs"
-                              onClick={() => {
-                                const isLocal =
-                                  typeof window !== "undefined" &&
-                                  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-                                const base = isLocal ? "http://localhost:3000" : SHARE_BASE_URL;
-                                window.open(`${base}/itinerary/${existing.shareToken}`, "_blank");
-                              }}
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" /> Open
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Package Link */}
-                        <div className="border rounded-md p-3 bg-background space-y-1.5 shadow-2xs">
-                          <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground block">
-                            Package Mode URL
-                          </span>
-                          <code className="text-[11px] block truncate text-foreground font-mono bg-muted/40 px-1.5 py-0.5 rounded">
-                            {SHARE_BASE_URL}/package/{existing.shareToken}
-                          </code>
-                          <div className="flex items-center gap-2 pt-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-7 text-xs flex-1"
-                              onClick={() => {
-                                const url = `${SHARE_BASE_URL}/package/${existing.shareToken}`;
-                                navigator.clipboard.writeText(url);
-                                toast({ title: "Copied Package URL" });
-                              }}
-                            >
-                              <Copy className="h-3 w-3 mr-1" /> Copy
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 text-xs"
-                              onClick={() => {
-                                const isLocal =
-                                  typeof window !== "undefined" &&
-                                  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-                                const base = isLocal ? "http://localhost:3000" : SHARE_BASE_URL;
-                                window.open(`${base}/package/${existing.shareToken}`, "_blank");
-                              }}
-                            >
-                              <ExternalLink className="h-3 w-3 mr-1" /> Open
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="rounded-md border border-dashed border-primary/20 bg-primary/5 p-3.5 text-xs text-muted-foreground space-y-2">
-                        <div className="flex items-center gap-2 text-foreground font-medium">
-                          <Sparkles className="h-4 w-4 text-primary" />
-                          <span>Instant Client Portal &amp; WhatsApp Integration</span>
-                        </div>
-                        <p className="text-[11px] leading-relaxed text-muted-foreground">
-                          When you save this proposal, Escora automatically generates a cryptographically secure, permanent guest token. You will receive direct links for both the interactive luxury web dossier and the streamlined package summary, ready for WhatsApp and email dispatch.
-                        </p>
-                      </div>
-                    )}
                   </div>
 
                   {/* Journey Curator & 24/7 Concierge Contacts */}

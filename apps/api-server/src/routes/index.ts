@@ -115,6 +115,8 @@ router.patch("/testimonials/:id", requireAuth, testimonialsRouter);
 router.delete("/testimonials/:id", requireAuth, testimonialsRouter);
 
 // Media: uploaded files must be publicly servable
+router.options("/media/files/:name", mediaRouter);
+router.head("/media/files/:name", mediaRouter);
 router.get("/media/files/:name", mediaRouter);
 router.get("/media", requireAuth, mediaRouter);
 router.post("/media/upload", requireAuth, mediaRouter);

@@ -696,9 +696,7 @@ export default function PinnedJourneyExperience({ children }: PinnedJourneyExper
       if (lenis) {
         lenis.off("scroll", handleLenisScroll);
       }
-      heroEntranceTrigger.kill();
-      if (coverflowRevealTl) coverflowRevealTl.kill();
-      playCoverflowRevealRef.current = null;
+
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);

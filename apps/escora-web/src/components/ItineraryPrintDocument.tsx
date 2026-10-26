@@ -204,10 +204,22 @@ function ImageWithFallback({
   const initial = src || fallback || "";
   const [currentSrc, setCurrentSrc] = useState<string>(initial);
   const [hasError, setHasError] = useState(false);
+  const [useCors, setUseCors] = useState(true);
 
   useEffect(() => {
+    // If the provided src is an Unsplash webpage link (not an image), use fallback directly
+    if (src && /unsplash\.com\/photos\//i.test(src)) {
+      if (fallback) {
+        setCurrentSrc(fallback);
+        setHasError(false);
+      } else {
+        setHasError(true);
+      }
+      return;
+    }
     setCurrentSrc(src || fallback || "");
     setHasError(false);
+    setUseCors(true);
   }, [src, fallback]);
 
   if (hasError || !currentSrc) {
@@ -221,8 +233,13 @@ function ImageWithFallback({
       className={className}
       style={style}
       loading="eager"
-      crossOrigin="anonymous"
+      crossOrigin={useCors ? "anonymous" : undefined}
       onError={() => {
+        // If image failed with CORS crossOrigin="anonymous", retry once without CORS
+        if (useCors) {
+          setUseCors(false);
+          return;
+        }
         if (fallback && currentSrc !== fallback) {
           setCurrentSrc(fallback);
         } else {

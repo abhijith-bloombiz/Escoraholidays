@@ -202,9 +202,24 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                       </div>
                     </AccordionTrigger>
                     <AccordionContent forceMount className="pb-0 pt-4">
-                      {day.imageUrl && (
-                        <img src={day.imageUrl} alt={day.title} className="w-full h-56 object-cover rounded-md mb-4" />
-                      )}
+                      {(() => {
+                        const dayImgs = (day.imageUrls && day.imageUrls.length > 0
+                          ? day.imageUrls
+                          : day.imageUrl
+                          ? [day.imageUrl]
+                          : []).filter(Boolean);
+                        if (dayImgs.length === 0) return null;
+                        if (dayImgs.length === 1) {
+                          return <img src={dayImgs[0]} alt={day.title} className="w-full h-56 object-cover rounded-md mb-4 shadow-2xs" />;
+                        }
+                        return (
+                          <div className={`grid ${dayImgs.length === 2 ? "grid-cols-2" : "grid-cols-3"} gap-2 h-44 sm:h-52 mb-4 rounded-md overflow-hidden`}>
+                            {dayImgs.slice(0, 3).map((img, i) => (
+                              <img key={i} src={img} alt={`${day.title} ${i + 1}`} className="w-full h-full object-cover rounded-sm shadow-2xs" />
+                            ))}
+                          </div>
+                        );
+                      })()}
                       {day.activities && day.activities.length > 0 && (
                         <div className="space-y-2.5">
                           {day.activities.map((act, j) => (

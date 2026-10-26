@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +62,10 @@ import {
   UserCheck,
   Phone,
   User,
+  Car,
+  RotateCcw,
+  Download,
+  Images,
 } from "lucide-react";
 import {
   parseDays,
@@ -118,6 +123,9 @@ interface BuilderForm {
   pricing: ItineraryPricing;
   inclusions: string[];
   exclusions: string[];
+  hotelTerms: string[];
+  paymentTerms: string[];
+  importantInfo: string[];
 }
 
 const emptyForm: BuilderForm = {
@@ -150,7 +158,10 @@ const emptyForm: BuilderForm = {
   stays: [],
   pricing: { items: [], total: 0 },
   inclusions: [],
-  exclusions: [],
+  exclusions: DEFAULT_EXCLUSIONS,
+  hotelTerms: DEFAULT_HOTEL_TERMS,
+  paymentTerms: DEFAULT_PAYMENT_TERMS,
+  importantInfo: DEFAULT_IMPORTANT_INFO,
 };
 
 export default function ItineraryBuilderPage() {
@@ -197,8 +208,8 @@ export default function ItineraryBuilderPage() {
   const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
   const [collapsedStays, setCollapsedStays] = useState<Record<number, boolean>>({});
 
-  // Bulk edit modal state for inclusions & exclusions
-  const [bulkTermsModal, setBulkTermsModal] = useState<"inclusions" | "exclusions" | null>(null);
+  // Bulk edit modal state for inclusions, exclusions, terms
+  const [bulkTermsModal, setBulkTermsModal] = useState<"inclusions" | "exclusions" | "hotelTerms" | "paymentTerms" | "importantInfo" | null>(null);
   const [bulkTermsText, setBulkTermsText] = useState("");
 
   const daysArray = useFieldArray({ control, name: "days" });
@@ -213,12 +224,22 @@ export default function ItineraryBuilderPage() {
   const watchedTitle = watch("title");
   const watchedInclusions = watch("inclusions") ?? [];
   const watchedExclusions = watch("exclusions") ?? [];
+  const watchedHotelTerms = watch("hotelTerms") ?? [];
+  const watchedPaymentTerms = watch("paymentTerms") ?? [];
+  const watchedImportantInfo = watch("importantInfo") ?? [];
   const watchedDays = watch("days") ?? [];
   const watchedStays = watch("stays") ?? [];
   const watchedCustomerName = watch("customerName");
   const watchedCustomerEmail = watch("customerEmail");
   const watchedCustomerPhone = watch("customerPhone");
   const watchedDestination = watch("destination");
+  const watchedHotelIncluded = watch("hotelIncluded");
+  const watchedTransportIncluded = watch("transportIncluded");
+  const watchedSightseeingIncluded = watch("sightseeingIncluded");
+  const watchedTransferIncluded = watch("transferIncluded");
+  const watchedAdults = watch("adults") ?? 1;
+  const watchedChildren = watch("children") ?? 0;
+  const watchedInfants = watch("infants") ?? 0;
 
   // Warn before browser refresh/close if form has unsaved modifications
   useEffect(() => {
@@ -266,12 +287,15 @@ export default function ItineraryBuilderPage() {
         transferIncluded: tripInc.transfer,
         transportOrigin: transport?.origin ?? "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
         transportDestination: transport?.destination ?? "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
-        transportVehicle: transport?.vehicleType ?? "Private AC Vehicle",
+        transportVehicle: transport?.vehicleType ?? "Private Dedicated Chauffeur Driven AC Sedan / SUV",
         days: parseDays(existing.days),
         stays: parseStays(existing.stays),
         pricing: parsePricing(existing.pricing),
         inclusions: parseStringList(existing.inclusions),
-        exclusions: parseStringList(existing.exclusions),
+        exclusions: parseStringList(existing.exclusions).length > 0 ? parseStringList(existing.exclusions) : DEFAULT_EXCLUSIONS,
+        hotelTerms: hTerms.length > 0 ? hTerms : DEFAULT_HOTEL_TERMS,
+        paymentTerms: pTerms.length > 0 ? pTerms : DEFAULT_PAYMENT_TERMS,
+        importantInfo: iInfo.length > 0 ? iInfo : DEFAULT_IMPORTANT_INFO,
       });
     }
   }, [existing, reset]);
@@ -478,15 +502,34 @@ export default function ItineraryBuilderPage() {
       summary: form.summary.trim() || undefined,
       currency: form.currency,
       status: form.status,
+      referenceNumber: form.referenceNumber?.trim() || undefined,
       curatorName: form.curatorName?.trim() || undefined,
       curatorPhone: form.curatorPhone?.trim() || undefined,
       emergencyContacts: form.emergencyContacts?.trim() || undefined,
       adults: form.adults ?? 1,
       children: form.children ?? 0,
       infants: form.infants ?? 0,
-      days: JSON.stringify(form.days.map((d, i) => ({ ...d, day: i + 1 }))),
+      days: JSON.stringify(
+        form.days.map((d, i) => {
+          const rawImages: string[] = Array.isArray(d.imageUrls)
+            ? d.imageUrls
+            : d.imageUrl
+            ? [d.imageUrl]
+            : [];
+          const sanitizedImages = rawImages
+            .map((s) => String(s || "").trim())
+            .filter(Boolean)
+            .slice(0, 3);
+          return {
+            ...d,
+            day: i + 1,
+            imageUrl: sanitizedImages[0] || undefined,
+            imageUrls: sanitizedImages.length > 0 ? sanitizedImages : undefined,
+          };
+        })
+      ),
       stays: JSON.stringify(form.stays),
-      pricing: JSON.stringify({ ...form.pricing, total }),
+      pricing: JSON.stringify({ ...form.pricing, taxes: 0, total }),
       inclusions: JSON.stringify((form.inclusions || []).map((s) => s.trim()).filter(Boolean)),
       exclusions: JSON.stringify((form.exclusions || []).map((s) => s.trim()).filter(Boolean)),
       tripIncludes: JSON.stringify({
@@ -500,9 +543,9 @@ export default function ItineraryBuilderPage() {
         destination: form.transportDestination,
         vehicleType: form.transportVehicle,
       }),
-      hotelTerms: (existing as any)?.hotelTerms ?? JSON.stringify(DEFAULT_HOTEL_TERMS),
-      paymentTerms: (existing as any)?.paymentTerms ?? JSON.stringify(DEFAULT_PAYMENT_TERMS),
-      importantInfo: (existing as any)?.importantInfo ?? JSON.stringify(DEFAULT_IMPORTANT_INFO),
+      hotelTerms: JSON.stringify((form.hotelTerms || []).map((s) => s.trim()).filter(Boolean)),
+      paymentTerms: JSON.stringify((form.paymentTerms || []).map((s) => s.trim()).filter(Boolean)),
+      importantInfo: JSON.stringify((form.importantInfo || []).map((s) => s.trim()).filter(Boolean)),
       enquiryId: linkedEnquiryId ?? (existing as any)?.enquiryId ?? undefined,
     };
 
@@ -576,53 +619,66 @@ export default function ItineraryBuilderPage() {
   }
 
   const [activeSection, setActiveSection] = useState<string>("section-details");
+  const isProgrammaticScrollRef = useRef(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const navContainerRef = useRef<HTMLDivElement | null>(null);
 
-  // Track active section as user scrolls through the proposal editor
+  // Dynamic Section Scrollspy: Automatically highlight the current section in the sticky nav on scroll
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const sectionIds = [
       "section-details",
       "section-days",
-      "section-stays",
+      "section-transport",
+      "section-inclusions",
+      "section-budget",
       "section-terms",
-      "section-pricing",
       "section-publishing",
     ];
 
-    const elements = sectionIds
-      .map((id) => document.getElementById(id))
-      .filter((el): el is HTMLElement => el !== null);
+    const determineActiveSection = (): string => {
+      const mainEl = document.querySelector("main");
 
-    if (elements.length === 0) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((e) => e.isIntersecting);
-        if (visible.length > 0) {
-          visible.sort(
-            (a, b) =>
-              Math.abs(a.boundingClientRect.top - 80) - Math.abs(b.boundingClientRect.top - 80)
-          );
-          setActiveSection(visible[0].target.id);
+      // Check if user is scrolled near the very bottom of the scrollable container
+      if (mainEl && mainEl.scrollHeight > mainEl.clientHeight + 120) {
+        const distanceFromBottom = mainEl.scrollHeight - mainEl.scrollTop - mainEl.clientHeight;
+        if (distanceFromBottom < 40) {
+          return "section-publishing";
         }
-      },
-      {
-        rootMargin: "-80px 0px -30% 0px",
-        threshold: [0, 0.1, 0.3],
       }
-    );
 
-    elements.forEach((el) => observer.observe(el));
+      // Calculate sticky nav bottom edge dynamically so threshold adjusts to responsive navbar height
+      const stickyNav = document.querySelector(".sticky");
+      const stickyBottom = stickyNav ? stickyNav.getBoundingClientRect().bottom : 100;
+      const threshold = stickyBottom + 45;
 
-    // Handle scroll to highlight section 6 when scrolled near bottom of main container
-    const handleScroll = () => {
-      const main = document.querySelector("main");
-      if (main) {
-        const atBottom = main.scrollHeight - main.scrollTop - main.clientHeight < 60;
-        if (atBottom) {
-          setActiveSection("section-publishing");
+      let current = sectionIds[0];
+      for (const id of sectionIds) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= threshold) {
+          current = id;
+        } else {
+          break;
         }
+      }
+
+      return current;
+    };
+
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (!isProgrammaticScrollRef.current) {
+            const next = determineActiveSection();
+            setActiveSection((prev) => (prev !== next ? next : prev));
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
@@ -630,21 +686,62 @@ export default function ItineraryBuilderPage() {
     if (mainEl) {
       mainEl.addEventListener("scroll", handleScroll, { passive: true });
     }
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    // Run initial determination once content mounts
+    const timer = setTimeout(handleScroll, 120);
 
     return () => {
-      observer.disconnect();
+      clearTimeout(timer);
       if (mainEl) {
         mainEl.removeEventListener("scroll", handleScroll);
       }
+      window.removeEventListener("scroll", handleScroll);
     };
-  }, []);
+  }, [templateChoice, isLoading, isEdit]);
+
+  // Keep the active step pill centered and smoothly scrolled into view in the horizontal navbar
+  useEffect(() => {
+    if (!navContainerRef.current) return;
+    const navContainer = navContainerRef.current;
+    const navBtn = navContainer.querySelector<HTMLElement>(`[data-testid="step-nav-${activeSection}"]`);
+    if (navBtn) {
+      const btnLeft = navBtn.offsetLeft;
+      const btnWidth = navBtn.offsetWidth;
+      const containerWidth = navContainer.clientWidth;
+      const targetScrollLeft = btnLeft - (containerWidth / 2) + (btnWidth / 2);
+
+      navContainer.scrollTo({
+        left: Math.max(0, targetScrollLeft),
+        behavior: "smooth",
+      });
+    }
+  }, [activeSection]);
 
   function scrollToSection(id: string) {
     setActiveSection(id);
+    isProgrammaticScrollRef.current = true;
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
     const el = document.getElementById(id);
-    if (el) {
+    const mainEl = document.querySelector("main");
+    if (el && mainEl) {
+      const stickyNav = document.querySelector(".sticky");
+      const stickyHeight = stickyNav ? stickyNav.getBoundingClientRect().height : 90;
+      const elRect = el.getBoundingClientRect();
+      const mainRect = mainEl.getBoundingClientRect();
+      const targetScrollTop = mainEl.scrollTop + (elRect.top - mainRect.top) - stickyHeight - 16;
+      mainEl.scrollTo({
+        top: Math.max(0, targetScrollTop),
+        behavior: "smooth",
+      });
+    } else if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    scrollTimeoutRef.current = setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 750);
   }
 
   // Auto-fill dates sequentially from trip start date
@@ -697,26 +794,28 @@ export default function ItineraryBuilderPage() {
     setCollapsedStays(next);
   }
 
-  // Inclusion / Exclusion row helpers
-  function addTerm(type: "inclusions" | "exclusions") {
-    const current = type === "inclusions" ? watchedInclusions : watchedExclusions;
+  // Row helpers for inclusions, exclusions, and terms
+  type TermField = "inclusions" | "exclusions" | "hotelTerms" | "paymentTerms" | "importantInfo";
+
+  function addTerm(type: TermField) {
+    const current = (watch(type) as string[]) || [];
     setValue(type, [...current, ""], { shouldDirty: true });
   }
 
-  function updateTerm(type: "inclusions" | "exclusions", index: number, value: string) {
-    const current = [...(type === "inclusions" ? watchedInclusions : watchedExclusions)];
+  function updateTerm(type: TermField, index: number, value: string) {
+    const current = [...((watch(type) as string[]) || [])];
     current[index] = value;
     setValue(type, current, { shouldDirty: true });
   }
 
-  function removeTerm(type: "inclusions" | "exclusions", index: number) {
-    const current = [...(type === "inclusions" ? watchedInclusions : watchedExclusions)];
+  function removeTerm(type: TermField, index: number) {
+    const current = [...((watch(type) as string[]) || [])];
     current.splice(index, 1);
     setValue(type, current, { shouldDirty: true });
   }
 
-  function moveTerm(type: "inclusions" | "exclusions", index: number, direction: "up" | "down") {
-    const current = [...(type === "inclusions" ? watchedInclusions : watchedExclusions)];
+  function moveTerm(type: TermField, index: number, direction: "up" | "down") {
+    const current = [...((watch(type) as string[]) || [])];
     const target = direction === "up" ? index - 1 : index + 1;
     if (target < 0 || target >= current.length) return;
     const temp = current[index];
@@ -725,10 +824,18 @@ export default function ItineraryBuilderPage() {
     setValue(type, current, { shouldDirty: true });
   }
 
-  function openBulkEdit(type: "inclusions" | "exclusions") {
-    const current = type === "inclusions" ? watchedInclusions : watchedExclusions;
+  function openBulkEdit(type: TermField) {
+    const current = (watch(type) as string[]) || [];
     setBulkTermsText(current.join("\n"));
     setBulkTermsModal(type);
+  }
+
+  function resetToDefaults(type: "hotelTerms" | "paymentTerms" | "importantInfo" | "exclusions") {
+    if (type === "hotelTerms") setValue("hotelTerms", [...DEFAULT_HOTEL_TERMS], { shouldDirty: true });
+    if (type === "paymentTerms") setValue("paymentTerms", [...DEFAULT_PAYMENT_TERMS], { shouldDirty: true });
+    if (type === "importantInfo") setValue("importantInfo", [...DEFAULT_IMPORTANT_INFO], { shouldDirty: true });
+    if (type === "exclusions") setValue("exclusions", [...DEFAULT_EXCLUSIONS], { shouldDirty: true });
+    toast({ title: `Reset ${type} to standard agency defaults` });
   }
 
   function applyBulkEdit() {
@@ -739,7 +846,7 @@ export default function ItineraryBuilderPage() {
       .filter(Boolean);
     setValue(bulkTermsModal, lines, { shouldDirty: true });
     setBulkTermsModal(null);
-    toast({ title: `Updated ${lines.length} ${bulkTermsModal}` });
+    toast({ title: `Updated ${lines.length} items` });
   }
 
   if (isEdit && isLoading) {
@@ -919,6 +1026,25 @@ export default function ItineraryBuilderPage() {
           </div>
 
           <div className="flex items-center justify-end gap-2 shrink-0">
+            {/* Direct PDF Preview in New Tab */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+                const target = itineraryId
+                  ? `${basePath}/preview-itinerary?id=${itineraryId}`
+                  : `${basePath}/preview-itinerary?template=explora-trivandrum`;
+                window.open(target, "_blank");
+              }}
+              className="h-8 text-xs font-medium border-border hover:bg-muted text-foreground gap-1.5 shrink-0"
+              title="Preview standard Itinerary PDF Dossier"
+            >
+              <FileText className="h-3.5 w-3.5 text-primary" />
+              <span className="hidden sm:inline">PDF Preview</span>
+            </Button>
+
             {/* AI Assistant Button */}
             <Button
               type="button"
@@ -968,19 +1094,24 @@ export default function ItineraryBuilderPage() {
           </div>
         </div>
 
-        {/* Row 2: Six Workflow Steps */}
-        <div className="pt-1.5 border-t border-border/50 w-full overflow-x-auto no-scrollbar">
+        {/* Row 2: Seven Workflow Steps Matching the PDF Structure */}
+        <div
+          ref={navContainerRef}
+          className="pt-1.5 border-t border-border/50 w-full overflow-x-auto no-scrollbar scroll-smooth"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
           <nav
             aria-label="Itinerary proposal sections"
             className="flex items-center gap-1 sm:gap-1.5 min-w-max scroll-smooth"
           >
             {[
               { id: "section-details", num: 1, label: "Trip Details" },
-              { id: "section-days", num: 2, label: "Days", count: daysArray.fields.length },
-              { id: "section-stays", num: 3, label: "Stays", count: staysArray.fields.length },
-              { id: "section-terms", num: 4, label: "Inclusions", count: watchedInclusions.length },
-              { id: "section-pricing", num: 5, label: "Pricing", count: priceItemsArray.fields.length },
-              { id: "section-publishing", num: 6, label: "Status & Save" },
+              { id: "section-days", num: 2, label: "Day-to-Day Plan", count: daysArray.fields.length },
+              { id: "section-transport", num: 3, label: "Transportation" },
+              { id: "section-inclusions", num: 4, label: "Inclusions & Exclusions", count: watchedInclusions.length + watchedExclusions.length },
+              { id: "section-budget", num: 5, label: "Budget & Pricing", count: staysArray.fields.length },
+              { id: "section-terms", num: 6, label: "Terms & Conditions" },
+              { id: "section-publishing", num: 7, label: "Status & PDF" },
             ].map((step, idx, arr) => {
               const isActive = activeSection === step.id;
               return (
@@ -1031,7 +1162,7 @@ export default function ItineraryBuilderPage() {
 
       <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8">
         {/* ============================================================
-            SECTION 1: TRIP & CUSTOMER DETAILS
+            SECTION 1: TRIP & CUSTOMER DETAILS (Matching PDF Trip Details)
         ============================================================ */}
         <section id="section-details" className="scroll-mt-24">
           <Card>
@@ -1046,12 +1177,12 @@ export default function ItineraryBuilderPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="customerName" className="font-medium text-xs">
-                    Customer Name *
+                    Guest / Customer Name *
                   </Label>
                   <Input
                     id="customerName"
                     {...register("customerName", { required: true })}
-                    placeholder="e.g. Mr. & Mrs. Iyer"
+                    placeholder="e.g. MARIA ROY"
                     data-testid="input-customer-name"
                   />
                 </div>
@@ -1080,28 +1211,39 @@ export default function ItineraryBuilderPage() {
                 </div>
               </div>
 
-              {/* Row 2: Title & Destination */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
+              {/* Row 2: Title, Destination & Reference Number */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5 md:col-span-1">
                   <Label htmlFor="title" className="font-medium text-xs">
                     Itinerary Title *
                   </Label>
                   <Input
                     id="title"
                     {...register("title", { required: true })}
-                    placeholder="e.g. 7 Nights Kerala — The Spice & Backwaters Escape"
+                    placeholder="e.g. Explora Trivandrum"
                     data-testid="input-title"
                   />
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="space-y-1.5 md:col-span-1">
                   <Label htmlFor="destination" className="font-medium text-xs">
-                    Destination Region
+                    Destination Region (PDF Banner)
                   </Label>
                   <Input
                     id="destination"
                     {...register("destination")}
-                    placeholder="e.g. Kerala, India"
+                    placeholder="e.g. Trivandrum, Keralam, India | Kovalam, Keralam, India"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-1">
+                  <Label htmlFor="referenceNumber" className="font-medium text-xs">
+                    Proposal Reference Number
+                  </Label>
+                  <Input
+                    id="referenceNumber"
+                    {...register("referenceNumber")}
+                    placeholder="e.g. L100021/Q1020"
                   />
                 </div>
               </div>
@@ -1147,9 +1289,131 @@ export default function ItineraryBuilderPage() {
                 </div>
               </div>
 
-              {/* Row 4: Cover photo */}
+              {/* Row 4: Total Passengers (Matching PDF Trip Details Table) */}
+              <div className="space-y-2 p-3 bg-muted/20 rounded-lg border border-border">
+                <Label className="font-medium text-xs text-foreground block">
+                  Total Passengers (Shown on PDF Trip Details)
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="adults" className="text-[11px] text-muted-foreground">
+                      Adults (Age 12+)
+                    </Label>
+                    <Input
+                      id="adults"
+                      type="number"
+                      min="1"
+                      {...register("adults", { valueAsNumber: true })}
+                      placeholder="1"
+                      className="bg-background"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="children" className="text-[11px] text-muted-foreground">
+                      Children (Age 2-11)
+                    </Label>
+                    <Input
+                      id="children"
+                      type="number"
+                      min="0"
+                      {...register("children", { valueAsNumber: true })}
+                      placeholder="0"
+                      className="bg-background"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="infants" className="text-[11px] text-muted-foreground">
+                      Infants (Under 2)
+                    </Label>
+                    <Input
+                      id="infants"
+                      type="number"
+                      min="0"
+                      {...register("infants", { valueAsNumber: true })}
+                      placeholder="0"
+                      className="bg-background"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 5: Concierge, Curator & Emergency Contacts */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="curatorName" className="font-medium text-xs">
+                    Itinerary Curated By
+                  </Label>
+                  <Input
+                    id="curatorName"
+                    {...register("curatorName")}
+                    placeholder="e.g. Midhilaj Chelakkal"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="curatorPhone" className="font-medium text-xs">
+                    Curator Contact Number
+                  </Label>
+                  <Input
+                    id="curatorPhone"
+                    {...register("curatorPhone")}
+                    placeholder="+91 9745585813"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="emergencyContacts" className="font-medium text-xs">
+                    Emergency Contacts (PDF Header)
+                  </Label>
+                  <Input
+                    id="emergencyContacts"
+                    {...register("emergencyContacts")}
+                    placeholder="+91 9400280420 | +91 8157003344"
+                  />
+                </div>
+              </div>
+
+              {/* Row 6: "Your Trip Includes" 4 Checkbox Cards (Matching PDF Header) */}
+              <div className="space-y-2 p-3 bg-muted/20 rounded-lg border border-border">
+                <div className="flex items-center justify-between">
+                  <Label className="font-medium text-xs text-foreground">
+                    Your Trip Includes (Top PDF Feature Badges)
+                  </Label>
+                  <span className="text-[11px] text-muted-foreground">Checked items show with checkmarks in the PDF header card</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("hotelIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
+                    <input type="checkbox" {...register("hotelIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                    <div>
+                      <span className="text-xs font-semibold block">Hotel</span>
+                      <span className="text-[10px] text-muted-foreground">Stay bookings</span>
+                    </div>
+                  </label>
+                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("transportIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
+                    <input type="checkbox" {...register("transportIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                    <div>
+                      <span className="text-xs font-semibold block">Transport</span>
+                      <span className="text-[10px] text-muted-foreground">Dedicated vehicle</span>
+                    </div>
+                  </label>
+                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("sightseeingIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
+                    <input type="checkbox" {...register("sightseeingIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                    <div>
+                      <span className="text-xs font-semibold block">Sight-Seeing</span>
+                      <span className="text-[10px] text-muted-foreground">Guided tours</span>
+                    </div>
+                  </label>
+                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("transferIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
+                    <input type="checkbox" {...register("transferIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                    <div>
+                      <span className="text-xs font-semibold block">Transfer</span>
+                      <span className="text-[10px] text-muted-foreground">Airport transfers</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {/* Row 7: Cover photo */}
               <div className="space-y-1.5">
-                <Label className="font-medium text-xs">Proposal Cover Photo</Label>
+                <Label className="font-medium text-xs">Proposal Cover Photo (PDF Hero Image)</Label>
                 <Controller
                   control={control}
                   name="coverImageUrl"
@@ -1164,7 +1428,7 @@ export default function ItineraryBuilderPage() {
                 />
               </div>
 
-              {/* Row 5: Summary */}
+              {/* Row 8: Summary */}
               <div className="space-y-1.5">
                 <Label htmlFor="summary" className="font-medium text-xs">
                   Journey Overview &amp; Summary
@@ -1173,7 +1437,7 @@ export default function ItineraryBuilderPage() {
                   id="summary"
                   {...register("summary")}
                   rows={3}
-                  placeholder="A route through Kochi's historic quarters, Munnar tea hills, and a backwater cruise in Alleppey."
+                  placeholder="A curated route through Kerala's historic quarters, temples, and coastal retreats."
                 />
               </div>
             </CardContent>
@@ -1316,10 +1580,6 @@ export default function ItineraryBuilderPage() {
                               · {new Date(dayData.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
                             </span>
                           )}
-
-                          <Badge variant="secondary" className="text-[10px] hidden md:inline-flex">
-                            {activitiesCount} {activitiesCount === 1 ? "activity" : "activities"}
-                          </Badge>
                         </div>
 
                         {/* Reordering & Delete Actions */}
@@ -1367,180 +1627,6 @@ export default function ItineraryBuilderPage() {
                           dayIndex={dayIndex}
                           tripStartDate={watchedStartDate}
                           tripEndDate={watchedEndDate}
-                        />
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* ============================================================
-            SECTION 3: ACCOMMODATION STAYS
-        ============================================================ */}
-        <section id="section-stays" className="scroll-mt-24">
-          <Card>
-            <CardHeader className="border-b bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <CardTitle className="text-lg font-serif flex items-center gap-2">
-                  <Building className="h-5 w-5 text-primary" />
-                  3. Accommodation Stays ({staysArray.fields.length})
-                </CardTitle>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {staysArray.fields.length > 0 && (
-                  <>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleAllStays(false)}
-                      className="text-xs h-8 text-muted-foreground"
-                    >
-                      Expand All
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleAllStays(true)}
-                      className="text-xs h-8 text-muted-foreground"
-                    >
-                      Collapse All
-                    </Button>
-                  </>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    staysArray.append({
-                      name: "",
-                      location: "",
-                      nights: 1,
-                      roomType: "Deluxe Room",
-                    })
-                  }
-                  className="h-8"
-                  data-testid="button-add-stay"
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Stay
-                </Button>
-              </div>
-            </CardHeader>
-
-            <CardContent className="space-y-4 pt-6">
-              {staysArray.fields.length === 0 ? (
-                <div className="text-center py-10 border-2 border-dashed border-border rounded-lg">
-                  <Building className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-60" />
-                  <p className="font-medium text-foreground text-sm">No stays added yet</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Add resort, villa, or houseboat details for this itinerary.
-                  </p>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => staysArray.append({ name: "", location: "", nights: 1 })}
-                    className="mt-3"
-                  >
-                    <Plus className="h-3.5 w-3.5 mr-1" /> Add First Stay
-                  </Button>
-                </div>
-              ) : (
-                staysArray.fields.map((field, i) => {
-                  const isCollapsed = Boolean(collapsedStays[i]);
-                  const stayData = watchedStays[i] || {};
-
-                  return (
-                    <div
-                      key={field.id}
-                      data-testid={`stay-card-${i}`}
-                      className="border border-border rounded-lg bg-card overflow-hidden shadow-xs transition-all hover:border-border/80"
-                    >
-                      {/* Stay Header */}
-                      <div className="bg-muted/40 p-3.5 flex items-center justify-between gap-3 border-b border-border">
-                        <div
-                          className="flex items-center gap-2.5 flex-1 cursor-pointer select-none"
-                          onClick={() =>
-                            setCollapsedStays((prev) => ({ ...prev, [i]: !prev[i] }))
-                          }
-                        >
-                          <button
-                            type="button"
-                            className="p-1 text-muted-foreground hover:text-foreground"
-                            aria-label={isCollapsed ? "Expand stay" : "Collapse stay"}
-                          >
-                            {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                          </button>
-
-                          <Badge variant="outline" className="text-xs font-semibold bg-background">
-                            Stay {i + 1}
-                          </Badge>
-
-                          <div className="font-medium text-sm text-foreground truncate max-w-md">
-                            {stayData.name || <span className="text-muted-foreground italic">Untitled Hotel / Resort</span>}
-                          </div>
-
-                          {stayData.location && (
-                            <span className="text-xs text-muted-foreground hidden sm:inline flex items-center gap-1">
-                              <MapPin className="h-3 w-3" /> {stayData.location}
-                            </span>
-                          )}
-
-                          {stayData.nights ? (
-                            <Badge variant="secondary" className="text-[10px] hidden md:inline-flex">
-                              {stayData.nights} {stayData.nights === 1 ? "Night" : "Nights"}
-                            </Badge>
-                          ) : null}
-                        </div>
-
-                        {/* Reorder and Delete */}
-                        <div className="flex items-center gap-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground"
-                            disabled={i === 0}
-                            onClick={() => staysArray.swap(i, i - 1)}
-                            title="Move Stay Up"
-                          >
-                            <MoveUp className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground"
-                            disabled={i === staysArray.fields.length - 1}
-                            onClick={() => staysArray.swap(i, i + 1)}
-                            title="Move Stay Down"
-                          >
-                            <MoveDown className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                            onClick={() => staysArray.remove(i)}
-                            title="Remove Stay"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Stay Form Fields */}
-                      {!isCollapsed && (
-                        <StayCardBody
-                          register={register}
-                          stayIndex={i}
                           setValue={setValue}
                           watch={watch}
                         />
@@ -1554,15 +1640,71 @@ export default function ItineraryBuilderPage() {
         </section>
 
         {/* ============================================================
+            SECTION 3: TRANSPORTATION (Matching PDF Transportation Banner)
+        ============================================================ */}
+        <section id="section-transport" className="scroll-mt-24">
+          <Card>
+            <CardHeader className="border-b bg-muted/20">
+              <CardTitle className="text-lg font-serif flex items-center gap-2">
+                <Car className="h-5 w-5 text-primary" />
+                3. Transportation Services (PDF Route)
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Displays the Origin &amp; Destination route boxes with dedicated chauffeur icon in the Transportation banner on the PDF dossier.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="transportOrigin" className="font-medium text-xs">
+                    Origin / Agency Pickup Point (Left Box)
+                  </Label>
+                  <Input
+                    id="transportOrigin"
+                    {...register("transportOrigin")}
+                    placeholder="e.g. ESCORA HOLIDAYS | Trivandrum, Keralam, India"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="transportDestination" className="font-medium text-xs">
+                    Drop-off / Departure Terminal (Right Box)
+                  </Label>
+                  <Input
+                    id="transportDestination"
+                    {...register("transportDestination")}
+                    placeholder="e.g. Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="transportVehicle" className="font-medium text-xs">
+                  Dedicated Chauffeur &amp; Vehicle Specification
+                </Label>
+                <Input
+                  id="transportVehicle"
+                  {...register("transportVehicle")}
+                  placeholder="e.g. Private Dedicated Chauffeur Driven AC Sedan / SUV"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ============================================================
             SECTION 4: INCLUSIONS & EXCLUSIONS
         ============================================================ */}
-        <section id="section-terms" className="scroll-mt-24">
+        <section id="section-inclusions" className="scroll-mt-24">
           <Card>
             <CardHeader className="border-b bg-muted/20">
               <CardTitle className="text-lg font-serif flex items-center gap-2">
                 <Layers className="h-5 w-5 text-primary" />
                 4. Inclusions &amp; Exclusions
               </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Clearly define what is covered in the bespoke quote and any independent guest expenditures. Matches the Inclusions &amp; Exclusions banner on the PDF dossier.
+              </CardDescription>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
               {/* Inclusions */}
@@ -1604,7 +1746,7 @@ export default function ItineraryBuilderPage() {
                   ) : (
                     watchedInclusions.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <span className="text-emerald-600 text-xs flex-shrink-0">✦</span>
+                        <span className="text-emerald-600 font-bold text-xs flex-shrink-0">✓</span>
                         <Input
                           value={item}
                           onChange={(e) => updateTerm("inclusions", idx, e.target.value)}
@@ -1663,6 +1805,16 @@ export default function ItineraryBuilderPage() {
                       type="button"
                       variant="ghost"
                       size="sm"
+                      onClick={() => resetToDefaults("exclusions")}
+                      className="text-xs h-7 text-muted-foreground"
+                      title="Reset standard agency exclusions"
+                    >
+                      <RotateCcw className="h-3 w-3 mr-1" /> Reset
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => openBulkEdit("exclusions")}
                       className="text-xs h-7 text-muted-foreground"
                     >
@@ -1688,7 +1840,9 @@ export default function ItineraryBuilderPage() {
                   ) : (
                     watchedExclusions.map((item, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <span className="text-muted-foreground text-xs flex-shrink-0">✧</span>
+                        <span className="w-4 h-4 rounded bg-destructive/10 text-destructive flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                          ✕
+                        </span>
                         <Input
                           value={item}
                           onChange={(e) => updateTerm("exclusions", idx, e.target.value)}
@@ -1737,15 +1891,214 @@ export default function ItineraryBuilderPage() {
         </section>
 
         {/* ============================================================
-            SECTION 5: INVESTMENT & PRICING
+            SECTION 5: BUDGET & PRICING (Package Stays Table & Investment)
         ============================================================ */}
-        <section id="section-pricing" className="scroll-mt-24">
+        <section id="section-budget" className="scroll-mt-24 space-y-6">
+          {/* Part 5A: Package Accommodations & Stays Table */}
+          <Card>
+            <CardHeader className="border-b bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg font-serif flex items-center gap-2">
+                  <Building className="h-5 w-5 text-primary" />
+                  5A. Package Accommodations ({staysArray.fields.length} {staysArray.fields.length === 1 ? "Stay" : "Stays"})
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                  Populates the Package Stays table (Destinations, Accommodation/Hotels, Star Rating, No. of Nights, No. of Rooms, Meal Plan) on the PDF dossier.
+                </CardDescription>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                {staysArray.fields.length > 0 && (
+                  <>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleAllStays(false)}
+                      className="text-xs h-8 text-muted-foreground"
+                    >
+                      Expand All
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleAllStays(true)}
+                      className="text-xs h-8 text-muted-foreground"
+                    >
+                      Collapse All
+                    </Button>
+                  </>
+                )}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const idx = staysArray.fields.length;
+                    staysArray.append({
+                      name: "",
+                      location: watchedDestination || "",
+                      starRating: "5 Star",
+                      checkIn: "",
+                      checkOut: "",
+                      nights: 1,
+                      rooms: 1,
+                      mealPlan: "BreakFast",
+                      roomType: "Deluxe Heritage Room",
+                      notes: "",
+                    });
+                    setCollapsedStays((prev) => ({ ...prev, [idx]: false }));
+                  }}
+                  className="text-xs h-8"
+                  data-testid="button-add-stay"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add Accommodation
+                </Button>
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4 pt-6">
+              {staysArray.fields.length === 0 ? (
+                <div className="text-center py-10 border border-dashed border-border rounded-lg bg-muted/10">
+                  <Building className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-foreground">No accommodations added</p>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
+                    Add resorts, heritage villas, or houseboats to generate the Package Accommodations table in the Budget &amp; Pricing section.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      staysArray.append({
+                        name: "",
+                        location: watchedDestination || "",
+                        starRating: "5 Star",
+                        checkIn: "",
+                        checkOut: "",
+                        nights: 1,
+                        rooms: 1,
+                        mealPlan: "BreakFast",
+                        roomType: "Deluxe Suite",
+                        notes: "",
+                      });
+                      setCollapsedStays({ 0: false });
+                    }}
+                    className="mt-3 text-xs"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Add First Stay
+                  </Button>
+                </div>
+              ) : (
+                staysArray.fields.map((field, stayIndex) => {
+                  const stayData = watchedStays[stayIndex] || {};
+                  const isCollapsed = Boolean(collapsedStays[stayIndex]);
+
+                  return (
+                    <div
+                      key={field.id}
+                      data-testid={`stay-card-${stayIndex}`}
+                      className="border border-border rounded-lg bg-card overflow-hidden shadow-xs transition-all hover:border-border/80"
+                    >
+                      {/* Stay Header Bar */}
+                      <div className="bg-muted/40 p-3.5 flex items-center justify-between gap-3 border-b border-border">
+                        <div
+                          className="flex items-center gap-2.5 flex-1 cursor-pointer select-none"
+                          onClick={() =>
+                            setCollapsedStays((prev) => ({ ...prev, [stayIndex]: !prev[stayIndex] }))
+                          }
+                        >
+                          <button
+                            type="button"
+                            className="p-1 text-muted-foreground hover:text-foreground"
+                            aria-label={isCollapsed ? "Expand stay" : "Collapse stay"}
+                          >
+                            {isCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                          </button>
+
+                          <Badge variant="outline" className="text-xs font-semibold bg-background">
+                            Stay {stayIndex + 1}
+                          </Badge>
+
+                          <div className="font-medium text-sm text-foreground truncate max-w-xs sm:max-w-md">
+                            {stayData.name || <span className="text-muted-foreground italic">Untitled Hotel / Resort</span>}
+                          </div>
+
+                          {stayData.location && (
+                            <span className="text-xs text-muted-foreground hidden sm:inline">
+                              · {stayData.location}
+                            </span>
+                          )}
+
+                          {stayData.nights && (
+                            <Badge variant="secondary" className="text-[10px] hidden md:inline-flex">
+                              {stayData.nights} {stayData.nights === 1 ? "night" : "nights"}
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground"
+                            disabled={stayIndex === 0}
+                            onClick={() => staysArray.swap(stayIndex, stayIndex - 1)}
+                            title="Move Stay Up"
+                          >
+                            <MoveUp className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground"
+                            disabled={stayIndex === staysArray.fields.length - 1}
+                            onClick={() => staysArray.swap(stayIndex, stayIndex + 1)}
+                            title="Move Stay Down"
+                          >
+                            <MoveDown className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => staysArray.remove(stayIndex)}
+                            title="Remove Stay"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Stay Card Body */}
+                      {!isCollapsed && (
+                        <StayCardBody
+                          register={register}
+                          stayIndex={stayIndex}
+                          setValue={setValue}
+                          watch={watch}
+                        />
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Part 5B: Package Investment & Pricing Breakdown */}
           <Card>
             <CardHeader className="border-b bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-3">
                 <CardTitle className="text-lg font-serif flex items-center gap-2">
                   <DollarSign className="h-5 w-5 text-primary" />
-                  5. Investment &amp; Pricing
+                  5B. Total Investment &amp; Pricing Breakdown
                 </CardTitle>
                 <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary tabular-nums">
                   <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Total:</span>
@@ -1844,9 +2197,9 @@ export default function ItineraryBuilderPage() {
                 )}
               </div>
 
-              {/* Discount, taxes and notes */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
-                <div className="space-y-1.5">
+              {/* Discount and notes */}
+              <div className="pt-4 border-t border-border">
+                <div className="max-w-md space-y-1.5">
                   <Label htmlFor="pricingDiscount" className="font-medium text-xs">
                     Promotional Discount (Optional)
                   </Label>
@@ -1860,26 +2213,6 @@ export default function ItineraryBuilderPage() {
                       min="0"
                       step="1"
                       {...register("pricing.discount", { valueAsNumber: true })}
-                      placeholder="0"
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="pricingTaxes" className="font-medium text-xs">
-                    Taxes &amp; Statutory Fees (Optional)
-                  </Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">
-                      {watchedCurrency === "INR" ? "₹" : watchedCurrency}
-                    </span>
-                    <Input
-                      id="pricingTaxes"
-                      type="number"
-                      min="0"
-                      step="1"
-                      {...register("pricing.taxes", { valueAsNumber: true })}
                       placeholder="0"
                       className="pl-8"
                     />
@@ -1919,15 +2252,6 @@ export default function ItineraryBuilderPage() {
                     </span>
                   </div>
                 )}
-                {!!watchedPricing?.taxes && (
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Taxes &amp; Fees:</span>
-                    <span className="font-medium text-foreground tabular-nums">
-                      +{watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
-                      {Number(watchedPricing.taxes).toLocaleString("en-IN")}
-                    </span>
-                  </div>
-                )}
                 <div className="flex justify-between items-baseline pt-2 border-t border-primary/20 font-serif">
                   <span className="text-base font-semibold text-foreground">Total Proposal Investment:</span>
                   <span className="text-2xl font-bold text-primary tabular-nums">
@@ -1941,7 +2265,301 @@ export default function ItineraryBuilderPage() {
         </section>
 
         {/* ============================================================
-            SECTION 6: STATUS, PUBLISHING & SHARING
+            SECTION 6: TERMS & CONDITIONS (Hotel, Payment & Important Info)
+        ============================================================ */}
+        <section id="section-terms" className="scroll-mt-24 space-y-6">
+          <Card>
+            <CardHeader className="border-b bg-muted/20">
+              <CardTitle className="text-lg font-serif flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                6. Terms, Policies &amp; Important Information
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                These 3 policy categories are rendered on dedicated dark-banner sections in the PDF dossier matching official Escora travel standards.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6 pt-6">
+              {/* 6A: Hotel Terms & Conditions */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-primary" />
+                    <Label className="font-medium text-sm">Hotel Terms &amp; Conditions ({watchedHotelTerms.length})</Label>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => resetToDefaults("hotelTerms")}
+                      className="text-xs h-7 text-muted-foreground"
+                      title="Reset standard hotel terms"
+                    >
+                      <RotateCcw className="h-3 w-3 mr-1" /> Reset
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openBulkEdit("hotelTerms")}
+                      className="text-xs h-7 text-muted-foreground"
+                    >
+                      Paste / Bulk
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addTerm("hotelTerms")}
+                      className="text-xs h-7"
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> Add Term
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2 border rounded-md p-3 bg-muted/10 min-h-[140px]">
+                  {watchedHotelTerms.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-6">
+                      No hotel terms added. Click &ldquo;Reset&rdquo; to populate standard terms.
+                    </p>
+                  ) : (
+                    watchedHotelTerms.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="text-primary font-bold text-xs flex-shrink-0">▪</span>
+                        <Input
+                          value={item}
+                          onChange={(e) => updateTerm("hotelTerms", idx, e.target.value)}
+                          placeholder="e.g. Children below 12 years are considered children..."
+                          className="h-8 text-xs flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground"
+                          disabled={idx === 0}
+                          onClick={() => moveTerm("hotelTerms", idx, "up")}
+                          title="Move Up"
+                        >
+                          <MoveUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground"
+                          disabled={idx === watchedHotelTerms.length - 1}
+                          onClick={() => moveTerm("hotelTerms", idx, "down")}
+                          title="Move Down"
+                        >
+                          <MoveDown className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeTerm("hotelTerms", idx)}
+                          title="Remove item"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* 6B: Payment Terms & Conditions */}
+              <div className="space-y-3 pt-3 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-4 w-4 text-primary" />
+                    <Label className="font-medium text-sm">Payment Terms &amp; Conditions ({watchedPaymentTerms.length})</Label>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => resetToDefaults("paymentTerms")}
+                      className="text-xs h-7 text-muted-foreground"
+                      title="Reset standard payment terms"
+                    >
+                      <RotateCcw className="h-3 w-3 mr-1" /> Reset
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openBulkEdit("paymentTerms")}
+                      className="text-xs h-7 text-muted-foreground"
+                    >
+                      Paste / Bulk
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addTerm("paymentTerms")}
+                      className="text-xs h-7"
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> Add Term
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2 border rounded-md p-3 bg-muted/10 min-h-[100px]">
+                  {watchedPaymentTerms.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-6">
+                      No payment terms added. Click &ldquo;Reset&rdquo; to populate standard terms.
+                    </p>
+                  ) : (
+                    watchedPaymentTerms.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="text-primary font-bold text-xs flex-shrink-0">▪</span>
+                        <Input
+                          value={item}
+                          onChange={(e) => updateTerm("paymentTerms", idx, e.target.value)}
+                          placeholder="e.g. Any payment delays may lead to the cancellation of the booking..."
+                          className="h-8 text-xs flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground"
+                          disabled={idx === 0}
+                          onClick={() => moveTerm("paymentTerms", idx, "up")}
+                          title="Move Up"
+                        >
+                          <MoveUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground"
+                          disabled={idx === watchedPaymentTerms.length - 1}
+                          onClick={() => moveTerm("paymentTerms", idx, "down")}
+                          title="Move Down"
+                        >
+                          <MoveDown className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeTerm("paymentTerms", idx)}
+                          title="Remove item"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {/* 6C: Important Information */}
+              <div className="space-y-3 pt-3 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Info className="h-4 w-4 text-primary" />
+                    <Label className="font-medium text-sm">Important Information &amp; Travel Guidelines ({watchedImportantInfo.length})</Label>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => resetToDefaults("importantInfo")}
+                      className="text-xs h-7 text-muted-foreground"
+                      title="Reset standard important guidelines"
+                    >
+                      <RotateCcw className="h-3 w-3 mr-1" /> Reset
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openBulkEdit("importantInfo")}
+                      className="text-xs h-7 text-muted-foreground"
+                    >
+                      Paste / Bulk
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => addTerm("importantInfo")}
+                      className="text-xs h-7"
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> Add Guideline
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-2 border rounded-md p-3 bg-muted/10 min-h-[140px]">
+                  {watchedImportantInfo.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-6">
+                      No important guidelines added. Click &ldquo;Reset&rdquo; to populate standard guidelines.
+                    </p>
+                  ) : (
+                    watchedImportantInfo.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="text-primary font-bold text-xs flex-shrink-0">▪</span>
+                        <Input
+                          value={item}
+                          onChange={(e) => updateTerm("importantInfo", idx, e.target.value)}
+                          placeholder="e.g. Ensure your travel insurance covers medical emergencies..."
+                          className="h-8 text-xs flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground"
+                          disabled={idx === 0}
+                          onClick={() => moveTerm("importantInfo", idx, "up")}
+                          title="Move Up"
+                        >
+                          <MoveUp className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground"
+                          disabled={idx === watchedImportantInfo.length - 1}
+                          onClick={() => moveTerm("importantInfo", idx, "down")}
+                          title="Move Down"
+                        >
+                          <MoveDown className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          onClick={() => removeTerm("importantInfo", idx)}
+                          title="Remove item"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* ============================================================
+            SECTION 7: STATUS, PUBLISHING & PDF DOSSIER
         ============================================================ */}
         <section id="section-publishing" className="scroll-mt-24">
           <Card className="border border-border shadow-xs">
@@ -1949,19 +2567,19 @@ export default function ItineraryBuilderPage() {
               <div className="flex items-center justify-between gap-2">
                 <CardTitle className="text-lg font-serif flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-primary" />
-                  6. Status, Publishing &amp; Client Access
+                  7. Status, Publishing &amp; PDF Dossier
                 </CardTitle>
                 <span className="text-xs font-sans font-medium text-muted-foreground hidden sm:inline">
-                  Step 6 of 6 · Proposal Finalization
+                  Step 7 of 7 · Proposal Finalization
                 </span>
               </div>
               <CardDescription className="text-xs text-muted-foreground mt-1">
-                Configure proposal visibility, client sharing access, dedicated journey curator contacts, and perform pre-flight verification before publishing.
+                Configure proposal visibility, client sharing access, dedicated journey curator contacts, preview high-contrast PDF dossier, and perform pre-flight verification before publishing.
               </CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                {/* Left Column: Status, Client Access, and Curator & Concierge */}
+                {/* Left Column: Status, Itinerary PDF Option Card, Client Access, and Curator & Concierge */}
                 <div className="lg:col-span-7 space-y-6">
                   {/* Proposal Status Selection */}
                   <div className="space-y-3">
@@ -2032,6 +2650,57 @@ export default function ItineraryBuilderPage() {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </div>
+
+                  {/* High-Contrast Itinerary PDF Option Card */}
+                  <div className="border border-primary/30 rounded-lg p-4 bg-primary/5 space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 font-serif text-sm font-semibold text-foreground">
+                          <FileText className="h-4 w-4 text-primary" />
+                          <span>Itinerary PDF Option (Official Dossier)</span>
+                          <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                            High Contrast &amp; Easy Reading
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                          This proposal formats directly into Escora&apos;s luxury print dossier with readable typography (13px–15px), dark forest green &amp; warm Kerala gold styling, multi-image galleries, and all 7 structured sections.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      <Button
+                        type="button"
+                        variant="default"
+                        size="sm"
+                        onClick={() => {
+                          const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+                          const url = isEdit && itineraryId
+                            ? `${basePath}/preview-itinerary?id=${itineraryId}`
+                            : `${basePath}/preview-itinerary?template=explora-trivandrum`;
+                          window.open(url, "_blank");
+                        }}
+                        className="h-8 text-xs gap-1.5"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        <span>{isEdit ? "Open PDF Preview" : "Preview Explora Sample PDF"}</span>
+                        <ExternalLink className="h-3 w-3 opacity-60 ml-0.5" />
+                      </Button>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+                          window.open(`${basePath}/preview-itinerary?template=explora-trivandrum`, "_blank");
+                        }}
+                        className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Reference Explora PDF
+                      </Button>
                     </div>
                   </div>
 
@@ -2332,10 +3001,10 @@ export default function ItineraryBuilderPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => scrollToSection("section-pricing")}
+                        onClick={() => scrollToSection("section-terms")}
                         className="flex-1 h-8 text-xs text-muted-foreground hover:text-foreground"
                       >
-                        <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back to Pricing
+                        <ChevronLeft className="h-3.5 w-3.5 mr-1" /> Back to Terms
                       </Button>
                       <Button
                         type="button"
@@ -2445,140 +3114,197 @@ function DayCardBody({
   dayIndex,
   tripStartDate,
   tripEndDate,
+  setValue,
+  watch,
 }: {
   control: any;
   register: any;
   dayIndex: number;
   tripStartDate?: string;
   tripEndDate?: string;
+  setValue?: any;
+  watch?: any;
 }) {
-  const activitiesArray = useFieldArray({ control, name: `days.${dayIndex}.activities` });
+  const watchedImageUrl = watch ? watch(`days.${dayIndex}.imageUrl`) : undefined;
+  const watchedImageUrls = watch ? watch(`days.${dayIndex}.imageUrls`) : undefined;
+
+  const photoList: string[] = useMemo(() => {
+    if (Array.isArray(watchedImageUrls) && watchedImageUrls.length > 0) {
+      return watchedImageUrls.map((s: any) => String(s || "").trim()).filter(Boolean);
+    }
+    if (watchedImageUrl && typeof watchedImageUrl === "string" && watchedImageUrl.trim()) {
+      return [watchedImageUrl.trim()];
+    }
+    return [];
+  }, [watchedImageUrl, watchedImageUrls]);
+
+  const photo0 = photoList[0] || "";
+  const photo1 = photoList[1] || "";
+  const photo2 = photoList[2] || "";
+
+  const handlePhotoUpdate = (slotIndex: number, newUrl: string) => {
+    const current = [photo0, photo1, photo2];
+    current[slotIndex] = (newUrl || "").trim();
+    const compacted = current.filter(Boolean).slice(0, 3);
+
+    if (setValue) {
+      setValue(`days.${dayIndex}.imageUrls`, compacted, { shouldDirty: true, shouldValidate: true });
+      setValue(`days.${dayIndex}.imageUrl`, compacted[0] || "", { shouldDirty: true, shouldValidate: true });
+    }
+  };
 
   return (
     <div className="p-4 space-y-4">
-      {/* Day Photo & Basic Fields */}
-      <div className="flex flex-col md:flex-row gap-4 items-start">
-        <div className="w-full md:w-56 flex-shrink-0">
-          <Controller
-            control={control}
-            name={`days.${dayIndex}.imageUrl` as const}
-            render={({ field }) => (
-              <ImageUploadField
-                value={field.value}
-                onChange={field.onChange}
-                label="Day photo"
-                size="default"
-                helperText="Shown on client web proposal & PDF dossier."
-              />
-            )}
-          />
+      {/* Day Basic Fields */}
+      <div className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="sm:col-span-2 space-y-1">
+            <Label className="text-xs font-medium">Day Title *</Label>
+            <Input
+              {...register(`days.${dayIndex}.title` as const, { required: true })}
+              placeholder="e.g. Arrival in Trivandrum — Heritage Walk & Kovalam Beach"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs font-medium">Travel Date</Label>
+            <Input type="date" {...register(`days.${dayIndex}.date` as const)} />
+          </div>
         </div>
 
-        <div className="flex-1 space-y-3 w-full">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-2 space-y-1">
-              <Label className="text-xs font-medium">Day Title *</Label>
-              <Input
-                {...register(`days.${dayIndex}.title` as const, { required: true })}
-                placeholder="e.g. Arrival in Kochi — Fort Kochi & Mattancherry Heritage Walk"
-              />
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-medium">Day Overview / Narrative</Label>
+            <span className="text-[10.5px] text-muted-foreground font-medium">
+              Rich Text &amp; Formatting Toolbar
+            </span>
+          </div>
+          {control ? (
+            <Controller
+              control={control}
+              name={`days.${dayIndex}.description` as const}
+              render={({ field }) => (
+                <RichTextEditor
+                  value={field.value || ""}
+                  onChange={field.onChange}
+                  placeholder="Describe the day's journey, scenic drives, cultural stops, and evening leisure with rich formatting..."
+                  minHeight="140px"
+                />
+              )}
+            />
+          ) : (
+            <RichTextEditor
+              value={watch ? watch(`days.${dayIndex}.description`) : ""}
+              onChange={(val) =>
+                setValue &&
+                setValue(`days.${dayIndex}.description`, val, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
+              placeholder="Describe the day's journey, scenic drives, cultural stops, and evening leisure with rich formatting..."
+              minHeight="140px"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Up to 3 Day Photos Section */}
+      <div className="space-y-2.5 p-3.5 bg-muted/20 rounded-md border border-border">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <div className="flex items-center gap-1.5">
+            <Images className="h-4 w-4 text-primary shrink-0" />
+            <span className="text-xs font-semibold text-foreground">
+              Day Photos (Up to 3 Photos — Arranged Side-by-Side in PDF)
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-muted-foreground font-mono">
+              {photoList.length} of 3 photos added
+            </span>
+            {photoList.length > 0 && (
+              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-medium">
+                {photoList.length === 1 ? "1 Full Width" : `${photoList.length} Side-by-Side`}
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        <p className="text-[11px] text-muted-foreground leading-normal">
+          Upload up to 3 destination or activity photos. Photos maintain their optimal visual ratio with centered cropping and render in a balanced horizontal row without distorting or shifting the PDF layout.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+          {/* Photo Slot 1 */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-foreground">
+                Photo 1 <span className="text-primary font-semibold">(Primary / Cover)</span>
+              </span>
+              {photo0 ? (
+                <Badge variant="outline" className="text-[9px] py-0 px-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+                  Active
+                </Badge>
+              ) : (
+                <span className="text-[10px] text-muted-foreground italic">Required for cover</span>
+              )}
             </div>
-            <div className="space-y-1">
-              <Label className="text-xs font-medium">Travel Date</Label>
-              <Input type="date" {...register(`days.${dayIndex}.date` as const)} />
-            </div>
+            <ImageUploadField
+              value={photo0}
+              onChange={(url) => handlePhotoUpdate(0, url)}
+              label="Day Photo 1"
+              size="compact"
+              helperText="Main featured photo for Day."
+            />
           </div>
 
+          {/* Photo Slot 2 */}
           <div className="space-y-1">
-            <Label className="text-xs font-medium">Day Overview / Narrative</Label>
-            <Textarea
-              {...register(`days.${dayIndex}.description` as const)}
-              rows={2}
-              placeholder="Describe the day's journey, scenic drives, cultural stops, and evening leisure..."
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-foreground">
+                Photo 2 <span className="text-muted-foreground font-normal">(Optional)</span>
+              </span>
+              {photo1 ? (
+                <Badge variant="outline" className="text-[9px] py-0 px-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+                  Active
+                </Badge>
+              ) : (
+                <span className="text-[10px] text-muted-foreground italic">Optional</span>
+              )}
+            </div>
+            <ImageUploadField
+              value={photo1}
+              onChange={(url) => handlePhotoUpdate(1, url)}
+              label="Day Photo 2"
+              size="compact"
+              helperText="Side-by-side gallery photo."
+            />
+          </div>
+
+          {/* Photo Slot 3 */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-medium text-foreground">
+                Photo 3 <span className="text-muted-foreground font-normal">(Optional)</span>
+              </span>
+              {photo2 ? (
+                <Badge variant="outline" className="text-[9px] py-0 px-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+                  Active
+                </Badge>
+              ) : (
+                <span className="text-[10px] text-muted-foreground italic">Optional</span>
+              )}
+            </div>
+            <ImageUploadField
+              value={photo2}
+              onChange={(url) => handlePhotoUpdate(2, url)}
+              label="Day Photo 3"
+              size="compact"
+              helperText="Side-by-side gallery photo."
             />
           </div>
         </div>
       </div>
 
-      {/* Activities Table */}
-      <div className="border-t border-border pt-3 space-y-3">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs font-medium flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-primary" />
-            Timed Activities &amp; Highlights ({activitiesArray.fields.length})
-          </Label>
-
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => activitiesArray.append({ time: "", title: "", description: "" })}
-            className="text-xs h-7"
-          >
-            <Plus className="h-3 w-3 mr-1" /> Add Activity
-          </Button>
-        </div>
-
-        {activitiesArray.fields.length === 0 ? (
-          <p className="text-xs text-muted-foreground italic py-1">
-            No specific activities added for this day. Click &ldquo;Add Activity&rdquo; to add timed highlights.
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {activitiesArray.fields.map((field, actIndex) => (
-              <div key={field.id} className="flex items-center gap-2">
-                <Input
-                  {...register(`days.${dayIndex}.activities.${actIndex}.time` as const)}
-                  placeholder="e.g. 09:30"
-                  className="w-24 text-xs h-8"
-                />
-                <Input
-                  {...register(`days.${dayIndex}.activities.${actIndex}.title` as const, { required: true })}
-                  placeholder="Activity Name (e.g. Kathakali Dance Performance)"
-                  className="flex-1 text-xs h-8"
-                />
-                <Input
-                  {...register(`days.${dayIndex}.activities.${actIndex}.description` as const)}
-                  placeholder="Details / Notes (optional)"
-                  className="flex-1 text-xs h-8 hidden sm:block"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground"
-                  disabled={actIndex === 0}
-                  onClick={() => activitiesArray.swap(actIndex, actIndex - 1)}
-                  title="Move Up"
-                >
-                  <MoveUp className="h-3 w-3" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground"
-                  disabled={actIndex === activitiesArray.fields.length - 1}
-                  onClick={() => activitiesArray.swap(actIndex, actIndex + 1)}
-                  title="Move Down"
-                >
-                  <MoveDown className="h-3 w-3" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                  onClick={() => activitiesArray.remove(actIndex)}
-                  title="Remove activity"
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
@@ -2589,46 +3315,25 @@ function DayCardBody({
 function StayCardBody({
   register,
   stayIndex,
-  setValue,
-  watch,
 }: {
   register: any;
   stayIndex: number;
-  setValue: any;
-  watch: any;
+  setValue?: any;
+  watch?: any;
 }) {
-  const checkIn = watch(`stays.${stayIndex}.checkIn`);
-  const checkOut = watch(`stays.${stayIndex}.checkOut`);
-  const nights = watch(`stays.${stayIndex}.nights`);
-
-  // Auto calculate nights when checkIn and checkOut are selected
-  useEffect(() => {
-    if (checkIn && checkOut) {
-      const start = new Date(checkIn);
-      const end = new Date(checkOut);
-      if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
-        const diffDays = Math.round((end.getTime() - start.getTime()) / 86_400_000);
-        if (diffDays > 0 && nights !== diffDays) {
-          setValue(`stays.${stayIndex}.nights`, diffDays, { shouldDirty: true });
-        }
-      }
-    }
-  }, [checkIn, checkOut, nights, setValue, stayIndex]);
-
-  const hasInvalidDateRange = Boolean(checkIn && checkOut && checkOut <= checkIn);
-
   return (
-    <div className="p-4 space-y-3">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="space-y-1">
+    <div className="p-4 space-y-4">
+      {/* Row 1: Name & Location */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+        <div className="sm:col-span-7 space-y-1">
           <Label className="text-xs font-medium">Hotel / Resort / Houseboat Name *</Label>
           <Input
             {...register(`stays.${stayIndex}.name` as const, { required: true })}
             placeholder="e.g. Fragrant Nature Resort & Spa"
           />
         </div>
-        <div className="space-y-1">
-          <Label className="text-xs font-medium">Location / Destination</Label>
+        <div className="sm:col-span-5 space-y-1">
+          <Label className="text-xs font-medium">Destination / Location</Label>
           <Input
             {...register(`stays.${stayIndex}.location` as const)}
             placeholder="e.g. Munnar, Kerala"
@@ -2636,17 +3341,10 @@ function StayCardBody({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      {/* Row 2: Nights, Rooms, Meal Plan, Room Category / Type */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="space-y-1">
-          <Label className="text-xs font-medium">Check-in Date</Label>
-          <Input type="date" {...register(`stays.${stayIndex}.checkIn` as const)} />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs font-medium">Check-out Date</Label>
-          <Input type="date" {...register(`stays.${stayIndex}.checkOut` as const)} />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs font-medium">Duration (Nights)</Label>
+          <Label className="text-xs font-medium">No. of Nights</Label>
           <Input
             type="number"
             min="1"
@@ -2655,30 +3353,28 @@ function StayCardBody({
           />
         </div>
         <div className="space-y-1">
-          <Label className="text-xs font-medium">Room Type</Label>
+          <Label className="text-xs font-medium">No. of Rooms</Label>
           <Input
-            {...register(`stays.${stayIndex}.roomType` as const)}
-            placeholder="e.g. Deluxe Lake View"
+            type="number"
+            min="1"
+            {...register(`stays.${stayIndex}.rooms` as const, { valueAsNumber: true })}
+            placeholder="1"
           />
         </div>
-      </div>
-
-      {hasInvalidDateRange && (
-        <p className="text-xs text-destructive flex items-center gap-1 font-medium">
-          <AlertTriangle className="h-3.5 w-3.5" />
-          Check-out date must be after check-in date.
-        </p>
-      )}
-
-      <div className="space-y-1">
-        <Label className="text-xs font-medium">Stay Notes &amp; Special Arrangements</Label>
-        <Input
-          {...register(`stays.${stayIndex}.notes` as const)}
-          placeholder="e.g. Daily breakfast included · 2 Extra beds requested for children"
-        />
-        <p className="text-[11px] text-muted-foreground">
-          Displayed beneath room type on client web view and printable dossier.
-        </p>
+        <div className="space-y-1">
+          <Label className="text-xs font-medium">Meal Plan</Label>
+          <Input
+            {...register(`stays.${stayIndex}.mealPlan` as const)}
+            placeholder="e.g. BreakFast"
+          />
+        </div>
+        <div className="space-y-1 col-span-2 sm:col-span-1">
+          <Label className="text-xs font-medium">Room Category / Type</Label>
+          <Input
+            {...register(`stays.${stayIndex}.roomType` as const)}
+            placeholder="e.g. Deluxe Suite"
+          />
+        </div>
       </div>
     </div>
   );

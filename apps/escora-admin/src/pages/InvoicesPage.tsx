@@ -8,15 +8,23 @@ import {
   useCreateInvoice,
   getListInvoicesQueryKey,
 } from "@/lib/invoicesApi";
-import type { InvoiceData } from "@/lib/invoices";
-import { formatMoney, formatDate, parseInvoiceItems, DEFAULT_BANK_DETAILS, DEFAULT_TERMS, DEFAULT_NOTES } from "@/lib/invoices";
+import type { InvoiceData, InvoicePayment } from "@/lib/invoices";
+import {
+  formatMoney,
+  formatDate,
+  parseInvoicePayments,
+  DEFAULT_BANK_DETAILS,
+  DEFAULT_TERMS,
+  DEFAULT_NOTES,
+} from "@/lib/invoices";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,9 +57,9 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  FileSpreadsheet,
   Receipt,
   Sparkles,
+  CreditCard,
 } from "lucide-react";
 import InvoiceDocument from "@/components/invoice/InvoiceDocument";
 import InvoicePrintDocument from "@/components/invoice/InvoicePrintDocument";
@@ -87,6 +95,14 @@ export default function InvoicesPage() {
   const [printing, setPrinting] = useState<InvoiceData | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  // Quick Payment Modal State
+  const [paymentInvoice, setPaymentInvoice] = useState<InvoiceData | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<number>(0);
+  const [paymentDate, setPaymentDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [paymentMethod, setPaymentMethod] = useState<string>("bank_transfer");
+  const [paymentRef, setPaymentRef] = useState<string>("");
+  const [paymentNotes, setPaymentNotes] = useState<string>("");
+
   const { data: invoices, isLoading } = useListInvoices({
     status: filterStatus === "all" ? undefined : filterStatus,
     search: searchQuery || undefined,
@@ -114,22 +130,57 @@ export default function InvoicesPage() {
     );
   }
 
-  function handleMarkAsPaid(invoice: InvoiceData) {
+  function openRecordPaymentModal(invoice: InvoiceData, prefillAmount?: number) {
+    setPaymentInvoice(invoice);
+    setPaymentAmount(prefillAmount !== undefined ? prefillAmount : invoice.balanceDue);
+    setPaymentDate(new Date().toISOString().slice(0, 10));
+    setPaymentMethod("bank_transfer");
+    setPaymentRef("");
+    setPaymentNotes("");
+  }
+
+  function handleRecordPaymentSubmit() {
+    if (!paymentInvoice) return;
+    if (paymentAmount <= 0) {
+      toast({ title: "Invalid amount", description: "Payment amount must be greater than zero", variant: "destructive" });
+      return;
+    }
+
+    const currentPayments = parseInvoicePayments(paymentInvoice.payments);
+    const newEntry: InvoicePayment = {
+      amount: Number(paymentAmount),
+      date: paymentDate,
+      method: paymentMethod,
+      reference: paymentRef.trim() || undefined,
+      notes: paymentNotes.trim() || "Payment recorded from admin portal",
+      recordedAt: new Date().toISOString(),
+    };
+
+    const updatedPayments = [...currentPayments, newEntry];
+
     updateMutation.mutate(
       {
-        id: invoice.id,
+        id: paymentInvoice.id,
         data: {
-          status: "paid",
-          paidAmount: invoice.totalAmount,
-          balanceDue: 0,
+          payments: JSON.stringify(updatedPayments),
+          revisionReason: `Payment of ₹${paymentAmount} recorded (${paymentMethod})`,
         },
       },
       {
         onSuccess: () => {
           invalidate();
-          toast({ title: `Invoice ${invoice.invoiceNumber} marked as Paid` });
+          setPaymentInvoice(null);
+          toast({
+            title: "Payment recorded successfully",
+            description: `Recorded ₹${paymentAmount} for Invoice ${paymentInvoice.invoiceNumber}`,
+          });
         },
-        onError: () => toast({ title: "Failed to update status", variant: "destructive" }),
+        onError: (err: any) =>
+          toast({
+            title: "Failed to record payment",
+            description: err?.message || "Please check inputs",
+            variant: "destructive",
+          }),
       }
     );
   }
@@ -143,6 +194,7 @@ export default function InvoicesPage() {
         invoiceNumber: nextNumber,
         status: "draft",
         issueDate: new Date().toISOString().slice(0, 10),
+        payments: "[]",
         paidAmount: 0,
         balanceDue: invoice.totalAmount,
       },
@@ -161,7 +213,6 @@ export default function InvoicesPage() {
 
   async function handlePrint(invoice: InvoiceData) {
     setPrinting(invoice);
-    // Give DOM a frame to mount print target
     setTimeout(async () => {
       try {
         await printElementById(PRINT_TARGET_ID);
@@ -174,6 +225,17 @@ export default function InvoicesPage() {
   }
 
   function handleCreateSample() {
+    const samplePayments: InvoicePayment[] = [
+      {
+        amount: 90000,
+        date: new Date().toISOString().slice(0, 10),
+        method: "bank_transfer",
+        reference: "UTR984128503",
+        notes: "50% Advance Booking Deposit",
+        recordedAt: new Date().toISOString(),
+      },
+    ];
+
     createMutation.mutate(
       {
         customerName: "Dr. Arvind Menon",
@@ -187,7 +249,7 @@ export default function InvoicesPage() {
         guestCount: 2,
         issueDate: new Date().toISOString().slice(0, 10),
         dueDate: new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
-        status: "issued",
+        status: "partially_paid",
         currency: "INR",
         items: JSON.stringify([
           {
@@ -198,7 +260,7 @@ export default function InvoicesPage() {
             amount: 135000,
           },
           {
-            description: "Dedicated Luxury Chauffeur & Private Toyota Vellfire / Innova HyCross Transfer for 6 Days",
+            description: "Dedicated Luxury Chauffeur & Private Toyota Vellfire Transfer for 6 Days",
             hsnSac: "996411",
             quantity: 1,
             rate: 32000,
@@ -215,9 +277,15 @@ export default function InvoicesPage() {
         subtotal: 185000,
         discount: 10000,
         discountType: "fixed",
+        taxType: "cgst_sgst",
         taxRate: 5,
+        taxableAmount: 175000,
         taxAmount: 8750,
+        cgstAmount: 4375,
+        sgstAmount: 4375,
+        igstAmount: 0,
         totalAmount: 183750,
+        payments: JSON.stringify(samplePayments),
         paidAmount: 90000,
         balanceDue: 93750,
         paymentTerms: "50% advance received, balance payable 7 days prior to journey.",
@@ -248,6 +316,7 @@ export default function InvoicesPage() {
       "Status",
       "Currency",
       "Subtotal",
+      "Tax Rate",
       "Tax Amount",
       "Total Amount",
       "Paid Amount",
@@ -271,6 +340,7 @@ export default function InvoicesPage() {
         i.status,
         i.currency,
         i.subtotal,
+        i.taxRate,
         i.taxAmount,
         i.totalAmount,
         i.paidAmount,
@@ -416,11 +486,11 @@ export default function InvoicesPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="issued">Issued</SelectItem>
-              <SelectItem value="paid">Paid</SelectItem>
+              <SelectItem value="issued">Issued (Unpaid)</SelectItem>
               <SelectItem value="partially_paid">Partially Paid</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="paid">Paid</SelectItem>
               <SelectItem value="overdue">Overdue</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
@@ -526,7 +596,7 @@ export default function InvoicesPage() {
                           <MoreVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem onClick={() => setViewing(inv)} className="gap-2">
                           <Eye className="h-4 w-4" /> View Invoice
                         </DropdownMenuItem>
@@ -536,14 +606,17 @@ export default function InvoicesPage() {
                         <DropdownMenuItem onClick={() => navigate(`/invoices/${inv.id}/edit`)} className="gap-2">
                           <Pencil className="h-4 w-4" /> Edit
                         </DropdownMenuItem>
+                        {inv.status !== "paid" && (
+                          <DropdownMenuItem
+                            onClick={() => openRecordPaymentModal(inv)}
+                            className="gap-2 text-emerald-600 focus:text-emerald-600"
+                          >
+                            <CreditCard className="h-4 w-4" /> Record Payment
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem onClick={() => handleClone(inv)} className="gap-2">
                           <Copy className="h-4 w-4" /> Clone
                         </DropdownMenuItem>
-                        {inv.status !== "paid" && (
-                          <DropdownMenuItem onClick={() => handleMarkAsPaid(inv)} className="gap-2 text-emerald-600">
-                            <CheckCircle className="h-4 w-4" /> Mark as Paid
-                          </DropdownMenuItem>
-                        )}
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => setDeleteId(inv.id)}
@@ -577,6 +650,130 @@ export default function InvoicesPage() {
               }}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Record Payment Dialog */}
+      <Dialog open={!!paymentInvoice} onOpenChange={(open) => !open && setPaymentInvoice(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-lg flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-primary" />
+              Record Client Payment
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Record verified payment settlement for{" "}
+              <strong className="text-foreground">{paymentInvoice?.customerName}</strong> ({paymentInvoice?.invoiceNumber}).
+            </DialogDescription>
+          </DialogHeader>
+
+          {paymentInvoice && (
+            <div className="space-y-4 py-2 text-xs">
+              {/* Financial Snapshot */}
+              <div className="p-3 rounded-lg bg-muted/40 border border-border/80 space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Invoice Grand Total:</span>
+                  <span className="font-semibold text-foreground">{formatMoney(paymentInvoice.totalAmount, paymentInvoice.currency)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Already Settled:</span>
+                  <span className="text-emerald-600 font-semibold">{formatMoney(paymentInvoice.paidAmount, paymentInvoice.currency)}</span>
+                </div>
+                <div className="flex justify-between border-t border-border/60 pt-1">
+                  <span className="font-bold text-foreground">Current Balance Due:</span>
+                  <span className="font-bold text-primary">{formatMoney(paymentInvoice.balanceDue, paymentInvoice.currency)}</span>
+                </div>
+              </div>
+
+              {/* Form Inputs */}
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="pay-amount" className="text-xs">Payment Amount (INR) *</Label>
+                  <Input
+                    id="pay-amount"
+                    type="number"
+                    min={1}
+                    max={paymentInvoice.balanceDue}
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(Math.max(0, Number(e.target.value) || 0))}
+                    className="text-sm font-semibold tabular-nums"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="pay-date" className="text-xs">Payment Date *</Label>
+                    <Input
+                      id="pay-date"
+                      type="date"
+                      value={paymentDate}
+                      onChange={(e) => setPaymentDate(e.target.value)}
+                      className="text-xs"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Payment Method</Label>
+                    <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                      <SelectTrigger className="text-xs h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="bank_transfer">Bank Wire / NEFT</SelectItem>
+                        <SelectItem value="upi">UPI / QR Code</SelectItem>
+                        <SelectItem value="credit_card">Card Payment</SelectItem>
+                        <SelectItem value="cheque">Cheque</SelectItem>
+                        <SelectItem value="cash">Cash</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="pay-ref" className="text-xs">Transaction Reference / UTR Number</Label>
+                  <Input
+                    id="pay-ref"
+                    value={paymentRef}
+                    onChange={(e) => setPaymentRef(e.target.value)}
+                    placeholder="e.g. UTR12345678 or Cheque #98210"
+                    className="text-xs font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="pay-notes" className="text-xs">Notes / Remark</Label>
+                  <Input
+                    id="pay-notes"
+                    value={paymentNotes}
+                    onChange={(e) => setPaymentNotes(e.target.value)}
+                    placeholder="e.g. Advance deposit received via HDFC"
+                    className="text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setPaymentInvoice(null)}
+              disabled={updateMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleRecordPaymentSubmit}
+              disabled={updateMutation.isPending || paymentAmount <= 0}
+              className="gap-1.5 font-medium"
+            >
+              {updateMutation.isPending ? "Recording..." : "Confirm & Save Payment"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

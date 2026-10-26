@@ -248,4 +248,12 @@
   .active-elevate:active:not(.no-default-active-elevate)::after {
     background-color: var(--elevate-2);
   }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }

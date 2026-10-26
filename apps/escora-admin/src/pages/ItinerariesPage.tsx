@@ -110,6 +110,23 @@ function calculateNights(startDate?: string | null, endDate?: string | null): nu
   return nights > 0 ? nights : undefined;
 }
 
+function formatModifiedTime(isoDate?: string | null): string {
+  if (!isoDate) return "";
+  try {
+    const d = new Date(isoDate);
+    if (Number.isNaN(d.getTime())) return "";
+    const now = Date.now();
+    const diffSec = Math.floor((now - d.getTime()) / 1000);
+    if (diffSec < 60) return "just now";
+    if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+    if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}h ago`;
+    if (diffSec < 86400 * 7) return `${Math.floor(diffSec / 86400)}d ago`;
+    return d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+  } catch {
+    return "";
+  }
+}
+
 function toDocumentData(itinerary: Itinerary) {
   return {
     title: itinerary.title,
@@ -327,32 +344,47 @@ export default function ItinerariesPage() {
     if (!itineraries) return [];
     const today = new Date().toISOString().split("T")[0];
 
-    return itineraries.filter((it) => {
-      // Search
-      if (searchTerm.trim()) {
-        const query = searchTerm.toLowerCase();
-        const matchesCustomer = it.customerName.toLowerCase().includes(query);
-        const matchesTitle = it.title.toLowerCase().includes(query);
-        const matchesDest = (it.destination ?? "").toLowerCase().includes(query);
-        if (!matchesCustomer && !matchesTitle && !matchesDest) return false;
-      }
+    return itineraries
+      .filter((it) => {
+        // Search
+        if (searchTerm.trim()) {
+          const query = searchTerm.toLowerCase();
+          const matchesCustomer = it.customerName.toLowerCase().includes(query);
+          const matchesTitle = it.title.toLowerCase().includes(query);
+          const matchesDest = (it.destination ?? "").toLowerCase().includes(query);
+          if (!matchesCustomer && !matchesTitle && !matchesDest) return false;
+        }
 
-      // Status
-      if (statusFilter !== "all" && it.status !== statusFilter) {
-        return false;
-      }
+        // Status
+        if (statusFilter !== "all" && it.status !== statusFilter) {
+          return false;
+        }
 
-      // Date
-      if (dateFilter === "upcoming") {
-        if (!it.startDate || it.startDate < today) return false;
-      } else if (dateFilter === "past") {
-        if (!it.endDate || it.endDate >= today) return false;
-      } else if (dateFilter === "undated") {
-        if (it.startDate || it.endDate) return false;
-      }
+        // Date
+        if (dateFilter === "upcoming") {
+          if (!it.startDate || it.startDate < today) return false;
+        } else if (dateFilter === "past") {
+          if (!it.endDate || it.endDate >= today) return false;
+        } else if (dateFilter === "undated") {
+          if (it.startDate || it.endDate) return false;
+        }
 
-      return true;
-    });
+        return true;
+      })
+      .sort((a, b) => {
+        const timeA = a.updatedAt
+          ? new Date(a.updatedAt).getTime()
+          : a.createdAt
+          ? new Date(a.createdAt).getTime()
+          : 0;
+        const timeB = b.updatedAt
+          ? new Date(b.updatedAt).getTime()
+          : b.createdAt
+          ? new Date(b.createdAt).getTime()
+          : 0;
+        if (timeB !== timeA) return timeB - timeA;
+        return (b.id ?? 0) - (a.id ?? 0);
+      });
   }, [itineraries, searchTerm, statusFilter, dateFilter]);
 
   const hasActiveFilters = searchTerm.trim() !== "" || statusFilter !== "all" || dateFilter !== "all";
@@ -569,12 +601,19 @@ export default function ItinerariesPage() {
                     {/* Title & Destination */}
                     <TableCell className="align-top py-3.5">
                       <div className="font-medium text-foreground text-sm line-clamp-1">{it.title}</div>
-                      {it.destination && (
-                        <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-                          <span>{it.destination}</span>
-                        </div>
-                      )}
+                      <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[11px] text-muted-foreground">
+                        {it.destination && (
+                          <span className="flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+                            <span>{it.destination}</span>
+                          </span>
+                        )}
+                        {(it.updatedAt || it.createdAt) && (
+                          <span className="text-muted-foreground/75">
+                            {it.destination ? "· " : ""}Modified {formatModifiedTime(it.updatedAt || it.createdAt)}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
 
                     {/* Dates */}
@@ -659,6 +698,9 @@ export default function ItinerariesPage() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => openPreview(it, "itinerary")}>
                               <ExternalLink className="h-3.5 w-3.5 mr-2" /> Open Client View
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => navigate(`/preview-itinerary?id=${it.id}`)}>
+                              <FileText className="h-3.5 w-3.5 mr-2 text-primary" /> View PDF Dossier
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -848,7 +890,7 @@ export default function ItinerariesPage() {
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+          <AlertDialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:space-x-0">
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button
               variant="outline"

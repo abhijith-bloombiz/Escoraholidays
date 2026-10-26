@@ -100,10 +100,31 @@ export function useGetInvoice(id: number, options?: { enabled?: boolean }) {
   });
 }
 
+export function useGetNextInvoiceNumber() {
+  return useQuery<{ invoiceNumber: string }>({
+    queryKey: ["invoices", "next-number"],
+    queryFn: async () => {
+      try {
+        const res = await fetch("/api/invoices/next-number");
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch {
+        // fallback
+      }
+      const year = new Date().getFullYear();
+      const local = getLocalInvoices();
+      return { invoiceNumber: `ESC-INV-${year}-${String(local.length + 1).padStart(4, "0")}` };
+    },
+    staleTime: 0,
+  });
+}
+
 export function useCreateInvoice() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload: Partial<InvoiceData>) => {
+      let isNetworkError = false;
       try {
         const res = await fetch("/api/invoices", {
           method: "POST",
@@ -117,37 +138,54 @@ export function useCreateInvoice() {
           saveLocalInvoices([created, ...local.filter((i) => i.id !== created.id)]);
           return created;
         }
-      } catch (err) {
-        console.warn("API create failed, saving to local cache", err);
+        const errJson = await res.json().catch(() => null);
+        throw new Error(errJson?.error || `Failed to create invoice (Status ${res.status})`);
+      } catch (err: any) {
+        if (err.message && !err.message.includes("Failed to fetch") && !err.message.includes("NetworkError")) {
+          // Explicit server error
+          throw err;
+        }
+        isNetworkError = true;
       }
 
-      // Offline creation
-      const local = getLocalInvoices();
-      const nextId = (local.reduce((max, i) => Math.max(max, i.id), 0) || 100) + 1;
-      const created: InvoiceData = {
-        ...payload,
-        id: nextId,
-        invoiceNumber: payload.invoiceNumber || `ESC-INV-${new Date().getFullYear()}-${String(nextId).padStart(4, "0")}`,
-        customerName: payload.customerName || "Valued Client",
-        title: payload.title || "Custom Luxury Journey",
-        issueDate: payload.issueDate || new Date().toISOString().slice(0, 10),
-        status: payload.status || "issued",
-        currency: payload.currency || "INR",
-        items: payload.items || "[]",
-        subtotal: payload.subtotal || 0,
-        discount: payload.discount || 0,
-        discountType: payload.discountType || "fixed",
-        taxRate: payload.taxRate || 5,
-        taxAmount: payload.taxAmount || 0,
-        totalAmount: payload.totalAmount || 0,
-        paidAmount: payload.paidAmount || 0,
-        balanceDue: payload.balanceDue || 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      } as InvoiceData;
+      if (isNetworkError) {
+        // Offline creation fallback only on true network failure
+        const local = getLocalInvoices();
+        const nextId = (local.reduce((max, i) => Math.max(max, i.id), 0) || 100) + 1;
+        const created: InvoiceData = {
+          ...payload,
+          id: nextId,
+          invoiceNumber: payload.invoiceNumber || `ESC-INV-${new Date().getFullYear()}-${String(nextId).padStart(4, "0")}`,
+          customerName: payload.customerName || "Valued Client",
+          title: payload.title || "Custom Luxury Journey",
+          issueDate: payload.issueDate || new Date().toISOString().slice(0, 10),
+          status: payload.status || "issued",
+          currency: payload.currency || "INR",
+          items: payload.items || "[]",
+          subtotal: payload.subtotal || 0,
+          discount: payload.discount || 0,
+          discountType: payload.discountType || "fixed",
+          taxType: payload.taxType || "cgst_sgst",
+          taxRate: payload.taxRate || 5,
+          taxableAmount: payload.taxableAmount || 0,
+          taxAmount: payload.taxAmount || 0,
+          cgstAmount: payload.cgstAmount || 0,
+          sgstAmount: payload.sgstAmount || 0,
+          igstAmount: payload.igstAmount || 0,
+          totalAmount: payload.totalAmount || 0,
+          paidAmount: payload.paidAmount || 0,
+          balanceDue: payload.balanceDue || 0,
+          payments: payload.payments || "[]",
+          auditTrail: payload.auditTrail || "[]",
+          revision: 1,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        } as InvoiceData;
 
-      saveLocalInvoices([created, ...local]);
-      return created;
+        saveLocalInvoices([created, ...local]);
+        return created;
+      }
+      throw new Error("Failed to create invoice");
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
@@ -158,7 +196,8 @@ export function useCreateInvoice() {
 export function useUpdateInvoice() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<InvoiceData> }) => {
+    mutationFn: async ({ id, data }: { id: number; data: Partial<InvoiceData> & { revisionReason?: string | null; cancellationReason?: string | null } }) => {
+      let isNetworkError = false;
       try {
         const res = await fetch(`/api/invoices/${id}`, {
           method: "PATCH",
@@ -172,19 +211,26 @@ export function useUpdateInvoice() {
           saveLocalInvoices(local.map((i) => (i.id === id ? updated : i)));
           return updated;
         }
-      } catch (err) {
-        console.warn("API update failed, updating local cache", err);
+        const errJson = await res.json().catch(() => null);
+        throw new Error(errJson?.error || `Failed to update invoice (Status ${res.status})`);
+      } catch (err: any) {
+        if (err.message && !err.message.includes("Failed to fetch") && !err.message.includes("NetworkError")) {
+          throw err;
+        }
+        isNetworkError = true;
       }
 
-      const local = getLocalInvoices();
-      const idx = local.findIndex((i) => i.id === id);
-      if (idx !== -1) {
-        const updated = { ...local[idx], ...data, updatedAt: new Date().toISOString() };
-        local[idx] = updated;
-        saveLocalInvoices(local);
-        return updated;
+      if (isNetworkError) {
+        const local = getLocalInvoices();
+        const idx = local.findIndex((i) => i.id === id);
+        if (idx !== -1) {
+          const updated = { ...local[idx], ...data, updatedAt: new Date().toISOString() };
+          local[idx] = updated;
+          saveLocalInvoices(local);
+          return updated;
+        }
       }
-      throw new Error("Invoice not found");
+      throw new Error("Invoice not found or network unavailable");
     },
     onSuccess: (_, variables) => {
       qc.invalidateQueries({ queryKey: ["invoices"] });
@@ -220,3 +266,4 @@ export function useDeleteInvoice() {
     },
   });
 }
+

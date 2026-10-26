@@ -18,6 +18,25 @@ export interface IInvoiceBankDetails {
   upiId?: string;
 }
 
+export interface IInvoicePayment {
+  id?: string;
+  amount: number;
+  date: string;
+  method: string; // 'bank_transfer' | 'upi' | 'credit_card' | 'cash' | 'cheque' | 'other'
+  reference?: string;
+  notes?: string;
+  recordedAt?: string;
+}
+
+export interface IInvoiceAuditEntry {
+  timestamp: string;
+  action: string;
+  user?: string;
+  details?: string;
+  previousStatus?: string;
+  newStatus?: string;
+}
+
 export interface IInvoice {
   id: number;
   invoiceNumber: string;
@@ -40,15 +59,24 @@ export interface IInvoice {
   subtotal: number;
   discount: number;
   discountType: string; // 'fixed' | 'percentage'
+  taxType: string; // 'cgst_sgst' | 'igst' | 'exempt' | 'none'
   taxRate: number; // percentage e.g. 5, 12, 18
+  taxableAmount: number;
   taxAmount: number;
+  cgstAmount: number;
+  sgstAmount: number;
+  igstAmount: number;
   totalAmount: number;
   paidAmount: number;
   balanceDue: number;
+  payments: string; // JSON string of IInvoicePayment[]
   paymentTerms?: string | null;
   bankDetails?: string | null; // JSON string of IInvoiceBankDetails
   notes?: string | null;
   terms?: string | null;
+  auditTrail: string; // JSON string of IInvoiceAuditEntry[]
+  revision: number;
+  cancellationReason?: string | null;
   createdBy?: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -79,15 +107,24 @@ const invoiceSchema = new Schema<IInvoice>(
     subtotal: { type: Number, required: true, default: 0 },
     discount: { type: Number, required: true, default: 0 },
     discountType: { type: String, required: true, default: "fixed" },
+    taxType: { type: String, required: true, default: "cgst_sgst" },
     taxRate: { type: Number, required: true, default: 5 },
+    taxableAmount: { type: Number, required: true, default: 0 },
     taxAmount: { type: Number, required: true, default: 0 },
+    cgstAmount: { type: Number, required: true, default: 0 },
+    sgstAmount: { type: Number, required: true, default: 0 },
+    igstAmount: { type: Number, required: true, default: 0 },
     totalAmount: { type: Number, required: true, default: 0 },
     paidAmount: { type: Number, required: true, default: 0 },
     balanceDue: { type: Number, required: true, default: 0 },
+    payments: { type: String, required: true, default: "[]" },
     paymentTerms: { type: String, default: null },
     bankDetails: { type: String, default: null },
     notes: { type: String, default: null },
     terms: { type: String, default: null },
+    auditTrail: { type: String, required: true, default: "[]" },
+    revision: { type: Number, required: true, default: 1 },
+    cancellationReason: { type: String, default: null },
     createdBy: { type: String, default: null },
     createdAt: { type: Date, required: true, default: Date.now, index: true },
     updatedAt: { type: Date, required: true, default: Date.now },
@@ -126,15 +163,24 @@ export const insertInvoiceSchema = z.object({
   subtotal: z.number().optional().default(0),
   discount: z.number().optional().default(0),
   discountType: z.string().optional().default("fixed"),
+  taxType: z.string().optional().default("cgst_sgst"),
   taxRate: z.number().optional().default(5),
+  taxableAmount: z.number().optional().default(0),
   taxAmount: z.number().optional().default(0),
+  cgstAmount: z.number().optional().default(0),
+  sgstAmount: z.number().optional().default(0),
+  igstAmount: z.number().optional().default(0),
   totalAmount: z.number().optional().default(0),
   paidAmount: z.number().optional().default(0),
   balanceDue: z.number().optional().default(0),
+  payments: z.string().optional().default("[]"),
   paymentTerms: z.string().optional().nullable(),
   bankDetails: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
   terms: z.string().optional().nullable(),
+  auditTrail: z.string().optional().default("[]"),
+  revision: z.number().optional().default(1),
+  cancellationReason: z.string().optional().nullable(),
   createdBy: z.string().optional().nullable(),
 });
 

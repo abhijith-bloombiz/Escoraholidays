@@ -304,11 +304,15 @@ export default function ItineraryCreatePage() {
   };
 
   const handleBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      window.history.back();
-    } else {
-      navigate("/itineraries");
+    if (typeof window !== "undefined" && window.location.search) {
+      const url = new URL(window.location.href);
+      const enq = url.searchParams.get("enquiryId");
+      if (enq) {
+        navigate(`/enquiries?viewEnquiry=${enq}`);
+        return;
+      }
     }
+    navigate("/itineraries");
   };
 
   return (

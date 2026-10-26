@@ -2,13 +2,16 @@ import type { InvoiceData } from "@/lib/invoices";
 import {
   parseInvoiceItems,
   parseInvoiceBankDetails,
+  parseInvoicePayments,
+  parseInvoiceAuditTrail,
+  calculateInvoiceTotals,
   formatMoney,
   formatDate,
   numberToIndianWords,
 } from "@/lib/invoices";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Printer, Download, Pencil, CheckCircle2, Building, Calendar, Phone, Mail } from "lucide-react";
+import { Printer, Pencil, Building, Calendar, Phone, Mail, History } from "lucide-react";
 import escoraLogoMarkPath from "@assets/escora/escora-logo-mark.png";
 import escoraWordmarkPath from "@assets/escora/escora-wordmark.png";
 
@@ -17,7 +20,7 @@ function statusBadge(status: string) {
     case "paid":
       return <Badge className="bg-emerald-800 hover:bg-emerald-900 text-white uppercase tracking-wider text-xs font-medium">Paid</Badge>;
     case "partially_paid":
-      return <Badge className="bg-stone-700 hover:bg-stone-800 text-white uppercase tracking-wider text-xs font-medium">Partial</Badge>;
+      return <Badge className="bg-stone-700 hover:bg-stone-800 text-white uppercase tracking-wider text-xs font-medium">Partially Paid</Badge>;
     case "overdue":
       return <Badge variant="destructive" className="uppercase tracking-wider text-xs font-medium">Overdue</Badge>;
     case "cancelled":
@@ -40,7 +43,23 @@ export default function InvoiceDocument({
 }) {
   const items = parseInvoiceItems(invoice.items);
   const bank = parseInvoiceBankDetails(invoice.bankDetails);
-  const amountWords = numberToIndianWords(invoice.totalAmount);
+  const payments = parseInvoicePayments(invoice.payments);
+  const auditEntries = parseInvoiceAuditTrail(invoice.auditTrail);
+
+  const totals = calculateInvoiceTotals({
+    items,
+    discount: invoice.discount || 0,
+    discountType: invoice.discountType || "fixed",
+    taxRate: invoice.taxRate ?? 5,
+    taxType: invoice.taxType || "cgst_sgst",
+    paidAmount: invoice.paidAmount,
+    payments,
+    dueDate: invoice.dueDate,
+    status: invoice.status,
+  });
+
+  const totalWords = numberToIndianWords(totals.totalAmount);
+  const payableWords = numberToIndianWords(totals.balanceDue > 0 ? totals.balanceDue : totals.totalAmount);
 
   return (
     <div className="bg-card border border-border rounded-xl shadow-lg max-w-4xl mx-auto overflow-hidden">
@@ -50,7 +69,12 @@ export default function InvoiceDocument({
           <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {invoice.invoiceNumber}
           </span>
-          {statusBadge(invoice.status)}
+          {statusBadge(invoice.status || totals.derivedStatus)}
+          {invoice.revision && invoice.revision > 1 && (
+            <Badge variant="outline" className="text-[10px] font-mono">
+              Rev #{invoice.revision}
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {onEdit && (
@@ -151,6 +175,16 @@ export default function InvoiceDocument({
                     <span className="font-medium text-foreground">{invoice.guestCount} Travelers</span>
                   </div>
                 )}
+                <div className="col-span-2">
+                  <span className="text-muted-foreground block">Tax Configuration:</span>
+                  <span className="font-medium text-foreground">
+                    {totals.taxType === "igst"
+                      ? "Inter-State Supply (IGST)"
+                      : totals.taxType === "exempt"
+                      ? "Exempt / Nil Rated (0%)"
+                      : "Intra-State Supply (CGST + SGST)"}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -185,14 +219,14 @@ export default function InvoiceDocument({
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {items.length === 0 ? (
+              {totals.items.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-6 text-center text-muted-foreground italic">
                     No items added.
                   </td>
                 </tr>
               ) : (
-                items.map((item, i) => (
+                totals.items.map((item, i) => (
                   <tr key={i} className="hover:bg-muted/20">
                     <td className="py-3.5 px-4 text-center font-mono text-xs text-muted-foreground">{i + 1}</td>
                     <td className="py-3.5 px-4 font-medium text-foreground whitespace-pre-line leading-relaxed">
@@ -206,7 +240,7 @@ export default function InvoiceDocument({
                       {formatMoney(item.rate, invoice.currency)}
                     </td>
                     <td className="py-3.5 px-4 text-right font-semibold text-foreground tabular-nums">
-                      {formatMoney(item.amount || item.quantity * item.rate, invoice.currency)}
+                      {formatMoney(item.amount, invoice.currency)}
                     </td>
                   </tr>
                 ))
@@ -217,73 +251,152 @@ export default function InvoiceDocument({
           {/* Breakdown & Amount in Words */}
           <div className="bg-muted/30 border-t border-border p-6">
             <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-              <div className="space-y-2 max-w-md">
-                <span className="text-xs uppercase tracking-widest text-[#183a27] dark:text-[#a3d9b5] font-semibold block">
-                  Amount Chargeable (in words)
-                </span>
-                <p className="text-sm font-serif italic text-foreground font-semibold leading-relaxed">
-                  {amountWords}
-                </p>
+              <div className="space-y-3 max-w-md">
+                <div>
+                  <span className="text-xs uppercase tracking-widest text-[#183a27] dark:text-[#a3d9b5] font-semibold block">
+                    Amount Chargeable (in words)
+                  </span>
+                  <p className="text-sm font-serif italic text-foreground font-semibold leading-relaxed mt-0.5">
+                    {totalWords}
+                  </p>
+                </div>
+
+                {totals.balanceDue > 0 && totals.balanceDue !== totals.totalAmount && (
+                  <div className="pt-2 border-t border-border/60">
+                    <span className="text-xs uppercase tracking-widest text-[#183a27] dark:text-[#a3d9b5] font-semibold block">
+                      Amount Currently Payable (Balance Due)
+                    </span>
+                    <p className="text-sm font-serif italic text-[#183a27] dark:text-[#a3d9b5] font-bold leading-relaxed mt-0.5">
+                      {payableWords}
+                    </p>
+                  </div>
+                )}
+
                 {invoice.paymentTerms && (
-                  <p className="text-xs text-muted-foreground pt-2">
-                    <strong>Payment Terms:</strong> {invoice.paymentTerms}
+                  <p className="text-xs text-muted-foreground pt-1">
+                    <strong>Payment Schedule:</strong> {invoice.paymentTerms}
                   </p>
                 )}
+
+                <div className="p-2.5 rounded bg-background/60 border border-border/80 text-xs text-muted-foreground space-y-0.5">
+                  <span className="font-semibold text-foreground">Standard 50/50 Payment Schedule:</span>
+                  <div className="flex justify-between pt-0.5">
+                    <span>50% Advance Booking Deposit:</span>
+                    <strong className="text-foreground font-mono">{formatMoney(totals.advance50Amount, invoice.currency)}</strong>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>50% Balance Prior to Arrival:</span>
+                    <strong className="text-foreground font-mono">{formatMoney(totals.balance50Amount, invoice.currency)}</strong>
+                  </div>
+                </div>
               </div>
 
               <div className="w-full md:w-72 space-y-2 text-sm">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal:</span>
-                  <span className="tabular-nums font-medium text-foreground">{formatMoney(invoice.subtotal, invoice.currency)}</span>
+                  <span className="tabular-nums font-medium text-foreground">{formatMoney(totals.subtotal, invoice.currency)}</span>
                 </div>
 
-                {invoice.discount > 0 && (
-                  <div className="flex justify-between text-stone-600">
+                {totals.discountAmount > 0 && (
+                  <div className="flex justify-between text-muted-foreground">
                     <span>Discount {invoice.discountType === "percentage" ? `(${invoice.discount}%)` : ""}:</span>
-                    <span className="tabular-nums font-medium">
-                      -{formatMoney(
-                        invoice.discountType === "percentage"
-                          ? (invoice.subtotal * invoice.discount) / 100
-                          : invoice.discount,
-                        invoice.currency
-                      )}
+                    <span className="tabular-nums font-medium text-rose-600">
+                      -{formatMoney(totals.discountAmount, invoice.currency)}
                     </span>
                   </div>
                 )}
 
-                {invoice.taxRate > 0 && (
+                {totals.discountAmount > 0 && (
+                  <div className="flex justify-between text-muted-foreground border-t border-dashed border-border/60 pt-1">
+                    <span>Taxable Value:</span>
+                    <span className="tabular-nums font-medium text-foreground">{formatMoney(totals.taxableAmount, invoice.currency)}</span>
+                  </div>
+                )}
+
+                {totals.taxRate > 0 && totals.taxType === "cgst_sgst" && (
+                  <>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>CGST ({totals.cgstRate}%):</span>
+                      <span className="tabular-nums font-medium text-foreground">+{formatMoney(totals.cgstAmount, invoice.currency)}</span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>SGST ({totals.sgstRate}%):</span>
+                      <span className="tabular-nums font-medium text-foreground">+{formatMoney(totals.sgstAmount, invoice.currency)}</span>
+                    </div>
+                  </>
+                )}
+
+                {totals.taxRate > 0 && totals.taxType === "igst" && (
                   <div className="flex justify-between text-muted-foreground">
-                    <span>GST ({invoice.taxRate}%):</span>
-                    <span className="tabular-nums font-medium text-foreground">{formatMoney(invoice.taxAmount, invoice.currency)}</span>
+                    <span>IGST ({totals.igstRate}%):</span>
+                    <span className="tabular-nums font-medium text-foreground">+{formatMoney(totals.igstAmount, invoice.currency)}</span>
+                  </div>
+                )}
+
+                {totals.taxRate === 0 && (
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>GST (0% - Nil/Exempt):</span>
+                    <span className="tabular-nums font-medium text-foreground">₹0.00</span>
                   </div>
                 )}
 
                 <div className="flex justify-between text-base font-bold text-foreground pt-3 border-t border-border">
                   <span>Total Amount:</span>
                   <span className="text-lg text-foreground font-bold tabular-nums">
-                    {formatMoney(invoice.totalAmount, invoice.currency)}
+                    {formatMoney(totals.totalAmount, invoice.currency)}
                   </span>
                 </div>
 
-                {invoice.paidAmount > 0 && (
+                {totals.paidAmount > 0 && (
                   <div className="flex justify-between text-muted-foreground pt-1">
-                    <span>Paid to date:</span>
+                    <span>Total Payments Received:</span>
                     <span className="text-emerald-600 font-semibold tabular-nums">
-                      {formatMoney(invoice.paidAmount, invoice.currency)}
+                      {formatMoney(totals.paidAmount, invoice.currency)}
                     </span>
                   </div>
                 )}
 
-                <div className="flex justify-between text-sm font-bold text-foreground pt-1 border-t border-border/50">
+                <div className="flex justify-between text-sm font-bold text-foreground pt-1 border-t border-border/80">
                   <span>Balance Due:</span>
-                  <span className="text-[#183a27] dark:text-[#a3d9b5] font-bold tabular-nums">
-                    {formatMoney(invoice.balanceDue, invoice.currency)}
+                  <span className="text-[#183a27] dark:text-[#a3d9b5] text-base font-bold tabular-nums">
+                    {formatMoney(totals.balanceDue, invoice.currency)}
                   </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Recorded Payments Section */}
+        {payments && payments.length > 0 && (
+          <div className="p-5 rounded-lg border border-border/80 bg-muted/20 space-y-3">
+            <p className="text-xs uppercase tracking-widest text-[#183a27] dark:text-[#a3d9b5] font-semibold">
+              Payment Settlement Acknowledgements
+            </p>
+            <table className="w-full text-left text-xs">
+              <thead className="text-muted-foreground border-b border-border/60">
+                <tr>
+                  <th className="py-2 px-3">Date</th>
+                  <th className="py-2 px-3">Method</th>
+                  <th className="py-2 px-3">Reference / UTR</th>
+                  <th className="py-2 px-3 text-right">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {payments.map((p, idx) => (
+                  <tr key={idx}>
+                    <td className="py-2 px-3 font-medium text-foreground">{formatDate(p.date)}</td>
+                    <td className="py-2 px-3 capitalize text-muted-foreground">{p.method?.replace("_", " ")}</td>
+                    <td className="py-2 px-3 font-mono text-muted-foreground">{p.reference || "—"}</td>
+                    <td className="py-2 px-3 text-right font-semibold text-emerald-600 tabular-nums">
+                      {formatMoney(p.amount, invoice.currency)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Bank & Settlement Details */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -300,6 +413,12 @@ export default function InvoiceDocument({
               <strong className="font-mono text-foreground">{bank.accountNumber}</strong>
               <span>IFSC Code:</span>
               <strong className="font-mono text-foreground">{bank.ifsc}</strong>
+              {bank.branch && (
+                <>
+                  <span>Branch:</span>
+                  <strong className="text-foreground">{bank.branch}</strong>
+                </>
+              )}
               {bank.upiId && (
                 <>
                   <span>UPI ID:</span>
@@ -336,6 +455,32 @@ export default function InvoiceDocument({
                 <p className="whitespace-pre-line leading-relaxed">{invoice.terms}</p>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Audit Trail History (if any exists) */}
+        {auditEntries && auditEntries.length > 0 && (
+          <div className="pt-4 border-t border-border/60">
+            <details className="text-xs text-muted-foreground group">
+              <summary className="cursor-pointer font-semibold uppercase tracking-wider text-[11px] flex items-center gap-1.5 select-none hover:text-foreground">
+                <History className="h-3.5 w-3.5" />
+                Audit Trail &amp; Document History ({auditEntries.length} {auditEntries.length === 1 ? "entry" : "entries"})
+              </summary>
+              <div className="mt-3 space-y-2 pl-4 border-l-2 border-border/80 text-[11px]">
+                {auditEntries.map((a, i) => (
+                  <div key={i} className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-muted-foreground">{formatDate(a.timestamp)}</span>
+                      <Badge variant="outline" className="text-[10px] uppercase font-mono px-1.5 py-0">
+                        {a.action}
+                      </Badge>
+                      <span className="text-foreground font-medium">{a.user || "Admin"}</span>
+                    </div>
+                    <p className="text-muted-foreground">{a.details}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
           </div>
         )}
       </div>

@@ -36,21 +36,40 @@ function ProtectedRouter() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#0f1a12",
-      }}>
-        <div style={{
-          fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-          fontSize: "24px",
-          fontWeight: 400,
-          color: "#cbab6e",
-          letterSpacing: "0.1em",
-        }}>
-          Escora
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "linear-gradient(180deg, #FDFBF7 0%, #FAF8F3 50%, #F4F1E8 100%)",
+          fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+          <div
+            style={{
+              width: "24px",
+              height: "24px",
+              border: "2.5px solid #183D2E",
+              borderTopColor: "transparent",
+              borderRadius: "50%",
+              animation: "spin 0.8s linear infinite",
+            }}
+          />
+          <div
+            style={{
+              fontFamily: "'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              fontSize: "14px",
+              fontWeight: 600,
+              color: "#183D2E",
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+            }}
+          >
+            Escora
+          </div>
         </div>
       </div>
     );
@@ -94,14 +113,13 @@ function ProtectedRouter() {
 
 function AppRoutes() {
   return (
-    <Switch>
-      <Route path="/preview-itinerary" component={ItineraryPdfPreviewPage} />
-      <Route>
-        <AuthProvider>
-          <ProtectedRouter />
-        </AuthProvider>
-      </Route>
-    </Switch>
+    <AuthProvider>
+      <Switch>
+        <Route path="/preview-itinerary" component={ItineraryPdfPreviewPage} />
+        <Route path="/login" component={LoginPage} />
+        <Route component={ProtectedRouter} />
+      </Switch>
+    </AuthProvider>
   );
 }
 

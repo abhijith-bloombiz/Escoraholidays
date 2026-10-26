@@ -55,7 +55,7 @@ router.get("/itineraries", async (req, res, next): Promise<void> => {
   }
 
   try {
-    const itineraries = await ItineraryModel.find(filter).sort({ createdAt: 1 }).lean();
+    const itineraries = await ItineraryModel.find(filter).sort({ updatedAt: -1, createdAt: -1 }).lean();
     res.json(ListItinerariesResponse.parse(itineraries.map(serializeDates)));
   } catch (err) {
     next(err);

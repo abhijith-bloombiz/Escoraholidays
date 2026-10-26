@@ -184,6 +184,10 @@ async function waitForImages(target: HTMLElement): Promise<void> {
  * otherwise observable from here.
  */
 async function waitForPagination(target: HTMLElement, timeoutMs = 3000): Promise<void> {
+  // If target is an invoice document, it renders immediately without measured multi-sheet pagination
+  if (target.querySelector(".invoice-print-sheet") || target.classList.contains("print-invoice-wrapper")) {
+    return;
+  }
   const start = performance.now();
   while (target.querySelectorAll(".a4-page").length === 0) {
     if (performance.now() - start > timeoutMs) return;

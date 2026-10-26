@@ -10,7 +10,7 @@ interface ImageUploadFieldProps {
   value?: string;
   onChange: (url: string) => void;
   label?: string;
-  size?: "default" | "wide";
+  size?: "default" | "wide" | "compact";
   helperText?: string;
 }
 
@@ -41,7 +41,7 @@ export default function ImageUploadField({
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [urlDraft, setUrlDraft] = useState("");
 
-  const boxHeight = size === "wide" ? "h-48" : "h-36";
+  const boxHeight = size === "wide" ? "h-48" : size === "compact" ? "h-32" : "h-36";
 
   function validateFile(file: File): string | null {
     if (!ALLOWED_MIME_TYPES.includes(file.type)) {
@@ -128,41 +128,43 @@ export default function ImageUploadField({
           ) : (
             <img src={value} alt={label} className="w-full h-full object-cover" />
           )}
-          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 p-4 text-center">
-            <p className="text-xs text-white/90 font-mono truncate max-w-full px-2">{value}</p>
-            <div className="flex items-center gap-2">
+          <div className={`absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center ${size === "compact" ? "gap-1.5 p-2" : "gap-2 p-4"} text-center`}>
+            <p className="text-[11px] text-white/90 font-mono truncate max-w-full px-2">{value}</p>
+            <div className="flex items-center gap-1.5 flex-wrap justify-center">
               <Button
                 type="button"
                 size="sm"
                 variant="secondary"
+                className="h-7 text-xs px-2"
                 onClick={() => fileInput.current?.click()}
                 disabled={uploading}
                 data-testid="button-change-cover-image"
               >
-                {uploading ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5 mr-1.5" />}
-                Change File
+                {uploading ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+                Change
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                className="bg-background/80 hover:bg-background"
+                className="h-7 text-xs px-2 bg-background/80 hover:bg-background"
                 onClick={() => {
                   setUrlDraft(value);
                   setShowUrlInput(true);
                 }}
               >
-                <LinkIcon className="h-3.5 w-3.5 mr-1.5" />
-                Edit URL
+                <LinkIcon className="h-3 w-3 mr-1" />
+                URL
               </Button>
               <Button
                 type="button"
                 size="sm"
                 variant="destructive"
+                className="h-7 text-xs px-2"
                 onClick={() => onChange("")}
                 data-testid="button-remove-cover-image"
               >
-                <X className="h-3.5 w-3.5 mr-1.5" />
+                <X className="h-3 w-3 mr-1" />
                 Remove
               </Button>
             </div>
@@ -238,7 +240,9 @@ export default function ImageUploadField({
               const file = e.dataTransfer.files?.[0];
               if (file) upload(file);
             }}
-            className={`${boxHeight} w-full rounded-lg border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-2 p-6 text-center ${
+            className={`${boxHeight} w-full rounded-lg border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center gap-1.5 ${
+              size === "compact" ? "p-3" : "p-6"
+            } text-center ${
               isDragging
                 ? "border-primary bg-primary/10 text-primary scale-[0.99]"
                 : "border-border hover:border-primary/50 hover:bg-muted/10 text-muted-foreground"
@@ -246,22 +250,22 @@ export default function ImageUploadField({
             data-testid="dropzone-cover-image"
           >
             {uploading ? (
-              <div className="flex flex-col items-center gap-2">
-                <Loader2 className="h-7 w-7 text-primary animate-spin" />
-                <span className="text-xs font-medium text-foreground">Uploading cover image…</span>
-                <span className="text-[11px] text-muted-foreground">Compressing and writing asset</span>
+              <div className="flex flex-col items-center gap-1.5">
+                <Loader2 className={`${size === "compact" ? "h-5 w-5" : "h-7 w-7"} text-primary animate-spin`} />
+                <span className="text-xs font-medium text-foreground">Uploading photo…</span>
+                <span className="text-[10px] text-muted-foreground">Compressing asset</span>
               </div>
             ) : (
               <>
-                <div className="p-3 rounded-full bg-primary/10 text-primary">
-                  <Upload className="h-5 w-5" />
+                <div className={`${size === "compact" ? "p-2" : "p-3"} rounded-full bg-primary/10 text-primary`}>
+                  <Upload className={size === "compact" ? "h-4 w-4" : "h-5 w-5"} />
                 </div>
                 <div>
                   <p className="text-xs font-medium text-foreground">
-                    Click to choose a photo or drag &amp; drop here
+                    {size === "compact" ? "Upload or drag photo" : "Click to choose a photo or drag & drop here"}
                   </p>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    JPEG, PNG, WebP, or AVIF (maximum 10MB)
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {size === "compact" ? "JPEG, PNG, WebP (max 10MB)" : "JPEG, PNG, WebP, or AVIF (maximum 10MB)"}
                   </p>
                 </div>
               </>

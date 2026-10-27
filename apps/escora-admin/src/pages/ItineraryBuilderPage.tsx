@@ -65,6 +65,7 @@ import {
   UserCheck,
   Phone,
   User,
+  Users,
   Car,
   RotateCcw,
   Download,
@@ -1501,7 +1502,7 @@ export default function ItineraryBuilderPage() {
             className="flex items-center gap-1 sm:gap-1.5 min-w-max scroll-smooth"
           >
             {[
-              { id: "section-details", num: 1, label: "Trip Details" },
+              { id: "section-details", num: 1, label: "Trip & Customer Details" },
               { id: "section-days", num: 2, label: "Day-to-Day Plan", count: daysArray.fields.length },
               { id: "section-transport", num: 3, label: "Transportation" },
               { id: "section-inclusions", num: 4, label: "Inclusions & Exclusions", count: watchedInclusions.length + watchedExclusions.length },
@@ -1558,87 +1559,222 @@ export default function ItineraryBuilderPage() {
 
       <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8">
         {/* ============================================================
-            SECTION 1: TRIP & CUSTOMER DETAILS (Matching PDF Trip Details)
+            SECTION 1: TRIP & CUSTOMER DETAILS (Split into Clear Cards)
         ============================================================ */}
-        <section id="section-details" className="scroll-mt-24">
-          <Card>
-            <CardHeader className="border-b bg-muted/20">
-              <CardTitle className="text-lg font-serif flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                1. Trip &amp; Customer Details
-              </CardTitle>
+        <section id="section-details" className="scroll-mt-24 space-y-6">
+          {/* Card 1A: Customer & Passenger Details */}
+          <Card className="border border-border shadow-xs">
+            <CardHeader className="border-b bg-muted/20 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <CardTitle className="text-lg font-serif flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  1A. Customer &amp; Passenger Details
+                </CardTitle>
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                    PDF Header &amp; Table
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px] bg-muted text-muted-foreground border-border">
+                    Private CRM Fields
+                  </Badge>
+                </div>
+              </div>
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                Primary traveler details and traveling party breakdown. Visual badges clarify which data appears on the customer-facing proposal versus internal agency records.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 pt-6">
-              {/* Row 1: Customer details */}
+              {/* Row 1: Primary Guest & Contact Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="customerName" className="font-medium text-xs">
-                    Guest / Customer Name *
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="customerName" className="font-medium text-xs">
+                      Guest / Customer Name *
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Header
+                    </Badge>
+                  </div>
                   <Input
                     id="customerName"
                     {...register("customerName", { required: true })}
                     placeholder="e.g. MARIA ROY"
                     data-testid="input-customer-name"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Rendered in bold in the PDF header card ("Prepared for MARIA ROY").
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="customerEmail" className="font-medium text-xs">
-                    Customer Email (Private)
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="customerEmail" className="font-medium text-xs">
+                      Customer Email
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-muted-foreground border-border bg-muted/40">
+                      Private CRM · Not on PDF
+                    </Badge>
+                  </div>
                   <Input
                     id="customerEmail"
                     type="email"
                     {...register("customerEmail")}
                     placeholder="client@example.com"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Private contact for booking confirmations and CRM tracking.
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="customerPhone" className="font-medium text-xs">
-                    Customer Phone (Private)
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="customerPhone" className="font-medium text-xs">
+                      Customer Phone
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-muted-foreground border-border bg-muted/40">
+                      Private CRM · Not on PDF
+                    </Badge>
+                  </div>
                   <Input
                     id="customerPhone"
                     {...register("customerPhone")}
                     placeholder="+91 98765 43210"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Used for WhatsApp itinerary sharing and concierge coordination.
+                  </p>
                 </div>
               </div>
 
-              {/* Row 2: Title, Destination & Reference Number */}
+              {/* Row 2: Total Passengers Breakdown */}
+              <div className="space-y-2.5 p-4 bg-muted/20 rounded-lg border border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <Label className="font-semibold text-xs text-foreground">
+                      Total Passengers (Traveling Party)
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Trip Details Table
+                    </Badge>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    Displays in the PDF 'Trip Details' banner as 'X Adults | Y Children | Z Infants'
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <Label htmlFor="adults" className="text-[11px] text-muted-foreground flex items-center justify-between">
+                      <span>Adults (Age 12+)</span>
+                      <span className="text-[10px] font-mono text-muted-foreground/80">Primary</span>
+                    </Label>
+                    <Input
+                      id="adults"
+                      type="number"
+                      min="1"
+                      {...register("adults", { valueAsNumber: true })}
+                      placeholder="1"
+                      className="bg-background"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="children" className="text-[11px] text-muted-foreground flex items-center justify-between">
+                      <span>Children (Age 2-11)</span>
+                      <span className="text-[10px] font-mono text-muted-foreground/80">Child rate</span>
+                    </Label>
+                    <Input
+                      id="children"
+                      type="number"
+                      min="0"
+                      {...register("children", { valueAsNumber: true })}
+                      placeholder="0"
+                      className="bg-background"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="infants" className="text-[11px] text-muted-foreground flex items-center justify-between">
+                      <span>Infants (Under 2)</span>
+                      <span className="text-[10px] font-mono text-muted-foreground/80">Complimentary</span>
+                    </Label>
+                    <Input
+                      id="infants"
+                      type="number"
+                      min="0"
+                      {...register("infants", { valueAsNumber: true })}
+                      placeholder="0"
+                      className="bg-background"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card 1B: Trip & Journey Overview */}
+          <Card className="border border-border shadow-xs">
+            <CardHeader className="border-b bg-muted/20 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <CardTitle className="text-lg font-serif flex items-center gap-2">
+                  <Compass className="h-5 w-5 text-primary" />
+                  1B. Trip &amp; Journey Overview
+                </CardTitle>
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                    PDF Cover, Header &amp; Highlights
+                  </Badge>
+                </div>
+              </div>
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                Itinerary branding, dates, destination region, feature badges, cover photo, and journey summary. All fields appear on the client PDF proposal.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5 pt-6">
+              {/* Row 1: Title, Destination & Reference Number */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5 md:col-span-1">
-                  <Label htmlFor="title" className="font-medium text-xs">
-                    Itinerary Title *
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="title" className="font-medium text-xs">
+                      Itinerary Title *
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      Main PDF Title
+                    </Badge>
+                  </div>
                   <Input
                     id="title"
                     {...register("title", { required: true })}
                     placeholder="e.g. Explora Trivandrum"
                     data-testid="input-title"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Hero headline on the proposal cover and overview section.
+                  </p>
                 </div>
 
                 <div className="space-y-1.5 md:col-span-1">
-                  <Label htmlFor="destination" className="font-medium text-xs">
-                    Destination Region (PDF Banner)
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="destination" className="font-medium text-xs">
+                      Destination Region
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Banner
+                    </Badge>
+                  </div>
                   <Input
                     id="destination"
                     {...register("destination")}
                     placeholder="e.g. Trivandrum, Keralam, India | Kovalam, Keralam, India"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Renders in the green destination bar under Trip Details.
+                  </p>
                 </div>
 
                 <div className="space-y-1.5 md:col-span-1">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="referenceNumber" className="font-medium text-xs flex items-center gap-1.5">
-                      Proposal Reference Number
-                      <span className="text-[10px] font-normal text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/50">
-                        Auto-filled
-                      </span>
+                      Reference Number
                     </Label>
                     <button
                       type="button"
@@ -1655,88 +1791,176 @@ export default function ItineraryBuilderPage() {
                     placeholder="e.g. L100021/Q1020"
                     className="font-mono text-xs uppercase"
                   />
-                  <p className="text-[10px] text-muted-foreground">
-                    Auto-generated slow-luxury reference (e.g. Lead Ref / Quote Ref).
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Quotation reference displayed in the top right header (e.g. Ref: ESC-1020).
                   </p>
                 </div>
               </div>
 
-              {/* Row 3: Travel Dates */}
+              {/* Row 2: Travel Dates */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="startDate" className="font-medium text-xs">
-                    Start Date
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="startDate" className="font-medium text-xs">
+                      Start Date
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Start Date
+                    </Badge>
+                  </div>
                   <Input id="startDate" type="date" {...register("startDate")} />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    First day of travel (used for sequential day plan dates).
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="endDate" className="font-medium text-xs">
-                    End Date
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="endDate" className="font-medium text-xs">
+                      End Date
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF End Date &amp; Duration
+                    </Badge>
+                  </div>
                   <Input id="endDate" type="date" {...register("endDate")} />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Calculates total trip duration (e.g. 6N | 7D) across the PDF.
+                  </p>
                 </div>
               </div>
 
-              {/* Row 4: Total Passengers (Matching PDF Trip Details Table) */}
-              <div className="space-y-2 p-3 bg-muted/20 rounded-lg border border-border">
-                <Label className="font-medium text-xs text-foreground block">
-                  Total Passengers (Shown on PDF Trip Details)
-                </Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <Label htmlFor="adults" className="text-[11px] text-muted-foreground">
-                      Adults (Age 12+)
+              {/* Row 3: "Your Trip Includes" 4 Checkbox Cards */}
+              <div className="space-y-2 p-3.5 bg-muted/20 rounded-lg border border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <Label className="font-semibold text-xs text-foreground">
+                      Your Trip Includes (Top PDF Feature Badges)
                     </Label>
-                    <Input
-                      id="adults"
-                      type="number"
-                      min="1"
-                      {...register("adults", { valueAsNumber: true })}
-                      placeholder="1"
-                      className="bg-background"
-                    />
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Overview Card
+                    </Badge>
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="children" className="text-[11px] text-muted-foreground">
-                      Children (Age 2-11)
-                    </Label>
-                    <Input
-                      id="children"
-                      type="number"
-                      min="0"
-                      {...register("children", { valueAsNumber: true })}
-                      placeholder="0"
-                      className="bg-background"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="infants" className="text-[11px] text-muted-foreground">
-                      Infants (Under 2)
-                    </Label>
-                    <Input
-                      id="infants"
-                      type="number"
-                      min="0"
-                      {...register("infants", { valueAsNumber: true })}
-                      placeholder="0"
-                      className="bg-background"
-                    />
-                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    Checked badges show with green checkmarks in the top summary card
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("hotelIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
+                    <input type="checkbox" {...register("hotelIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                    <div>
+                      <span className="text-xs font-semibold block">Hotel</span>
+                      <span className="text-[10px] text-muted-foreground">Stay bookings</span>
+                    </div>
+                  </label>
+                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("transportIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
+                    <input type="checkbox" {...register("transportIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                    <div>
+                      <span className="text-xs font-semibold block">Transport</span>
+                      <span className="text-[10px] text-muted-foreground">Dedicated vehicle</span>
+                    </div>
+                  </label>
+                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("sightseeingIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
+                    <input type="checkbox" {...register("sightseeingIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                    <div>
+                      <span className="text-xs font-semibold block">Sight-Seeing</span>
+                      <span className="text-[10px] text-muted-foreground">Guided tours</span>
+                    </div>
+                  </label>
+                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("transferIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
+                    <input type="checkbox" {...register("transferIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                    <div>
+                      <span className="text-xs font-semibold block">VISA</span>
+                      <span className="text-[10px] text-muted-foreground">Visa assistance</span>
+                    </div>
+                  </label>
                 </div>
               </div>
 
-              {/* Row 5: Concierge, Curator & Emergency Contacts */}
+              {/* Row 4: Cover photo */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="font-medium text-xs">Proposal Cover Photo</Label>
+                  <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                    PDF Hero Image
+                  </Badge>
+                </div>
+                <Controller
+                  control={control}
+                  name="coverImageUrl"
+                  render={({ field }) => (
+                    <ImageUploadField
+                      value={field.value}
+                      onChange={field.onChange}
+                      label="Cover photo"
+                      size="wide"
+                    />
+                  )}
+                />
+                <p className="text-[10.5px] text-muted-foreground">
+                  High-resolution photo displayed across the top hero header of the PDF proposal.
+                </p>
+              </div>
+
+              {/* Row 5: Summary */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="summary" className="font-medium text-xs">
+                    Journey Overview &amp; Summary
+                  </Label>
+                  <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-muted-foreground border-border bg-muted/40">
+                    PDF Intro Section
+                  </Badge>
+                </div>
+                <Textarea
+                  id="summary"
+                  {...register("summary")}
+                  rows={3}
+                  placeholder="A curated route through Kerala's historic quarters, temples, and coastal retreats."
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card 1C: Curator & Agency Contacts */}
+          <Card className="border border-border shadow-xs">
+            <CardHeader className="border-b bg-muted/20 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <CardTitle className="text-lg font-serif flex items-center gap-2">
+                  <Phone className="h-5 w-5 text-primary" />
+                  1C. Curator &amp; Agency Contacts
+                </CardTitle>
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                    PDF Header &amp; Footer
+                  </Badge>
+                </div>
+              </div>
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                Personal concierge credit, 24/7 emergency hotline, and agency contact channels printed on the proposal.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5 pt-6">
+              {/* Row 1: Curator & Emergency Contacts */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="curatorName" className="font-medium text-xs">
-                    Itinerary Curated By
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="curatorName" className="font-medium text-xs">
+                      Itinerary Curated By
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Header
+                    </Badge>
+                  </div>
                   <Input
                     id="curatorName"
                     {...register("curatorName")}
                     placeholder="e.g. Midhilaj Chelakkal"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Curator name credited under 'Itinerary Curated By'.
+                  </p>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="curatorPhone" className="font-medium text-xs">
@@ -1747,28 +1971,39 @@ export default function ItineraryBuilderPage() {
                     {...register("curatorPhone")}
                     placeholder="+91 9745585813"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Direct phone number shown alongside curator name.
+                  </p>
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="emergencyContacts" className="font-medium text-xs">
-                    Emergency Contacts (PDF Header)
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="emergencyContacts" className="font-medium text-xs">
+                      Emergency Contacts
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Header Banner
+                    </Badge>
+                  </div>
                   <Input
                     id="emergencyContacts"
                     {...register("emergencyContacts")}
                     placeholder="+91 9400280420 | +91 8157003344"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    24/7 hotline numbers printed in the top proposal card.
+                  </p>
                 </div>
               </div>
 
-              {/* Row 5B: Agency Footer Contact & Social Media */}
+              {/* Row 2: Agency Footer Contact & Social Media */}
               <div className="space-y-3 p-3.5 bg-muted/20 rounded-lg border border-border">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
                   <div className="flex items-center gap-2">
                     <Phone className="h-4 w-4 text-primary" />
                     <Label className="font-semibold text-xs text-foreground">
-                      Agency Contact &amp; Social Media (PDF Footer)
+                      Agency Contact &amp; Social Media (PDF Footer Bar)
                     </Label>
-                    <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground">
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-muted-foreground border-border bg-muted/40">
                       PDF Footer
                     </Badge>
                   </div>
@@ -1838,76 +2073,6 @@ export default function ItineraryBuilderPage() {
                     />
                   </div>
                 </div>
-              </div>
-
-              {/* Row 6: "Your Trip Includes" 4 Checkbox Cards (Matching PDF Header) */}
-              <div className="space-y-2 p-3 bg-muted/20 rounded-lg border border-border">
-                <div className="flex items-center justify-between">
-                  <Label className="font-medium text-xs text-foreground">
-                    Your Trip Includes (Top PDF Feature Badges)
-                  </Label>
-                  <span className="text-[11px] text-muted-foreground">Checked items show with checkmarks in the PDF header card</span>
-                </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
-                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("hotelIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
-                    <input type="checkbox" {...register("hotelIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
-                    <div>
-                      <span className="text-xs font-semibold block">Hotel</span>
-                      <span className="text-[10px] text-muted-foreground">Stay bookings</span>
-                    </div>
-                  </label>
-                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("transportIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
-                    <input type="checkbox" {...register("transportIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
-                    <div>
-                      <span className="text-xs font-semibold block">Transport</span>
-                      <span className="text-[10px] text-muted-foreground">Dedicated vehicle</span>
-                    </div>
-                  </label>
-                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("sightseeingIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
-                    <input type="checkbox" {...register("sightseeingIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
-                    <div>
-                      <span className="text-xs font-semibold block">Sight-Seeing</span>
-                      <span className="text-[10px] text-muted-foreground">Guided tours</span>
-                    </div>
-                  </label>
-                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("transferIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
-                    <input type="checkbox" {...register("transferIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
-                    <div>
-                      <span className="text-xs font-semibold block">VISA</span>
-                      <span className="text-[10px] text-muted-foreground">Visa assistance</span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Row 7: Cover photo */}
-              <div className="space-y-1.5">
-                <Label className="font-medium text-xs">Proposal Cover Photo (PDF Hero Image)</Label>
-                <Controller
-                  control={control}
-                  name="coverImageUrl"
-                  render={({ field }) => (
-                    <ImageUploadField
-                      value={field.value}
-                      onChange={field.onChange}
-                      label="Cover photo"
-                      size="wide"
-                    />
-                  )}
-                />
-              </div>
-
-              {/* Row 8: Summary */}
-              <div className="space-y-1.5">
-                <Label htmlFor="summary" className="font-medium text-xs">
-                  Journey Overview &amp; Summary
-                </Label>
-                <Textarea
-                  id="summary"
-                  {...register("summary")}
-                  rows={3}
-                  placeholder="A curated route through Kerala's historic quarters, temples, and coastal retreats."
-                />
               </div>
             </CardContent>
           </Card>

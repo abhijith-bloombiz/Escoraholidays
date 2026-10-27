@@ -79,6 +79,7 @@ export default function ItineraryDocument({ data, id }: { data: ItineraryDocumen
     children: data.children,
     infants: data.infants,
     tripIncludes,
+    weAlsoProvide: tripIncludes?.weAlsoProvide,
     transportation,
     hotelTerms: hotelTerms.length > 0 ? hotelTerms : undefined,
     paymentTerms: paymentTerms.length > 0 ? paymentTerms : undefined,

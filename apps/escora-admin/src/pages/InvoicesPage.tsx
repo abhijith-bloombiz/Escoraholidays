@@ -639,7 +639,10 @@ export default function InvoicesPage() {
 
       {/* Interactive Luxury View Modal */}
       <Dialog open={!!viewing} onOpenChange={(open) => !open && setViewing(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-transparent border-0 shadow-none">
+        <DialogContent
+          hideCloseButton
+          className="max-w-4xl max-h-[90vh] overflow-y-auto p-0 bg-transparent border-0 shadow-none"
+        >
           {viewing && (
             <InvoiceDocument
               invoice={viewing}
@@ -648,6 +651,7 @@ export default function InvoicesPage() {
                 setViewing(null);
                 navigate(`/invoices/${viewing.id}/edit`);
               }}
+              onClose={() => setViewing(null)}
             />
           )}
         </DialogContent>

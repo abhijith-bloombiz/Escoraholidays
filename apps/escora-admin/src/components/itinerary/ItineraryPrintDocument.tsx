@@ -3,7 +3,7 @@ import {
   Bed,
   Car,
   Camera,
-  Bus,
+  FileText,
   Phone,
   Mail,
   Globe,
@@ -26,6 +26,8 @@ import {
   DEFAULT_IMPORTANT_INFO,
   DEFAULT_EXCLUSIONS,
   DEFAULT_AGENCY_CONTACT,
+  DEFAULT_TRIP_INCLUDES,
+  parseTripIncludes,
 } from "@/lib/itinerary";
 
 import alleppeyFallbackImg from "@assets/escora/destinations/alleppey.jpg";
@@ -62,6 +64,7 @@ export interface ItineraryPrintData {
   children?: number | null;
   infants?: number | null;
   tripIncludes?: ItineraryTripIncludes | null;
+  weAlsoProvide?: string[] | null;
   transportation?: ItineraryTransportation | null;
   hotelTerms?: string[] | null;
   paymentTerms?: string[] | null;
@@ -416,39 +419,47 @@ export default function ItineraryPrintDocument({
   const agencyWebsite = data.agencyWebsite || "http://www.escoraholidays.com";
 
   // Inclusions 4 boxes
-  const incConfig = data.tripIncludes ?? {
+  const parsedTripIncludes =
+    typeof data.tripIncludes === "string"
+      ? parseTripIncludes(data.tripIncludes)
+      : data.tripIncludes ?? DEFAULT_TRIP_INCLUDES;
+
+  const incConfig = parsedTripIncludes ?? {
     hotel: true,
     transport: true,
     sightseeing: true,
     transfer: true,
   };
 
+  const rawWeAlso =
+    Array.isArray(data.weAlsoProvide) && data.weAlsoProvide.length > 0
+      ? data.weAlsoProvide
+      : Array.isArray(parsedTripIncludes?.weAlsoProvide)
+      ? parsedTripIncludes.weAlsoProvide
+      : [];
+
+  const weAlsoProvide = rawWeAlso.map((s) => String(s || "").trim()).filter(Boolean);
+
   // Pricing calculations
   const subtotal =
-    (pricing?.items && pricing.items.length > 0
+    pricing?.items && pricing.items.length > 0
       ? pricing.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-      : null) ?? (Number(pricing?.total) || 0);
+      : Number(pricing?.total) || 0;
 
-  const discountAmount = Number(pricing?.discount) || 0;
-  const taxesAmount = Number(pricing?.taxes) || 0;
+  const hasTaxes = Boolean(
+    pricing?.showTaxes ||
+    (typeof pricing?.taxes === "number" && pricing.taxes > 0)
+  );
 
-  // Authoritative final package investment
-  let computedPricingTotal = 0;
-  if (pricing?.items && pricing.items.length > 0) {
-    computedPricingTotal = Math.max(0, subtotal - discountAmount + taxesAmount);
-  } else if (pricing?.total && Number(pricing.total) > 0) {
-    const rawTotal = Number(pricing.total);
-    computedPricingTotal = discountAmount > 0 && rawTotal === subtotal
-      ? Math.max(0, rawTotal - discountAmount + taxesAmount)
-      : rawTotal;
-  }
+  const taxAmount = Number(pricing?.taxes) || 0;
+  const isTaxInclusive = Boolean(pricing?.taxInclusive);
 
-  // Strike-through original price calculation
-  const hasDiscount = discountAmount > 0 && computedPricingTotal > 0;
-  const originalPriceWithoutDiscount =
-    subtotal > computedPricingTotal
-      ? subtotal + taxesAmount
-      : computedPricingTotal + discountAmount;
+  const computedPricingTotal =
+    Number(pricing?.total) > 0
+      ? Number(pricing.total)
+      : hasTaxes && !isTaxInclusive
+      ? subtotal + taxAmount
+      : subtotal;
 
   const currencySymbol = currency === "INR" ? "₹" : `${currency} `;
 
@@ -558,6 +569,7 @@ export default function ItineraryPrintDocument({
             padding: 24px 28px 32px 28px;
             margin: 0 auto;
           }
+        }
         /* Rich Text Formatting Styles for Preview & PDF Export */
         .rich-text-content {
           color: #28322B;
@@ -774,9 +786,6 @@ export default function ItineraryPrintDocument({
               >
                 {incConfig.hotel && (
                   <Check
-                    stroke="#1A3326"
-                    color="#1A3326"
-                    strokeWidth={3}
                     style={{
                       position: "absolute",
                       top: "1px",
@@ -784,14 +793,13 @@ export default function ItineraryPrintDocument({
                       width: "12px",
                       height: "12px",
                       color: "#1A3326",
+                      strokeWidth: 3,
                       display: "block",
                     }}
                   />
                 )}
               </div>
               <Bed
-                stroke="#1A3326"
-                color="#1A3326"
                 style={{
                   display: "block",
                   margin: "0 auto 4px auto",
@@ -831,9 +839,6 @@ export default function ItineraryPrintDocument({
               >
                 {incConfig.transport && (
                   <Check
-                    stroke="#1A3326"
-                    color="#1A3326"
-                    strokeWidth={3}
                     style={{
                       position: "absolute",
                       top: "1px",
@@ -841,14 +846,13 @@ export default function ItineraryPrintDocument({
                       width: "12px",
                       height: "12px",
                       color: "#1A3326",
+                      strokeWidth: 3,
                       display: "block",
                     }}
                   />
                 )}
               </div>
               <Car
-                stroke="#1A3326"
-                color="#1A3326"
                 style={{
                   display: "block",
                   margin: "0 auto 4px auto",
@@ -888,9 +892,6 @@ export default function ItineraryPrintDocument({
               >
                 {incConfig.sightseeing && (
                   <Check
-                    stroke="#1A3326"
-                    color="#1A3326"
-                    strokeWidth={3}
                     style={{
                       position: "absolute",
                       top: "1px",
@@ -898,14 +899,13 @@ export default function ItineraryPrintDocument({
                       width: "12px",
                       height: "12px",
                       color: "#1A3326",
+                      strokeWidth: 3,
                       display: "block",
                     }}
                   />
                 )}
               </div>
               <Camera
-                stroke="#1A3326"
-                color="#1A3326"
                 style={{
                   display: "block",
                   margin: "0 auto 4px auto",
@@ -945,9 +945,6 @@ export default function ItineraryPrintDocument({
               >
                 {incConfig.transfer && (
                   <Check
-                    stroke="#1A3326"
-                    color="#1A3326"
-                    strokeWidth={3}
                     style={{
                       position: "absolute",
                       top: "1px",
@@ -955,14 +952,13 @@ export default function ItineraryPrintDocument({
                       width: "12px",
                       height: "12px",
                       color: "#1A3326",
+                      strokeWidth: 3,
                       display: "block",
                     }}
                   />
                 )}
               </div>
-              <Bus
-                stroke="#1A3326"
-                color="#1A3326"
+              <FileText
                 style={{
                   display: "block",
                   margin: "0 auto 4px auto",
@@ -971,7 +967,7 @@ export default function ItineraryPrintDocument({
                   color: "#1A3326",
                 }}
               />
-              <span className="text-[11.5px] font-medium text-[#1A3326] block leading-tight">Transfer</span>
+              <span className="text-[11.5px] font-medium text-[#1A3326] block leading-tight">VISA</span>
             </div>
           </div>
         </div>
@@ -1063,12 +1059,12 @@ export default function ItineraryPrintDocument({
                 <div style={{ fontSize: "10.5px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "#55685C" }}>
                   TOTAL PASSENGER
                 </div>
-                <div style={{ fontSize: "12px", fontWeight: 700, color: "#111827", marginTop: "2px", lineHeight: "1.3" }}>
-                  <span style={{ whiteSpace: "nowrap" }}>{adults} Adults</span>
-                  <span style={{ color: "#9CA3AF", margin: "0 4px" }}>|</span>
-                  <span style={{ whiteSpace: "nowrap" }}>{children} Children</span>
-                  <span style={{ color: "#9CA3AF", margin: "0 4px" }}>|</span>
-                  <span style={{ whiteSpace: "nowrap" }}>{infants} Infants</span>
+                <div className="text-[11.5px] sm:text-[12.5px] font-bold text-[#111827] mt-0.5 leading-snug">
+                  <span className="whitespace-nowrap">{adults} Adults</span>
+                  <span className="text-[#9CA3AF] mx-1">|</span>
+                  <span className="whitespace-nowrap">{children} Children</span>
+                  <span className="text-[#9CA3AF] mx-1">|</span>
+                  <span className="whitespace-nowrap">{infants} Infants</span>
                 </div>
               </div>
             </div>
@@ -1116,7 +1112,7 @@ export default function ItineraryPrintDocument({
                     {day.subtitle || day.title || `Day ${dayNum} Journey`}
                   </h3>
 
-                  {/* Day Narrative Description (Rich Text HTML or Plain Text) */}
+                  {/* Day Narrative Description (Rich Text formatting preserved) */}
                   {day.description && renderRichDescription(day.description)}
 
                   {/* Optional Activities (on request) */}
@@ -1415,6 +1411,60 @@ export default function ItineraryPrintDocument({
               ))}
             </div>
           </div>
+
+          {/* Optional: We Also Provide */}
+          {weAlsoProvide.length > 0 && (
+            <div className="pdf-avoid-break pt-3 mt-1 border-t border-[#E5E7EB] space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="text-[13px] font-bold text-[#1A3326] uppercase tracking-wide flex items-center gap-2">
+                  <span>We Also Provide</span>
+                  <span className="text-[10px] font-semibold text-[#855B14] bg-[#FDF8EE] border border-[#ECD9A8] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    On Request
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {weAlsoProvide.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-md bg-[#FAF8F5] border border-[#EAE3D2] px-3 py-2 flex items-center gap-2"
+                    style={{ boxSizing: "border-box" }}
+                  >
+                    <div
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "3px",
+                        backgroundColor: "#F2EADB",
+                        border: "1px solid #C4A768",
+                        position: "relative",
+                        flexShrink: 0,
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <Check
+                        stroke="#855B14"
+                        color="#855B14"
+                        strokeWidth={3}
+                        style={{
+                          position: "absolute",
+                          top: "2px",
+                          left: "2px",
+                          width: "10px",
+                          height: "10px",
+                          color: "#855B14",
+                          display: "block",
+                        }}
+                      />
+                    </div>
+                    <span className="text-[12.5px] text-[#2D2A26] font-semibold leading-tight">
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1537,21 +1587,22 @@ export default function ItineraryPrintDocument({
                             boxSizing: "border-box",
                           }}
                         >
-                          {/* Row 1: Hotel Name */}
+                          {/* Row 1: Accommodation */}
                           <div style={{ display: "table", width: "100%", marginBottom: "7px" }}>
                             <div style={{ display: "table-row" }}>
                               <div
                                 style={{
                                   display: "table-cell",
-                                  width: "56px",
+                                  width: "115px",
                                   verticalAlign: "top",
                                   color: "#69736C",
                                   fontSize: "13px",
                                   fontWeight: 600,
                                   lineHeight: "1.25",
+                                  paddingRight: "10px",
                                 }}
                               >
-                                Hotel<br />Name
+                                Accommodation
                               </div>
                               <div
                                 style={{
@@ -1603,21 +1654,23 @@ export default function ItineraryPrintDocument({
                     Total Package Investment
                   </div>
                   <div className="text-[11px] text-white/80">
-                    All-inclusive quote per specified itinerary & verified stays
+                    {hasTaxes
+                      ? isTaxInclusive
+                        ? `All-inclusive quote per specified itinerary · ${pricing?.taxLabel || "GST & Taxes"} included`
+                        : `All-inclusive quote per specified itinerary & verified stays (+ ${pricing?.taxLabel || "GST & Taxes"})`
+                      : "All-inclusive quote per specified itinerary & verified stays"}
                   </div>
                 </div>
-                <div className="flex items-center gap-2.5 text-right">
-                  {hasDiscount && (
-                    <span
-                      className="text-[13.5px] sm:text-[14.5px] line-through font-semibold tabular-nums"
-                      style={{
-                        color: "rgba(255, 255, 255, 0.55)",
-                        textDecoration: "line-through",
-                      }}
-                    >
-                      {currencySymbol}
-                      {originalPriceWithoutDiscount.toLocaleString("en-IN")}
-                    </span>
+                <div className="flex flex-col items-end text-right">
+                  {hasTaxes && !isTaxInclusive && subtotal > 0 && taxAmount > 0 && (
+                    <div className="text-[11px] text-white/70 tabular-nums">
+                      Subtotal: {currencySymbol}{subtotal.toLocaleString("en-IN")} + {pricing?.taxLabel || "Tax"}: {currencySymbol}{taxAmount.toLocaleString("en-IN")}
+                    </div>
+                  )}
+                  {hasTaxes && isTaxInclusive && taxAmount > 0 && (
+                    <div className="text-[10.5px] text-white/70 tabular-nums">
+                      (Includes {pricing?.taxLabel || "GST"}: {currencySymbol}{taxAmount.toLocaleString("en-IN")})
+                    </div>
                   )}
                   <span className="text-[18px] sm:text-[20px] font-bold tabular-nums text-white">
                     {currencySymbol}
@@ -1636,10 +1689,10 @@ export default function ItineraryPrintDocument({
       </section>
 
       {/* =========================================================================
-          9. HOTEL TERMS & CONDITIONS
+          9. ACCOMMODATION TERMS & CONDITIONS
       ========================================================================= */}
       <section className="pdf-terms-container pdf-avoid-break mt-5 border border-[#E5E7EB] rounded-lg overflow-hidden bg-white shadow-xs">
-        <SectionBanner title="Hotel Terms & Conditions" />
+        <SectionBanner title="Accommodation Terms & Conditions" />
         <div className="p-4 sm:p-5">
           <div>
             {hotelTerms.map((term, idx) => (

@@ -62,6 +62,7 @@ import {
   parseStays,
   parsePricing,
   parseStringList,
+  generateProposalReferenceNumber,
 } from "@/lib/itinerary";
 import ItineraryDocument from "@/components/itinerary/ItineraryDocument";
 import AiItineraryAssistantModal from "@/components/itinerary/AiItineraryAssistantModal";
@@ -239,7 +240,7 @@ export default function ItineraryCreatePage() {
       curatorName: template.curatorName ?? undefined,
       curatorPhone: template.curatorPhone ?? undefined,
       emergencyContacts: template.emergencyContacts ?? undefined,
-      referenceNumber: template.referenceNumber ?? undefined,
+      referenceNumber: template.referenceNumber || generateProposalReferenceNumber(),
       adults: template.adults ?? 1,
       children: template.children ?? 0,
       infants: template.infants ?? 0,

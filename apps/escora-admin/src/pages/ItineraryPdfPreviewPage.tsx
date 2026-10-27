@@ -14,6 +14,7 @@ import {
   parseStringList,
   parseTripIncludes,
   parseTransportation,
+  DEFAULT_WE_ALSO_PROVIDE_OPTIONS,
 } from "@/lib/itinerary";
 import { Loader2, Download, Printer, ArrowLeft, Layers, ChevronDown } from "lucide-react";
 
@@ -41,7 +42,14 @@ function templateToPrintData(t: ItineraryTemplate): ItineraryPrintData {
     adults: t.adults ?? 1,
     children: t.children ?? 0,
     infants: t.infants ?? 0,
-    tripIncludes: t.tripIncludes,
+    tripIncludes: t.tripIncludes || {
+      hotel: true,
+      transport: true,
+      sightseeing: true,
+      transfer: true,
+      weAlsoProvide: [...DEFAULT_WE_ALSO_PROVIDE_OPTIONS],
+    },
+    weAlsoProvide: t.tripIncludes?.weAlsoProvide || [...DEFAULT_WE_ALSO_PROVIDE_OPTIONS],
     transportation: t.transportation,
     hotelTerms: t.hotelTerms,
     paymentTerms: t.paymentTerms,
@@ -78,6 +86,7 @@ export default function ItineraryPdfPreviewPage() {
   let printData: ItineraryPrintData;
 
   if (dbItinerary) {
+    const parsedTripInc = parseTripIncludes(dbItinerary.tripIncludes);
     printData = {
       title: dbItinerary.title,
       customerName: dbItinerary.customerName,
@@ -100,7 +109,8 @@ export default function ItineraryPdfPreviewPage() {
       adults: dbItinerary.adults,
       children: dbItinerary.children,
       infants: dbItinerary.infants,
-      tripIncludes: parseTripIncludes(dbItinerary.tripIncludes),
+      tripIncludes: parsedTripInc,
+      weAlsoProvide: parsedTripInc.weAlsoProvide,
       transportation: parseTransportation(dbItinerary.transportation),
       hotelTerms: parseStringList(dbItinerary.hotelTerms),
       paymentTerms: parseStringList(dbItinerary.paymentTerms),

@@ -9,6 +9,7 @@ import {
   DEFAULT_HOTEL_TERMS,
   DEFAULT_PAYMENT_TERMS,
   DEFAULT_IMPORTANT_INFO,
+  DEFAULT_WE_ALSO_PROVIDE_OPTIONS,
 } from "@/lib/itinerary";
 import alleppeyCoverImg from "@assets/escora/destinations/alleppey.jpg";
 import kovalamCleanImg from "@assets/escora/destinations/kovalam-clean.jpg";
@@ -69,6 +70,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
       transport: true,
       sightseeing: true,
       transfer: true,
+      weAlsoProvide: [...DEFAULT_WE_ALSO_PROVIDE_OPTIONS],
     },
     transportation: {
       origin: "ESCORA HOLIDAYS | Trivandrum, Keralam, India",

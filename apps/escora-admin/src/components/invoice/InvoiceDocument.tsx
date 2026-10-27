@@ -11,7 +11,7 @@ import {
 } from "@/lib/invoices";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Printer, Pencil, Building, Calendar, Phone, Mail, History } from "lucide-react";
+import { Printer, Pencil, Building, Calendar, Phone, Mail, History, X } from "lucide-react";
 import escoraLogoMarkPath from "@assets/escora/escora-logo-mark.png";
 import escoraWordmarkPath from "@assets/escora/escora-wordmark.png";
 
@@ -36,10 +36,12 @@ export default function InvoiceDocument({
   invoice,
   onPrint,
   onEdit,
+  onClose,
 }: {
   invoice: InvoiceData;
   onPrint?: () => void;
   onEdit?: () => void;
+  onClose?: () => void;
 }) {
   const items = parseInvoiceItems(invoice.items);
   const bank = parseInvoiceBankDetails(invoice.bankDetails);
@@ -64,7 +66,7 @@ export default function InvoiceDocument({
   return (
     <div className="bg-card border border-border rounded-xl shadow-lg max-w-4xl mx-auto overflow-hidden">
       {/* Top Action Bar */}
-      <div className="flex flex-wrap items-center justify-between px-6 py-4 border-b border-border bg-muted/40">
+      <div className="sticky top-0 z-20 flex flex-wrap items-center justify-between px-6 py-3.5 border-b border-border bg-card/95 backdrop-blur-sm">
         <div className="flex items-center gap-3">
           <span className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             {invoice.invoiceNumber}
@@ -88,6 +90,22 @@ export default function InvoiceDocument({
               <Printer className="h-3.5 w-3.5" />
               Print / PDF
             </Button>
+          )}
+          {onClose && (
+            <>
+              <div className="h-4 w-px bg-border mx-1" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                title="Close dialog"
+                aria-label="Close dialog"
+              >
+                <X className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </Button>
+            </>
           )}
         </div>
       </div>

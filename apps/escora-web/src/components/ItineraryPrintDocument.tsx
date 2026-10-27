@@ -3,7 +3,7 @@ import {
   Bed,
   Car,
   Camera,
-  Bus,
+  FileText,
   Phone,
   Mail,
   Globe,
@@ -26,6 +26,8 @@ import {
   DEFAULT_IMPORTANT_INFO,
   DEFAULT_EXCLUSIONS,
   DEFAULT_AGENCY_CONTACT,
+  DEFAULT_TRIP_INCLUDES,
+  parseTripIncludes,
 } from "@/lib/itinerary";
 
 import alleppeyFallbackImg from "@assets/escora/destinations/alleppey.jpg";
@@ -35,7 +37,6 @@ import fortKochiFallbackImg from "@assets/escora/destinations/fort-kochi.jpg";
 import padmanabhaswamyFallbackImg from "@assets/escora/destinations/padmanabhaswamy-temple.jpg";
 import escoraOfficialLogo from "@assets/escora/escora-official-logo.png";
 import escoraWhiteLogo from "@assets/escora/escora-logo-white.png";
-import escoraFooterPlane from "@assets/escora/escora-footer-plane.png";
 
 export interface ItineraryPrintData {
   title: string;
@@ -62,6 +63,7 @@ export interface ItineraryPrintData {
   children?: number | null;
   infants?: number | null;
   tripIncludes?: ItineraryTripIncludes | null;
+  weAlsoProvide?: string[] | null;
   transportation?: ItineraryTransportation | null;
   hotelTerms?: string[] | null;
   paymentTerms?: string[] | null;
@@ -69,13 +71,39 @@ export interface ItineraryPrintData {
   agencyPhone?: string | null;
   agencyEmail?: string | null;
   agencyInstagram?: string | null;
+  agencyFacebook?: string | null;
   agencyWebsite?: string | null;
+}
+
+function parseLocalDate(str?: string | null): Date | null {
+  if (!str) return null;
+  const trimmed = str.trim();
+  const ymdMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (ymdMatch) {
+    return new Date(Number(ymdMatch[1]), Number(ymdMatch[2]) - 1, Number(ymdMatch[3]));
+  }
+  const dmyMatch = trimmed.match(/^(\d{2})-(\d{2})-(\d{4})/);
+  if (dmyMatch) {
+    return new Date(Number(dmyMatch[3]), Number(dmyMatch[2]) - 1, Number(dmyMatch[1]));
+  }
+  const d = new Date(trimmed);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 function formatDDMMYYYY(iso?: string | null, fallback = "—"): string {
   if (!iso) return fallback;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
+  const trimmed = iso.trim();
+  const ymdMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (ymdMatch) {
+    const [, year, month, day] = ymdMatch;
+    return `${day}-${month}-${year}`;
+  }
+  const dmyMatch = trimmed.match(/^(\d{2})-(\d{2})-(\d{4})/);
+  if (dmyMatch) {
+    return `${dmyMatch[1]}-${dmyMatch[2]}-${dmyMatch[3]}`;
+  }
+  const d = new Date(trimmed);
+  if (Number.isNaN(d.getTime())) return trimmed;
   const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const year = d.getFullYear();
@@ -89,16 +117,20 @@ function formatDayWeekdayDate(
 ): { weekday: string; dateText: string } {
   let targetDate: Date | null = null;
   if (dateStr) {
-    const d = new Date(dateStr);
-    if (!Number.isNaN(d.getTime())) {
+    const d = parseLocalDate(dateStr);
+    if (d) {
       targetDate = d;
     }
   } else if (fallbackBaseDate) {
-    targetDate = new Date(fallbackBaseDate.getTime() + (dayNum - 1) * 86400000);
+    targetDate = new Date(
+      fallbackBaseDate.getFullYear(),
+      fallbackBaseDate.getMonth(),
+      fallbackBaseDate.getDate() + (dayNum - 1)
+    );
   }
 
   if (!targetDate) {
-    return { weekday: "", dateText: `Day ${dayNum}` };
+    return { weekday: "", dateText: "" };
   }
 
   const weekday = targetDate.toLocaleDateString("en-IN", { weekday: "long" });
@@ -121,31 +153,10 @@ export function computeItineraryDatesAndDuration(
   endDateText: string;
   parsedStartDate: Date | null;
 } {
-  const daysCount = days.length > 0 ? days.length : 1;
-
-  let nightsFromStays = 0;
-  if (stays && stays.length > 0) {
-    nightsFromStays = stays.reduce((acc, s) => acc + (s.nights || 0), 0);
-  }
+  const parsedStart = parseLocalDate(startDate);
+  const parsedEnd = parseLocalDate(endDate);
 
   let nightsFromDates = 0;
-  let parsedStart: Date | null = null;
-  let parsedEnd: Date | null = null;
-
-  if (startDate) {
-    const s = new Date(startDate);
-    if (!Number.isNaN(s.getTime())) {
-      parsedStart = s;
-    }
-  }
-
-  if (endDate) {
-    const e = new Date(endDate);
-    if (!Number.isNaN(e.getTime())) {
-      parsedEnd = e;
-    }
-  }
-
   if (parsedStart && parsedEnd) {
     const diff = Math.round((parsedEnd.getTime() - parsedStart.getTime()) / 86400000);
     if (diff > 0) {
@@ -153,33 +164,54 @@ export function computeItineraryDatesAndDuration(
     }
   }
 
-  let finalNights = nightsFromStays;
-  if (finalNights === 0 && nightsFromDates > 0) {
-    finalNights = nightsFromDates;
+  let nightsFromStays = 0;
+  if (stays && stays.length > 0) {
+    nightsFromStays = stays.reduce((acc, s) => acc + (s.nights || 0), 0);
   }
-  if (finalNights === 0) {
-    finalNights = Math.max(0, daysCount - 1);
+
+  let finalDaysCount: number;
+  let finalNights: number;
+
+  if (nightsFromDates > 0) {
+    // Both Start Date and End Date explicitly entered in trip planner
+    finalNights = nightsFromDates;
+    finalDaysCount = Math.max(days.length, nightsFromDates + 1);
+  } else if (parsedStart && parsedEnd && nightsFromDates === 0) {
+    // Single-day trip
+    finalNights = 0;
+    finalDaysCount = Math.max(days.length, 1);
+  } else {
+    // End date open-ended; derive duration from day cards or stays
+    finalDaysCount = days.length > 0 ? days.length : 1;
+    finalNights = nightsFromStays > 0 ? nightsFromStays : Math.max(0, finalDaysCount - 1);
   }
 
   let finalStartDateText = "Dates to be advised";
   let finalEndDateText = "Dates to be advised";
 
-  if (parsedStart) {
-    finalStartDateText = formatDDMMYYYY(parsedStart.toISOString());
-    if (parsedEnd && nightsFromDates === daysCount - 1) {
-      finalEndDateText = formatDDMMYYYY(parsedEnd.toISOString());
-    } else {
-      const derivedEnd = new Date(parsedStart.getTime() + (daysCount - 1) * 86400000);
-      finalEndDateText = formatDDMMYYYY(derivedEnd.toISOString());
-    }
-  } else if (parsedEnd) {
-    finalEndDateText = formatDDMMYYYY(parsedEnd.toISOString());
+  if (startDate && startDate.trim()) {
+    finalStartDateText = formatDDMMYYYY(startDate);
   }
 
-  const formattedDuration = `${finalNights}N | ${daysCount}D`;
+  if (endDate && endDate.trim()) {
+    finalEndDateText = formatDDMMYYYY(endDate);
+  } else if (parsedStart) {
+    // Derive sequential end date from start date and day count
+    const derivedEnd = new Date(
+      parsedStart.getFullYear(),
+      parsedStart.getMonth(),
+      parsedStart.getDate() + Math.max(0, finalDaysCount - 1)
+    );
+    const day = String(derivedEnd.getDate()).padStart(2, "0");
+    const month = String(derivedEnd.getMonth() + 1).padStart(2, "0");
+    const year = derivedEnd.getFullYear();
+    finalEndDateText = `${day}-${month}-${year}`;
+  }
+
+  const formattedDuration = `${finalNights}N | ${finalDaysCount}D`;
 
   return {
-    daysCount,
+    daysCount: finalDaysCount,
     nightsCount: finalNights,
     formattedDuration,
     startDateText: finalStartDateText,
@@ -410,45 +442,69 @@ export default function ItineraryPrintDocument({
   const importantInfo =
     data.importantInfo && data.importantInfo.length > 0 ? data.importantInfo : DEFAULT_IMPORTANT_INFO;
 
-  const agencyPhone = data.agencyPhone || "9496933336";
-  const agencyEmail = data.agencyEmail || "mc@escoraholidays.com";
-  const agencyInstagram = data.agencyInstagram || "escora_holidays";
-  const agencyWebsite = data.agencyWebsite || "http://www.escoraholidays.com";
-
   // Inclusions 4 boxes
-  const incConfig = data.tripIncludes ?? {
+  const parsedTripIncludes =
+    typeof data.tripIncludes === "string"
+      ? parseTripIncludes(data.tripIncludes)
+      : data.tripIncludes ?? DEFAULT_TRIP_INCLUDES;
+
+  const agencyPhone =
+    data.agencyPhone ||
+    parsedTripIncludes?.agencyContact?.phone ||
+    DEFAULT_AGENCY_CONTACT.phone;
+  const agencyEmail =
+    data.agencyEmail ||
+    parsedTripIncludes?.agencyContact?.email ||
+    DEFAULT_AGENCY_CONTACT.email;
+  const agencyInstagram =
+    data.agencyInstagram ||
+    parsedTripIncludes?.agencyContact?.instagram ||
+    DEFAULT_AGENCY_CONTACT.instagram;
+  const agencyFacebook =
+    data.agencyFacebook ||
+    parsedTripIncludes?.agencyContact?.facebook ||
+    DEFAULT_AGENCY_CONTACT.facebook;
+  const agencyWebsite =
+    data.agencyWebsite ||
+    parsedTripIncludes?.agencyContact?.website ||
+    DEFAULT_AGENCY_CONTACT.website;
+
+  const incConfig = parsedTripIncludes ?? {
     hotel: true,
     transport: true,
     sightseeing: true,
     transfer: true,
   };
 
+  const rawWeAlso =
+    Array.isArray(data.weAlsoProvide) && data.weAlsoProvide.length > 0
+      ? data.weAlsoProvide
+      : Array.isArray(parsedTripIncludes?.weAlsoProvide)
+      ? parsedTripIncludes.weAlsoProvide
+      : [];
+
+  const weAlsoProvide = rawWeAlso.map((s) => String(s || "").trim()).filter(Boolean);
+
   // Pricing calculations
   const subtotal =
-    (pricing?.items && pricing.items.length > 0
+    pricing?.items && pricing.items.length > 0
       ? pricing.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-      : null) ?? (Number(pricing?.total) || 0);
+      : Number(pricing?.total) || 0;
 
-  const discountAmount = Number(pricing?.discount) || 0;
-  const taxesAmount = Number(pricing?.taxes) || 0;
+  const hasTaxes = Boolean(
+    pricing?.showTaxes ||
+    (typeof pricing?.taxes === "number" && pricing.taxes > 0)
+  );
 
-  // Authoritative final package investment
-  let computedPricingTotal = 0;
-  if (pricing?.items && pricing.items.length > 0) {
-    computedPricingTotal = Math.max(0, subtotal - discountAmount + taxesAmount);
-  } else if (pricing?.total && Number(pricing.total) > 0) {
-    const rawTotal = Number(pricing.total);
-    computedPricingTotal = discountAmount > 0 && rawTotal === subtotal
-      ? Math.max(0, rawTotal - discountAmount + taxesAmount)
-      : rawTotal;
-  }
+  const taxAmount = Number(pricing?.taxes) || 0;
+  const isTaxInclusive = Boolean(pricing?.taxInclusive);
 
-  // Strike-through original price calculation
-  const hasDiscount = discountAmount > 0 && computedPricingTotal > 0;
-  const originalPriceWithoutDiscount =
-    subtotal > computedPricingTotal
-      ? subtotal + taxesAmount
-      : computedPricingTotal + discountAmount;
+  const computedPricingTotal =
+    Number(pricing?.total) > 0
+      ? Number(pricing.total)
+      : hasTaxes && !isTaxInclusive
+      ? subtotal + taxAmount
+      : subtotal;
 
   const currencySymbol = currency === "INR" ? "₹" : `${currency} `;
 
@@ -947,7 +1003,7 @@ export default function ItineraryPrintDocument({
                   />
                 )}
               </div>
-              <Bus
+              <FileText
                 style={{
                   display: "block",
                   margin: "0 auto 4px auto",
@@ -956,7 +1012,7 @@ export default function ItineraryPrintDocument({
                   color: "#1A3326",
                 }}
               />
-              <span className="text-[11.5px] font-medium text-[#1A3326] block leading-tight">Transfer</span>
+              <span className="text-[11.5px] font-medium text-[#1A3326] block leading-tight">VISA</span>
             </div>
           </div>
         </div>
@@ -1089,8 +1145,9 @@ export default function ItineraryPrintDocument({
                     className="text-[12px] sm:text-[12.5px] font-bold text-[#1A3326] uppercase tracking-[0.08em]"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >
-                    Day {dayNum} | {header.weekday ? `${header.weekday} | ` : ""}
-                    {header.dateText}
+                    Day {dayNum}
+                    {header.weekday ? ` | ${header.weekday}` : ""}
+                    {header.dateText ? ` | ${header.dateText}` : ""}
                   </div>
 
                   {/* Day Title */}
@@ -1233,19 +1290,14 @@ export default function ItineraryPrintDocument({
         >
           <div style={{ display: "table-row" }}>
             {/* Left: Origin & Agency */}
-            <div style={{ display: "table-cell", width: "42%", verticalAlign: "middle" }}>
+            <div style={{ display: "table-cell", width: "32%", verticalAlign: "middle" }}>
               <div className="text-[12.5px] sm:text-[13px] font-medium text-neutral-800 leading-snug max-w-[320px]">
                 {transportation.origin || "ESCORA HOLIDAYS"}
               </div>
-              {transportation.vehicleType && (
-                <div className="text-[12px] text-neutral-600 mt-0.5">
-                  {transportation.vehicleType}
-                </div>
-              )}
             </div>
 
-            {/* Center: Car Transfer Icon */}
-            <div style={{ display: "table-cell", width: "16%", verticalAlign: "middle", textAlign: "center" }}>
+            {/* Center: Car Transfer Icon & Vehicle Type */}
+            <div style={{ display: "table-cell", width: "36%", verticalAlign: "middle", textAlign: "center", padding: "0 10px" }}>
               <div
                 className="rounded-full"
                 style={{
@@ -1273,10 +1325,15 @@ export default function ItineraryPrintDocument({
                   }}
                 />
               </div>
+              {transportation.vehicleType && (
+                <div className="text-[11px] sm:text-[11.5px] font-medium text-neutral-600 mt-1.5 leading-snug">
+                  {transportation.vehicleType}
+                </div>
+              )}
             </div>
 
             {/* Right: Destination / Drop */}
-            <div style={{ display: "table-cell", width: "42%", verticalAlign: "middle", textAlign: "right" }}>
+            <div style={{ display: "table-cell", width: "32%", verticalAlign: "middle", textAlign: "right" }}>
               <div className="text-[12.5px] sm:text-[13px] font-medium text-neutral-800 leading-snug max-w-[320px] ml-auto">
                 {transportation.destination}
               </div>
@@ -1400,6 +1457,60 @@ export default function ItineraryPrintDocument({
               ))}
             </div>
           </div>
+
+          {/* Optional: We Also Provide */}
+          {weAlsoProvide.length > 0 && (
+            <div className="pdf-avoid-break pt-3 mt-1 border-t border-[#E5E7EB] space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="text-[13px] font-bold text-[#1A3326] uppercase tracking-wide flex items-center gap-2">
+                  <span>We Also Provide</span>
+                  <span className="text-[10px] font-semibold text-[#855B14] bg-[#FDF8EE] border border-[#ECD9A8] px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    On Request
+                  </span>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {weAlsoProvide.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-md bg-[#FAF8F5] border border-[#EAE3D2] px-3 py-2 flex items-center gap-2"
+                    style={{ boxSizing: "border-box" }}
+                  >
+                    <div
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "3px",
+                        backgroundColor: "#F2EADB",
+                        border: "1px solid #C4A768",
+                        position: "relative",
+                        flexShrink: 0,
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <Check
+                        stroke="#855B14"
+                        color="#855B14"
+                        strokeWidth={3}
+                        style={{
+                          position: "absolute",
+                          top: "2px",
+                          left: "2px",
+                          width: "10px",
+                          height: "10px",
+                          color: "#855B14",
+                          display: "block",
+                        }}
+                      />
+                    </div>
+                    <span className="text-[12.5px] text-[#2D2A26] font-semibold leading-tight">
+                      {item}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -1522,21 +1633,22 @@ export default function ItineraryPrintDocument({
                             boxSizing: "border-box",
                           }}
                         >
-                          {/* Row 1: Hotel Name */}
+                          {/* Row 1: Accommodation */}
                           <div style={{ display: "table", width: "100%", marginBottom: "7px" }}>
                             <div style={{ display: "table-row" }}>
                               <div
                                 style={{
                                   display: "table-cell",
-                                  width: "56px",
+                                  width: "115px",
                                   verticalAlign: "top",
                                   color: "#69736C",
                                   fontSize: "13px",
                                   fontWeight: 600,
                                   lineHeight: "1.25",
+                                  paddingRight: "10px",
                                 }}
                               >
-                                Hotel<br />Name
+                                Accommodation
                               </div>
                               <div
                                 style={{
@@ -1588,21 +1700,36 @@ export default function ItineraryPrintDocument({
                     Total Package Investment
                   </div>
                   <div className="text-[11px] text-white/80">
-                    All-inclusive quote per specified itinerary & verified stays
+                    {hasTaxes
+                      ? isTaxInclusive
+                        ? `All-inclusive quote per specified itinerary · ${pricing?.taxLabel || "GST & Taxes"} included`
+                        : `All-inclusive quote per specified itinerary & verified stays (+ ${pricing?.taxLabel || "GST & Taxes"})`
+                      : "All-inclusive quote per specified itinerary & verified stays"}
                   </div>
                 </div>
-                <div className="flex items-center gap-2.5 text-right">
-                  {hasDiscount && (
-                    <span
-                      className="text-[13.5px] sm:text-[14.5px] line-through font-semibold tabular-nums"
-                      style={{
-                        color: "rgba(255, 255, 255, 0.55)",
-                        textDecoration: "line-through",
-                      }}
+                <div className="flex flex-col items-end text-right">
+                  {hasTaxes && !isTaxInclusive && subtotal > 0 && taxAmount > 0 && (
+                    <div
+                      className="text-[11px] text-white/75 flex items-center justify-end whitespace-nowrap mb-0.5"
+                      style={{ letterSpacing: "normal" }}
                     >
-                      {currencySymbol}
-                      {originalPriceWithoutDiscount.toLocaleString("en-IN")}
-                    </span>
+                      <span>Subtotal: {currencySymbol}{subtotal.toLocaleString("en-IN")}</span>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          color: "rgba(255, 255, 255, 0.65)",
+                          margin: "0 3px",
+                        }}
+                      >
+                        +
+                      </span>
+                      <span>{pricing?.taxLabel || "Tax"}: {currencySymbol}{taxAmount.toLocaleString("en-IN")}</span>
+                    </div>
+                  )}
+                  {hasTaxes && isTaxInclusive && taxAmount > 0 && (
+                    <div className="text-[10.5px] text-white/75 mb-0.5">
+                      (Includes {pricing?.taxLabel || "GST"}: {currencySymbol}{taxAmount.toLocaleString("en-IN")})
+                    </div>
                   )}
                   <span className="text-[18px] sm:text-[20px] font-bold tabular-nums text-white">
                     {currencySymbol}
@@ -1621,10 +1748,10 @@ export default function ItineraryPrintDocument({
       </section>
 
       {/* =========================================================================
-          9. HOTEL TERMS & CONDITIONS
+          9. ACCOMMODATION TERMS & CONDITIONS
       ========================================================================= */}
       <section className="pdf-terms-container pdf-avoid-break mt-5 border border-[#E5E7EB] rounded-lg overflow-hidden bg-white shadow-xs">
-        <SectionBanner title="Hotel Terms & Conditions" />
+        <SectionBanner title="Accommodation Terms & Conditions" />
         <div className="p-4 sm:p-5">
           <div>
             {hotelTerms.map((term, idx) => (
@@ -1729,19 +1856,18 @@ export default function ItineraryPrintDocument({
           12. FOOTER CARD & AGENCY BADGES
       ========================================================================= */}
       <footer className="pdf-section pdf-avoid-break mt-6 border border-[#E5E7EB] rounded-xl overflow-hidden bg-white shadow-xs">
-        {/* Top Section with Escora Logo & Flight Graphic */}
-        <div className="p-5 sm:p-6 text-center space-y-3 bg-gradient-to-b from-white to-[#F8FAF8]">
+        {/* Top Section with Escora Logo & Brand Tagline */}
+        <div className="py-6 px-5 sm:px-6 text-center bg-gradient-to-b from-white to-[#F8FAF8]">
           <BrandLogo variant="dark" />
-
-          {/* Authentic Escora Flight Aircraft Graphic */}
-          <div className="flex items-center justify-center pt-2 pb-1">
-            <img
-              src={escoraFooterPlane}
-              alt="Escora Flight Aircraft Graphic"
-              className="w-48 sm:w-64 h-auto object-contain mx-auto drop-shadow-2xs"
-              loading="eager"
-              crossOrigin="anonymous"
-            />
+          <div className="mt-3 flex items-center justify-center gap-3">
+            <span className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#CAA052]/60" />
+            <p
+              className="text-[12px] sm:text-[12.5px] font-semibold tracking-[0.18em] uppercase text-[#CAA052]"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              Crafting Unforgettable Journeys
+            </p>
+            <span className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#CAA052]/60" />
           </div>
         </div>
 
@@ -1915,7 +2041,7 @@ export default function ItineraryPrintDocument({
                       lineHeight: "16px",
                     }}
                   >
-                    Escora Holidays
+                    {agencyFacebook}
                   </div>
                 </div>
               </div>

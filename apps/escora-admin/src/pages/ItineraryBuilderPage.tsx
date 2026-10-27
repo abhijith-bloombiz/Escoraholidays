@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useForm, useFieldArray, Controller } from "react-hook-form";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useGetItinerary,
   useCreateItinerary,
@@ -14,6 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -59,13 +61,21 @@ import {
   Layers,
   RefreshCw,
   CheckCircle2,
+  CheckSquare,
   UserCheck,
   Phone,
   User,
+  Users,
   Car,
   RotateCcw,
   Download,
   Images,
+  Star,
+  Pencil,
+  Compass,
+  Camera,
+  FileCheck,
+  Plane,
 } from "lucide-react";
 import {
   parseDays,
@@ -79,8 +89,12 @@ import {
   DEFAULT_PAYMENT_TERMS,
   DEFAULT_IMPORTANT_INFO,
   DEFAULT_EXCLUSIONS,
+  PLACEHOLDER_INCLUSIONS,
+  PLACEHOLDER_EXCLUSIONS,
   DEFAULT_TRIP_INCLUDES,
   DEFAULT_AGENCY_CONTACT,
+  DEFAULT_WE_ALSO_PROVIDE_OPTIONS,
+  generateProposalReferenceNumber,
   type ItineraryDay,
   type ItineraryStay,
   type ItineraryPricing,
@@ -108,6 +122,11 @@ interface BuilderForm {
   curatorName: string;
   curatorPhone: string;
   emergencyContacts: string;
+  agencyPhone: string;
+  agencyEmail: string;
+  agencyInstagram: string;
+  agencyFacebook: string;
+  agencyWebsite: string;
   adults: number;
   children: number;
   infants: number;
@@ -115,6 +134,7 @@ interface BuilderForm {
   transportIncluded: boolean;
   sightseeingIncluded: boolean;
   transferIncluded: boolean;
+  weAlsoProvide?: string[];
   transportOrigin: string;
   transportDestination: string;
   transportVehicle: string;
@@ -144,6 +164,11 @@ const emptyForm: BuilderForm = {
   curatorName: DEFAULT_AGENCY_CONTACT.curatorName,
   curatorPhone: DEFAULT_AGENCY_CONTACT.curatorPhone,
   emergencyContacts: DEFAULT_AGENCY_CONTACT.emergencyContacts,
+  agencyPhone: DEFAULT_AGENCY_CONTACT.phone,
+  agencyEmail: DEFAULT_AGENCY_CONTACT.email,
+  agencyInstagram: DEFAULT_AGENCY_CONTACT.instagram,
+  agencyFacebook: DEFAULT_AGENCY_CONTACT.facebook,
+  agencyWebsite: DEFAULT_AGENCY_CONTACT.website,
   adults: 1,
   children: 0,
   infants: 0,
@@ -151,6 +176,7 @@ const emptyForm: BuilderForm = {
   transportIncluded: true,
   sightseeingIncluded: true,
   transferIncluded: true,
+  weAlsoProvide: [],
   transportOrigin: "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
   transportDestination: "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
   transportVehicle: "Private Dedicated Chauffeur Driven AC Sedan / SUV",
@@ -178,6 +204,14 @@ export default function ItineraryBuilderPage() {
   const createMutation = useCreateItinerary();
   const updateMutation = useUpdateItinerary();
 
+  const initialDefaultValues = useMemo<BuilderForm>(
+    () => ({
+      ...emptyForm,
+      referenceNumber: generateProposalReferenceNumber(),
+    }),
+    []
+  );
+
   const {
     register,
     control,
@@ -186,12 +220,28 @@ export default function ItineraryBuilderPage() {
     watch,
     setValue,
     getValues,
-    formState: { isDirty },
+    formState: { isDirty, dirtyFields },
   } = useForm<BuilderForm>({
-    defaultValues: emptyForm,
+    defaultValues: initialDefaultValues,
   });
 
-  const [templateChoice, setTemplateChoice] = useState<"blank" | string | null>(isEdit ? "blank" : null);
+  const [templateChoice, setTemplateChoice] = useState<"blank" | string | null>(() => {
+    if (isEdit) return "blank";
+    if (typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      if (
+        sp.get("blank") === "true" ||
+        sp.get("aiDraft") === "true" ||
+        sp.get("fromEnquiry") ||
+        sp.get("linkedEnquiryId") ||
+        sp.get("enquiryId") ||
+        sp.get("ai") === "true"
+      ) {
+        return "blank";
+      }
+    }
+    return null;
+  });
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
 
@@ -203,6 +253,27 @@ export default function ItineraryBuilderPage() {
   const openedFromUrlAi = useRef(false);
   const hasInitializedRef = useRef(false);
   const isSubmittingRef = useRef(false);
+  const loadedItineraryIdRef = useRef<number | null>(null);
+
+  // Fetch official sequential next proposal reference number for new proposals
+  const { data: serverNextRef } = useQuery<{ referenceNumber: string }>({
+    queryKey: ["itineraries", "next-reference", linkedEnquiryId],
+    queryFn: async () => {
+      const url = `/api/itineraries/next-reference${linkedEnquiryId ? `?enquiryId=${linkedEnquiryId}` : ""}`;
+      const res = await fetch(url, { credentials: "include" });
+      if (res.ok) return res.json();
+      throw new Error("Failed to fetch next proposal reference");
+    },
+    enabled: !isEdit,
+    staleTime: 30000,
+  });
+
+  // When official server sequential proposal reference arrives, sync it if field hasn't been manually edited
+  useEffect(() => {
+    if (!isEdit && serverNextRef?.referenceNumber && !dirtyFields.referenceNumber) {
+      setValue("referenceNumber", serverNextRef.referenceNumber);
+    }
+  }, [isEdit, serverNextRef?.referenceNumber, dirtyFields.referenceNumber, setValue]);
 
   // Collapsible days and stays state
   const [collapsedDays, setCollapsedDays] = useState<Record<number, boolean>>({});
@@ -211,6 +282,63 @@ export default function ItineraryBuilderPage() {
   // Bulk edit modal state for inclusions, exclusions, terms
   const [bulkTermsModal, setBulkTermsModal] = useState<"inclusions" | "exclusions" | "hotelTerms" | "paymentTerms" | "importantInfo" | null>(null);
   const [bulkTermsText, setBulkTermsText] = useState("");
+
+  // Prefilled Common Inclusions & Exclusions Options (Persisted in localStorage)
+  const [presetInclusions, setPresetInclusions] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("escora_preset_inclusions_list");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error("Failed to load preset inclusions:", e);
+    }
+    return [...PLACEHOLDER_INCLUSIONS];
+  });
+
+  const [presetExclusions, setPresetExclusions] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("escora_preset_exclusions_list");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error("Failed to load preset exclusions:", e);
+    }
+    return [...PLACEHOLDER_EXCLUSIONS];
+  });
+
+  const [customServiceInput, setCustomServiceInput] = useState("");
+
+  // Persisted Custom Services List for "We Also Provide" section
+  const [customServicesList, setCustomServicesList] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("escora_custom_services_list");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.error("Failed to load custom services list:", e);
+    }
+    return [];
+  });
+
+  // Inline editing state for a single option
+  const [inlineEditing, setInlineEditing] = useState<{
+    type: "inclusions" | "exclusions";
+    index: number;
+    text: string;
+  } | null>(null);
+
+  // Manage Presets Modal state
+  const [managePresetsModal, setManagePresetsModal] = useState<"inclusions" | "exclusions" | null>(null);
+  const [modalPresetsList, setModalPresetsList] = useState<string[]>([]);
+  const [modalNewItemText, setModalNewItemText] = useState("");
+  const [modalBulkText, setModalBulkText] = useState("");
+  const [modalTab, setModalTab] = useState<"list" | "bulk">("list");
 
   const daysArray = useFieldArray({ control, name: "days" });
   const staysArray = useFieldArray({ control, name: "stays" });
@@ -237,6 +365,7 @@ export default function ItineraryBuilderPage() {
   const watchedTransportIncluded = watch("transportIncluded");
   const watchedSightseeingIncluded = watch("sightseeingIncluded");
   const watchedTransferIncluded = watch("transferIncluded");
+  const watchedWeAlsoProvide = watch("weAlsoProvide") ?? [];
   const watchedAdults = watch("adults") ?? 1;
   const watchedChildren = watch("children") ?? 0;
   const watchedInfants = watch("infants") ?? 0;
@@ -253,9 +382,10 @@ export default function ItineraryBuilderPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isDirty]);
 
-  // Load existing itinerary data into form
+  // Load existing itinerary data into form (once per itinerary id)
   useEffect(() => {
-    if (existing) {
+    if (existing && loadedItineraryIdRef.current !== existing.id) {
+      loadedItineraryIdRef.current = existing.id;
       const tripInc = parseTripIncludes(existing.tripIncludes);
       const transport = parseTransportation(existing.transportation);
       const hTerms = parseStringList(existing.hotelTerms);
@@ -274,10 +404,20 @@ export default function ItineraryBuilderPage() {
         summary: existing.summary ?? "",
         currency: existing.currency,
         status: existing.status,
-        referenceNumber: existing.referenceNumber ?? "",
+        referenceNumber:
+          existing.referenceNumber?.trim() ||
+          generateProposalReferenceNumber({
+            enquiryId: (existing as any).enquiryId,
+            proposalId: existing.id,
+          }),
         curatorName: existing.curatorName ?? DEFAULT_AGENCY_CONTACT.curatorName,
         curatorPhone: existing.curatorPhone ?? DEFAULT_AGENCY_CONTACT.curatorPhone,
         emergencyContacts: existing.emergencyContacts ?? DEFAULT_AGENCY_CONTACT.emergencyContacts,
+        agencyPhone: tripInc.agencyContact?.phone ?? (existing as any).agencyPhone ?? DEFAULT_AGENCY_CONTACT.phone,
+        agencyEmail: tripInc.agencyContact?.email ?? (existing as any).agencyEmail ?? DEFAULT_AGENCY_CONTACT.email,
+        agencyInstagram: tripInc.agencyContact?.instagram ?? (existing as any).agencyInstagram ?? DEFAULT_AGENCY_CONTACT.instagram,
+        agencyFacebook: tripInc.agencyContact?.facebook ?? (existing as any).agencyFacebook ?? DEFAULT_AGENCY_CONTACT.facebook,
+        agencyWebsite: tripInc.agencyContact?.website ?? (existing as any).agencyWebsite ?? DEFAULT_AGENCY_CONTACT.website,
         adults: existing.adults ?? 1,
         children: existing.children ?? 0,
         infants: existing.infants ?? 0,
@@ -285,6 +425,7 @@ export default function ItineraryBuilderPage() {
         transportIncluded: tripInc.transport,
         sightseeingIncluded: tripInc.sightseeing,
         transferIncluded: tripInc.transfer,
+        weAlsoProvide: tripInc.weAlsoProvide ?? [],
         transportOrigin: transport?.origin ?? "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
         transportDestination: transport?.destination ?? "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
         transportVehicle: transport?.vehicleType ?? "Private Dedicated Chauffeur Driven AC Sedan / SUV",
@@ -297,6 +438,15 @@ export default function ItineraryBuilderPage() {
         paymentTerms: pTerms.length > 0 ? pTerms : DEFAULT_PAYMENT_TERMS,
         importantInfo: iInfo.length > 0 ? iInfo : DEFAULT_IMPORTANT_INFO,
       });
+
+      // Merge any custom services saved in this itinerary into customServicesList
+      const existingWeAlso = tripInc.weAlsoProvide ?? [];
+      const extraServices = existingWeAlso.filter(
+        (s) => !DEFAULT_WE_ALSO_PROVIDE_OPTIONS.includes(s as any)
+      );
+      if (extraServices.length > 0) {
+        setCustomServicesList((prev) => Array.from(new Set([...prev, ...extraServices])));
+      }
     }
   }, [existing, reset]);
 
@@ -325,12 +475,18 @@ export default function ItineraryBuilderPage() {
         if (aiDraftParam !== "true") {
           setReturnToInboxEnquiryId(parsedFromId);
         }
+        if (!isEdit && !dirtyFields.referenceNumber) {
+          setValue("referenceNumber", generateProposalReferenceNumber({ enquiryId: parsedFromId }));
+        }
       }
     } else if (linkedEnqParam) {
       const parsedLinkedId = Number(linkedEnqParam);
       if (!Number.isNaN(parsedLinkedId)) {
         setLinkedEnquiryId(parsedLinkedId);
         setAiEnquiryId(parsedLinkedId);
+        if (!isEdit && !dirtyFields.referenceNumber) {
+          setValue("referenceNumber", generateProposalReferenceNumber({ enquiryId: parsedLinkedId }));
+        }
       }
     }
 
@@ -384,6 +540,9 @@ export default function ItineraryBuilderPage() {
     if (extra?.enquiryId) {
       setLinkedEnquiryId(extra.enquiryId);
       setAiEnquiryId(extra.enquiryId);
+      if (!dirtyFields.referenceNumber) {
+        setValue("referenceNumber", generateProposalReferenceNumber({ enquiryId: extra.enquiryId }), { shouldDirty: true });
+      }
     }
     if (extra?.customerName) {
       setValue("customerName", extra.customerName, { shouldDirty: true });
@@ -441,7 +600,7 @@ export default function ItineraryBuilderPage() {
       checkIn: s.checkIn || "",
       checkOut: s.checkOut || "",
       nights: s.nights || 2,
-      roomType: s.roomType || "Heritage Suite",
+      roomType: s.roomType || "",
       notes: s.notes || "",
     }));
     setValue("stays", formattedStays, { shouldDirty: true });
@@ -474,6 +633,19 @@ export default function ItineraryBuilderPage() {
     }
   }
 
+  const handleRegenerateReference = () => {
+    const enq = linkedEnquiryId || aiEnquiryId || (existing as any)?.enquiryId;
+    const newRef = generateProposalReferenceNumber({
+      enquiryId: enq,
+      proposalId: itineraryId,
+    });
+    setValue("referenceNumber", newRef, { shouldDirty: true });
+    toast({
+      title: "Proposal Reference Auto-filled",
+      description: `Assigned reference: ${newRef}`,
+    });
+  };
+
   const onSubmit = (form: BuilderForm) => {
     if (isSubmittingRef.current || createMutation.isPending || updateMutation.isPending) return;
 
@@ -489,7 +661,21 @@ export default function ItineraryBuilderPage() {
       return;
     }
 
-    const total = computePricingTotal(form.pricing);
+    const subtotal = (form.pricing.items || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+    const taxRate = Number(form.pricing.taxRate ?? 5);
+    const isTaxInclusive = Boolean(form.pricing.taxInclusive);
+    const isFixedTax = form.pricing.taxType === "fixed";
+    const calculatedTax = form.pricing.showTaxes
+      ? isFixedTax
+        ? Number(form.pricing.taxes) || 0
+        : isTaxInclusive
+        ? Math.round(subtotal - subtotal / (1 + taxRate / 100))
+        : Math.round((subtotal * taxRate) / 100)
+      : 0;
+    const total = form.pricing.showTaxes && !isTaxInclusive
+      ? subtotal + calculatedTax
+      : subtotal;
+
     const data: any = {
       customerName: form.customerName.trim(),
       customerEmail: form.customerEmail.trim() || undefined,
@@ -529,14 +715,34 @@ export default function ItineraryBuilderPage() {
         })
       ),
       stays: JSON.stringify(form.stays),
-      pricing: JSON.stringify({ ...form.pricing, taxes: 0, total }),
+      pricing: JSON.stringify({
+        ...form.pricing,
+        taxes: calculatedTax,
+        total,
+      }),
       inclusions: JSON.stringify((form.inclusions || []).map((s) => s.trim()).filter(Boolean)),
       exclusions: JSON.stringify((form.exclusions || []).map((s) => s.trim()).filter(Boolean)),
       tripIncludes: JSON.stringify({
-        hotel: form.hotelIncluded,
-        transport: form.transportIncluded,
-        sightseeing: form.sightseeingIncluded,
-        transfer: form.transferIncluded,
+        hotel: form.hotelIncluded ?? getValues("hotelIncluded"),
+        transport: form.transportIncluded ?? getValues("transportIncluded"),
+        sightseeing: form.sightseeingIncluded ?? getValues("sightseeingIncluded"),
+        transfer: form.transferIncluded ?? getValues("transferIncluded"),
+        weAlsoProvide: (() => {
+          const customPending = customServiceInput.trim();
+          const currentWeAlso = getValues("weAlsoProvide") || watchedWeAlsoProvide || form.weAlsoProvide || [];
+          const combined = Array.isArray(currentWeAlso) ? [...currentWeAlso] : [];
+          if (customPending && !combined.includes(customPending)) {
+            combined.push(customPending);
+          }
+          return Array.from(new Set(combined)).map((s) => String(s || "").trim()).filter(Boolean);
+        })(),
+        agencyContact: {
+          phone: (form.agencyPhone || getValues("agencyPhone") || DEFAULT_AGENCY_CONTACT.phone).trim(),
+          email: (form.agencyEmail || getValues("agencyEmail") || DEFAULT_AGENCY_CONTACT.email).trim(),
+          instagram: (form.agencyInstagram || getValues("agencyInstagram") || DEFAULT_AGENCY_CONTACT.instagram).trim(),
+          facebook: (form.agencyFacebook || getValues("agencyFacebook") || DEFAULT_AGENCY_CONTACT.facebook).trim(),
+          website: (form.agencyWebsite || getValues("agencyWebsite") || DEFAULT_AGENCY_CONTACT.website).trim(),
+        },
       }),
       transportation: JSON.stringify({
         origin: form.transportOrigin,
@@ -585,7 +791,7 @@ export default function ItineraryBuilderPage() {
             if (returnToInboxEnquiryId) {
               navigate(`/enquiries?viewEnquiry=${returnToInboxEnquiryId}&createdProposalId=${created.id}`);
             } else {
-              navigate("/itineraries/create");
+              navigate("/itineraries");
             }
           },
           onError: (err: any) => {
@@ -609,7 +815,11 @@ export default function ItineraryBuilderPage() {
   };
 
   function handleCancel() {
-    const returnTarget = returnToInboxEnquiryId ? `/enquiries?viewEnquiry=${returnToInboxEnquiryId}` : "/itineraries/create";
+    const returnTarget = returnToInboxEnquiryId
+      ? `/enquiries?viewEnquiry=${returnToInboxEnquiryId}`
+      : isEdit
+      ? "/itineraries"
+      : "/itineraries/create";
     if (isDirty) {
       setPendingNavigation(returnTarget);
       setShowDiscardDialog(true);
@@ -838,6 +1048,171 @@ export default function ItineraryBuilderPage() {
     toast({ title: `Reset ${type} to standard agency defaults` });
   }
 
+  function togglePresetOption(type: "inclusions" | "exclusions", option: string, isChecked: boolean) {
+    const current = ((watch(type) as string[]) || []).map((s) => s.trim());
+    if (isChecked) {
+      if (!current.some((item) => item.toLowerCase() === option.trim().toLowerCase())) {
+        setValue(type, [...current, option.trim()], { shouldDirty: true });
+      }
+    } else {
+      setValue(
+        type,
+        current.filter((item) => item.toLowerCase() !== option.trim().toLowerCase()),
+        { shouldDirty: true }
+      );
+    }
+  }
+
+  function savePresetInclusions(next: string[]) {
+    setPresetInclusions(next);
+    try {
+      localStorage.setItem("escora_preset_inclusions_list", JSON.stringify(next));
+    } catch (e) {
+      console.error("Failed to save preset inclusions:", e);
+    }
+  }
+
+  function savePresetExclusions(next: string[]) {
+    setPresetExclusions(next);
+    try {
+      localStorage.setItem("escora_preset_exclusions_list", JSON.stringify(next));
+    } catch (e) {
+      console.error("Failed to save preset exclusions:", e);
+    }
+  }
+
+
+
+  function handleDeletePresetOption(type: "inclusions" | "exclusions", index: number) {
+    if (type === "inclusions") {
+      const next = [...presetInclusions];
+      next.splice(index, 1);
+      savePresetInclusions(next);
+      toast({ title: "Removed option from common inclusions" });
+    } else {
+      const next = [...presetExclusions];
+      next.splice(index, 1);
+      savePresetExclusions(next);
+      toast({ title: "Removed option from common exclusions" });
+    }
+  }
+
+  function handleSaveInlineEdit() {
+    if (!inlineEditing) return;
+    const { type, index, text } = inlineEditing;
+    const trimmed = text.trim();
+    if (!trimmed) {
+      setInlineEditing(null);
+      return;
+    }
+
+    if (type === "inclusions") {
+      const oldVal = presetInclusions[index];
+      const next = [...presetInclusions];
+      next[index] = trimmed;
+      savePresetInclusions(next);
+
+      const current = ((watch("inclusions") as string[]) || []).map((s) => s.trim());
+      if (current.some((item) => item.toLowerCase() === oldVal.trim().toLowerCase())) {
+        setValue(
+          "inclusions",
+          current.map((item) => (item.toLowerCase() === oldVal.trim().toLowerCase() ? trimmed : item)),
+          { shouldDirty: true }
+        );
+      }
+      toast({ title: "Updated common inclusion option" });
+    } else {
+      const oldVal = presetExclusions[index];
+      const next = [...presetExclusions];
+      next[index] = trimmed;
+      savePresetExclusions(next);
+
+      const current = ((watch("exclusions") as string[]) || []).map((s) => s.trim());
+      if (current.some((item) => item.toLowerCase() === oldVal.trim().toLowerCase())) {
+        setValue(
+          "exclusions",
+          current.map((item) => (item.toLowerCase() === oldVal.trim().toLowerCase() ? trimmed : item)),
+          { shouldDirty: true }
+        );
+      }
+      toast({ title: "Updated common exclusion option" });
+    }
+
+    setInlineEditing(null);
+  }
+
+  function openManagePresets(type: "inclusions" | "exclusions") {
+    setManagePresetsModal(type);
+    const list = type === "inclusions" ? presetInclusions : presetExclusions;
+    setModalPresetsList([...list]);
+    setModalBulkText(list.join("\n"));
+    setModalNewItemText("");
+    setModalTab("list");
+  }
+
+  function handleSaveManagePresetsModal() {
+    if (!managePresetsModal) return;
+    let finalList: string[] = [];
+    if (modalTab === "bulk") {
+      finalList = modalBulkText
+        .split("\n")
+        .map((l) => l.trim())
+        .filter(Boolean);
+    } else {
+      finalList = modalPresetsList.map((l) => l.trim()).filter(Boolean);
+    }
+
+    if (managePresetsModal === "inclusions") {
+      savePresetInclusions(finalList);
+      toast({ title: `Saved ${finalList.length} common inclusions` });
+    } else {
+      savePresetExclusions(finalList);
+      toast({ title: `Saved ${finalList.length} common exclusions` });
+    }
+    setManagePresetsModal(null);
+  }
+
+  function handleResetPresetsModalToDefaults() {
+    if (!managePresetsModal) return;
+    const defaults = managePresetsModal === "inclusions" ? PLACEHOLDER_INCLUSIONS : PLACEHOLDER_EXCLUSIONS;
+    setModalPresetsList([...defaults]);
+    setModalBulkText(defaults.join("\n"));
+    toast({ title: `Reset options to agency defaults` });
+  }
+
+  function handleAddModalPresetItem() {
+    const text = modalNewItemText.trim();
+    if (!text) return;
+    if (modalPresetsList.some((p) => p.toLowerCase() === text.toLowerCase())) {
+      toast({ title: "Option already exists in list", variant: "destructive" });
+      return;
+    }
+    const next = [...modalPresetsList, text];
+    setModalPresetsList(next);
+    setModalBulkText(next.join("\n"));
+    setModalNewItemText("");
+  }
+
+  function selectAllPresets(type: "inclusions" | "exclusions") {
+    const presets = type === "inclusions" ? presetInclusions : presetExclusions;
+    const current = ((watch(type) as string[]) || []).map((s) => s.trim());
+    const toAdd = presets.filter(
+      (p) => !current.some((item) => item.toLowerCase() === p.trim().toLowerCase())
+    );
+    setValue(type, [...current, ...toAdd], { shouldDirty: true });
+    toast({ title: `Added all common ${type} to proposal` });
+  }
+
+  function clearPresetOptions(type: "inclusions" | "exclusions") {
+    const presets = type === "inclusions" ? presetInclusions : presetExclusions;
+    const current = ((watch(type) as string[]) || []).map((s) => s.trim());
+    const remaining = current.filter(
+      (item) => !presets.some((p) => p.trim().toLowerCase() === item.toLowerCase())
+    );
+    setValue(type, remaining, { shouldDirty: true });
+    toast({ title: `Cleared common ${type}` });
+  }
+
   function applyBulkEdit() {
     if (!bulkTermsModal) return;
     const lines = bulkTermsText
@@ -896,7 +1271,20 @@ export default function ItineraryBuilderPage() {
     );
   }
 
-  const total = computePricingTotal(watchedPricing ?? { items: [], total: 0 });
+  const subtotal = (watchedPricing?.items || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const taxRate = Number(watchedPricing?.taxRate ?? 5);
+  const isTaxInclusive = Boolean(watchedPricing?.taxInclusive);
+  const isFixedTax = watchedPricing?.taxType === "fixed";
+  const calculatedTaxAmount = watchedPricing?.showTaxes
+    ? isFixedTax
+      ? Number(watchedPricing?.taxes) || 0
+      : isTaxInclusive
+      ? Math.round(subtotal - subtotal / (1 + taxRate / 100))
+      : Math.round((subtotal * taxRate) / 100)
+    : 0;
+  const total = watchedPricing?.showTaxes && !isTaxInclusive
+    ? subtotal + calculatedTaxAmount
+    : subtotal;
 
   const calculatedDuration = (() => {
     if (!watchedStartDate || !watchedEndDate) {
@@ -983,7 +1371,13 @@ export default function ItineraryBuilderPage() {
       {/* Top Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={handleCancel}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCancel}
+            title={returnToInboxEnquiryId ? "Back to Inquiry" : isEdit ? "Back to Itineraries" : "Back to Templates"}
+            data-testid="button-back-itinerary"
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
@@ -1000,12 +1394,14 @@ export default function ItineraryBuilderPage() {
             variant="outline"
             size="sm"
             onClick={() => {
+              const target = linkedEnquiryId || returnToInboxEnquiryId
+                ? `/itineraries/create?enquiryId=${linkedEnquiryId || returnToInboxEnquiryId}`
+                : "/itineraries/create";
               if (isDirty) {
-                setPendingNavigation("__change_template__");
+                setPendingNavigation(target);
                 setShowDiscardDialog(true);
               } else {
-                setTemplateChoice(null);
-                reset(emptyForm);
+                navigate(target);
               }
             }}
             data-testid="button-change-template"
@@ -1106,7 +1502,7 @@ export default function ItineraryBuilderPage() {
             className="flex items-center gap-1 sm:gap-1.5 min-w-max scroll-smooth"
           >
             {[
-              { id: "section-details", num: 1, label: "Trip Details" },
+              { id: "section-details", num: 1, label: "Trip & Customer Details" },
               { id: "section-days", num: 2, label: "Day-to-Day Plan", count: daysArray.fields.length },
               { id: "section-transport", num: 3, label: "Transportation" },
               { id: "section-inclusions", num: 4, label: "Inclusions & Exclusions", count: watchedInclusions.length + watchedExclusions.length },
@@ -1163,142 +1559,115 @@ export default function ItineraryBuilderPage() {
 
       <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-8">
         {/* ============================================================
-            SECTION 1: TRIP & CUSTOMER DETAILS (Matching PDF Trip Details)
+            SECTION 1: TRIP & CUSTOMER DETAILS (Split into Clear Cards)
         ============================================================ */}
-        <section id="section-details" className="scroll-mt-24">
-          <Card>
-            <CardHeader className="border-b bg-muted/20">
-              <CardTitle className="text-lg font-serif flex items-center gap-2">
-                <FileText className="h-5 w-5 text-primary" />
-                1. Trip &amp; Customer Details
-              </CardTitle>
+        <section id="section-details" className="scroll-mt-24 space-y-6">
+          {/* Card 1A: Customer & Passenger Details */}
+          <Card className="border border-border shadow-xs">
+            <CardHeader className="border-b bg-muted/20 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <CardTitle className="text-lg font-serif flex items-center gap-2">
+                  <User className="h-5 w-5 text-primary" />
+                  1A. Customer &amp; Passenger Details
+                </CardTitle>
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                    PDF Header &amp; Table
+                  </Badge>
+                  <Badge variant="outline" className="text-[10px] bg-muted text-muted-foreground border-border">
+                    Private CRM Fields
+                  </Badge>
+                </div>
+              </div>
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                Primary traveler details and traveling party breakdown. Visual badges clarify which data appears on the customer-facing proposal versus internal agency records.
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-5 pt-6">
-              {/* Row 1: Customer details */}
+              {/* Row 1: Primary Guest & Contact Info */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                  <Label htmlFor="customerName" className="font-medium text-xs">
-                    Guest / Customer Name *
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="customerName" className="font-medium text-xs">
+                      Guest / Customer Name *
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Header
+                    </Badge>
+                  </div>
                   <Input
                     id="customerName"
                     {...register("customerName", { required: true })}
                     placeholder="e.g. MARIA ROY"
                     data-testid="input-customer-name"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Rendered in bold in the PDF header card ("Prepared for MARIA ROY").
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="customerEmail" className="font-medium text-xs">
-                    Customer Email (Private)
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="customerEmail" className="font-medium text-xs">
+                      Customer Email
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-muted-foreground border-border bg-muted/40">
+                      Private CRM · Not on PDF
+                    </Badge>
+                  </div>
                   <Input
                     id="customerEmail"
                     type="email"
                     {...register("customerEmail")}
                     placeholder="client@example.com"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Private contact for booking confirmations and CRM tracking.
+                  </p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="customerPhone" className="font-medium text-xs">
-                    Customer Phone (Private)
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="customerPhone" className="font-medium text-xs">
+                      Customer Phone
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-muted-foreground border-border bg-muted/40">
+                      Private CRM · Not on PDF
+                    </Badge>
+                  </div>
                   <Input
                     id="customerPhone"
                     {...register("customerPhone")}
                     placeholder="+91 98765 43210"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Used for WhatsApp itinerary sharing and concierge coordination.
+                  </p>
                 </div>
               </div>
 
-              {/* Row 2: Title, Destination & Reference Number */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1.5 md:col-span-1">
-                  <Label htmlFor="title" className="font-medium text-xs">
-                    Itinerary Title *
-                  </Label>
-                  <Input
-                    id="title"
-                    {...register("title", { required: true })}
-                    placeholder="e.g. Explora Trivandrum"
-                    data-testid="input-title"
-                  />
+              {/* Row 2: Total Passengers Breakdown */}
+              <div className="space-y-2.5 p-4 bg-muted/20 rounded-lg border border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <Label className="font-semibold text-xs text-foreground">
+                      Total Passengers (Traveling Party)
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Trip Details Table
+                    </Badge>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    Displays in the PDF 'Trip Details' banner as 'X Adults | Y Children | Z Infants'
+                  </span>
                 </div>
 
-                <div className="space-y-1.5 md:col-span-1">
-                  <Label htmlFor="destination" className="font-medium text-xs">
-                    Destination Region (PDF Banner)
-                  </Label>
-                  <Input
-                    id="destination"
-                    {...register("destination")}
-                    placeholder="e.g. Trivandrum, Keralam, India | Kovalam, Keralam, India"
-                  />
-                </div>
-
-                <div className="space-y-1.5 md:col-span-1">
-                  <Label htmlFor="referenceNumber" className="font-medium text-xs">
-                    Proposal Reference Number
-                  </Label>
-                  <Input
-                    id="referenceNumber"
-                    {...register("referenceNumber")}
-                    placeholder="e.g. L100021/Q1020"
-                  />
-                </div>
-              </div>
-
-              {/* Row 3: Travel Dates & Currency */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="startDate" className="font-medium text-xs">
-                    Start Date
-                  </Label>
-                  <Input id="startDate" type="date" {...register("startDate")} />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="endDate" className="font-medium text-xs">
-                    End Date
-                  </Label>
-                  <Input id="endDate" type="date" {...register("endDate")} />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label htmlFor="currency" className="font-medium text-xs">
-                    Proposal Currency
-                  </Label>
-                  <Controller
-                    control={control}
-                    name="currency"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger id="currency">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="INR">INR (₹) — Indian Rupee</SelectItem>
-                          <SelectItem value="USD">USD ($) — US Dollar</SelectItem>
-                          <SelectItem value="EUR">EUR (€) — Euro</SelectItem>
-                          <SelectItem value="GBP">GBP (£) — British Pound</SelectItem>
-                          <SelectItem value="AED">AED — UAE Dirham</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                </div>
-              </div>
-
-              {/* Row 4: Total Passengers (Matching PDF Trip Details Table) */}
-              <div className="space-y-2 p-3 bg-muted/20 rounded-lg border border-border">
-                <Label className="font-medium text-xs text-foreground block">
-                  Total Passengers (Shown on PDF Trip Details)
-                </Label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
                   <div className="space-y-1">
-                    <Label htmlFor="adults" className="text-[11px] text-muted-foreground">
-                      Adults (Age 12+)
+                    <Label htmlFor="adults" className="text-[11px] text-muted-foreground flex items-center justify-between">
+                      <span>Adults (Age 12+)</span>
+                      <span className="text-[10px] font-mono text-muted-foreground/80">Primary</span>
                     </Label>
                     <Input
                       id="adults"
@@ -1310,8 +1679,9 @@ export default function ItineraryBuilderPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="children" className="text-[11px] text-muted-foreground">
-                      Children (Age 2-11)
+                    <Label htmlFor="children" className="text-[11px] text-muted-foreground flex items-center justify-between">
+                      <span>Children (Age 2-11)</span>
+                      <span className="text-[10px] font-mono text-muted-foreground/80">Child rate</span>
                     </Label>
                     <Input
                       id="children"
@@ -1323,8 +1693,9 @@ export default function ItineraryBuilderPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="infants" className="text-[11px] text-muted-foreground">
-                      Infants (Under 2)
+                    <Label htmlFor="infants" className="text-[11px] text-muted-foreground flex items-center justify-between">
+                      <span>Infants (Under 2)</span>
+                      <span className="text-[10px] font-mono text-muted-foreground/80">Complimentary</span>
                     </Label>
                     <Input
                       id="infants"
@@ -1337,48 +1708,143 @@ export default function ItineraryBuilderPage() {
                   </div>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Row 5: Concierge, Curator & Emergency Contacts */}
+          {/* Card 1B: Trip & Journey Overview */}
+          <Card className="border border-border shadow-xs">
+            <CardHeader className="border-b bg-muted/20 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <CardTitle className="text-lg font-serif flex items-center gap-2">
+                  <Compass className="h-5 w-5 text-primary" />
+                  1B. Trip &amp; Journey Overview
+                </CardTitle>
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                    PDF Cover, Header &amp; Highlights
+                  </Badge>
+                </div>
+              </div>
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                Itinerary branding, dates, destination region, feature badges, cover photo, and journey summary. All fields appear on the client PDF proposal.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5 pt-6">
+              {/* Row 1: Title, Destination & Reference Number */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="curatorName" className="font-medium text-xs">
-                    Itinerary Curated By
-                  </Label>
+                <div className="space-y-1.5 md:col-span-1">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="title" className="font-medium text-xs">
+                      Itinerary Title *
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      Main PDF Title
+                    </Badge>
+                  </div>
                   <Input
-                    id="curatorName"
-                    {...register("curatorName")}
-                    placeholder="e.g. Midhilaj Chelakkal"
+                    id="title"
+                    {...register("title", { required: true })}
+                    placeholder="e.g. Explora Trivandrum"
+                    data-testid="input-title"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Hero headline on the proposal cover and overview section.
+                  </p>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="curatorPhone" className="font-medium text-xs">
-                    Curator Contact Number
-                  </Label>
+
+                <div className="space-y-1.5 md:col-span-1">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="destination" className="font-medium text-xs">
+                      Destination Region
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Banner
+                    </Badge>
+                  </div>
                   <Input
-                    id="curatorPhone"
-                    {...register("curatorPhone")}
-                    placeholder="+91 9745585813"
+                    id="destination"
+                    {...register("destination")}
+                    placeholder="e.g. Trivandrum, Keralam, India | Kovalam, Keralam, India"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Renders in the green destination bar under Trip Details.
+                  </p>
                 </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="emergencyContacts" className="font-medium text-xs">
-                    Emergency Contacts (PDF Header)
-                  </Label>
+
+                <div className="space-y-1.5 md:col-span-1">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="referenceNumber" className="font-medium text-xs flex items-center gap-1.5">
+                      Reference Number
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={handleRegenerateReference}
+                      className="text-[11px] text-primary hover:underline flex items-center gap-1 font-normal cursor-pointer"
+                      title="Generate a new reference number"
+                    >
+                      <RefreshCw className="h-3 w-3" /> Auto-fill New
+                    </button>
+                  </div>
                   <Input
-                    id="emergencyContacts"
-                    {...register("emergencyContacts")}
-                    placeholder="+91 9400280420 | +91 8157003344"
+                    id="referenceNumber"
+                    {...register("referenceNumber")}
+                    placeholder="e.g. L100021/Q1020"
+                    className="font-mono text-xs uppercase"
                   />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Quotation reference displayed in the top right header (e.g. Ref: ESC-1020).
+                  </p>
                 </div>
               </div>
 
-              {/* Row 6: "Your Trip Includes" 4 Checkbox Cards (Matching PDF Header) */}
-              <div className="space-y-2 p-3 bg-muted/20 rounded-lg border border-border">
-                <div className="flex items-center justify-between">
-                  <Label className="font-medium text-xs text-foreground">
-                    Your Trip Includes (Top PDF Feature Badges)
-                  </Label>
-                  <span className="text-[11px] text-muted-foreground">Checked items show with checkmarks in the PDF header card</span>
+              {/* Row 2: Travel Dates */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="startDate" className="font-medium text-xs">
+                      Start Date
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Start Date
+                    </Badge>
+                  </div>
+                  <Input id="startDate" type="date" {...register("startDate")} />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    First day of travel (used for sequential day plan dates).
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="endDate" className="font-medium text-xs">
+                      End Date
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF End Date &amp; Duration
+                    </Badge>
+                  </div>
+                  <Input id="endDate" type="date" {...register("endDate")} />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Calculates total trip duration (e.g. 6N | 7D) across the PDF.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 3: "Your Trip Includes" 4 Checkbox Cards */}
+              <div className="space-y-2 p-3.5 bg-muted/20 rounded-lg border border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <Label className="font-semibold text-xs text-foreground">
+                      Your Trip Includes (Top PDF Feature Badges)
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Overview Card
+                    </Badge>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    Checked badges show with green checkmarks in the top summary card
+                  </span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
                   <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("hotelIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
@@ -1405,16 +1871,21 @@ export default function ItineraryBuilderPage() {
                   <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("transferIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
                     <input type="checkbox" {...register("transferIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
                     <div>
-                      <span className="text-xs font-semibold block">Transfer</span>
-                      <span className="text-[10px] text-muted-foreground">Airport transfers</span>
+                      <span className="text-xs font-semibold block">VISA</span>
+                      <span className="text-[10px] text-muted-foreground">Visa assistance</span>
                     </div>
                   </label>
                 </div>
               </div>
 
-              {/* Row 7: Cover photo */}
+              {/* Row 4: Cover photo */}
               <div className="space-y-1.5">
-                <Label className="font-medium text-xs">Proposal Cover Photo (PDF Hero Image)</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="font-medium text-xs">Proposal Cover Photo</Label>
+                  <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                    PDF Hero Image
+                  </Badge>
+                </div>
                 <Controller
                   control={control}
                   name="coverImageUrl"
@@ -1427,19 +1898,181 @@ export default function ItineraryBuilderPage() {
                     />
                   )}
                 />
+                <p className="text-[10.5px] text-muted-foreground">
+                  High-resolution photo displayed across the top hero header of the PDF proposal.
+                </p>
               </div>
 
-              {/* Row 8: Summary */}
+              {/* Row 5: Summary */}
               <div className="space-y-1.5">
-                <Label htmlFor="summary" className="font-medium text-xs">
-                  Journey Overview &amp; Summary
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="summary" className="font-medium text-xs">
+                    Journey Overview &amp; Summary
+                  </Label>
+                  <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-muted-foreground border-border bg-muted/40">
+                    PDF Intro Section
+                  </Badge>
+                </div>
                 <Textarea
                   id="summary"
                   {...register("summary")}
                   rows={3}
                   placeholder="A curated route through Kerala's historic quarters, temples, and coastal retreats."
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card 1C: Curator & Agency Contacts */}
+          <Card className="border border-border shadow-xs">
+            <CardHeader className="border-b bg-muted/20 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <CardTitle className="text-lg font-serif flex items-center gap-2">
+                  <Phone className="h-5 w-5 text-primary" />
+                  1C. Curator &amp; Agency Contacts
+                </CardTitle>
+                <div className="flex items-center gap-1.5 text-[11px]">
+                  <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30">
+                    PDF Header &amp; Footer
+                  </Badge>
+                </div>
+              </div>
+              <CardDescription className="text-xs text-muted-foreground mt-1">
+                Personal concierge credit, 24/7 emergency hotline, and agency contact channels printed on the proposal.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-5 pt-6">
+              {/* Row 1: Curator & Emergency Contacts */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="curatorName" className="font-medium text-xs">
+                      Itinerary Curated By
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Header
+                    </Badge>
+                  </div>
+                  <Input
+                    id="curatorName"
+                    {...register("curatorName")}
+                    placeholder="e.g. Midhilaj Chelakkal"
+                  />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Curator name credited under 'Itinerary Curated By'.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="curatorPhone" className="font-medium text-xs">
+                    Curator Contact Number
+                  </Label>
+                  <Input
+                    id="curatorPhone"
+                    {...register("curatorPhone")}
+                    placeholder="+91 9745585813"
+                  />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    Direct phone number shown alongside curator name.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="emergencyContacts" className="font-medium text-xs">
+                      Emergency Contacts
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Header Banner
+                    </Badge>
+                  </div>
+                  <Input
+                    id="emergencyContacts"
+                    {...register("emergencyContacts")}
+                    placeholder="+91 9400280420 | +91 8157003344"
+                  />
+                  <p className="text-[10.5px] text-muted-foreground">
+                    24/7 hotline numbers printed in the top proposal card.
+                  </p>
+                </div>
+              </div>
+
+              {/* Row 2: Agency Footer Contact & Social Media */}
+              <div className="space-y-3 p-3.5 bg-muted/20 rounded-lg border border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-primary" />
+                    <Label className="font-semibold text-xs text-foreground">
+                      Agency Contact &amp; Social Media (PDF Footer Bar)
+                    </Label>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-muted-foreground border-border bg-muted/40">
+                      PDF Footer
+                    </Badge>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    Customizes the bottom contact bar on the dossier
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyPhone" className="text-[11px] font-medium text-foreground">
+                      Contact Phone
+                    </Label>
+                    <Input
+                      id="agencyPhone"
+                      {...register("agencyPhone")}
+                      placeholder="9496933336"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyEmail" className="text-[11px] font-medium text-foreground">
+                      Contact Email
+                    </Label>
+                    <Input
+                      id="agencyEmail"
+                      {...register("agencyEmail")}
+                      placeholder="mc@escoraholidays.com"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyInstagram" className="text-[11px] font-medium text-foreground">
+                      Instagram Handle
+                    </Label>
+                    <Input
+                      id="agencyInstagram"
+                      {...register("agencyInstagram")}
+                      placeholder="escora_holidays"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyFacebook" className="text-[11px] font-medium text-foreground">
+                      Facebook Name
+                    </Label>
+                    <Input
+                      id="agencyFacebook"
+                      {...register("agencyFacebook")}
+                      placeholder="Escora Holidays"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyWebsite" className="text-[11px] font-medium text-foreground">
+                      Website URL
+                    </Label>
+                    <Input
+                      id="agencyWebsite"
+                      {...register("agencyWebsite")}
+                      placeholder="http://www.escoraholidays.com"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -1707,184 +2340,709 @@ export default function ItineraryBuilderPage() {
                 Clearly define what is covered in the bespoke quote and any independent guest expenditures. Matches the Inclusions &amp; Exclusions banner on the PDF dossier.
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-              {/* Inclusions */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center text-xs font-bold">
-                      ✓
-                    </span>
-                    <Label className="font-medium text-sm">Inclusions ({watchedInclusions.length})</Label>
+            <CardContent className="space-y-6 pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Inclusions */}
+              <div className="space-y-4">
+                {/* Quick-Select Common Inclusions Checkboxes */}
+                <div className="border border-border/70 rounded-lg p-3 bg-muted/20 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <CheckSquare className="h-3.5 w-3.5 text-emerald-600" />
+                      <span className="text-xs font-semibold text-foreground">Common Inclusions (Check to Add)</span>
+                      <Badge variant="secondary" className="text-[10px] h-4 px-1.5 font-mono">
+                        {
+                          watchedInclusions.filter((item) =>
+                            presetInclusions.some((p) => p.toLowerCase() === item.trim().toLowerCase())
+                          ).length
+                        }
+                        /{presetInclusions.length}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => openManagePresets("inclusions")}
+                        className="text-[11px] text-emerald-700 dark:text-emerald-400 hover:underline font-medium cursor-pointer flex items-center gap-1"
+                        title="Edit and manage common inclusions"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        Edit Options
+                      </button>
+                      <span className="text-muted-foreground/40 text-[10px]">|</span>
+                      <button
+                        type="button"
+                        onClick={() => selectAllPresets("inclusions")}
+                        className="text-[11px] text-primary hover:underline font-medium cursor-pointer"
+                      >
+                        Select All
+                      </button>
+                      <span className="text-muted-foreground/40 text-[10px]">|</span>
+                      <button
+                        type="button"
+                        onClick={() => clearPresetOptions("inclusions")}
+                        className="text-[11px] text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openBulkEdit("inclusions")}
-                      className="text-xs h-7 text-muted-foreground"
-                    >
-                      Paste / Bulk
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addTerm("inclusions")}
-                      className="text-xs h-7"
-                    >
-                      <Plus className="h-3 w-3 mr-1" /> Add
-                    </Button>
+
+                  <div className="grid grid-cols-1 gap-1 max-h-48 overflow-y-auto pr-1">
+                    {presetInclusions.map((option, optIdx) => {
+                      const isChecked = watchedInclusions.some(
+                        (item) => item.trim().toLowerCase() === option.trim().toLowerCase()
+                      );
+
+                      if (inlineEditing?.type === "inclusions" && inlineEditing.index === optIdx) {
+                        return (
+                          <div
+                            key={optIdx}
+                            className="flex items-center gap-1.5 px-2 py-1 bg-background rounded-md border border-primary/50 shadow-xs"
+                          >
+                            <Input
+                              value={inlineEditing.text}
+                              onChange={(e) => setInlineEditing({ ...inlineEditing, text: e.target.value })}
+                              className="h-7 text-xs flex-1"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleSaveInlineEdit();
+                                } else if (e.key === "Escape") {
+                                  setInlineEditing(null);
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                              onClick={handleSaveInlineEdit}
+                              title="Save"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                              onClick={() => setInlineEditing(null)}
+                              title="Cancel"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div
+                          key={option + optIdx}
+                          className={cn(
+                            "group flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-colors border",
+                            isChecked
+                              ? "bg-emerald-500/10 border-emerald-500/30 text-foreground font-medium"
+                              : "border-transparent hover:bg-muted/60 text-muted-foreground"
+                          )}
+                        >
+                          <label className="flex items-start gap-2.5 cursor-pointer select-none flex-1 min-w-0 pr-1">
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) => togglePresetOption("inclusions", option, !!checked)}
+                              className="mt-0.5 flex-shrink-0"
+                            />
+                            <span className="leading-snug break-words">{option}</span>
+                          </label>
+                          <div className="hidden group-hover:flex items-center gap-0.5 flex-shrink-0 opacity-80 hover:opacity-100">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setInlineEditing({ type: "inclusions", index: optIdx, text: option });
+                              }}
+                              className="p-1 hover:bg-background/80 rounded text-muted-foreground hover:text-foreground"
+                              title="Edit this option"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDeletePresetOption("inclusions", optIdx);
+                              }}
+                              className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
+                              title="Delete option"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+
                 </div>
 
-                <div className="space-y-2 border rounded-md p-3 bg-muted/10 min-h-[160px]">
-                  {watchedInclusions.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-6">
-                      No inclusions added yet. Click &ldquo;Add&rdquo; or paste a list.
-                    </p>
-                  ) : (
-                    watchedInclusions.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <span className="text-emerald-600 font-bold text-xs flex-shrink-0">✓</span>
-                        <Input
-                          value={item}
-                          onChange={(e) => updateTerm("inclusions", idx, e.target.value)}
-                          placeholder="e.g. Daily gourmet breakfast at resort"
-                          className="h-8 text-xs flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground"
-                          disabled={idx === 0}
-                          onClick={() => moveTerm("inclusions", idx, "up")}
-                          title="Move Up"
-                        >
-                          <MoveUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground"
-                          disabled={idx === watchedInclusions.length - 1}
-                          onClick={() => moveTerm("inclusions", idx, "down")}
-                          title="Move Down"
-                        >
-                          <MoveDown className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeTerm("inclusions", idx)}
-                          title="Remove item"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    ))
-                  )}
+                {/* Inclusions in Proposal */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-emerald-600/10 text-emerald-600 flex items-center justify-center text-xs font-bold">
+                        ✓
+                      </span>
+                      <Label className="font-medium text-sm">Inclusions in Proposal ({watchedInclusions.length})</Label>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openBulkEdit("inclusions")}
+                        className="text-xs h-7 text-muted-foreground"
+                      >
+                        Paste / Bulk
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addTerm("inclusions")}
+                        className="text-xs h-7"
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Add Custom
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 border rounded-md p-3 bg-muted/10 min-h-[160px]">
+                    {watchedInclusions.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-6">
+                        No inclusions added yet. Check common options above or click &ldquo;Add Custom&rdquo;.
+                      </p>
+                    ) : (
+                      watchedInclusions.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-emerald-600 font-bold text-xs flex-shrink-0">✓</span>
+                          <Input
+                            value={item}
+                            onChange={(e) => updateTerm("inclusions", idx, e.target.value)}
+                            placeholder="e.g. Daily gourmet breakfast at resort"
+                            className="h-8 text-xs flex-1"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground"
+                            disabled={idx === 0}
+                            onClick={() => moveTerm("inclusions", idx, "up")}
+                            title="Move Up"
+                          >
+                            <MoveUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground"
+                            disabled={idx === watchedInclusions.length - 1}
+                            onClick={() => moveTerm("inclusions", idx, "down")}
+                            title="Move Down"
+                          >
+                            <MoveDown className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeTerm("inclusions", idx)}
+                            title="Remove item"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Exclusions */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-destructive/10 text-destructive flex items-center justify-center text-xs font-bold">
-                      ✕
-                    </span>
-                    <Label className="font-medium text-sm">Exclusions ({watchedExclusions.length})</Label>
+              <div className="space-y-4">
+                {/* Quick-Select Common Exclusions Checkboxes */}
+                <div className="border border-border/70 rounded-lg p-3 bg-muted/20 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <CheckSquare className="h-3.5 w-3.5 text-destructive" />
+                      <span className="text-xs font-semibold text-foreground">Common Exclusions (Check to Add)</span>
+                      <Badge variant="secondary" className="text-[10px] h-4 px-1.5 font-mono">
+                        {
+                          watchedExclusions.filter((item) =>
+                            presetExclusions.some((p) => p.toLowerCase() === item.trim().toLowerCase())
+                          ).length
+                        }
+                        /{presetExclusions.length}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => openManagePresets("exclusions")}
+                        className="text-[11px] text-destructive hover:underline font-medium cursor-pointer flex items-center gap-1"
+                        title="Edit and manage common exclusions"
+                      >
+                        <Pencil className="h-3 w-3" />
+                        Edit Options
+                      </button>
+                      <span className="text-muted-foreground/40 text-[10px]">|</span>
+                      <button
+                        type="button"
+                        onClick={() => selectAllPresets("exclusions")}
+                        className="text-[11px] text-primary hover:underline font-medium cursor-pointer"
+                      >
+                        Select All
+                      </button>
+                      <span className="text-muted-foreground/40 text-[10px]">|</span>
+                      <button
+                        type="button"
+                        onClick={() => clearPresetOptions("exclusions")}
+                        className="text-[11px] text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Button
+
+                  <div className="grid grid-cols-1 gap-1 max-h-48 overflow-y-auto pr-1">
+                    {presetExclusions.map((option, optIdx) => {
+                      const isChecked = watchedExclusions.some(
+                        (item) => item.trim().toLowerCase() === option.trim().toLowerCase()
+                      );
+
+                      if (inlineEditing?.type === "exclusions" && inlineEditing.index === optIdx) {
+                        return (
+                          <div
+                            key={optIdx}
+                            className="flex items-center gap-1.5 px-2 py-1 bg-background rounded-md border border-primary/50 shadow-xs"
+                          >
+                            <Input
+                              value={inlineEditing.text}
+                              onChange={(e) => setInlineEditing({ ...inlineEditing, text: e.target.value })}
+                              className="h-7 text-xs flex-1"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  handleSaveInlineEdit();
+                                } else if (e.key === "Escape") {
+                                  setInlineEditing(null);
+                                }
+                              }}
+                            />
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                              onClick={handleSaveInlineEdit}
+                              title="Save"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="ghost"
+                              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                              onClick={() => setInlineEditing(null)}
+                              title="Cancel"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div
+                          key={option + optIdx}
+                          className={cn(
+                            "group flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition-colors border",
+                            isChecked
+                              ? "bg-destructive/10 border-destructive/30 text-foreground font-medium"
+                              : "border-transparent hover:bg-muted/60 text-muted-foreground"
+                          )}
+                        >
+                          <label className="flex items-start gap-2.5 cursor-pointer select-none flex-1 min-w-0 pr-1">
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) => togglePresetOption("exclusions", option, !!checked)}
+                              className="mt-0.5 flex-shrink-0"
+                            />
+                            <span className="leading-snug break-words">{option}</span>
+                          </label>
+                          <div className="hidden group-hover:flex items-center gap-0.5 flex-shrink-0 opacity-80 hover:opacity-100">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setInlineEditing({ type: "exclusions", index: optIdx, text: option });
+                              }}
+                              className="p-1 hover:bg-background/80 rounded text-muted-foreground hover:text-foreground"
+                              title="Edit this option"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleDeletePresetOption("exclusions", optIdx);
+                              }}
+                              className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
+                              title="Delete option"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                </div>
+
+                {/* Exclusions in Proposal */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-destructive/10 text-destructive flex items-center justify-center text-xs font-bold">
+                        ✕
+                      </span>
+                      <Label className="font-medium text-sm">Exclusions in Proposal ({watchedExclusions.length})</Label>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => resetToDefaults("exclusions")}
+                        className="text-xs h-7 text-muted-foreground"
+                        title="Reset standard agency exclusions"
+                      >
+                        <RotateCcw className="h-3 w-3 mr-1" /> Reset
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openBulkEdit("exclusions")}
+                        className="text-xs h-7 text-muted-foreground"
+                      >
+                        Paste / Bulk
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addTerm("exclusions")}
+                        className="text-xs h-7"
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Add Custom
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 border rounded-md p-3 bg-muted/10 min-h-[160px]">
+                    {watchedExclusions.length === 0 ? (
+                      <p className="text-xs text-muted-foreground text-center py-6">
+                        No exclusions added yet. Check common options above or click &ldquo;Add Custom&rdquo;.
+                      </p>
+                    ) : (
+                      watchedExclusions.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="w-4 h-4 rounded bg-destructive/10 text-destructive flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+                            ✕
+                          </span>
+                          <Input
+                            value={item}
+                            onChange={(e) => updateTerm("exclusions", idx, e.target.value)}
+                            placeholder="e.g. Any domestic or international airfare"
+                            className="h-8 text-xs flex-1"
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground"
+                            disabled={idx === 0}
+                            onClick={() => moveTerm("exclusions", idx, "up")}
+                            title="Move Up"
+                          >
+                            <MoveUp className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground"
+                            disabled={idx === watchedExclusions.length - 1}
+                            onClick={() => moveTerm("exclusions", idx, "down")}
+                            title="Move Down"
+                          >
+                            <MoveDown className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                            onClick={() => removeTerm("exclusions", idx)}
+                            title="Remove item"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Optional Section: We Also Provide */}
+            <div className="pt-6 border-t border-border space-y-3.5">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-amber-500" />
+                      <h4 className="text-sm font-semibold text-foreground">
+                        We Also Provide (Optional Add-on Services)
+                      </h4>
+                      <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider text-amber-700 dark:text-amber-400 border-amber-500/30 bg-amber-500/5">
+                        Optional · PDF
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Check any additional concierge services your agency can arrange. Checked items display in a dedicated &ldquo;We Also Provide&rdquo; block on the PDF dossier and web proposal.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => resetToDefaults("exclusions")}
-                      className="text-xs h-7 text-muted-foreground"
-                      title="Reset standard agency exclusions"
+                      onClick={() => {
+                        const extraServices = Array.from(
+                          new Set([
+                            ...customServicesList,
+                            ...watchedWeAlsoProvide.filter(
+                              (item) => !DEFAULT_WE_ALSO_PROVIDE_OPTIONS.includes(item as any)
+                            ),
+                          ])
+                        );
+                        const allLabels = [
+                          ...DEFAULT_WE_ALSO_PROVIDE_OPTIONS,
+                          ...extraServices,
+                        ];
+                        setValue("weAlsoProvide", allLabels, { shouldDirty: true });
+                      }}
+                      className="text-[11px] text-primary hover:underline font-medium cursor-pointer"
                     >
-                      <RotateCcw className="h-3 w-3 mr-1" /> Reset
-                    </Button>
-                    <Button
+                      Select All
+                    </button>
+                    <span className="text-muted-foreground/40 text-[10px]">|</span>
+                    <button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openBulkEdit("exclusions")}
-                      className="text-xs h-7 text-muted-foreground"
+                      onClick={() => {
+                        setValue("weAlsoProvide", [], { shouldDirty: true });
+                      }}
+                      className="text-[11px] text-muted-foreground hover:text-foreground cursor-pointer"
                     >
-                      Paste / Bulk
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => addTerm("exclusions")}
-                      className="text-xs h-7"
-                    >
-                      <Plus className="h-3 w-3 mr-1" /> Add
-                    </Button>
+                      Clear
+                    </button>
                   </div>
                 </div>
 
-                <div className="space-y-2 border rounded-md p-3 bg-muted/10 min-h-[160px]">
-                  {watchedExclusions.length === 0 ? (
-                    <p className="text-xs text-muted-foreground text-center py-6">
-                      No exclusions added yet. Click &ldquo;Add&rdquo; or paste a list.
-                    </p>
-                  ) : (
-                    watchedExclusions.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <span className="w-4 h-4 rounded bg-destructive/10 text-destructive flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-                          ✕
-                        </span>
-                        <Input
-                          value={item}
-                          onChange={(e) => updateTerm("exclusions", idx, e.target.value)}
-                          placeholder="e.g. Any domestic or international airfare"
-                          className="h-8 text-xs flex-1"
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground"
-                          disabled={idx === 0}
-                          onClick={() => moveTerm("exclusions", idx, "up")}
-                          title="Move Up"
-                        >
-                          <MoveUp className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground"
-                          disabled={idx === watchedExclusions.length - 1}
-                          onClick={() => moveTerm("exclusions", idx, "down")}
-                          title="Move Down"
-                        >
-                          <MoveDown className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                          onClick={() => removeTerm("exclusions", idx)}
-                          title="Remove item"
-                        >
-                          <X className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    ))
-                  )}
+                {/* Service Option Cards (Standard + Custom Services) */}
+                {(() => {
+                  const standardServices = [
+                    {
+                      label: "Private Guide",
+                      num: "1",
+                      desc: "Dedicated licensed local tour guide",
+                      icon: Compass,
+                      isCustom: false,
+                    },
+                    {
+                      label: "Photographer/ Videographer",
+                      num: "2",
+                      desc: "Professional photoshoot & holiday reels",
+                      icon: Camera,
+                      isCustom: false,
+                    },
+                    {
+                      label: "Flight Tickets",
+                      num: "3",
+                      desc: "Domestic & international airline booking",
+                      icon: Plane,
+                      isCustom: false,
+                    },
+                  ];
+
+                  const extraServices = Array.from(
+                    new Set([
+                      ...customServicesList,
+                      ...watchedWeAlsoProvide.filter(
+                        (item) => !DEFAULT_WE_ALSO_PROVIDE_OPTIONS.includes(item as any)
+                      ),
+                    ])
+                  );
+
+                  const allServices = [
+                    ...standardServices,
+                    ...extraServices.map((customName, idx) => ({
+                      label: customName,
+                      num: String(5 + idx),
+                      desc: "Custom agency concierge service",
+                      icon: Sparkles,
+                      isCustom: true,
+                    })),
+                  ];
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {allServices.map((service) => {
+                        const isChecked = watchedWeAlsoProvide.includes(service.label);
+                        const ServiceIcon = service.icon;
+
+                        return (
+                          <div
+                            key={service.label}
+                            className="relative flex items-start gap-3 p-3 rounded-lg border border-border bg-card cursor-pointer select-none transition-all hover:bg-muted/30 shadow-2xs"
+                            onClick={() => {
+                              const current = getValues("weAlsoProvide") || watchedWeAlsoProvide || [];
+                              const updated = isChecked
+                                ? current.filter((item) => item !== service.label)
+                                : Array.from(new Set([...current, service.label]));
+                              setValue("weAlsoProvide", updated, { shouldDirty: true });
+                            }}
+                          >
+                            <Checkbox
+                              checked={isChecked}
+                              onCheckedChange={(checked) => {
+                                const current = getValues("weAlsoProvide") || watchedWeAlsoProvide || [];
+                                const updated = checked
+                                  ? Array.from(new Set([...current, service.label]))
+                                  : current.filter((item) => item !== service.label);
+                                setValue("weAlsoProvide", updated, { shouldDirty: true });
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="mt-0.5 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600 data-[state=checked]:text-white"
+                            />
+                            <div className="space-y-0.5 flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <ServiceIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                                <span className="text-xs font-semibold leading-tight text-foreground truncate">
+                                  {service.num}. {service.label}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground leading-normal line-clamp-2">
+                                {service.desc}
+                              </p>
+                            </div>
+                            {service.isCustom && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const updatedCustom = customServicesList.filter((s) => s !== service.label);
+                                  setCustomServicesList(updatedCustom);
+                                  try {
+                                    localStorage.setItem("escora_custom_services_list", JSON.stringify(updatedCustom));
+                                  } catch {}
+                                  const current = getValues("weAlsoProvide") || watchedWeAlsoProvide || [];
+                                  setValue(
+                                    "weAlsoProvide",
+                                    current.filter((item) => item !== service.label),
+                                    { shouldDirty: true }
+                                  );
+                                }}
+                                className="text-muted-foreground/60 hover:text-destructive p-0.5 rounded cursor-pointer shrink-0 -mr-1 -mt-1 transition-colors"
+                                title="Delete custom service"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+
+                {/* Custom Service Input Bar */}
+                <div className="flex items-center gap-2 max-w-md pt-1">
+                  <Input
+                    value={customServiceInput}
+                    onChange={(e) => setCustomServiceInput(e.target.value)}
+                    placeholder="+ Add other custom service (e.g. Travel Insurance)..."
+                    className="h-8 text-xs bg-background"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (customServiceInput.trim()) {
+                          const trimmed = customServiceInput.trim();
+                          if (!customServicesList.includes(trimmed) && !DEFAULT_WE_ALSO_PROVIDE_OPTIONS.includes(trimmed as any)) {
+                            const updatedCustom = [...customServicesList, trimmed];
+                            setCustomServicesList(updatedCustom);
+                            try {
+                              localStorage.setItem("escora_custom_services_list", JSON.stringify(updatedCustom));
+                            } catch {}
+                          }
+                          const current = getValues("weAlsoProvide") || watchedWeAlsoProvide || [];
+                          if (!current.includes(trimmed)) {
+                            setValue("weAlsoProvide", [...current, trimmed], { shouldDirty: true });
+                          }
+                          setCustomServiceInput("");
+                        }
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs shrink-0"
+                    disabled={!customServiceInput.trim()}
+                    onClick={() => {
+                      if (customServiceInput.trim()) {
+                        const trimmed = customServiceInput.trim();
+                        if (!customServicesList.includes(trimmed) && !DEFAULT_WE_ALSO_PROVIDE_OPTIONS.includes(trimmed as any)) {
+                          const updatedCustom = [...customServicesList, trimmed];
+                          setCustomServicesList(updatedCustom);
+                          try {
+                            localStorage.setItem("escora_custom_services_list", JSON.stringify(updatedCustom));
+                          } catch {}
+                        }
+                        const current = getValues("weAlsoProvide") || watchedWeAlsoProvide || [];
+                        if (!current.includes(trimmed)) {
+                          setValue("weAlsoProvide", [...current, trimmed], { shouldDirty: true });
+                        }
+                        setCustomServiceInput("");
+                      }
+                    }}
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> Add
+                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -1947,7 +3105,6 @@ export default function ItineraryBuilderPage() {
                       nights: 1,
                       rooms: 1,
                       mealPlan: "BreakFast",
-                      roomType: "Deluxe Heritage Room",
                       notes: "",
                     });
                     setCollapsedStays((prev) => ({ ...prev, [idx]: false }));
@@ -1982,7 +3139,6 @@ export default function ItineraryBuilderPage() {
                         nights: 1,
                         rooms: 1,
                         mealPlan: "BreakFast",
-                        roomType: "Deluxe Suite",
                         notes: "",
                       });
                       setCollapsedStays({ 0: false });
@@ -2024,8 +3180,14 @@ export default function ItineraryBuilderPage() {
                           </Badge>
 
                           <div className="font-medium text-sm text-foreground truncate max-w-xs sm:max-w-md">
-                            {stayData.name || <span className="text-muted-foreground italic">Untitled Hotel / Resort</span>}
+                            {stayData.name || <span className="text-muted-foreground italic">Untitled Accommodation</span>}
                           </div>
+
+                          {stayData.starRating && (
+                            <Badge variant="outline" className="text-[10px] text-amber-700 border-amber-300 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-300 hidden sm:inline-flex items-center gap-0.5">
+                              ★ {stayData.starRating}
+                            </Badge>
+                          )}
 
                           {stayData.location && (
                             <span className="text-xs text-muted-foreground hidden sm:inline">
@@ -2120,6 +3282,183 @@ export default function ItineraryBuilderPage() {
             </CardHeader>
 
             <CardContent className="space-y-6 pt-6">
+              {/* Currency & Tax Configuration Bar */}
+              <div className="p-3.5 rounded-lg border border-border bg-muted/30 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Proposal Currency */}
+                  <div className="space-y-1.5">
+                    <Label htmlFor="currency" className="font-medium text-xs flex items-center gap-1.5">
+                      <DollarSign className="h-3.5 w-3.5 text-primary" />
+                      Proposal Currency
+                    </Label>
+                    <Controller
+                      control={control}
+                      name="currency"
+                      render={({ field }) => (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <SelectTrigger id="currency" className="bg-background">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="INR">INR (₹) — Indian Rupee</SelectItem>
+                            <SelectItem value="USD">USD ($) — US Dollar</SelectItem>
+                            <SelectItem value="EUR">EUR (€) — Euro</SelectItem>
+                            <SelectItem value="GBP">GBP (£) — British Pound</SelectItem>
+                            <SelectItem value="AED">AED — UAE Dirham</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    />
+                  </div>
+
+                  {/* GST & TAX Toggle */}
+                  <div className="space-y-1.5">
+                    <Label className="font-medium text-xs block">
+                      GST &amp; Taxes Option
+                    </Label>
+                    <div className="flex items-center h-9">
+                      <label className="flex items-center gap-2 cursor-pointer select-none text-xs font-medium">
+                        <Checkbox
+                          checked={Boolean(watchedPricing?.showTaxes)}
+                          onCheckedChange={(checked) => {
+                            setValue("pricing.showTaxes", !!checked, { shouldDirty: true });
+                            if (checked && !watchedPricing?.taxRate) {
+                              setValue("pricing.taxRate", 5, { shouldDirty: true });
+                              setValue("pricing.taxType", "percentage", { shouldDirty: true });
+                              setValue("pricing.taxLabel", "5% GST", { shouldDirty: true });
+                            }
+                          }}
+                        />
+                        <span>Display GST &amp; Taxes in Proposal / PDF</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Expanded GST & TAX Options when enabled */}
+                {watchedPricing?.showTaxes && (
+                  <div className="pt-3 border-t border-border/60 space-y-3 bg-background/60 p-3 rounded-md">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      {/* Tax Rate / Type */}
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">GST Rate / Amount</Label>
+                        <div className="flex items-center gap-1.5">
+                          {watchedPricing?.taxType === "fixed" ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              value={watchedPricing?.taxes || 0}
+                              onChange={(e) =>
+                                setValue("pricing.taxes", Number(e.target.value) || 0, { shouldDirty: true })
+                              }
+                              placeholder="0"
+                              className="h-8 text-xs bg-background"
+                            />
+                          ) : (
+                            <div className="relative flex-1">
+                              <Input
+                                type="number"
+                                min="0"
+                                max="100"
+                                step="0.5"
+                                value={watchedPricing?.taxRate ?? 5}
+                                onChange={(e) => {
+                                  const rate = Number(e.target.value) || 0;
+                                  setValue("pricing.taxRate", rate, { shouldDirty: true });
+                                  setValue("pricing.taxLabel", `${rate}% GST`, { shouldDirty: true });
+                                }}
+                                className="h-8 text-xs bg-background pr-6"
+                              />
+                              <span className="absolute right-2 top-2 text-xs text-muted-foreground">%</span>
+                            </div>
+                          )}
+                          <Select
+                            value={watchedPricing?.taxType || "percentage"}
+                            onValueChange={(val: "percentage" | "fixed") => {
+                              setValue("pricing.taxType", val, { shouldDirty: true });
+                              if (val === "percentage") {
+                                setValue("pricing.taxRate", 5, { shouldDirty: true });
+                                setValue("pricing.taxLabel", "5% GST", { shouldDirty: true });
+                              } else {
+                                setValue("pricing.taxLabel", "GST & Taxes", { shouldDirty: true });
+                              }
+                            }}
+                          >
+                            <SelectTrigger className="h-8 w-24 text-xs bg-background">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="percentage">Percentage</SelectItem>
+                              <SelectItem value="fixed">Fixed</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Tax Label */}
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Display Label on PDF</Label>
+                        <Input
+                          value={watchedPricing?.taxLabel || "5% GST"}
+                          onChange={(e) =>
+                            setValue("pricing.taxLabel", e.target.value, { shouldDirty: true })
+                          }
+                          placeholder="e.g. 5% GST"
+                          className="h-8 text-xs bg-background"
+                        />
+                      </div>
+
+                      {/* Tax Mode: Added to Subtotal vs Included in Quote */}
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Calculation Mode</Label>
+                        <Select
+                          value={watchedPricing?.taxInclusive ? "inclusive" : "exclusive"}
+                          onValueChange={(val) =>
+                            setValue("pricing.taxInclusive", val === "inclusive", { shouldDirty: true })
+                          }
+                        >
+                          <SelectTrigger className="h-8 text-xs bg-background">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="exclusive">Add to Subtotal (+ GST)</SelectItem>
+                            <SelectItem value="inclusive">Included in Quote (GST included)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {/* Quick Preset Buttons for GST */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px] text-muted-foreground">
+                      <span className="font-medium">Quick Rates:</span>
+                      {[
+                        { label: "5% GST (Tour Package)", rate: 5 },
+                        { label: "12% GST", rate: 12 },
+                        { label: "18% GST (Hotel/Services)", rate: 18 },
+                      ].map((preset) => (
+                        <button
+                          key={preset.rate}
+                          type="button"
+                          onClick={() => {
+                            setValue("pricing.taxType", "percentage", { shouldDirty: true });
+                            setValue("pricing.taxRate", preset.rate, { shouldDirty: true });
+                            setValue("pricing.taxLabel", `${preset.rate}% GST`, { shouldDirty: true });
+                          }}
+                          className={cn(
+                            "px-2 py-0.5 rounded border text-xs cursor-pointer transition-colors",
+                            watchedPricing?.taxType !== "fixed" && watchedPricing?.taxRate === preset.rate
+                              ? "bg-primary text-primary-foreground border-primary"
+                              : "bg-background hover:bg-muted text-foreground border-border"
+                          )}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Line items list */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs font-semibold uppercase text-muted-foreground px-1">
@@ -2198,38 +3537,15 @@ export default function ItineraryBuilderPage() {
                 )}
               </div>
 
-              {/* Discount and notes */}
-              <div className="pt-4 border-t border-border">
-                <div className="max-w-md space-y-1.5">
-                  <Label htmlFor="pricingDiscount" className="font-medium text-xs">
-                    Promotional Discount (Optional)
-                  </Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-2.5 text-xs text-muted-foreground">
-                      {watchedCurrency === "INR" ? "₹" : watchedCurrency}
-                    </span>
-                    <Input
-                      id="pricingDiscount"
-                      type="number"
-                      min="0"
-                      step="1"
-                      {...register("pricing.discount", { valueAsNumber: true })}
-                      placeholder="0"
-                      className="pl-8"
-                    />
-                  </div>
-                </div>
-              </div>
-
               {/* Notes */}
-              <div className="space-y-1.5">
+              <div className="pt-4 border-t border-border space-y-1.5">
                 <Label htmlFor="pricingNotes" className="font-medium text-xs">
                   Pricing Notes &amp; Quote Validity
                 </Label>
                 <Input
                   id="pricingNotes"
                   {...register("pricing.notes")}
-                  placeholder="e.g. Price valid for travel completed before March 31, 2027. 5% GST included."
+                  placeholder="e.g. Price valid for travel completed before March 31, 2027."
                 />
               </div>
 
@@ -2239,20 +3555,24 @@ export default function ItineraryBuilderPage() {
                   <span>Line Items Subtotal:</span>
                   <span className="font-medium text-foreground tabular-nums">
                     {watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
-                    {(
-                      (watchedPricing?.items || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-                    ).toLocaleString("en-IN")}
+                    {subtotal.toLocaleString("en-IN")}
                   </span>
                 </div>
-                {!!watchedPricing?.discount && (
-                  <div className="flex justify-between text-xs text-emerald-600 dark:text-emerald-400">
-                    <span>Discount:</span>
-                    <span className="font-medium tabular-nums">
-                      -{watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
-                      {Number(watchedPricing.discount).toLocaleString("en-IN")}
+
+                {watchedPricing?.showTaxes && (
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>
+                      {watchedPricing.taxLabel || "GST & Taxes"}
+                      {watchedPricing.taxInclusive ? " (Included in Quote)" : " (Added to Subtotal)"}:
+                    </span>
+                    <span className="font-medium text-foreground tabular-nums">
+                      {watchedPricing.taxInclusive ? "" : "+ "}
+                      {watchedCurrency === "INR" ? "₹" : watchedCurrency + " "}
+                      {calculatedTaxAmount.toLocaleString("en-IN")}
                     </span>
                   </div>
                 )}
+
                 <div className="flex justify-between items-baseline pt-2 border-t border-primary/20 font-serif">
                   <span className="text-base font-semibold text-foreground">Total Proposal Investment:</span>
                   <span className="text-2xl font-bold text-primary tabular-nums">
@@ -2280,12 +3600,12 @@ export default function ItineraryBuilderPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 pt-6">
-              {/* 6A: Hotel Terms & Conditions */}
+              {/* 6A: Accommodation Terms & Conditions */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Building className="h-4 w-4 text-primary" />
-                    <Label className="font-medium text-sm">Hotel Terms &amp; Conditions ({watchedHotelTerms.length})</Label>
+                    <Label className="font-medium text-sm">Accommodation Terms &amp; Conditions ({watchedHotelTerms.length})</Label>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <Button
@@ -2294,7 +3614,7 @@ export default function ItineraryBuilderPage() {
                       size="sm"
                       onClick={() => resetToDefaults("hotelTerms")}
                       className="text-xs h-7 text-muted-foreground"
-                      title="Reset standard hotel terms"
+                      title="Reset standard accommodation terms"
                     >
                       <RotateCcw className="h-3 w-3 mr-1" /> Reset
                     </Button>
@@ -2322,7 +3642,7 @@ export default function ItineraryBuilderPage() {
                 <div className="space-y-2 border rounded-md p-3 bg-muted/10 min-h-[140px]">
                   {watchedHotelTerms.length === 0 ? (
                     <p className="text-xs text-muted-foreground text-center py-6">
-                      No hotel terms added. Click &ldquo;Reset&rdquo; to populate standard terms.
+                      No accommodation terms added. Click &ldquo;Reset&rdquo; to populate standard terms.
                     </p>
                   ) : (
                     watchedHotelTerms.map((item, idx) => (
@@ -2875,11 +4195,9 @@ export default function ItineraryBuilderPage() {
             <AlertDialogAction
               onClick={() => {
                 setShowDiscardDialog(false);
-                if (pendingNavigation === "__change_template__") {
-                  setTemplateChoice(null);
-                  reset(emptyForm);
-                } else if (pendingNavigation) {
+                if (pendingNavigation) {
                   navigate(pendingNavigation);
+                  setPendingNavigation(null);
                 }
               }}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -2912,6 +4230,204 @@ export default function ItineraryBuilderPage() {
               Cancel
             </Button>
             <Button onClick={applyBulkEdit}>Apply Items</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manage Preset Checkbox Options Modal */}
+      <Dialog
+        open={managePresetsModal !== null}
+        onOpenChange={(open) => !open && setManagePresetsModal(null)}
+      >
+        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+          <DialogHeader className="pb-2 border-b">
+            <div className="flex items-center gap-2">
+              <CheckSquare
+                className={cn(
+                  "h-5 w-5",
+                  managePresetsModal === "inclusions" ? "text-emerald-600" : "text-destructive"
+                )}
+              />
+              <DialogTitle className="font-serif text-lg">
+                Manage Common {managePresetsModal === "inclusions" ? "Inclusions" : "Exclusions"}
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Customize the prefilled checkboxes available when composing itineraries. Changes are saved to your browser so they remain available for future itineraries.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Tab Selector: List View vs Bulk Paste */}
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex items-center gap-1 p-0.5 bg-muted rounded-md text-xs">
+              <button
+                type="button"
+                onClick={() => setModalTab("list")}
+                className={cn(
+                  "px-3 py-1 rounded font-medium transition-colors",
+                  modalTab === "list"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Item List ({modalPresetsList.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setModalBulkText(modalPresetsList.join("\n"));
+                  setModalTab("bulk");
+                }}
+                className={cn(
+                  "px-3 py-1 rounded font-medium transition-colors",
+                  modalTab === "bulk"
+                    ? "bg-background text-foreground shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Bulk Paste / Edit
+              </button>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleResetPresetsModalToDefaults}
+              className="text-xs h-7 text-muted-foreground hover:text-foreground"
+              title="Restore standard default options"
+            >
+              <RotateCcw className="h-3 w-3 mr-1" />
+              Reset Defaults
+            </Button>
+          </div>
+
+          {modalTab === "list" ? (
+            <div className="flex-1 overflow-y-auto space-y-3 py-2 pr-1 min-h-[260px] max-h-[380px]">
+              {/* Add New Option at Top */}
+              <div className="flex items-center gap-2 p-2 rounded-md bg-muted/40 border border-border">
+                <Input
+                  value={modalNewItemText}
+                  onChange={(e) => setModalNewItemText(e.target.value)}
+                  placeholder={`+ Add new common ${managePresetsModal === "inclusions" ? "inclusion" : "exclusion"}...`}
+                  className="h-8 text-xs bg-background flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddModalPresetItem();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleAddModalPresetItem}
+                  disabled={!modalNewItemText.trim()}
+                  className="h-8 text-xs"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add
+                </Button>
+              </div>
+
+              {/* Items List */}
+              <div className="space-y-1.5">
+                {modalPresetsList.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-8">
+                    No options in this list. Add one above or click Reset Defaults.
+                  </p>
+                ) : (
+                  modalPresetsList.map((opt, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 p-1.5 rounded-md border border-border/70 bg-card hover:border-border transition-colors"
+                    >
+                      <span className="text-[11px] font-mono text-muted-foreground/60 w-5 text-right flex-shrink-0">
+                        {idx + 1}.
+                      </span>
+                      <Input
+                        value={opt}
+                        onChange={(e) => {
+                          const updated = [...modalPresetsList];
+                          updated[idx] = e.target.value;
+                          setModalPresetsList(updated);
+                        }}
+                        className="h-8 text-xs flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground"
+                        disabled={idx === 0}
+                        onClick={() => {
+                          const updated = [...modalPresetsList];
+                          const temp = updated[idx - 1];
+                          updated[idx - 1] = updated[idx];
+                          updated[idx] = temp;
+                          setModalPresetsList(updated);
+                        }}
+                        title="Move Up"
+                      >
+                        <MoveUp className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground"
+                        disabled={idx === modalPresetsList.length - 1}
+                        onClick={() => {
+                          const updated = [...modalPresetsList];
+                          const temp = updated[idx + 1];
+                          updated[idx + 1] = updated[idx];
+                          updated[idx] = temp;
+                          setModalPresetsList(updated);
+                        }}
+                        title="Move Down"
+                      >
+                        <MoveDown className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          const updated = [...modalPresetsList];
+                          updated.splice(idx, 1);
+                          setModalPresetsList(updated);
+                        }}
+                        title="Delete option"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 py-2 space-y-2">
+              <p className="text-xs text-muted-foreground">
+                Paste or type one option per line. Each line becomes a prefilled checkbox.
+              </p>
+              <Textarea
+                rows={12}
+                value={modalBulkText}
+                onChange={(e) => setModalBulkText(e.target.value)}
+                placeholder="Daily gourmet breakfast at all hotels and resorts&#10;Private dedicated chauffeur-driven AC vehicle"
+                className="font-sans text-xs leading-relaxed"
+              />
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 pt-3 border-t">
+            <Button variant="outline" onClick={() => setManagePresetsModal(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveManagePresetsModal}>
+              Save Options
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -3152,24 +4668,75 @@ function DayCardBody({
 function StayCardBody({
   register,
   stayIndex,
+  setValue,
+  watch,
 }: {
   register: any;
   stayIndex: number;
   setValue?: any;
   watch?: any;
 }) {
+  const currentRating = watch ? watch(`stays.${stayIndex}.starRating`) : undefined;
+
   return (
     <div className="p-4 space-y-4">
-      {/* Row 1: Name & Location */}
+      {/* Row 1: Name, Rating & Location */}
       <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
-        <div className="sm:col-span-7 space-y-1">
-          <Label className="text-xs font-medium">Hotel / Resort / Houseboat Name *</Label>
+        <div className="sm:col-span-6 space-y-1">
+          <Label className="text-xs font-medium">Accommodation Name *</Label>
           <Input
             {...register(`stays.${stayIndex}.name` as const, { required: true })}
             placeholder="e.g. Fragrant Nature Resort & Spa"
           />
         </div>
-        <div className="sm:col-span-5 space-y-1">
+        <div className="sm:col-span-3 space-y-1">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-medium flex items-center gap-1">
+              <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+              Accommodation Rating
+            </Label>
+            <div className="flex items-center gap-1">
+              {["5★", "4★", "3★"].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() =>
+                    setValue &&
+                    setValue(`stays.${stayIndex}.starRating`, `${star.replace("★", "")} Star`, {
+                      shouldDirty: true,
+                    })
+                  }
+                  className={cn(
+                    "text-[10px] px-1 py-0.2 rounded cursor-pointer transition-colors",
+                    currentRating?.startsWith(star.replace("★", ""))
+                      ? "bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 font-semibold"
+                      : "text-muted-foreground hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+                  )}
+                  title={`Set to ${star.replace("★", "")} Star`}
+                >
+                  {star}
+                </button>
+              ))}
+            </div>
+          </div>
+          <Input
+            {...register(`stays.${stayIndex}.starRating` as const)}
+            placeholder="e.g. 5 Star"
+            list="star-ratings-list"
+          />
+          <datalist id="star-ratings-list">
+            <option value="5 Star" />
+            <option value="5 Star Deluxe" />
+            <option value="5 Star Luxury" />
+            <option value="4 Star" />
+            <option value="4 Star Premium" />
+            <option value="3 Star" />
+            <option value="Luxury Heritage" />
+            <option value="Premium Boutique" />
+            <option value="Luxury Houseboat" />
+          </datalist>
+        </div>
+        <div className="sm:col-span-3 space-y-1">
           <Label className="text-xs font-medium">Destination / Location</Label>
           <Input
             {...register(`stays.${stayIndex}.location` as const)}
@@ -3178,8 +4745,8 @@ function StayCardBody({
         </div>
       </div>
 
-      {/* Row 2: Nights, Rooms, Meal Plan, Room Category / Type */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Row 2: Nights, Rooms, Meal Plan */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1">
           <Label className="text-xs font-medium">No. of Nights</Label>
           <Input
@@ -3203,13 +4770,6 @@ function StayCardBody({
           <Input
             {...register(`stays.${stayIndex}.mealPlan` as const)}
             placeholder="e.g. BreakFast"
-          />
-        </div>
-        <div className="space-y-1 col-span-2 sm:col-span-1">
-          <Label className="text-xs font-medium">Room Category / Type</Label>
-          <Input
-            {...register(`stays.${stayIndex}.roomType` as const)}
-            placeholder="e.g. Deluxe Suite"
           />
         </div>
       </div>

@@ -87,7 +87,7 @@ function ProtectedRouter() {
         <Route path="/categories" component={CategoriesPage} />
         <Route path="/packages" component={PackagesPage} />
         <Route path="/itineraries/create" component={ItineraryCreatePage} />
-        <Route path="/itinerary/create" component={ItineraryBuilderPage} />
+        <Route path="/itinerary/create" component={ItineraryCreatePage} />
         <Route path="/itineraries/new" component={ItineraryBuilderPage} />
         <Route path="/itinerary/new" component={ItineraryBuilderPage} />
         <Route path="/itineraries/:id/edit" component={ItineraryBuilderPage} />

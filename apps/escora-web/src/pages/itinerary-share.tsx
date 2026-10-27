@@ -77,6 +77,8 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
   const pricing = parsePricing(itinerary.pricing);
   const inclusions = parseStringList(itinerary.inclusions);
   const exclusions = parseStringList(itinerary.exclusions);
+  const tripIncludes = parseTripIncludes(itinerary.tripIncludes);
+  const weAlsoProvide = (tripIncludes?.weAlsoProvide || []).filter(Boolean);
   const dateRange = [formatDate(itinerary.startDate), formatDate(itinerary.endDate)].filter(Boolean).join(" — ");
   const tripNights = (() => {
     if (!itinerary.startDate || !itinerary.endDate) return undefined;
@@ -117,10 +119,12 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
             curatorName: itinerary.curatorName,
             curatorPhone: itinerary.curatorPhone,
             emergencyContacts: itinerary.emergencyContacts,
+            createdDate: itinerary.createdAt ? String(itinerary.createdAt) : undefined,
             adults: itinerary.adults,
             children: itinerary.children,
             infants: itinerary.infants,
             tripIncludes: parseTripIncludes(itinerary.tripIncludes),
+            weAlsoProvide: parseTripIncludes(itinerary.tripIncludes).weAlsoProvide,
             transportation: parseTransportation(itinerary.transportation),
             hotelTerms: parseStringList(itinerary.hotelTerms),
             paymentTerms: parseStringList(itinerary.paymentTerms),
@@ -310,63 +314,91 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
             </section>
           )}
 
-          {!isPackage && pricing.items.length > 0 && (
-            <section>
-              <h2 className="font-serif text-3xl text-ink mb-8 border-b border-line pb-5 font-semibold">Pricing</h2>
-              <div className="bg-bg-2 border border-gold/30 break-inside-avoid">
-                <div className="divide-y divide-line/60 px-4 sm:px-7">
-                  {pricing.items.map((item, i) => (
-                    <div key={i} className="flex items-center justify-between py-4">
-                      <span className="font-sans text-sm text-ink-soft">{item.label}</span>
-                      <span className="font-sans text-sm text-ink-soft">{formatMoney(item.amount, itinerary.currency)}</span>
-                    </div>
-                  ))}
-                  {!!pricing.discount && (
-                    <div className="flex items-center justify-between py-4">
-                      <span className="font-sans text-sm text-gold">Discount</span>
-                      <span className="font-sans text-sm text-gold">-{formatMoney(pricing.discount, itinerary.currency)}</span>
-                    </div>
-                  )}
-                  {!!pricing.taxes && (
-                    <div className="flex items-center justify-between py-4">
-                      <span className="font-sans text-sm text-ink-mute">Taxes &amp; Fees</span>
-                      <span className="font-sans text-sm text-ink-mute">{formatMoney(pricing.taxes, itinerary.currency)}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center justify-between py-5 px-4 sm:px-7 border-t border-gold/40 bg-bg-3/40">
-                  <span className="font-serif text-xl text-gold-bright font-semibold">Total</span>
-                  <span className="font-mono text-xl text-gold-bright font-bold">{formatMoney(pricing.total, itinerary.currency)}</span>
-                </div>
+          {weAlsoProvide.length > 0 && (
+            <section className="bg-bg-2 border border-gold/30 p-5 sm:p-7">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="font-serif text-2xl text-ink font-semibold">We Also Provide</h3>
+                <span className="font-mono text-[10px] text-gold uppercase tracking-wider border border-gold/40 px-2 py-0.5 rounded">
+                  Optional · On Request
+                </span>
               </div>
-              {pricing.notes && <p className="text-xs text-ink-mute mt-3.5">{pricing.notes}</p>}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {weAlsoProvide.map((service, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-3 rounded border border-line bg-bg/50">
+                    <span className="text-gold text-xs">✦</span>
+                    <span className="font-sans text-sm text-ink-soft font-medium">{service}</span>
+                  </div>
+                ))}
+              </div>
             </section>
           )}
 
-          {!isPackage && pricing.items.length > 0 && (
-            <section className="print:hidden bg-bg-2 border border-gold/30 p-5 sm:p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-              <div>
-                <p className="font-mono text-gold text-xs tracking-[0.25em] uppercase mb-2">Reserve This Journey</p>
-                <p className="font-sans text-ink-soft text-sm max-w-md">
-                  Secure your dates with a deposit, or settle the full amount now. Your Escora specialist will confirm payment details and send a receipt.
-                </p>
-              </div>
-              <div className="flex flex-col items-start md:items-end gap-3 flex-shrink-0">
-                <div className="text-left md:text-right">
-                  <span className="block font-mono text-[10px] uppercase tracking-widest text-ink-mute mb-1">Amount Due</span>
-                  <span className="font-mono text-2xl text-gold-bright font-bold">{formatMoney(pricing.total, itinerary.currency)}</span>
-                </div>
-                <a
-                  href={`https://wa.me/918157003344?text=${encodeURIComponent(`Hi Escora, I'd like to proceed with payment for "${itinerary.title}" (Ref: ${itinerary.shareToken.slice(0, 8).toUpperCase()}).`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center bg-gold text-bg font-mono text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold-bright transition-colors"
-                >
-                  Proceed to Payment
-                </a>
-              </div>
-            </section>
-          )}
+          {!isPackage && pricing.items.length > 0 && (() => {
+            const hasTaxes = Boolean(pricing.showTaxes || (typeof pricing.taxes === "number" && pricing.taxes > 0));
+            const subtotal = pricing.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+            const taxAmount = Number(pricing.taxes) || 0;
+            const isTaxInclusive = Boolean(pricing.taxInclusive);
+            const total = pricing.total > 0 ? pricing.total : hasTaxes && !isTaxInclusive ? subtotal + taxAmount : subtotal;
+
+            return (
+              <>
+                <section>
+                  <h2 className="font-serif text-3xl text-ink mb-8 border-b border-line pb-5 font-semibold">Pricing</h2>
+                  <div className="bg-bg-2 border border-gold/30 break-inside-avoid">
+                    <div className="divide-y divide-line/60 px-4 sm:px-7">
+                      {pricing.items.map((item, i) => (
+                        <div key={i} className="flex items-center justify-between py-4">
+                          <span className="font-sans text-sm text-ink-soft">{item.label}</span>
+                          <span className="font-sans text-sm text-ink-soft">{formatMoney(item.amount, itinerary.currency)}</span>
+                        </div>
+                      ))}
+                      {hasTaxes && !isTaxInclusive && taxAmount > 0 && (
+                        <div className="flex items-center justify-between py-4">
+                          <span className="font-sans text-sm text-ink-soft">{pricing.taxLabel || "GST & Taxes"}</span>
+                          <span className="font-sans text-sm text-ink-soft">+{formatMoney(taxAmount, itinerary.currency)}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between py-5 px-4 sm:px-7 border-t border-gold/40 bg-bg-3/40">
+                      <div>
+                        <span className="font-serif text-xl text-gold-bright font-semibold">Total</span>
+                        {hasTaxes && isTaxInclusive && taxAmount > 0 && (
+                          <span className="block text-[11px] text-ink-mute font-sans mt-0.5">
+                            (Includes {pricing.taxLabel || "GST"}: {formatMoney(taxAmount, itinerary.currency)})
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono text-xl text-gold-bright font-bold">{formatMoney(total, itinerary.currency)}</span>
+                    </div>
+                  </div>
+                  {pricing.notes && <p className="text-xs text-ink-mute mt-3.5">{pricing.notes}</p>}
+                </section>
+
+                <section className="print:hidden bg-bg-2 border border-gold/30 p-5 sm:p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                  <div>
+                    <p className="font-mono text-gold text-xs tracking-[0.25em] uppercase mb-2">Reserve This Journey</p>
+                    <p className="font-sans text-ink-soft text-sm max-w-md">
+                      Secure your dates with a deposit, or settle the full amount now. Your Escora specialist will confirm payment details and send a receipt.
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-start md:items-end gap-3 flex-shrink-0">
+                    <div className="text-left md:text-right">
+                      <span className="block font-mono text-[10px] uppercase tracking-widest text-ink-mute mb-1">Amount Due</span>
+                      <span className="font-mono text-2xl text-gold-bright font-bold">{formatMoney(total, itinerary.currency)}</span>
+                    </div>
+                    <a
+                      href={`https://wa.me/918157003344?text=${encodeURIComponent(`Hi Escora, I'd like to proceed with payment for "${itinerary.title}" (Ref: ${itinerary.shareToken.slice(0, 8).toUpperCase()}).`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center bg-gold text-bg font-mono text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold-bright transition-colors"
+                    >
+                      Proceed to Payment
+                    </a>
+                  </div>
+                </section>
+              </>
+            );
+          })()}
 
           <footer className="pt-12 border-t border-line text-center font-mono text-xs uppercase tracking-widest text-ink-mute">
             Escora Holidays · A bespoke journey, curated for you

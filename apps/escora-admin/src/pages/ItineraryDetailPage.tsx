@@ -118,6 +118,7 @@ function toPrintData(itinerary: Itinerary) {
     children: itinerary.children,
     infants: itinerary.infants,
     tripIncludes: parseTripIncludes(itinerary.tripIncludes),
+    weAlsoProvide: parseTripIncludes(itinerary.tripIncludes).weAlsoProvide,
     transportation: parseTransportation(itinerary.transportation),
     hotelTerms: parseStringList(itinerary.hotelTerms),
     paymentTerms: parseStringList(itinerary.paymentTerms),

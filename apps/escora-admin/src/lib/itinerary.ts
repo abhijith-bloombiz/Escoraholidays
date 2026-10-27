@@ -40,8 +40,21 @@ export interface ItineraryPricing {
   items: ItineraryPriceItem[];
   discount?: number;
   taxes?: number;
+  taxRate?: number;
+  taxType?: "percentage" | "fixed";
+  taxInclusive?: boolean;
+  taxLabel?: string;
+  showTaxes?: boolean;
   total: number;
   notes?: string;
+}
+
+export interface ItineraryAgencyContact {
+  phone?: string;
+  email?: string;
+  instagram?: string;
+  facebook?: string;
+  website?: string;
 }
 
 export interface ItineraryTripIncludes {
@@ -49,7 +62,15 @@ export interface ItineraryTripIncludes {
   transport: boolean;
   sightseeing: boolean;
   transfer: boolean;
+  weAlsoProvide?: string[];
+  agencyContact?: ItineraryAgencyContact;
 }
+
+export const DEFAULT_WE_ALSO_PROVIDE_OPTIONS = [
+  "Private Guide",
+  "Photographer/ Videographer",
+  "Flight Tickets",
+] as const;
 
 export interface ItineraryTransportation {
   origin: string;
@@ -92,11 +113,42 @@ export const DEFAULT_EXCLUSIONS: string[] = [
   "Any fee for video or camera permit.",
 ];
 
+export const PLACEHOLDER_INCLUSIONS: string[] = [
+  "Daily gourmet breakfast at all hotels and resorts",
+  "Private dedicated chauffeur-driven AC vehicle for entire tour",
+  "All fuel charges, toll taxes, parking fees, and driver allowances",
+  "Handpicked luxury hotel and resort stays as per itinerary",
+  "All inter-destination transfers and sightseeing excursions as outlined",
+  "Exclusive private backwater houseboat day cruise with onboard meals",
+  "Traditional non-alcoholic welcome drink upon arrival at resorts",
+  "Guided spice plantation walk & local village cultural experiences",
+  "24/7 dedicated local concierge and on-ground trip assistance",
+  "All applicable luxury hotel taxes and resort service charges",
+  "Complimentary high-speed Wi-Fi access at all accommodations",
+  "Kathakali classical dance and martial arts cultural show",
+];
+
+export const PLACEHOLDER_EXCLUSIONS: string[] = [
+  "Any item of personal nature like tips, laundry, telephone calls etc.",
+  "Any other sightseeing other than those mentioned in the inclusions section.",
+  "Any fee for video or camera permit.",
+  "Domestic or international airfares and train tickets",
+  "Meals and beverages not explicitly mentioned in the package inclusions",
+  "Optional adventure activities, water sports, jeep safaris, and boating fees",
+  "Personal travel insurance, luggage, and medical expenses",
+  "Early check-in and late check-out charges at hotels",
+  "Monument entrance fees, museum tickets, and local guide charges",
+  "Expenses caused by factors beyond control like weather, flight delays, or natural calamities",
+  "Vehicle usage beyond standard hours or outside agreed tour route",
+  "Peak season, festive, or Gala dinner surcharges where applicable",
+];
+
 export const DEFAULT_AGENCY_CONTACT = {
-  phone: "+91 9400280420",
-  email: "info@escoraholidays.com",
-  instagram: "escoraholidays",
-  website: "www.escoraholidays.com",
+  phone: "9496933336",
+  email: "mc@escoraholidays.com",
+  instagram: "escora_holidays",
+  facebook: "Escora Holidays",
+  website: "http://www.escoraholidays.com",
   emergencyContacts: "+91 9400280420 | +91 8157003344",
   curatorName: "Midhilaj Chelakkal",
   curatorPhone: "+91 9745585813",
@@ -104,9 +156,21 @@ export const DEFAULT_AGENCY_CONTACT = {
 
 export const emptyPricing: ItineraryPricing = { items: [], total: 0 };
 
-export function computePricingTotal(pricing: Pick<ItineraryPricing, "items" | "discount" | "taxes">): number {
-  const subtotal = pricing.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  return Math.max(0, subtotal - (Number(pricing.discount) || 0) + (Number(pricing.taxes) || 0));
+export function computePricingTotal(
+  pricing: Pick<ItineraryPricing, "items"> & Partial<Pick<ItineraryPricing, "discount" | "taxes" | "taxRate" | "taxType" | "taxInclusive" | "showTaxes">>
+): number {
+  const subtotal = (pricing.items || []).reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  if (!pricing.showTaxes) return subtotal;
+  let taxAmount = 0;
+  if (pricing.taxType === "fixed") {
+    taxAmount = Number(pricing.taxes) || 0;
+  } else {
+    const rate = Number(pricing.taxRate ?? 5);
+    taxAmount = pricing.taxInclusive
+      ? Math.round(subtotal - subtotal / (1 + rate / 100))
+      : Math.round((subtotal * rate) / 100);
+  }
+  return pricing.taxInclusive ? subtotal : subtotal + taxAmount;
 }
 
 function safeParse<T>(val: unknown, fallback: T): T {
@@ -167,6 +231,11 @@ export function parsePricing(str: unknown): ItineraryPricing {
     items: Array.isArray(parsed.items) ? parsed.items.filter((item) => item && typeof item === "object") : [],
     discount: typeof parsed.discount === "number" ? parsed.discount : undefined,
     taxes: typeof parsed.taxes === "number" ? parsed.taxes : undefined,
+    taxRate: typeof parsed.taxRate === "number" ? parsed.taxRate : undefined,
+    taxType: parsed.taxType === "fixed" ? "fixed" : "percentage",
+    taxInclusive: Boolean(parsed.taxInclusive),
+    taxLabel: parsed.taxLabel || undefined,
+    showTaxes: Boolean(parsed.showTaxes || (typeof parsed.taxes === "number" && parsed.taxes > 0)),
     total: Number(parsed.total) || 0,
     notes: parsed.notes || undefined,
   };
@@ -186,6 +255,10 @@ export function parseTripIncludes(str: unknown): ItineraryTripIncludes {
     transport: parsed.transport ?? true,
     sightseeing: parsed.sightseeing ?? true,
     transfer: parsed.transfer ?? true,
+    weAlsoProvide: Array.isArray(parsed.weAlsoProvide)
+      ? parsed.weAlsoProvide.map((s) => String(s || "").trim()).filter(Boolean)
+      : [],
+    agencyContact: parsed.agencyContact,
   };
 }
 
@@ -217,3 +290,33 @@ export function formatDayDateHeader(dayNum: number, dateStr?: string | null): st
   const year = d.toLocaleDateString("en-IN", { year: "numeric" });
   return `Day ${dayNum} | ${weekday} | ${day} ${month} ${year}`;
 }
+
+/**
+ * Generates an official Escora Holidays proposal reference number.
+ * Format: L{LeadRef}/Q{QuoteRef} e.g. "L100021/Q1020"
+ * - L<LeadRef>: 6 digits representing the lead/client (L100000 + enquiryId, or sequential/random L10XXXX)
+ * - Q<QuoteRef>: 4-5 digits representing the quote/proposal (Q1000 + proposalId/seq, or random Q1XXX)
+ */
+export function generateProposalReferenceNumber(options?: {
+  enquiryId?: number | string | null;
+  proposalId?: number | string | null;
+  seedSequence?: number;
+}): string {
+  const parsedEnquiryId = options?.enquiryId ? Number(options.enquiryId) : null;
+  const leadNum =
+    parsedEnquiryId && !Number.isNaN(parsedEnquiryId) && parsedEnquiryId > 0
+      ? 100000 + parsedEnquiryId
+      : 100000 + (options?.seedSequence ? options.seedSequence : Math.floor(1000 + Math.random() * 9000));
+
+  const parsedProposalId = options?.proposalId ? Number(options.proposalId) : null;
+  const quoteNum =
+    parsedProposalId && !Number.isNaN(parsedProposalId) && parsedProposalId > 0
+      ? 1000 + parsedProposalId
+      : 1000 + (options?.seedSequence ? options.seedSequence : Math.floor(10 + Math.random() * 900));
+
+  return `L${leadNum}/Q${quoteNum}`;
+}
+
+
+
+

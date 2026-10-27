@@ -1275,7 +1275,7 @@ html.theme-v3 .portal-card img {
 /* Forms minimal input fields */
 html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):not(.escora-text-input):not(.escora-enquiry-card *),
 html.theme-v3 select:not(.escora-select-input):not(.escora-phone-prefix-select):not(.escora-enquiry-card *),
-html.theme-v3 textarea {
+html.theme-v3 textarea:not(.escora-textarea-input):not(.escora-enquiry-card *) {
   border-radius: 12px !important;
   background: var(--bg-3);
   border: 1px solid var(--line);
@@ -1285,7 +1285,7 @@ html.theme-v3 textarea {
 
 html.theme-v3 input:not([type="checkbox"]):not([type="radio"]):not(.escora-text-input):not(.escora-enquiry-card *):focus,
 html.theme-v3 select:not(.escora-select-input):not(.escora-phone-prefix-select):not(.escora-enquiry-card *):focus,
-html.theme-v3 textarea:focus {
+html.theme-v3 textarea:not(.escora-textarea-input):not(.escora-enquiry-card *):focus {
   border-color: var(--gold) !important;
   background: #FEFEFE;
   box-shadow: 0 0 0 3px rgba(26,63,44,0.08);

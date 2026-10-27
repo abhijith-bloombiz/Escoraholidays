@@ -102,6 +102,7 @@ export default function TemplateEditorModal({
   const [transportIncluded, setTransportIncluded] = useState(true);
   const [sightseeingIncluded, setSightseeingIncluded] = useState(true);
   const [transferIncluded, setTransferIncluded] = useState(true);
+  const [weAlsoProvide, setWeAlsoProvide] = useState<string[]>([]);
 
   // Transportation
   const [transportOrigin, setTransportOrigin] = useState("ESCORA HOLIDAYS | Trivandrum, Keralam, India");
@@ -149,6 +150,7 @@ export default function TemplateEditorModal({
       setTransportIncluded(parsedTripInc.transport);
       setSightseeingIncluded(parsedTripInc.sightseeing);
       setTransferIncluded(parsedTripInc.transfer);
+      setWeAlsoProvide(parsedTripInc.weAlsoProvide || []);
 
       const parsedTrans = parseTransportation(templateToEdit.transportation);
       if (parsedTrans) {
@@ -357,6 +359,7 @@ export default function TemplateEditorModal({
       transport: transportIncluded,
       sightseeing: sightseeingIncluded,
       transfer: transferIncluded,
+      weAlsoProvide,
     };
 
     const transportationPayload = {
@@ -936,9 +939,46 @@ export default function TemplateEditorModal({
                       onCheckedChange={(c) => setTransferIncluded(Boolean(c))}
                     />
                     <label htmlFor="inc-transfer" className="text-xs font-medium cursor-pointer">
-                      Airport Transfers
+                      VISA
                     </label>
                   </div>
+                </div>
+              </div>
+
+              {/* Optional: We Also Provide */}
+              <div className="p-3 bg-muted/20 border rounded-lg space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
+                    We Also Provide (Optional Add-on Badges)
+                  </h4>
+                  <span className="text-[10px] text-muted-foreground">Shown in PDF when checked</span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
+                  {[
+                    "Private Guide",
+                    "Photographer/ Videographer",
+                    "Flight Tickets",
+                  ].map((service) => {
+                    const isChecked = weAlsoProvide.includes(service);
+                    return (
+                      <div key={service} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`tpl-prov-${service}`}
+                          checked={isChecked}
+                          onCheckedChange={(c) => {
+                            if (c) {
+                              setWeAlsoProvide([...weAlsoProvide, service]);
+                            } else {
+                              setWeAlsoProvide(weAlsoProvide.filter((s) => s !== service));
+                            }
+                          }}
+                        />
+                        <label htmlFor={`tpl-prov-${service}`} className="text-xs font-medium cursor-pointer">
+                          {service}
+                        </label>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 

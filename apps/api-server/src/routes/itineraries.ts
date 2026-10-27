@@ -91,9 +91,16 @@ router.post("/itineraries", async (req, res, next): Promise<void> => {
 
   try {
     const id = await getNextSequence("itineraries");
+    let referenceNumber = parsed.data.referenceNumber?.trim();
+    if (!referenceNumber) {
+      const leadNum = parsed.data.enquiryId ? 100000 + Number(parsed.data.enquiryId) : 100000 + id;
+      const quoteNum = 1000 + id;
+      referenceNumber = `L${leadNum}/Q${quoteNum}`;
+    }
     const itinerary = await ItineraryModel.create({
       ...parsed.data,
       id,
+      referenceNumber,
       shareToken: nanoid(),
     });
     res.status(201).json(GetItineraryResponse.parse(serializeDates(itinerary.toObject())));
@@ -103,6 +110,20 @@ router.post("/itineraries", async (req, res, next): Promise<void> => {
       return;
     }
     next(err);
+  }
+});
+
+// GET /api/itineraries/next-reference
+router.get("/itineraries/next-reference", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const rawEnquiryId = req.query.enquiryId ? Number(req.query.enquiryId) : undefined;
+    const enquiryId = rawEnquiryId && !Number.isNaN(rawEnquiryId) ? rawEnquiryId : undefined;
+    const count = await ItineraryModel.countDocuments();
+    const leadNum = enquiryId ? 100000 + enquiryId : 100000 + count + 1;
+    const quoteNum = 1000 + count + 1;
+    res.json({ referenceNumber: `L${leadNum}/Q${quoteNum}` });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to generate proposal reference number" });
   }
 });
 

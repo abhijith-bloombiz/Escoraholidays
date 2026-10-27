@@ -106,6 +106,7 @@ import {
   parseStringList,
   parseTripIncludes,
   parseTransportation,
+  generateProposalReferenceNumber,
 } from "@/lib/itinerary";
 
 const SHARE_BASE_URL = "https://www.escoraholidays.com";
@@ -200,6 +201,7 @@ function toPrintData(itinerary: Itinerary) {
     children: itinerary.children,
     infants: itinerary.infants,
     tripIncludes: parseTripIncludes(itinerary.tripIncludes),
+    weAlsoProvide: parseTripIncludes(itinerary.tripIncludes).weAlsoProvide,
     transportation: parseTransportation(itinerary.transportation),
     hotelTerms: parseStringList(itinerary.hotelTerms),
     paymentTerms: parseStringList(itinerary.paymentTerms),
@@ -763,6 +765,7 @@ export default function EnquiriesPage() {
       pricing: JSON.stringify(defaultPricing),
       inclusions: JSON.stringify((draft.inclusions || []).map((s: string) => s.trim()).filter(Boolean)),
       exclusions: JSON.stringify((draft.exclusions || []).map((s: string) => s.trim()).filter(Boolean)),
+      referenceNumber: generateProposalReferenceNumber({ enquiryId: finalEnquiryId }),
       enquiryId: finalEnquiryId,
     };
 

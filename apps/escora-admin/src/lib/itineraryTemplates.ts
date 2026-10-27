@@ -9,6 +9,7 @@ import {
   DEFAULT_HOTEL_TERMS,
   DEFAULT_PAYMENT_TERMS,
   DEFAULT_IMPORTANT_INFO,
+  DEFAULT_WE_ALSO_PROVIDE_OPTIONS,
   parseDays,
   parseStays,
 } from "@/lib/itinerary";
@@ -72,6 +73,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
       transport: true,
       sightseeing: true,
       transfer: true,
+      weAlsoProvide: [...DEFAULT_WE_ALSO_PROVIDE_OPTIONS],
     },
     transportation: {
       origin: "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
@@ -150,8 +152,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         { label: "The Leela Kovalam, a Raviz Hotel (1 Night, BreakFast)", amount: 22500 },
         { label: "Private Dedicated Chauffeur & Sightseeing Transfers", amount: 11000 },
       ],
-      total: 44000,
-      discount: 4000,
+      total: 48000,
       notes: "Comprehensive package including 5-Star accommodations, dedicated chauffeur transportation, breakfast, and all sightseeing access as outlined.",
     },
     hotelTerms: DEFAULT_HOTEL_TERMS,

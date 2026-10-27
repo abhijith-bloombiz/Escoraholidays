@@ -49,12 +49,21 @@ export interface ItineraryPricing {
   notes?: string;
 }
 
+export interface ItineraryAgencyContact {
+  phone?: string;
+  email?: string;
+  instagram?: string;
+  facebook?: string;
+  website?: string;
+}
+
 export interface ItineraryTripIncludes {
   hotel: boolean;
   transport: boolean;
   sightseeing: boolean;
   transfer: boolean;
   weAlsoProvide?: string[];
+  agencyContact?: ItineraryAgencyContact;
 }
 
 export const DEFAULT_WE_ALSO_PROVIDE_OPTIONS = [
@@ -135,10 +144,11 @@ export const PLACEHOLDER_EXCLUSIONS: string[] = [
 ];
 
 export const DEFAULT_AGENCY_CONTACT = {
-  phone: "+91 9400280420",
-  email: "info@escoraholidays.com",
-  instagram: "escoraholidays",
-  website: "www.escoraholidays.com",
+  phone: "9496933336",
+  email: "mc@escoraholidays.com",
+  instagram: "escora_holidays",
+  facebook: "Escora Holidays",
+  website: "http://www.escoraholidays.com",
   emergencyContacts: "+91 9400280420 | +91 8157003344",
   curatorName: "Midhilaj Chelakkal",
   curatorPhone: "+91 9745585813",
@@ -235,6 +245,7 @@ export function parseTripIncludes(str: string | null | undefined): ItineraryTrip
     weAlsoProvide: Array.isArray(parsed.weAlsoProvide)
       ? parsed.weAlsoProvide.map((s) => String(s || "").trim()).filter(Boolean)
       : [],
+    agencyContact: parsed.agencyContact,
   };
 }
 

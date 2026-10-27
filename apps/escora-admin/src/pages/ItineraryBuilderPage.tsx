@@ -121,6 +121,11 @@ interface BuilderForm {
   curatorName: string;
   curatorPhone: string;
   emergencyContacts: string;
+  agencyPhone: string;
+  agencyEmail: string;
+  agencyInstagram: string;
+  agencyFacebook: string;
+  agencyWebsite: string;
   adults: number;
   children: number;
   infants: number;
@@ -158,6 +163,11 @@ const emptyForm: BuilderForm = {
   curatorName: DEFAULT_AGENCY_CONTACT.curatorName,
   curatorPhone: DEFAULT_AGENCY_CONTACT.curatorPhone,
   emergencyContacts: DEFAULT_AGENCY_CONTACT.emergencyContacts,
+  agencyPhone: DEFAULT_AGENCY_CONTACT.phone,
+  agencyEmail: DEFAULT_AGENCY_CONTACT.email,
+  agencyInstagram: DEFAULT_AGENCY_CONTACT.instagram,
+  agencyFacebook: DEFAULT_AGENCY_CONTACT.facebook,
+  agencyWebsite: DEFAULT_AGENCY_CONTACT.website,
   adults: 1,
   children: 0,
   infants: 0,
@@ -402,6 +412,11 @@ export default function ItineraryBuilderPage() {
         curatorName: existing.curatorName ?? DEFAULT_AGENCY_CONTACT.curatorName,
         curatorPhone: existing.curatorPhone ?? DEFAULT_AGENCY_CONTACT.curatorPhone,
         emergencyContacts: existing.emergencyContacts ?? DEFAULT_AGENCY_CONTACT.emergencyContacts,
+        agencyPhone: tripInc.agencyContact?.phone ?? (existing as any).agencyPhone ?? DEFAULT_AGENCY_CONTACT.phone,
+        agencyEmail: tripInc.agencyContact?.email ?? (existing as any).agencyEmail ?? DEFAULT_AGENCY_CONTACT.email,
+        agencyInstagram: tripInc.agencyContact?.instagram ?? (existing as any).agencyInstagram ?? DEFAULT_AGENCY_CONTACT.instagram,
+        agencyFacebook: tripInc.agencyContact?.facebook ?? (existing as any).agencyFacebook ?? DEFAULT_AGENCY_CONTACT.facebook,
+        agencyWebsite: tripInc.agencyContact?.website ?? (existing as any).agencyWebsite ?? DEFAULT_AGENCY_CONTACT.website,
         adults: existing.adults ?? 1,
         children: existing.children ?? 0,
         infants: existing.infants ?? 0,
@@ -720,6 +735,13 @@ export default function ItineraryBuilderPage() {
           }
           return Array.from(new Set(combined)).map((s) => String(s || "").trim()).filter(Boolean);
         })(),
+        agencyContact: {
+          phone: (form.agencyPhone || getValues("agencyPhone") || DEFAULT_AGENCY_CONTACT.phone).trim(),
+          email: (form.agencyEmail || getValues("agencyEmail") || DEFAULT_AGENCY_CONTACT.email).trim(),
+          instagram: (form.agencyInstagram || getValues("agencyInstagram") || DEFAULT_AGENCY_CONTACT.instagram).trim(),
+          facebook: (form.agencyFacebook || getValues("agencyFacebook") || DEFAULT_AGENCY_CONTACT.facebook).trim(),
+          website: (form.agencyWebsite || getValues("agencyWebsite") || DEFAULT_AGENCY_CONTACT.website).trim(),
+        },
       }),
       transportation: JSON.stringify({
         origin: form.transportOrigin,
@@ -1735,6 +1757,86 @@ export default function ItineraryBuilderPage() {
                     {...register("emergencyContacts")}
                     placeholder="+91 9400280420 | +91 8157003344"
                   />
+                </div>
+              </div>
+
+              {/* Row 5B: Agency Footer Contact & Social Media */}
+              <div className="space-y-3 p-3.5 bg-muted/20 rounded-lg border border-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-primary" />
+                    <Label className="font-semibold text-xs text-foreground">
+                      Agency Contact &amp; Social Media (PDF Footer)
+                    </Label>
+                    <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider text-muted-foreground">
+                      PDF Footer
+                    </Badge>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground">
+                    Customizes the bottom contact bar on the dossier
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyPhone" className="text-[11px] font-medium text-foreground">
+                      Contact Phone
+                    </Label>
+                    <Input
+                      id="agencyPhone"
+                      {...register("agencyPhone")}
+                      placeholder="9496933336"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyEmail" className="text-[11px] font-medium text-foreground">
+                      Contact Email
+                    </Label>
+                    <Input
+                      id="agencyEmail"
+                      {...register("agencyEmail")}
+                      placeholder="mc@escoraholidays.com"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyInstagram" className="text-[11px] font-medium text-foreground">
+                      Instagram Handle
+                    </Label>
+                    <Input
+                      id="agencyInstagram"
+                      {...register("agencyInstagram")}
+                      placeholder="escora_holidays"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyFacebook" className="text-[11px] font-medium text-foreground">
+                      Facebook Name
+                    </Label>
+                    <Input
+                      id="agencyFacebook"
+                      {...register("agencyFacebook")}
+                      placeholder="Escora Holidays"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label htmlFor="agencyWebsite" className="text-[11px] font-medium text-foreground">
+                      Website URL
+                    </Label>
+                    <Input
+                      id="agencyWebsite"
+                      {...register("agencyWebsite")}
+                      placeholder="http://www.escoraholidays.com"
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
                 </div>
               </div>
 

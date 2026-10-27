@@ -106,6 +106,7 @@ export default function ItineraryPdfPreviewPage() {
       curatorName: dbItinerary.curatorName,
       curatorPhone: dbItinerary.curatorPhone,
       emergencyContacts: dbItinerary.emergencyContacts,
+      createdDate: dbItinerary.createdAt ? String(dbItinerary.createdAt) : undefined,
       adults: dbItinerary.adults,
       children: dbItinerary.children,
       infants: dbItinerary.infants,
@@ -115,6 +116,11 @@ export default function ItineraryPdfPreviewPage() {
       hotelTerms: parseStringList(dbItinerary.hotelTerms),
       paymentTerms: parseStringList(dbItinerary.paymentTerms),
       importantInfo: parseStringList(dbItinerary.importantInfo),
+      agencyPhone: parsedTripInc.agencyContact?.phone,
+      agencyEmail: parsedTripInc.agencyContact?.email,
+      agencyInstagram: parsedTripInc.agencyContact?.instagram,
+      agencyFacebook: parsedTripInc.agencyContact?.facebook,
+      agencyWebsite: parsedTripInc.agencyContact?.website,
     };
   } else {
     printData = templateToPrintData(activeTemplate);

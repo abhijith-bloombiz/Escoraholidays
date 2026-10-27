@@ -37,7 +37,6 @@ import fortKochiFallbackImg from "@assets/escora/destinations/fort-kochi.jpg";
 import padmanabhaswamyFallbackImg from "@assets/escora/destinations/padmanabhaswamy-temple.jpg";
 import escoraOfficialLogo from "@assets/escora/escora-official-logo.png";
 import escoraWhiteLogo from "@assets/escora/escora-logo-white.png";
-import escoraFooterPlane from "@assets/escora/escora-footer-plane.png";
 
 export interface ItineraryPrintData {
   title: string;
@@ -72,13 +71,39 @@ export interface ItineraryPrintData {
   agencyPhone?: string | null;
   agencyEmail?: string | null;
   agencyInstagram?: string | null;
+  agencyFacebook?: string | null;
   agencyWebsite?: string | null;
+}
+
+function parseLocalDate(str?: string | null): Date | null {
+  if (!str) return null;
+  const trimmed = str.trim();
+  const ymdMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (ymdMatch) {
+    return new Date(Number(ymdMatch[1]), Number(ymdMatch[2]) - 1, Number(ymdMatch[3]));
+  }
+  const dmyMatch = trimmed.match(/^(\d{2})-(\d{2})-(\d{4})/);
+  if (dmyMatch) {
+    return new Date(Number(dmyMatch[3]), Number(dmyMatch[2]) - 1, Number(dmyMatch[1]));
+  }
+  const d = new Date(trimmed);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 function formatDDMMYYYY(iso?: string | null, fallback = "—"): string {
   if (!iso) return fallback;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
+  const trimmed = iso.trim();
+  const ymdMatch = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (ymdMatch) {
+    const [, year, month, day] = ymdMatch;
+    return `${day}-${month}-${year}`;
+  }
+  const dmyMatch = trimmed.match(/^(\d{2})-(\d{2})-(\d{4})/);
+  if (dmyMatch) {
+    return `${dmyMatch[1]}-${dmyMatch[2]}-${dmyMatch[3]}`;
+  }
+  const d = new Date(trimmed);
+  if (Number.isNaN(d.getTime())) return trimmed;
   const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const year = d.getFullYear();
@@ -92,16 +117,20 @@ function formatDayWeekdayDate(
 ): { weekday: string; dateText: string } {
   let targetDate: Date | null = null;
   if (dateStr) {
-    const d = new Date(dateStr);
-    if (!Number.isNaN(d.getTime())) {
+    const d = parseLocalDate(dateStr);
+    if (d) {
       targetDate = d;
     }
   } else if (fallbackBaseDate) {
-    targetDate = new Date(fallbackBaseDate.getTime() + (dayNum - 1) * 86400000);
+    targetDate = new Date(
+      fallbackBaseDate.getFullYear(),
+      fallbackBaseDate.getMonth(),
+      fallbackBaseDate.getDate() + (dayNum - 1)
+    );
   }
 
   if (!targetDate) {
-    return { weekday: "", dateText: `Day ${dayNum}` };
+    return { weekday: "", dateText: "" };
   }
 
   const weekday = targetDate.toLocaleDateString("en-IN", { weekday: "long" });
@@ -124,31 +153,10 @@ export function computeItineraryDatesAndDuration(
   endDateText: string;
   parsedStartDate: Date | null;
 } {
-  const daysCount = days.length > 0 ? days.length : 1;
-
-  let nightsFromStays = 0;
-  if (stays && stays.length > 0) {
-    nightsFromStays = stays.reduce((acc, s) => acc + (s.nights || 0), 0);
-  }
+  const parsedStart = parseLocalDate(startDate);
+  const parsedEnd = parseLocalDate(endDate);
 
   let nightsFromDates = 0;
-  let parsedStart: Date | null = null;
-  let parsedEnd: Date | null = null;
-
-  if (startDate) {
-    const s = new Date(startDate);
-    if (!Number.isNaN(s.getTime())) {
-      parsedStart = s;
-    }
-  }
-
-  if (endDate) {
-    const e = new Date(endDate);
-    if (!Number.isNaN(e.getTime())) {
-      parsedEnd = e;
-    }
-  }
-
   if (parsedStart && parsedEnd) {
     const diff = Math.round((parsedEnd.getTime() - parsedStart.getTime()) / 86400000);
     if (diff > 0) {
@@ -156,33 +164,54 @@ export function computeItineraryDatesAndDuration(
     }
   }
 
-  let finalNights = nightsFromStays;
-  if (finalNights === 0 && nightsFromDates > 0) {
-    finalNights = nightsFromDates;
+  let nightsFromStays = 0;
+  if (stays && stays.length > 0) {
+    nightsFromStays = stays.reduce((acc, s) => acc + (s.nights || 0), 0);
   }
-  if (finalNights === 0) {
-    finalNights = Math.max(0, daysCount - 1);
+
+  let finalDaysCount: number;
+  let finalNights: number;
+
+  if (nightsFromDates > 0) {
+    // Both Start Date and End Date explicitly entered in trip planner
+    finalNights = nightsFromDates;
+    finalDaysCount = Math.max(days.length, nightsFromDates + 1);
+  } else if (parsedStart && parsedEnd && nightsFromDates === 0) {
+    // Single-day trip
+    finalNights = 0;
+    finalDaysCount = Math.max(days.length, 1);
+  } else {
+    // End date open-ended; derive duration from day cards or stays
+    finalDaysCount = days.length > 0 ? days.length : 1;
+    finalNights = nightsFromStays > 0 ? nightsFromStays : Math.max(0, finalDaysCount - 1);
   }
 
   let finalStartDateText = "Dates to be advised";
   let finalEndDateText = "Dates to be advised";
 
-  if (parsedStart) {
-    finalStartDateText = formatDDMMYYYY(parsedStart.toISOString());
-    if (parsedEnd && nightsFromDates === daysCount - 1) {
-      finalEndDateText = formatDDMMYYYY(parsedEnd.toISOString());
-    } else {
-      const derivedEnd = new Date(parsedStart.getTime() + (daysCount - 1) * 86400000);
-      finalEndDateText = formatDDMMYYYY(derivedEnd.toISOString());
-    }
-  } else if (parsedEnd) {
-    finalEndDateText = formatDDMMYYYY(parsedEnd.toISOString());
+  if (startDate && startDate.trim()) {
+    finalStartDateText = formatDDMMYYYY(startDate);
   }
 
-  const formattedDuration = `${finalNights}N | ${daysCount}D`;
+  if (endDate && endDate.trim()) {
+    finalEndDateText = formatDDMMYYYY(endDate);
+  } else if (parsedStart) {
+    // Derive sequential end date from start date and day count
+    const derivedEnd = new Date(
+      parsedStart.getFullYear(),
+      parsedStart.getMonth(),
+      parsedStart.getDate() + Math.max(0, finalDaysCount - 1)
+    );
+    const day = String(derivedEnd.getDate()).padStart(2, "0");
+    const month = String(derivedEnd.getMonth() + 1).padStart(2, "0");
+    const year = derivedEnd.getFullYear();
+    finalEndDateText = `${day}-${month}-${year}`;
+  }
+
+  const formattedDuration = `${finalNights}N | ${finalDaysCount}D`;
 
   return {
-    daysCount,
+    daysCount: finalDaysCount,
     nightsCount: finalNights,
     formattedDuration,
     startDateText: finalStartDateText,
@@ -413,16 +442,32 @@ export default function ItineraryPrintDocument({
   const importantInfo =
     data.importantInfo && data.importantInfo.length > 0 ? data.importantInfo : DEFAULT_IMPORTANT_INFO;
 
-  const agencyPhone = data.agencyPhone || "9496933336";
-  const agencyEmail = data.agencyEmail || "mc@escoraholidays.com";
-  const agencyInstagram = data.agencyInstagram || "escora_holidays";
-  const agencyWebsite = data.agencyWebsite || "http://www.escoraholidays.com";
-
   // Inclusions 4 boxes
   const parsedTripIncludes =
     typeof data.tripIncludes === "string"
       ? parseTripIncludes(data.tripIncludes)
       : data.tripIncludes ?? DEFAULT_TRIP_INCLUDES;
+
+  const agencyPhone =
+    data.agencyPhone ||
+    parsedTripIncludes?.agencyContact?.phone ||
+    DEFAULT_AGENCY_CONTACT.phone;
+  const agencyEmail =
+    data.agencyEmail ||
+    parsedTripIncludes?.agencyContact?.email ||
+    DEFAULT_AGENCY_CONTACT.email;
+  const agencyInstagram =
+    data.agencyInstagram ||
+    parsedTripIncludes?.agencyContact?.instagram ||
+    DEFAULT_AGENCY_CONTACT.instagram;
+  const agencyFacebook =
+    data.agencyFacebook ||
+    parsedTripIncludes?.agencyContact?.facebook ||
+    DEFAULT_AGENCY_CONTACT.facebook;
+  const agencyWebsite =
+    data.agencyWebsite ||
+    parsedTripIncludes?.agencyContact?.website ||
+    DEFAULT_AGENCY_CONTACT.website;
 
   const incConfig = parsedTripIncludes ?? {
     hotel: true,
@@ -1100,8 +1145,9 @@ export default function ItineraryPrintDocument({
                     className="text-[12px] sm:text-[12.5px] font-bold text-[#1A3326] uppercase tracking-[0.08em]"
                     style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                   >
-                    Day {dayNum} | {header.weekday ? `${header.weekday} | ` : ""}
-                    {header.dateText}
+                    Day {dayNum}
+                    {header.weekday ? ` | ${header.weekday}` : ""}
+                    {header.dateText ? ` | ${header.dateText}` : ""}
                   </div>
 
                   {/* Day Title */}
@@ -1663,12 +1709,25 @@ export default function ItineraryPrintDocument({
                 </div>
                 <div className="flex flex-col items-end text-right">
                   {hasTaxes && !isTaxInclusive && subtotal > 0 && taxAmount > 0 && (
-                    <div className="text-[11px] text-white/70 tabular-nums">
-                      Subtotal: {currencySymbol}{subtotal.toLocaleString("en-IN")} + {pricing?.taxLabel || "Tax"}: {currencySymbol}{taxAmount.toLocaleString("en-IN")}
+                    <div
+                      className="text-[11px] text-white/75 flex items-center justify-end whitespace-nowrap mb-0.5"
+                      style={{ letterSpacing: "normal" }}
+                    >
+                      <span>Subtotal: {currencySymbol}{subtotal.toLocaleString("en-IN")}</span>
+                      <span
+                        style={{
+                          display: "inline-block",
+                          color: "rgba(255, 255, 255, 0.65)",
+                          margin: "0 3px",
+                        }}
+                      >
+                        +
+                      </span>
+                      <span>{pricing?.taxLabel || "Tax"}: {currencySymbol}{taxAmount.toLocaleString("en-IN")}</span>
                     </div>
                   )}
                   {hasTaxes && isTaxInclusive && taxAmount > 0 && (
-                    <div className="text-[10.5px] text-white/70 tabular-nums">
+                    <div className="text-[10.5px] text-white/75 mb-0.5">
                       (Includes {pricing?.taxLabel || "GST"}: {currencySymbol}{taxAmount.toLocaleString("en-IN")})
                     </div>
                   )}
@@ -1797,19 +1856,18 @@ export default function ItineraryPrintDocument({
           12. FOOTER CARD & AGENCY BADGES
       ========================================================================= */}
       <footer className="pdf-section pdf-avoid-break mt-6 border border-[#E5E7EB] rounded-xl overflow-hidden bg-white shadow-xs">
-        {/* Top Section with Escora Logo & Flight Graphic */}
-        <div className="p-5 sm:p-6 text-center space-y-3 bg-gradient-to-b from-white to-[#F8FAF8]">
+        {/* Top Section with Escora Logo & Brand Tagline */}
+        <div className="py-6 px-5 sm:px-6 text-center bg-gradient-to-b from-white to-[#F8FAF8]">
           <BrandLogo variant="dark" />
-
-          {/* Authentic Escora Flight Aircraft Graphic */}
-          <div className="flex items-center justify-center pt-2 pb-1">
-            <img
-              src={escoraFooterPlane}
-              alt="Escora Flight Aircraft Graphic"
-              className="w-48 sm:w-64 h-auto object-contain mx-auto drop-shadow-2xs"
-              loading="eager"
-              crossOrigin="anonymous"
-            />
+          <div className="mt-3 flex items-center justify-center gap-3">
+            <span className="h-[1px] w-12 bg-gradient-to-r from-transparent to-[#CAA052]/60" />
+            <p
+              className="text-[12px] sm:text-[12.5px] font-semibold tracking-[0.18em] uppercase text-[#CAA052]"
+              style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              Crafting Unforgettable Journeys
+            </p>
+            <span className="h-[1px] w-12 bg-gradient-to-l from-transparent to-[#CAA052]/60" />
           </div>
         </div>
 
@@ -1983,7 +2041,7 @@ export default function ItineraryPrintDocument({
                       lineHeight: "16px",
                     }}
                   >
-                    Escora Holidays
+                    {agencyFacebook}
                   </div>
                 </div>
               </div>

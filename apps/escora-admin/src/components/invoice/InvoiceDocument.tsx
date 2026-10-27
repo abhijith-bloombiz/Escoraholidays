@@ -417,47 +417,41 @@ export default function InvoiceDocument({
         )}
 
         {/* Bank & Settlement Details */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-5 rounded-lg border border-border/80 bg-muted/20 space-y-2">
+        <div className="p-5 rounded-lg border border-border/80 bg-muted/20 space-y-3">
+          <div className="border-b border-border/60 pb-2.5">
             <p className="text-xs uppercase tracking-widest text-[#183a27] dark:text-[#a3d9b5] font-semibold flex items-center gap-1.5">
               <Building className="h-3.5 w-3.5" /> Bank Wire Details
             </p>
-            <div className="grid grid-cols-2 gap-y-1 text-xs pt-1 text-muted-foreground">
-              <span>Bank Name:</span>
-              <strong className="text-foreground">{bank.bankName}</strong>
-              <span>Account Name:</span>
-              <strong className="text-foreground truncate">{bank.accountName}</strong>
-              <span>Account Number:</span>
-              <strong className="font-mono text-foreground">{bank.accountNumber}</strong>
-              <span>IFSC Code:</span>
-              <strong className="font-mono text-foreground">{bank.ifsc}</strong>
-              {bank.branch && (
-                <>
-                  <span>Branch:</span>
-                  <strong className="text-foreground">{bank.branch}</strong>
-                </>
-              )}
-              {bank.upiId && (
-                <>
-                  <span>UPI ID:</span>
-                  <strong className="font-mono text-foreground">{bank.upiId}</strong>
-                </>
-              )}
-            </div>
           </div>
-
-          <div className="p-5 rounded-lg border border-border/80 bg-muted/20 flex flex-col justify-between text-right">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-2 text-xs text-muted-foreground">
             <div>
-              <p className="text-xs uppercase tracking-widest text-[#183a27] dark:text-[#a3d9b5] font-semibold">
-                Escora Holidays Pvt Ltd
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">Authorised Signature</p>
+              <span className="block text-[11px] text-muted-foreground/80">Bank Name</span>
+              <strong className="text-foreground font-medium text-[12.5px]">{bank.bankName}</strong>
             </div>
-            <div className="pt-6">
-              <div className="border-t border-border w-48 inline-block pt-1 text-[11px] text-muted-foreground font-medium">
-                Certified Digital Document
+            <div>
+              <span className="block text-[11px] text-muted-foreground/80">Account Name</span>
+              <strong className="text-foreground font-medium text-[12.5px] truncate block">{bank.accountName}</strong>
+            </div>
+            <div>
+              <span className="block text-[11px] text-muted-foreground/80">Account Number</span>
+              <strong className="font-mono text-foreground font-semibold text-[12.5px]">{bank.accountNumber}</strong>
+            </div>
+            <div>
+              <span className="block text-[11px] text-muted-foreground/80">IFSC Code</span>
+              <strong className="font-mono text-foreground font-semibold text-[12.5px]">{bank.ifsc}</strong>
+            </div>
+            {bank.branch && (
+              <div>
+                <span className="block text-[11px] text-muted-foreground/80">Branch</span>
+                <strong className="text-foreground font-medium text-[12.5px]">{bank.branch}</strong>
               </div>
-            </div>
+            )}
+            {bank.upiId && (
+              <div>
+                <span className="block text-[11px] text-muted-foreground/80">UPI ID</span>
+                <strong className="font-mono text-foreground font-semibold text-[12.5px]">{bank.upiId}</strong>
+              </div>
+            )}
           </div>
         </div>
 

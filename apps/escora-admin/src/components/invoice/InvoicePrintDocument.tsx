@@ -419,48 +419,42 @@ export default function InvoicePrintDocument({
               </div>
             )}
 
-            {/* Bank Transfer Details & Signatory */}
-            <div className="grid grid-cols-2 gap-4 my-2 font-sans text-[11px] avoid-break">
-              <div className="bg-stone-50/80 p-2.5 rounded border border-stone-200 space-y-1">
-                <p className="text-[9px] font-sans uppercase tracking-widest font-bold text-[#153925]">
+            {/* Bank Transfer Details */}
+            <div className="my-2 bg-stone-50/80 p-3 rounded border border-stone-200 font-sans text-[11px] avoid-break space-y-2">
+              <div className="border-b border-stone-200/80 pb-1.5">
+                <p className="text-[9.5px] font-sans uppercase tracking-widest font-bold text-[#153925]">
                   Bank Settlement Details
                 </p>
-                <div className="grid grid-cols-2 gap-0.5 text-[10.5px] text-stone-700">
-                  <span className="text-stone-500">Bank:</span>
-                  <span className="font-medium">{bank.bankName}</span>
-                  <span className="text-stone-500">Account Name:</span>
-                  <span className="font-medium text-[9.5px]">{bank.accountName}</span>
-                  <span className="text-stone-500">Account No:</span>
-                  <span className="font-mono font-bold text-stone-900">{bank.accountNumber}</span>
-                  <span className="text-stone-500">IFSC Code:</span>
-                  <span className="font-mono font-bold text-stone-900">{bank.ifsc}</span>
-                  {bank.branch && (
-                    <>
-                      <span className="text-stone-500">Branch:</span>
-                      <span className="font-medium text-[9.5px]">{bank.branch}</span>
-                    </>
-                  )}
-                  {bank.upiId && (
-                    <>
-                      <span className="text-stone-500">UPI ID:</span>
-                      <span className="font-mono text-stone-900">{bank.upiId}</span>
-                    </>
-                  )}
-                </div>
               </div>
-
-              <div className="bg-stone-50/80 p-2.5 rounded border border-stone-200 flex flex-col justify-between items-end text-right">
+              <div className="grid grid-cols-3 gap-x-4 gap-y-1.5 text-[10px] text-stone-700">
                 <div>
-                  <p className="text-[9.5px] font-sans uppercase tracking-widest font-bold text-[#153925]">
-                    For Escora Holidays Pvt Ltd
-                  </p>
-                  <p className="text-[9.5px] text-stone-500 mt-0.5">Authorised Signatory</p>
+                  <span className="text-stone-500 block text-[9px]">Bank:</span>
+                  <span className="font-medium text-stone-900">{bank.bankName}</span>
                 </div>
-                <div className="pt-4">
-                  <div className="border-t border-stone-400 w-36 inline-block pt-1 text-[9px] text-stone-500 font-sans">
-                    Authorised Signature &amp; Stamp
+                <div>
+                  <span className="text-stone-500 block text-[9px]">Account Name:</span>
+                  <span className="font-medium text-stone-900 truncate block">{bank.accountName}</span>
+                </div>
+                <div>
+                  <span className="text-stone-500 block text-[9px]">Account No:</span>
+                  <span className="font-mono font-bold text-stone-900">{bank.accountNumber}</span>
+                </div>
+                <div>
+                  <span className="text-stone-500 block text-[9px]">IFSC Code:</span>
+                  <span className="font-mono font-bold text-stone-900">{bank.ifsc}</span>
+                </div>
+                {bank.branch && (
+                  <div>
+                    <span className="text-stone-500 block text-[9px]">Branch:</span>
+                    <span className="font-medium text-stone-900">{bank.branch}</span>
                   </div>
-                </div>
+                )}
+                {bank.upiId && (
+                  <div>
+                    <span className="text-stone-500 block text-[9px]">UPI ID:</span>
+                    <span className="font-mono font-bold text-stone-900">{bank.upiId}</span>
+                  </div>
+                )}
               </div>
             </div>
 

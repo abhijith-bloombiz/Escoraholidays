@@ -1244,19 +1244,14 @@ export default function ItineraryPrintDocument({
         >
           <div style={{ display: "table-row" }}>
             {/* Left: Origin & Agency */}
-            <div style={{ display: "table-cell", width: "42%", verticalAlign: "middle" }}>
+            <div style={{ display: "table-cell", width: "32%", verticalAlign: "middle" }}>
               <div className="text-[12.5px] sm:text-[13px] font-medium text-neutral-800 leading-snug max-w-[320px]">
                 {transportation.origin || "ESCORA HOLIDAYS"}
               </div>
-              {transportation.vehicleType && (
-                <div className="text-[12px] text-neutral-600 mt-0.5">
-                  {transportation.vehicleType}
-                </div>
-              )}
             </div>
 
-            {/* Center: Car Transfer Icon */}
-            <div style={{ display: "table-cell", width: "16%", verticalAlign: "middle", textAlign: "center" }}>
+            {/* Center: Car Transfer Icon & Vehicle Type */}
+            <div style={{ display: "table-cell", width: "36%", verticalAlign: "middle", textAlign: "center", padding: "0 10px" }}>
               <div
                 className="rounded-full"
                 style={{
@@ -1284,10 +1279,15 @@ export default function ItineraryPrintDocument({
                   }}
                 />
               </div>
+              {transportation.vehicleType && (
+                <div className="text-[11px] sm:text-[11.5px] font-medium text-neutral-600 mt-1.5 leading-snug">
+                  {transportation.vehicleType}
+                </div>
+              )}
             </div>
 
             {/* Right: Destination / Drop */}
-            <div style={{ display: "table-cell", width: "42%", verticalAlign: "middle", textAlign: "right" }}>
+            <div style={{ display: "table-cell", width: "32%", verticalAlign: "middle", textAlign: "right" }}>
               <div className="text-[12.5px] sm:text-[13px] font-medium text-neutral-800 leading-snug max-w-[320px] ml-auto">
                 {transportation.destination}
               </div>

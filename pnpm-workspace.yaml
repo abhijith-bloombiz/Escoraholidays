@@ -137,7 +137,7 @@ overrides:
 
 allowBuilds:
   '@swc/core': true
-  core-js: set this to true or false
+  core-js: false
   esbuild: true
   msw: true
   unrs-resolver: true

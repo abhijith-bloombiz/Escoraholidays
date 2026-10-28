@@ -62,6 +62,7 @@ export interface ItineraryTripIncludes {
   transport: boolean;
   sightseeing: boolean;
   transfer: boolean;
+  flights?: boolean;
   weAlsoProvide?: string[];
   agencyContact?: ItineraryAgencyContact;
 }
@@ -69,7 +70,6 @@ export interface ItineraryTripIncludes {
 export const DEFAULT_WE_ALSO_PROVIDE_OPTIONS = [
   "Private Guide",
   "Photographer/ Videographer",
-  "Flight Tickets",
 ] as const;
 
 export interface ItineraryTransportation {
@@ -84,6 +84,7 @@ export const DEFAULT_TRIP_INCLUDES: ItineraryTripIncludes = {
   transport: true,
   sightseeing: true,
   transfer: true,
+  flights: true,
 };
 
 export const DEFAULT_HOTEL_TERMS: string[] = [
@@ -248,15 +249,18 @@ export function parseStringList(str: unknown): string[] {
 }
 
 export function parseTripIncludes(str: unknown): ItineraryTripIncludes {
-  const parsed = safeParse<Partial<ItineraryTripIncludes>>(str, DEFAULT_TRIP_INCLUDES);
+  const parsed = safeParse<Partial<ItineraryTripIncludes> & { flightTickets?: boolean }>(str, DEFAULT_TRIP_INCLUDES);
   if (!parsed || typeof parsed !== "object") return DEFAULT_TRIP_INCLUDES;
   return {
     hotel: parsed.hotel ?? true,
     transport: parsed.transport ?? true,
     sightseeing: parsed.sightseeing ?? true,
     transfer: parsed.transfer ?? true,
+    flights: parsed.flights ?? parsed.flightTickets ?? true,
     weAlsoProvide: Array.isArray(parsed.weAlsoProvide)
-      ? parsed.weAlsoProvide.map((s) => String(s || "").trim()).filter(Boolean)
+      ? parsed.weAlsoProvide
+          .map((s) => String(s || "").trim())
+          .filter((s) => s && s.toLowerCase() !== "flight tickets")
       : [],
     agencyContact: parsed.agencyContact,
   };

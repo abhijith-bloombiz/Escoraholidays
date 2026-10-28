@@ -102,6 +102,7 @@ export default function TemplateEditorModal({
   const [transportIncluded, setTransportIncluded] = useState(true);
   const [sightseeingIncluded, setSightseeingIncluded] = useState(true);
   const [transferIncluded, setTransferIncluded] = useState(true);
+  const [flightsIncluded, setFlightsIncluded] = useState(true);
   const [weAlsoProvide, setWeAlsoProvide] = useState<string[]>([]);
 
   // Transportation
@@ -150,6 +151,7 @@ export default function TemplateEditorModal({
       setTransportIncluded(parsedTripInc.transport);
       setSightseeingIncluded(parsedTripInc.sightseeing);
       setTransferIncluded(parsedTripInc.transfer);
+      setFlightsIncluded(parsedTripInc.flights ?? true);
       setWeAlsoProvide(parsedTripInc.weAlsoProvide || []);
 
       const parsedTrans = parseTransportation(templateToEdit.transportation);
@@ -359,7 +361,8 @@ export default function TemplateEditorModal({
       transport: transportIncluded,
       sightseeing: sightseeingIncluded,
       transfer: transferIncluded,
-      weAlsoProvide,
+      flights: flightsIncluded,
+      weAlsoProvide: weAlsoProvide.filter((s) => s && s.toLowerCase() !== "flight tickets"),
     };
 
     const transportationPayload = {
@@ -942,6 +945,16 @@ export default function TemplateEditorModal({
                       VISA
                     </label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="inc-flights"
+                      checked={flightsIncluded}
+                      onCheckedChange={(c) => setFlightsIncluded(Boolean(c))}
+                    />
+                    <label htmlFor="inc-flights" className="text-xs font-medium cursor-pointer">
+                      Flight Tickets
+                    </label>
+                  </div>
                 </div>
               </div>
 
@@ -957,7 +970,6 @@ export default function TemplateEditorModal({
                   {[
                     "Private Guide",
                     "Photographer/ Videographer",
-                    "Flight Tickets",
                   ].map((service) => {
                     const isChecked = weAlsoProvide.includes(service);
                     return (

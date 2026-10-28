@@ -134,6 +134,7 @@ interface BuilderForm {
   transportIncluded: boolean;
   sightseeingIncluded: boolean;
   transferIncluded: boolean;
+  flightsIncluded: boolean;
   weAlsoProvide?: string[];
   transportOrigin: string;
   transportDestination: string;
@@ -176,6 +177,7 @@ const emptyForm: BuilderForm = {
   transportIncluded: true,
   sightseeingIncluded: true,
   transferIncluded: true,
+  flightsIncluded: true,
   weAlsoProvide: [],
   transportOrigin: "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
   transportDestination: "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
@@ -365,6 +367,7 @@ export default function ItineraryBuilderPage() {
   const watchedTransportIncluded = watch("transportIncluded");
   const watchedSightseeingIncluded = watch("sightseeingIncluded");
   const watchedTransferIncluded = watch("transferIncluded");
+  const watchedFlightsIncluded = watch("flightsIncluded");
   const watchedWeAlsoProvide = watch("weAlsoProvide") ?? [];
   const watchedAdults = watch("adults") ?? 1;
   const watchedChildren = watch("children") ?? 0;
@@ -425,6 +428,7 @@ export default function ItineraryBuilderPage() {
         transportIncluded: tripInc.transport,
         sightseeingIncluded: tripInc.sightseeing,
         transferIncluded: tripInc.transfer,
+        flightsIncluded: tripInc.flights ?? true,
         weAlsoProvide: tripInc.weAlsoProvide ?? [],
         transportOrigin: transport?.origin ?? "ESCORA HOLIDAYS | Trivandrum, Keralam, India",
         transportDestination: transport?.destination ?? "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
@@ -727,6 +731,7 @@ export default function ItineraryBuilderPage() {
         transport: form.transportIncluded ?? getValues("transportIncluded"),
         sightseeing: form.sightseeingIncluded ?? getValues("sightseeingIncluded"),
         transfer: form.transferIncluded ?? getValues("transferIncluded"),
+        flights: form.flightsIncluded ?? getValues("flightsIncluded"),
         weAlsoProvide: (() => {
           const customPending = customServiceInput.trim();
           const currentWeAlso = getValues("weAlsoProvide") || watchedWeAlsoProvide || form.weAlsoProvide || [];
@@ -734,7 +739,9 @@ export default function ItineraryBuilderPage() {
           if (customPending && !combined.includes(customPending)) {
             combined.push(customPending);
           }
-          return Array.from(new Set(combined)).map((s) => String(s || "").trim()).filter(Boolean);
+          return Array.from(new Set(combined))
+            .map((s) => String(s || "").trim())
+            .filter((s) => s && s.toLowerCase() !== "flight tickets");
         })(),
         agencyContact: {
           phone: (form.agencyPhone || getValues("agencyPhone") || DEFAULT_AGENCY_CONTACT.phone).trim(),
@@ -1846,7 +1853,7 @@ export default function ItineraryBuilderPage() {
                     Checked badges show with green checkmarks in the top summary card
                   </span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 pt-1">
                   <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("hotelIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
                     <input type="checkbox" {...register("hotelIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
                     <div>
@@ -1873,6 +1880,13 @@ export default function ItineraryBuilderPage() {
                     <div>
                       <span className="text-xs font-semibold block">VISA</span>
                       <span className="text-[10px] text-muted-foreground">Visa assistance</span>
+                    </div>
+                  </label>
+                  <label className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-all ${watch("flightsIncluded") ? "bg-primary/10 border-primary/40 text-foreground" : "bg-card border-border text-muted-foreground opacity-60"}`}>
+                    <input type="checkbox" {...register("flightsIncluded")} className="rounded text-primary focus:ring-primary h-4 w-4" />
+                    <div>
+                      <span className="text-xs font-semibold block">Flight Tickets</span>
+                      <span className="text-[10px] text-muted-foreground">Flight bookings</span>
                     </div>
                   </label>
                 </div>
@@ -2887,13 +2901,6 @@ export default function ItineraryBuilderPage() {
                       num: "2",
                       desc: "Professional photoshoot & holiday reels",
                       icon: Camera,
-                      isCustom: false,
-                    },
-                    {
-                      label: "Flight Tickets",
-                      num: "3",
-                      desc: "Domestic & international airline booking",
-                      icon: Plane,
                       isCustom: false,
                     },
                   ];

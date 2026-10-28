@@ -12,6 +12,7 @@ import {
   MapPin,
   Check,
   X,
+  Plane,
 } from "lucide-react";
 import type {
   ItineraryDay,
@@ -474,6 +475,7 @@ export default function ItineraryPrintDocument({
     transport: true,
     sightseeing: true,
     transfer: true,
+    flights: true,
   };
 
   const rawWeAlso =
@@ -483,7 +485,9 @@ export default function ItineraryPrintDocument({
       ? parsedTripIncludes.weAlsoProvide
       : [];
 
-  const weAlsoProvide = rawWeAlso.map((s) => String(s || "").trim()).filter(Boolean);
+  const weAlsoProvide = rawWeAlso
+    .map((s) => String(s || "").trim())
+    .filter((s) => Boolean(s) && s.toLowerCase() !== "flight tickets");
 
   // Pricing calculations
   const subtotal =
@@ -791,12 +795,12 @@ export default function ItineraryPrintDocument({
           Your Trip Includes
         </div>
 
-        {/* 4 Icon Boxes in a Row */}
+        {/* 5 Icon Boxes in a Row */}
         <div
           style={{
             display: "table",
             width: "100%",
-            maxWidth: "520px",
+            maxWidth: "600px",
             margin: "0 auto",
             borderSpacing: "8px 0",
             borderCollapse: "separate",
@@ -807,7 +811,7 @@ export default function ItineraryPrintDocument({
             <div
               style={{
                 display: "table-cell",
-                width: "25%",
+                width: "20%",
                 verticalAlign: "top",
                 backgroundColor: "#ffffff",
                 border: "1px solid #E5E7EB",
@@ -860,7 +864,7 @@ export default function ItineraryPrintDocument({
             <div
               style={{
                 display: "table-cell",
-                width: "25%",
+                width: "20%",
                 verticalAlign: "top",
                 backgroundColor: "#ffffff",
                 border: "1px solid #E5E7EB",
@@ -913,7 +917,7 @@ export default function ItineraryPrintDocument({
             <div
               style={{
                 display: "table-cell",
-                width: "25%",
+                width: "20%",
                 verticalAlign: "top",
                 backgroundColor: "#ffffff",
                 border: "1px solid #E5E7EB",
@@ -966,7 +970,7 @@ export default function ItineraryPrintDocument({
             <div
               style={{
                 display: "table-cell",
-                width: "25%",
+                width: "20%",
                 verticalAlign: "top",
                 backgroundColor: "#ffffff",
                 border: "1px solid #E5E7EB",
@@ -1013,6 +1017,61 @@ export default function ItineraryPrintDocument({
                 }}
               />
               <span className="text-[11.5px] font-medium text-[#1A3326] block leading-tight">VISA</span>
+            </div>
+
+            {/* Flight Tickets */}
+            <div
+              style={{
+                display: "table-cell",
+                width: "20%",
+                verticalAlign: "top",
+                backgroundColor: "#ffffff",
+                border: "1px solid #E5E7EB",
+                borderRadius: "8px",
+                padding: "10px 4px 8px 4px",
+                textAlign: "center",
+                boxSizing: "border-box",
+              }}
+            >
+              <div
+                style={{
+                  position: "relative",
+                  width: "16px",
+                  height: "16px",
+                  borderRadius: "3px",
+                  border: "1px solid #9CA3AF",
+                  backgroundColor: "#EBF5EE",
+                  margin: "0 auto 5px auto",
+                  boxSizing: "border-box",
+                }}
+              >
+                {incConfig.flights && (
+                  <Check
+                    style={{
+                      position: "absolute",
+                      top: "1px",
+                      left: "1px",
+                      width: "12px",
+                      height: "12px",
+                      color: "#1A3326",
+                      strokeWidth: 3,
+                      display: "block",
+                    }}
+                  />
+                )}
+              </div>
+              <Plane
+                style={{
+                  display: "block",
+                  margin: "0 auto 4px auto",
+                  width: "24px",
+                  height: "24px",
+                  color: "#1A3326",
+                }}
+              />
+              <span className="text-[11.5px] font-medium text-[#1A3326] block leading-tight whitespace-nowrap">
+                Flight Tickets
+              </span>
             </div>
           </div>
         </div>

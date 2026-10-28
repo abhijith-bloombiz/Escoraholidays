@@ -180,6 +180,118 @@ app.get("/robots.txt", (_req, res) => {
   res.send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /admin/\nSitemap: ${ORIGIN}/sitemap.xml\n`);
 });
 
+function getStandaloneMaintenanceHtml(): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escora Holidays — Under Maintenance</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0A1410;
+      color: #FAF8F3;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .brand {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      color: #FAF8F3;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+    main {
+      max-width: 440px;
+      margin: auto 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: #FAF8F3;
+      margin-bottom: 12px;
+    }
+    p {
+      color: rgba(250, 248, 243, 0.7);
+      font-size: 15px;
+      line-height: 1.6;
+      font-weight: 300;
+      margin-bottom: 28px;
+    }
+    .btn-admin {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      border-radius: 9999px;
+      background: #183D2E;
+      border: 1px solid rgba(200, 155, 60, 0.4);
+      color: #FAF8F3;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      margin-bottom: 24px;
+    }
+    .btn-admin:hover {
+      background: #1E4D3A;
+      border-color: #C89B3C;
+    }
+    .contact {
+      font-size: 12px;
+      color: rgba(250, 248, 243, 0.5);
+    }
+    .contact a {
+      color: #C89B3C;
+      text-decoration: none;
+    }
+    .contact a:hover {
+      text-decoration: underline;
+    }
+    footer {
+      font-size: 12px;
+      color: rgba(250, 248, 243, 0.35);
+    }
+  </style>
+</head>
+<body>
+  <div></div>
+  <main>
+    <div class="brand">Escora</div>
+    <h1>Under Maintenance</h1>
+    <p>We are currently undergoing scheduled maintenance.<br>Our website will be back online shortly.</p>
+    <a href="/admin" class="btn-admin">
+      <span>Admin Portal</span>
+      <span style="color:#C89B3C;">&rarr;</span>
+    </a>
+    <div class="contact">
+      For urgent inquiries: <a href="mailto:hello@escoraholidays.com">hello@escoraholidays.com</a>
+    </div>
+  </main>
+  <footer>
+    &copy; ${new Date().getFullYear()} Escora Holidays. All rights reserved.
+  </footer>
+</body>
+</html>`;
+}
+
 // Serve built frontends in production (built by `pnpm run build:prod`)
 const adminDist = path.resolve(process.cwd(), "apps/escora-admin/dist/public");
 const webDist   = path.resolve(process.cwd(), "apps/escora-web/dist/public");
@@ -189,11 +301,26 @@ if (fs.existsSync(adminDist)) {
   app.use("/admin", (_req, res) => res.sendFile(path.join(adminDist, "index.html")));
 }
 
-if (fs.existsSync(webDist)) {
-  // redirect:false prevents express.static from 301-redirecting /foo → /foo/ when a directory exists
+if (config.maintenanceMode) {
+  // In maintenance mode:
+  // 1. If webDist exists, serve static assets (css, js, images) without auto-serving directory index.html
+  if (fs.existsSync(webDist)) {
+    app.use(express.static(webDist, { index: false, redirect: false }));
+    app.use((_req, res) => {
+      res.setHeader("Retry-After", "3600");
+      res.status(503).sendFile(path.join(webDist, "index.html"));
+    });
+  } else {
+    // If webDist is not built yet, serve the standalone luxury maintenance page
+    app.use((_req, res) => {
+      res.setHeader("Retry-After", "3600");
+      res.status(503).send(getStandaloneMaintenanceHtml());
+    });
+  }
+} else if (fs.existsSync(webDist)) {
+  // Normal mode: serve pre-rendered files and SPA index.html
   app.use(express.static(webDist, { redirect: false }));
   app.use((req, res) => {
-    // Serve pre-rendered file if it exists (e.g. /collections/honeymoon → collections/honeymoon/index.html)
     const prerendered = path.join(webDist, req.path, "index.html");
     if (fs.existsSync(prerendered)) {
       return res.sendFile(prerendered);

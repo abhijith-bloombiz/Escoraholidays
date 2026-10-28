@@ -86,6 +86,7 @@ export interface AppConfig {
   enableWhatsappPostTripFeedback: boolean;
   enableWhatsappDocumentDelivery: boolean;
   whatsappSimulateAutoDeliver: boolean;
+  maintenanceMode: boolean;
 }
 
 const rawPort = process.env.PORT || "8080";
@@ -288,6 +289,7 @@ export const config: AppConfig = {
   enableWhatsappPostTripFeedback: process.env.ENABLE_WHATSAPP_POST_TRIP_FEEDBACK !== "false",
   enableWhatsappDocumentDelivery: process.env.ENABLE_WHATSAPP_DOCUMENT_DELIVERY !== "false",
   whatsappSimulateAutoDeliver: process.env.WHATSAPP_SIMULATE_AUTO_DELIVER !== "false",
+  maintenanceMode: process.env.MAINTENANCE_MODE !== "false",
 };
 
 // Fail fast immediately on import if running under production environment

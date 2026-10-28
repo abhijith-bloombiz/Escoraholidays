@@ -50,8 +50,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Brand Area */}
         <div className="pt-6 pb-4 px-6">
           <img src={escoraWordmarkPath} alt="Escora" className="h-7 opacity-90" />
-          <div className="text-[10px] font-sans font-medium text-[#687D75] tracking-widest uppercase mt-1">
-            Admin
+          <div className="text-[10px] font-sans font-medium text-[#687D75] tracking-widest uppercase mt-1 flex items-center gap-1.5">
+            <span>Admin</span>
+            <span className="text-[9px] text-amber-600 font-normal tracking-normal">• Site in maintenance</span>
           </div>
         </div>
 
@@ -99,8 +100,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="flex items-center justify-between pt-6 pb-4 px-6">
               <div>
                 <img src={escoraWordmarkPath} alt="Escora" className="h-7 opacity-90" />
-                <div className="text-[10px] font-sans font-medium text-[#687D75] tracking-widest uppercase mt-1">
-                  Admin
+                <div className="text-[10px] font-sans font-medium text-[#687D75] tracking-widest uppercase mt-1 flex items-center gap-1.5">
+                  <span>Admin</span>
+                  <span className="text-[9px] text-amber-600 font-normal tracking-normal">• Site in maintenance</span>
                 </div>
               </div>
               <button

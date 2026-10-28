@@ -17,6 +17,11 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const DIST = resolve(__dirname, "../dist/public");
 const ORIGIN = "https://www.escoraholidays.com";
 
+if (process.env.MAINTENANCE_MODE !== "false" && process.env.VITE_MAINTENANCE_MODE !== "false") {
+  console.log("ℹ️  Maintenance mode is active: skipping public SEO shell generation.");
+  process.exit(0);
+}
+
 // ---------------------------------------------------------------------------
 // Per-route SEO metadata + static body content
 // ---------------------------------------------------------------------------

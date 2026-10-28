@@ -23,6 +23,7 @@ import CategoryDetail from "@/pages/category-detail";
 import ItineraryShare from "@/pages/itinerary-share";
 import DestinationsV3 from "@/pages/destinations-v3";
 import AiTravelAssistant from "@/components/ai/AiTravelAssistant";
+import MaintenancePage from "@/pages/maintenance";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,6 +34,8 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE !== "false";
 
 function Router() {
   return (
@@ -66,6 +69,15 @@ function Router() {
 }
 
 function App() {
+  if (isMaintenanceMode) {
+    return (
+      <TooltipProvider>
+        <MaintenancePage />
+        <Toaster />
+      </TooltipProvider>
+    );
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>

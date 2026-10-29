@@ -661,8 +661,15 @@ export default function ItineraryPrintDocument({
           margin: 6px 0 3px 0 !important;
           line-height: 1.4 !important;
         }
+        .rich-text-content p,
+        .rich-text-content div,
+        .rich-text-content span {
+          text-indent: 0 !important;
+        }
         .rich-text-content p {
           margin: 0 0 8px 0;
+          margin-left: 0 !important;
+          margin-right: 0 !important;
           line-height: 1.7;
         }
         .rich-text-content p:last-child {

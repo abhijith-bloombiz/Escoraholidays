@@ -367,5 +367,19 @@ export function sanitizeRichDescriptionHtml(htmlOrText?: string | null): string 
   // 9. Normalize multiple consecutive &nbsp; down to a clean single space in running text
   s = s.replace(/(?:&nbsp;|\u00A0){2,}/g, " ");
 
+  // 10. Strip Word hanging/negative text-indent (e.g. text-indent: -18pt) which pulls headings out of bounds
+  s = s.replace(/text-indent\s*:\s*[^;"'>]+;?/gi, "");
+
+  // 11. Strip Word's custom paragraph margins (e.g. margin-left: 36pt or margin-right: 0cm)
+  s = s.replace(/margin-left\s*:\s*[^;"'>]+;?/gi, "");
+  s = s.replace(/margin-right\s*:\s*[^;"'>]+;?/gi, "");
+
+  // 12. Strip Microsoft Word mso- properties and classes
+  s = s.replace(/mso-[^:;"'>]+:[^;"'>]+;?/gi, "");
+  s = s.replace(/class\s*=\s*["']?Mso[a-zA-Z0-9_-]*["']?/gi, "");
+
+  // 13. Clean up empty style attributes left over (e.g. style="" or style=" ")
+  s = s.replace(/\s*style\s*=\s*["']\s*["']/gi, "");
+
   return s;
 }

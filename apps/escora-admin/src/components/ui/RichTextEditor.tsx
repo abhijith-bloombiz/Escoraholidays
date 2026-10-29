@@ -1265,8 +1265,15 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
             margin: 5px 0 3px 0;
             line-height: 1.4;
           }
+          .rich-text-editor-surface p,
+          .rich-text-editor-surface div,
+          .rich-text-editor-surface span {
+            text-indent: 0 !important;
+          }
           .rich-text-editor-surface p {
             margin: 0 0 6px 0;
+            margin-left: 0 !important;
+            margin-right: 0 !important;
           }
           .rich-text-editor-surface ul {
             list-style-type: disc;

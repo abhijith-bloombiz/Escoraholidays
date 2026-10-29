@@ -76,6 +76,8 @@ export default function ItineraryPdfPreviewPage() {
       query: {
         enabled: Boolean(itineraryId && !Number.isNaN(itineraryId)),
         queryKey: itineraryId ? getGetItineraryQueryKey(itineraryId) : ["itinerary-disabled"],
+        staleTime: 0,
+        refetchOnMount: "always",
       },
     }
   );

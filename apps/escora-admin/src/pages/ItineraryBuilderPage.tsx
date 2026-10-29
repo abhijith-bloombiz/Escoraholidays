@@ -59,6 +59,7 @@ import {
   MoveUp,
   MoveDown,
   Layers,
+  Loader2,
   RefreshCw,
   CheckCircle2,
   CheckSquare,
@@ -201,7 +202,12 @@ export default function ItineraryBuilderPage() {
   const itineraryId = params.id ? Number(params.id) : undefined;
 
   const { data: existing, isLoading } = useGetItinerary(itineraryId!, {
-    query: { enabled: isEdit, queryKey: getGetItineraryQueryKey(itineraryId!) },
+    query: {
+      enabled: isEdit,
+      queryKey: getGetItineraryQueryKey(itineraryId!),
+      staleTime: 0,
+      refetchOnMount: "always",
+    },
   });
   const createMutation = useCreateItinerary();
   const updateMutation = useUpdateItinerary();
@@ -255,7 +261,28 @@ export default function ItineraryBuilderPage() {
   const openedFromUrlAi = useRef(false);
   const hasInitializedRef = useRef(false);
   const isSubmittingRef = useRef(false);
-  const loadedItineraryIdRef = useRef<number | null>(null);
+  const loadedItineraryVersionRef = useRef<string | null>(null);
+  const userHasEditedRef = useRef(false);
+
+  // Clear loaded version cache on itinerary ID change or unmount
+  useEffect(() => {
+    return () => {
+      loadedItineraryVersionRef.current = null;
+      userHasEditedRef.current = false;
+    };
+  }, [itineraryId]);
+
+  // Register controlled contact fields in React Hook Form
+  useEffect(() => {
+    register("curatorName");
+    register("curatorPhone");
+    register("emergencyContacts");
+    register("agencyPhone");
+    register("agencyEmail");
+    register("agencyInstagram");
+    register("agencyFacebook");
+    register("agencyWebsite");
+  }, [register]);
 
   // Fetch official sequential next proposal reference number for new proposals
   const { data: serverNextRef } = useQuery<{ referenceNumber: string }>({
@@ -372,6 +399,14 @@ export default function ItineraryBuilderPage() {
   const watchedAdults = watch("adults") ?? 1;
   const watchedChildren = watch("children") ?? 0;
   const watchedInfants = watch("infants") ?? 0;
+  const watchedCuratorName = watch("curatorName") ?? "";
+  const watchedCuratorPhone = watch("curatorPhone") ?? "";
+  const watchedEmergencyContacts = watch("emergencyContacts") ?? "";
+  const watchedAgencyPhone = watch("agencyPhone") ?? "";
+  const watchedAgencyEmail = watch("agencyEmail") ?? "";
+  const watchedAgencyInstagram = watch("agencyInstagram") ?? "";
+  const watchedAgencyFacebook = watch("agencyFacebook") ?? "";
+  const watchedAgencyWebsite = watch("agencyWebsite") ?? "";
 
   // Warn before browser refresh/close if form has unsaved modifications
   useEffect(() => {
@@ -385,15 +420,34 @@ export default function ItineraryBuilderPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isDirty]);
 
-  // Load existing itinerary data into form (once per itinerary id)
+  // Load existing itinerary data into form (updates whenever fresh itinerary arrives)
   useEffect(() => {
-    if (existing && loadedItineraryIdRef.current !== existing.id) {
-      loadedItineraryIdRef.current = existing.id;
+    if (existing) {
+      const dataVersion = `${existing.id}_${existing.updatedAt || ""}`;
+      if (loadedItineraryVersionRef.current === dataVersion) return;
+      // Only protect if the user has actively made manual edits during this session
+      if (loadedItineraryVersionRef.current !== null && userHasEditedRef.current) return;
+
+      loadedItineraryVersionRef.current = dataVersion;
+      userHasEditedRef.current = false;
       const tripInc = parseTripIncludes(existing.tripIncludes);
       const transport = parseTransportation(existing.transportation);
       const hTerms = parseStringList(existing.hotelTerms);
       const pTerms = parseStringList(existing.paymentTerms);
       const iInfo = parseStringList(existing.importantInfo);
+
+      const resolvedCuratorName =
+        (existing.curatorName !== undefined && existing.curatorName !== null && existing.curatorName !== "")
+          ? existing.curatorName
+          : (tripInc.agencyContact?.curatorName || DEFAULT_AGENCY_CONTACT.curatorName);
+      const resolvedCuratorPhone =
+        (existing.curatorPhone !== undefined && existing.curatorPhone !== null && existing.curatorPhone !== "")
+          ? existing.curatorPhone
+          : (tripInc.agencyContact?.curatorPhone || DEFAULT_AGENCY_CONTACT.curatorPhone);
+      const resolvedEmergencyContacts =
+        (existing.emergencyContacts !== undefined && existing.emergencyContacts !== null && existing.emergencyContacts !== "")
+          ? existing.emergencyContacts
+          : (tripInc.agencyContact?.emergencyContacts || DEFAULT_AGENCY_CONTACT.emergencyContacts);
 
       reset({
         customerName: existing.customerName,
@@ -413,9 +467,9 @@ export default function ItineraryBuilderPage() {
             enquiryId: (existing as any).enquiryId,
             proposalId: existing.id,
           }),
-        curatorName: existing.curatorName ?? DEFAULT_AGENCY_CONTACT.curatorName,
-        curatorPhone: existing.curatorPhone ?? DEFAULT_AGENCY_CONTACT.curatorPhone,
-        emergencyContacts: existing.emergencyContacts ?? DEFAULT_AGENCY_CONTACT.emergencyContacts,
+        curatorName: resolvedCuratorName,
+        curatorPhone: resolvedCuratorPhone,
+        emergencyContacts: resolvedEmergencyContacts,
         agencyPhone: tripInc.agencyContact?.phone ?? (existing as any).agencyPhone ?? DEFAULT_AGENCY_CONTACT.phone,
         agencyEmail: tripInc.agencyContact?.email ?? (existing as any).agencyEmail ?? DEFAULT_AGENCY_CONTACT.email,
         agencyInstagram: tripInc.agencyContact?.instagram ?? (existing as any).agencyInstagram ?? DEFAULT_AGENCY_CONTACT.instagram,
@@ -452,7 +506,7 @@ export default function ItineraryBuilderPage() {
         setCustomServicesList((prev) => Array.from(new Set([...prev, ...extraServices])));
       }
     }
-  }, [existing, reset]);
+  }, [existing, reset, isDirty]);
 
   // Handle URL query parameters (e.g. ?ai=true or ?enquiryId=123) and pending AI drafts
   useEffect(() => {
@@ -583,6 +637,8 @@ export default function ItineraryBuilderPage() {
         date: dateStr,
         title: d.title,
         description: d.description || "",
+        imageUrl: d.imageUrl || (d.imageUrls && d.imageUrls[0]) || "",
+        imageUrls: d.imageUrls && d.imageUrls.length > 0 ? d.imageUrls : (d.imageUrl ? [d.imageUrl] : []),
         activities: (d.activities || []).map((a) => ({
           time: a.time,
           title: a.title,
@@ -617,6 +673,115 @@ export default function ItineraryBuilderPage() {
     }
 
     setTemplateChoice("ai-draft");
+  };
+
+  const [isFillingAllPhotos, setIsFillingAllPhotos] = useState(false);
+  const [isFillingCover, setIsFillingCover] = useState(false);
+
+  const handleAutoFillCoverPhoto = async () => {
+    setIsFillingCover(true);
+    try {
+      const destination = getValues("destination") || "Kerala";
+      const title = getValues("title") || "";
+      const query = `${destination} ${title}`.trim();
+      const res = await fetch(`/api/itineraries/stock-photos?query=${encodeURIComponent(query)}&count=1`);
+      if (!res.ok) throw new Error("Failed to fetch cover photo");
+      const data = await res.json();
+      const chosenCover = data.cover || (data.photos && data.photos[0]);
+      if (chosenCover) {
+        setValue("coverImageUrl", chosenCover, { shouldDirty: true, shouldValidate: true });
+        toast({
+          title: "Cover Photo Updated",
+          description: "Applied high-resolution stock photo matching your destination.",
+        });
+      }
+    } catch (e: any) {
+      toast({
+        title: "Could not fetch cover photo",
+        description: e?.message || "Please check network connection.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFillingCover(false);
+    }
+  };
+
+  const handleAutoFillAllStockPhotos = async () => {
+    setIsFillingAllPhotos(true);
+    try {
+      const destination = getValues("destination") || "Kerala";
+      const title = getValues("title") || "";
+      const currentCover = getValues("coverImageUrl");
+
+      // 1. Cover photo
+      if (!currentCover || !currentCover.startsWith("http")) {
+        try {
+          const res = await fetch(`/api/itineraries/stock-photos?query=${encodeURIComponent(destination || title || "Kerala")}&count=1`);
+          if (res.ok) {
+            const data = await res.json();
+            const chosen = data.cover || (data.photos && data.photos[0]);
+            if (chosen) {
+              setValue("coverImageUrl", chosen, { shouldDirty: true, shouldValidate: true });
+            }
+          }
+        } catch (e) {
+          console.error("Cover photo fetch failed", e);
+        }
+      }
+
+      // 2. Day photos (guarantee up to 3 distinct photos per day)
+      const currentDays = getValues("days") || [];
+      const updatedDays = await Promise.all(
+        currentDays.map(async (d: any, idx: number) => {
+          const rawExisting = (Array.isArray(d.imageUrls) && d.imageUrls.length > 0 ? d.imageUrls : (d.imageUrl ? [d.imageUrl] : []))
+            .filter((u: any) => typeof u === "string" && u.trim().startsWith("http"));
+
+          if (rawExisting.length >= 3) {
+            return {
+              ...d,
+              imageUrl: rawExisting[0],
+              imageUrls: rawExisting.slice(0, 3),
+            };
+          }
+
+          const query = `${d.destination || destination || "Kerala"} ${d.title || ""}`.trim();
+          try {
+            const res = await fetch(`/api/itineraries/stock-photos?query=${encodeURIComponent(query)}&count=3&dayIndex=${idx}`);
+            if (res.ok) {
+              const data = await res.json();
+              const newPhotos: string[] = Array.isArray(data.photos) ? data.photos : [];
+              const merged = [...rawExisting];
+              for (const p of newPhotos) {
+                if (!merged.includes(p)) merged.push(p);
+                if (merged.length >= 3) break;
+              }
+              return {
+                ...d,
+                imageUrl: merged[0] || "",
+                imageUrls: merged.slice(0, 3),
+              };
+            }
+          } catch (e) {
+            console.error("Day photo fetch failed", e);
+          }
+          return d;
+        })
+      );
+
+      setValue("days", updatedDays, { shouldDirty: true, shouldValidate: true });
+      toast({
+        title: "✨ All Stock Photos Applied",
+        description: "Cover photo and 3 matching photos per day have been populated.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Auto-fill failed",
+        description: err?.message || "Could not fetch stock photos.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFillingAllPhotos(false);
+    }
   };
 
   const handleCloseAiModal = () => {
@@ -693,9 +858,9 @@ export default function ItineraryBuilderPage() {
       currency: form.currency,
       status: form.status,
       referenceNumber: form.referenceNumber?.trim() || undefined,
-      curatorName: form.curatorName?.trim() || undefined,
-      curatorPhone: form.curatorPhone?.trim() || undefined,
-      emergencyContacts: form.emergencyContacts?.trim() || undefined,
+      curatorName: form.curatorName !== undefined ? form.curatorName.trim() : (getValues("curatorName")?.trim() || undefined),
+      curatorPhone: form.curatorPhone !== undefined ? form.curatorPhone.trim() : (getValues("curatorPhone")?.trim() || undefined),
+      emergencyContacts: form.emergencyContacts !== undefined ? form.emergencyContacts.trim() : (getValues("emergencyContacts")?.trim() || undefined),
       adults: form.adults ?? 1,
       children: form.children ?? 0,
       infants: form.infants ?? 0,
@@ -744,11 +909,14 @@ export default function ItineraryBuilderPage() {
             .filter((s) => s && s.toLowerCase() !== "flight tickets");
         })(),
         agencyContact: {
-          phone: (form.agencyPhone || getValues("agencyPhone") || DEFAULT_AGENCY_CONTACT.phone).trim(),
-          email: (form.agencyEmail || getValues("agencyEmail") || DEFAULT_AGENCY_CONTACT.email).trim(),
-          instagram: (form.agencyInstagram || getValues("agencyInstagram") || DEFAULT_AGENCY_CONTACT.instagram).trim(),
-          facebook: (form.agencyFacebook || getValues("agencyFacebook") || DEFAULT_AGENCY_CONTACT.facebook).trim(),
-          website: (form.agencyWebsite || getValues("agencyWebsite") || DEFAULT_AGENCY_CONTACT.website).trim(),
+          phone: (form.agencyPhone !== undefined && form.agencyPhone !== null ? form.agencyPhone : (getValues("agencyPhone") ?? DEFAULT_AGENCY_CONTACT.phone)).trim(),
+          email: (form.agencyEmail !== undefined && form.agencyEmail !== null ? form.agencyEmail : (getValues("agencyEmail") ?? DEFAULT_AGENCY_CONTACT.email)).trim(),
+          instagram: (form.agencyInstagram !== undefined && form.agencyInstagram !== null ? form.agencyInstagram : (getValues("agencyInstagram") ?? DEFAULT_AGENCY_CONTACT.instagram)).trim(),
+          facebook: (form.agencyFacebook !== undefined && form.agencyFacebook !== null ? form.agencyFacebook : (getValues("agencyFacebook") ?? DEFAULT_AGENCY_CONTACT.facebook)).trim(),
+          website: (form.agencyWebsite !== undefined && form.agencyWebsite !== null ? form.agencyWebsite : (getValues("agencyWebsite") ?? DEFAULT_AGENCY_CONTACT.website)).trim(),
+          curatorName: (form.curatorName !== undefined ? form.curatorName : getValues("curatorName"))?.trim() || undefined,
+          curatorPhone: (form.curatorPhone !== undefined ? form.curatorPhone : getValues("curatorPhone"))?.trim() || undefined,
+          emergencyContacts: (form.emergencyContacts !== undefined ? form.emergencyContacts : getValues("emergencyContacts"))?.trim() || undefined,
         },
       }),
       transportation: JSON.stringify({
@@ -768,8 +936,18 @@ export default function ItineraryBuilderPage() {
       updateMutation.mutate(
         { id: itineraryId, data },
         {
-          onSuccess: () => {
+          onSuccess: (updated) => {
             isSubmittingRef.current = false;
+            qc.setQueryData(getGetItineraryQueryKey(itineraryId), updated);
+            qc.setQueryData(
+              getListItinerariesQueryKey(),
+              (old: any[] | undefined) => {
+                if (!Array.isArray(old)) return old;
+                return old.map((item) => (item.id === itineraryId ? { ...item, ...updated } : item));
+              }
+            );
+            loadedItineraryVersionRef.current = `${updated.id}_${updated.updatedAt || ""}`;
+            userHasEditedRef.current = false;
             invalidate();
             toast({ title: "Itinerary proposal updated successfully" });
             if (returnToInboxEnquiryId) {
@@ -790,6 +968,9 @@ export default function ItineraryBuilderPage() {
         {
           onSuccess: (created) => {
             isSubmittingRef.current = false;
+            qc.setQueryData(getGetItineraryQueryKey(created.id), created);
+            loadedItineraryVersionRef.current = `${created.id}_${created.updatedAt || ""}`;
+            userHasEditedRef.current = false;
             invalidate();
             toast({
               title: "Proposal created successfully",
@@ -1463,6 +1644,26 @@ export default function ItineraryBuilderPage() {
               <span className="sm:hidden">AI ✨</span>
             </Button>
 
+            {/* Auto-Fill All Stock Photos Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAutoFillAllStockPhotos}
+              disabled={isFillingAllPhotos}
+              className="h-8 text-xs font-medium border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/50 gap-1.5 shrink-0"
+              title="Fill all empty photo slots with matching high-resolution stock photos"
+              data-testid="button-autofill-stock-photos"
+            >
+              {isFillingAllPhotos ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Images className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              )}
+              <span className="hidden sm:inline">Fill Stock Photos 📸</span>
+              <span className="sm:hidden">Stock 📸</span>
+            </Button>
+
             {/* Cancel Button */}
             <Button
               type="button"
@@ -1896,9 +2097,26 @@ export default function ItineraryBuilderPage() {
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label className="font-medium text-xs">Proposal Cover Photo</Label>
-                  <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
-                    PDF Hero Image
-                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 text-[11px] px-2 text-primary hover:bg-primary/10 gap-1"
+                      onClick={handleAutoFillCoverPhoto}
+                      disabled={isFillingCover}
+                    >
+                      {isFillingCover ? (
+                        <Loader2 className="h-3 w-3 animate-spin text-primary" />
+                      ) : (
+                        <Sparkles className="h-3 w-3 text-primary" />
+                      )}
+                      <span>Auto-Fill Stock Cover</span>
+                    </Button>
+                    <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-primary border-primary/30 bg-primary/5">
+                      PDF Hero Image
+                    </Badge>
+                  </div>
                 </div>
                 <Controller
                   control={control}
@@ -1969,7 +2187,11 @@ export default function ItineraryBuilderPage() {
                   </div>
                   <Input
                     id="curatorName"
-                    {...register("curatorName")}
+                    value={watchedCuratorName}
+                    onChange={(e) => {
+                      userHasEditedRef.current = true;
+                      setValue("curatorName", e.target.value, { shouldDirty: true });
+                    }}
                     placeholder="e.g. Midhilaj Chelakkal"
                   />
                   <p className="text-[10.5px] text-muted-foreground">
@@ -1982,7 +2204,11 @@ export default function ItineraryBuilderPage() {
                   </Label>
                   <Input
                     id="curatorPhone"
-                    {...register("curatorPhone")}
+                    value={watchedCuratorPhone}
+                    onChange={(e) => {
+                      userHasEditedRef.current = true;
+                      setValue("curatorPhone", e.target.value, { shouldDirty: true });
+                    }}
                     placeholder="+91 9745585813"
                   />
                   <p className="text-[10.5px] text-muted-foreground">
@@ -2000,7 +2226,11 @@ export default function ItineraryBuilderPage() {
                   </div>
                   <Input
                     id="emergencyContacts"
-                    {...register("emergencyContacts")}
+                    value={watchedEmergencyContacts}
+                    onChange={(e) => {
+                      userHasEditedRef.current = true;
+                      setValue("emergencyContacts", e.target.value, { shouldDirty: true });
+                    }}
                     placeholder="+91 9400280420 | +91 8157003344"
                   />
                   <p className="text-[10.5px] text-muted-foreground">
@@ -2033,7 +2263,11 @@ export default function ItineraryBuilderPage() {
                     </Label>
                     <Input
                       id="agencyPhone"
-                      {...register("agencyPhone")}
+                      value={watchedAgencyPhone}
+                      onChange={(e) => {
+                        userHasEditedRef.current = true;
+                        setValue("agencyPhone", e.target.value, { shouldDirty: true });
+                      }}
                       placeholder="9496933336"
                       className="h-8 text-xs bg-background"
                     />
@@ -2045,7 +2279,11 @@ export default function ItineraryBuilderPage() {
                     </Label>
                     <Input
                       id="agencyEmail"
-                      {...register("agencyEmail")}
+                      value={watchedAgencyEmail}
+                      onChange={(e) => {
+                        userHasEditedRef.current = true;
+                        setValue("agencyEmail", e.target.value, { shouldDirty: true });
+                      }}
                       placeholder="mc@escoraholidays.com"
                       className="h-8 text-xs bg-background"
                     />
@@ -2057,7 +2295,11 @@ export default function ItineraryBuilderPage() {
                     </Label>
                     <Input
                       id="agencyInstagram"
-                      {...register("agencyInstagram")}
+                      value={watchedAgencyInstagram}
+                      onChange={(e) => {
+                        userHasEditedRef.current = true;
+                        setValue("agencyInstagram", e.target.value, { shouldDirty: true });
+                      }}
                       placeholder="escora_holidays"
                       className="h-8 text-xs bg-background"
                     />
@@ -2069,7 +2311,11 @@ export default function ItineraryBuilderPage() {
                     </Label>
                     <Input
                       id="agencyFacebook"
-                      {...register("agencyFacebook")}
+                      value={watchedAgencyFacebook}
+                      onChange={(e) => {
+                        userHasEditedRef.current = true;
+                        setValue("agencyFacebook", e.target.value, { shouldDirty: true });
+                      }}
                       placeholder="Escora Holidays"
                       className="h-8 text-xs bg-background"
                     />
@@ -2081,7 +2327,11 @@ export default function ItineraryBuilderPage() {
                     </Label>
                     <Input
                       id="agencyWebsite"
-                      {...register("agencyWebsite")}
+                      value={watchedAgencyWebsite}
+                      onChange={(e) => {
+                        userHasEditedRef.current = true;
+                        setValue("agencyWebsite", e.target.value, { shouldDirty: true });
+                      }}
                       placeholder="http://www.escoraholidays.com"
                       className="h-8 text-xs bg-background"
                     />
@@ -3995,39 +4245,51 @@ export default function ItineraryBuilderPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <Label htmlFor="curatorName" className="font-medium text-xs flex items-center gap-1.5">
+                        <Label htmlFor="step7-curatorName" className="font-medium text-xs flex items-center gap-1.5">
                           <User className="h-3 w-3 text-muted-foreground" />
                           Curator Name
                         </Label>
                         <Input
-                          id="curatorName"
-                          {...register("curatorName")}
+                          id="step7-curatorName"
+                          value={watchedCuratorName}
+                          onChange={(e) => {
+                            userHasEditedRef.current = true;
+                            setValue("curatorName", e.target.value, { shouldDirty: true });
+                          }}
                           placeholder="e.g. Midhilaj Chelakkal"
                           className="bg-background text-xs"
                         />
                       </div>
 
                       <div className="space-y-1.5">
-                        <Label htmlFor="curatorPhone" className="font-medium text-xs flex items-center gap-1.5">
+                        <Label htmlFor="step7-curatorPhone" className="font-medium text-xs flex items-center gap-1.5">
                           <Phone className="h-3 w-3 text-muted-foreground" />
                           Curator Phone / WhatsApp
                         </Label>
                         <Input
-                          id="curatorPhone"
-                          {...register("curatorPhone")}
+                          id="step7-curatorPhone"
+                          value={watchedCuratorPhone}
+                          onChange={(e) => {
+                            userHasEditedRef.current = true;
+                            setValue("curatorPhone", e.target.value, { shouldDirty: true });
+                          }}
                           placeholder="e.g. +91 75929 98800"
                           className="bg-background text-xs"
                         />
                       </div>
 
                       <div className="space-y-1.5 sm:col-span-2">
-                        <Label htmlFor="emergencyContacts" className="font-medium text-xs flex items-center gap-1.5">
+                        <Label htmlFor="step7-emergencyContacts" className="font-medium text-xs flex items-center gap-1.5">
                           <ShieldCheck className="h-3 w-3 text-muted-foreground" />
                           24/7 Escora Guest Concierge &amp; Helpline
                         </Label>
                         <Input
-                          id="emergencyContacts"
-                          {...register("emergencyContacts")}
+                          id="step7-emergencyContacts"
+                          value={watchedEmergencyContacts}
+                          onChange={(e) => {
+                            userHasEditedRef.current = true;
+                            setValue("emergencyContacts", e.target.value, { shouldDirty: true });
+                          }}
                           placeholder="e.g. 24/7 Escora Guest Concierge: +91 75929 98800"
                           className="bg-background text-xs"
                         />
@@ -4513,6 +4775,53 @@ function DayCardBody({
     }
   };
 
+  const [isAutoFillingDay, setIsAutoFillingDay] = useState(false);
+  const [activeSlotLoading, setActiveSlotLoading] = useState<number | null>(null);
+
+  const handleAutoFillDayPhotos = async () => {
+    setIsAutoFillingDay(true);
+    try {
+      const dayDest = watch ? (watch(`days.${dayIndex}.destination`) || watch("destination") || "Kerala") : "Kerala";
+      const dayTitle = watch ? (watch(`days.${dayIndex}.title`) || "") : "";
+      const query = `${dayDest} ${dayTitle}`.trim();
+
+      const res = await fetch(`/api/itineraries/stock-photos?query=${encodeURIComponent(query)}&count=3&dayIndex=${dayIndex}`);
+      if (!res.ok) throw new Error("Failed to fetch stock photos");
+      const data = await res.json();
+      const photos: string[] = Array.isArray(data.photos) ? data.photos.slice(0, 3) : [];
+      if (photos.length > 0 && setValue) {
+        setValue(`days.${dayIndex}.imageUrls`, photos, { shouldDirty: true, shouldValidate: true });
+        setValue(`days.${dayIndex}.imageUrl`, photos[0] || "", { shouldDirty: true, shouldValidate: true });
+      }
+    } catch (e: any) {
+      console.error(e);
+    } finally {
+      setIsAutoFillingDay(false);
+    }
+  };
+
+  const handleFetchSlotPhoto = async (slotIndex: number) => {
+    setActiveSlotLoading(slotIndex);
+    try {
+      const dayDest = watch ? (watch(`days.${dayIndex}.destination`) || watch("destination") || "Kerala") : "Kerala";
+      const dayTitle = watch ? (watch(`days.${dayIndex}.title`) || "") : "";
+      const query = `${dayDest} ${dayTitle}`.trim();
+
+      const res = await fetch(`/api/itineraries/stock-photos?query=${encodeURIComponent(query)}&count=3&dayIndex=${dayIndex}`);
+      if (!res.ok) throw new Error("Failed to fetch stock photos");
+      const data = await res.json();
+      const photos: string[] = Array.isArray(data.photos) ? data.photos : [];
+      const selected = photos[slotIndex] || photos[0];
+      if (selected) {
+        handlePhotoUpdate(slotIndex, selected);
+      }
+    } catch (e: any) {
+      console.error(e);
+    } finally {
+      setActiveSlotLoading(null);
+    }
+  };
+
   return (
     <div className="p-4 space-y-4">
       {/* Day Basic Fields */}
@@ -4578,6 +4887,21 @@ function DayCardBody({
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-6 text-[10.5px] px-2 text-primary border-primary/30 hover:bg-primary/10 gap-1"
+              onClick={handleAutoFillDayPhotos}
+              disabled={isAutoFillingDay}
+            >
+              {isAutoFillingDay ? (
+                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+              ) : (
+                <Sparkles className="h-3 w-3 text-primary" />
+              )}
+              <span>Auto-Fill 3 Photos</span>
+            </Button>
             <span className="text-[11px] text-muted-foreground font-mono">
               {photoList.length} of 3 photos added
             </span>
@@ -4600,13 +4924,24 @@ function DayCardBody({
               <span className="text-[11px] font-medium text-foreground">
                 Photo 1 <span className="text-primary font-semibold">(Primary / Cover)</span>
               </span>
-              {photo0 ? (
-                <Badge variant="outline" className="text-[9px] py-0 px-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
-                  Active
-                </Badge>
-              ) : (
-                <span className="text-[10px] text-muted-foreground italic">Required for cover</span>
-              )}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleFetchSlotPhoto(0)}
+                  disabled={activeSlotLoading === 0}
+                  className="text-[10px] text-primary hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                  title="Fetch matching stock photo"
+                >
+                  <Sparkles className="h-2.5 w-2.5" /> Stock
+                </button>
+                {photo0 ? (
+                  <Badge variant="outline" className="text-[9px] py-0 px-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+                    Active
+                  </Badge>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground italic">Required for cover</span>
+                )}
+              </div>
             </div>
             <ImageUploadField
               value={photo0}
@@ -4623,13 +4958,24 @@ function DayCardBody({
               <span className="text-[11px] font-medium text-foreground">
                 Photo 2 <span className="text-muted-foreground font-normal">(Optional)</span>
               </span>
-              {photo1 ? (
-                <Badge variant="outline" className="text-[9px] py-0 px-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
-                  Active
-                </Badge>
-              ) : (
-                <span className="text-[10px] text-muted-foreground italic">Optional</span>
-              )}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleFetchSlotPhoto(1)}
+                  disabled={activeSlotLoading === 1}
+                  className="text-[10px] text-primary hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                  title="Fetch matching stock photo"
+                >
+                  <Sparkles className="h-2.5 w-2.5" /> Stock
+                </button>
+                {photo1 ? (
+                  <Badge variant="outline" className="text-[9px] py-0 px-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+                    Active
+                  </Badge>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground italic">Optional</span>
+                )}
+              </div>
             </div>
             <ImageUploadField
               value={photo1}
@@ -4646,13 +4992,24 @@ function DayCardBody({
               <span className="text-[11px] font-medium text-foreground">
                 Photo 3 <span className="text-muted-foreground font-normal">(Optional)</span>
               </span>
-              {photo2 ? (
-                <Badge variant="outline" className="text-[9px] py-0 px-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
-                  Active
-                </Badge>
-              ) : (
-                <span className="text-[10px] text-muted-foreground italic">Optional</span>
-              )}
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleFetchSlotPhoto(2)}
+                  disabled={activeSlotLoading === 2}
+                  className="text-[10px] text-primary hover:underline font-medium inline-flex items-center gap-1 cursor-pointer"
+                  title="Fetch matching stock photo"
+                >
+                  <Sparkles className="h-2.5 w-2.5" /> Stock
+                </button>
+                {photo2 ? (
+                  <Badge variant="outline" className="text-[9px] py-0 px-1 text-emerald-600 border-emerald-300 bg-emerald-50 dark:bg-emerald-950/30">
+                    Active
+                  </Badge>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground italic">Optional</span>
+                )}
+              </div>
             </div>
             <ImageUploadField
               value={photo2}

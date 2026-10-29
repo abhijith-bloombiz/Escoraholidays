@@ -413,9 +413,17 @@ export default function ItineraryPrintDocument({
   const infants = data.infants ?? 0;
 
   const emergencyContacts =
-    data.emergencyContacts || DEFAULT_AGENCY_CONTACT.emergencyContacts;
-  const curatorName = data.curatorName || DEFAULT_AGENCY_CONTACT.curatorName;
-  const curatorPhone = data.curatorPhone || DEFAULT_AGENCY_CONTACT.curatorPhone;
+    data.emergencyContacts !== undefined && data.emergencyContacts !== null
+      ? data.emergencyContacts
+      : DEFAULT_AGENCY_CONTACT.emergencyContacts;
+  const curatorName =
+    data.curatorName !== undefined && data.curatorName !== null
+      ? data.curatorName
+      : DEFAULT_AGENCY_CONTACT.curatorName;
+  const curatorPhone =
+    data.curatorPhone !== undefined && data.curatorPhone !== null
+      ? data.curatorPhone
+      : DEFAULT_AGENCY_CONTACT.curatorPhone;
   const referenceNumber =
     data.referenceNumber ||
     (shareToken ? `L100021/${shareToken.slice(0, 6).toUpperCase()}` : "L100021/Q1020");
@@ -450,24 +458,24 @@ export default function ItineraryPrintDocument({
       : data.tripIncludes ?? DEFAULT_TRIP_INCLUDES;
 
   const agencyPhone =
-    data.agencyPhone ||
-    parsedTripIncludes?.agencyContact?.phone ||
+    data.agencyPhone ??
+    parsedTripIncludes?.agencyContact?.phone ??
     DEFAULT_AGENCY_CONTACT.phone;
   const agencyEmail =
-    data.agencyEmail ||
-    parsedTripIncludes?.agencyContact?.email ||
+    data.agencyEmail ??
+    parsedTripIncludes?.agencyContact?.email ??
     DEFAULT_AGENCY_CONTACT.email;
   const agencyInstagram =
-    data.agencyInstagram ||
-    parsedTripIncludes?.agencyContact?.instagram ||
+    data.agencyInstagram ??
+    parsedTripIncludes?.agencyContact?.instagram ??
     DEFAULT_AGENCY_CONTACT.instagram;
   const agencyFacebook =
-    data.agencyFacebook ||
-    parsedTripIncludes?.agencyContact?.facebook ||
+    data.agencyFacebook ??
+    parsedTripIncludes?.agencyContact?.facebook ??
     DEFAULT_AGENCY_CONTACT.facebook;
   const agencyWebsite =
-    data.agencyWebsite ||
-    parsedTripIncludes?.agencyContact?.website ||
+    data.agencyWebsite ??
+    parsedTripIncludes?.agencyContact?.website ??
     DEFAULT_AGENCY_CONTACT.website;
 
   const incConfig = parsedTripIncludes ?? {

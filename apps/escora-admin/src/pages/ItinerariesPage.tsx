@@ -184,6 +184,11 @@ function toPrintData(itinerary: Itinerary) {
     infants: itinerary.infants ?? 0,
     tripIncludes: parseTripIncludes(itinerary.tripIncludes),
     weAlsoProvide: parseTripIncludes(itinerary.tripIncludes).weAlsoProvide,
+    agencyPhone: parseTripIncludes(itinerary.tripIncludes).agencyContact?.phone,
+    agencyEmail: parseTripIncludes(itinerary.tripIncludes).agencyContact?.email,
+    agencyInstagram: parseTripIncludes(itinerary.tripIncludes).agencyContact?.instagram,
+    agencyFacebook: parseTripIncludes(itinerary.tripIncludes).agencyContact?.facebook,
+    agencyWebsite: parseTripIncludes(itinerary.tripIncludes).agencyContact?.website,
     transportation: parseTransportation(itinerary.transportation),
     hotelTerms: parseStringList(itinerary.hotelTerms),
     paymentTerms: parseStringList(itinerary.paymentTerms),
@@ -195,7 +200,13 @@ export default function ItinerariesPage() {
   const [, navigate] = useLocation();
   const qc = useQueryClient();
   const { toast } = useToast();
-  const { data: itineraries, isLoading, isError, refetch } = useListItineraries();
+  const { data: itineraries, isLoading, isError, refetch } = useListItineraries(undefined, {
+    query: {
+      queryKey: getListItinerariesQueryKey(),
+      staleTime: 0,
+      refetchOnMount: "always",
+    },
+  });
   const deleteMutation = useDeleteItinerary();
   const cloneMutation = useCreateItinerary();
   const updateMutation = useUpdateItinerary();

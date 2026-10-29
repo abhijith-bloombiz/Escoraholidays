@@ -94,6 +94,7 @@ function toDocumentData(itinerary: Itinerary) {
 }
 
 function toPrintData(itinerary: Itinerary) {
+  const parsedTripInc = parseTripIncludes(itinerary.tripIncludes);
   return {
     title: itinerary.title || "Slow-Luxury Kerala Journey",
     customerName: itinerary.customerName || "Valued Guest",
@@ -117,8 +118,13 @@ function toPrintData(itinerary: Itinerary) {
     adults: itinerary.adults,
     children: itinerary.children,
     infants: itinerary.infants,
-    tripIncludes: parseTripIncludes(itinerary.tripIncludes),
-    weAlsoProvide: parseTripIncludes(itinerary.tripIncludes).weAlsoProvide,
+    tripIncludes: parsedTripInc,
+    weAlsoProvide: parsedTripInc.weAlsoProvide,
+    agencyPhone: parsedTripInc.agencyContact?.phone,
+    agencyEmail: parsedTripInc.agencyContact?.email,
+    agencyInstagram: parsedTripInc.agencyContact?.instagram,
+    agencyFacebook: parsedTripInc.agencyContact?.facebook,
+    agencyWebsite: parsedTripInc.agencyContact?.website,
     transportation: parseTransportation(itinerary.transportation),
     hotelTerms: parseStringList(itinerary.hotelTerms),
     paymentTerms: parseStringList(itinerary.paymentTerms),
@@ -169,6 +175,8 @@ export default function ItineraryDetailPage() {
     query: {
       enabled: itineraryId !== null,
       queryKey: itineraryId !== null ? getGetItineraryQueryKey(itineraryId) : ["invalid-id"],
+      staleTime: 0,
+      refetchOnMount: "always",
     },
   });
 

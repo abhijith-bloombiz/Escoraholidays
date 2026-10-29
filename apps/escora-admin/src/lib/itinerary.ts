@@ -55,6 +55,9 @@ export interface ItineraryAgencyContact {
   instagram?: string;
   facebook?: string;
   website?: string;
+  curatorName?: string;
+  curatorPhone?: string;
+  emergencyContacts?: string;
 }
 
 export interface ItineraryTripIncludes {

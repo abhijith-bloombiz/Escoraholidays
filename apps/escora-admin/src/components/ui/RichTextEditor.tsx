@@ -59,6 +59,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { sanitizeRichDescriptionHtml } from "@/lib/itinerary";
 
 export interface RichTextEditorRef {
   focus: () => void;
@@ -201,20 +202,20 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       if (!editorRef.current) return;
       const currentHtml = editorRef.current.innerHTML;
       if (value !== currentHtml) {
-        // If incoming value is plain text without tags, wrap nicely or set directly
-        if (!value) {
+        const sanitized = sanitizeRichDescriptionHtml(value);
+        if (!sanitized) {
           editorRef.current.innerHTML = "";
-        } else if (!/<[a-z][\s\S]*>/i.test(value)) {
+        } else if (!/<[a-z][\s\S]*>/i.test(sanitized)) {
           // Legacy plain text: split newlines to <p>
-          const paragraphs = value
+          const paragraphs = sanitized
             .split("\n")
             .map((p) => p.trim())
             .filter(Boolean)
             .map((p) => `<p>${p}</p>`)
             .join("");
-          editorRef.current.innerHTML = paragraphs || `<p>${value}</p>`;
+          editorRef.current.innerHTML = paragraphs || `<p>${sanitized}</p>`;
         } else {
-          editorRef.current.innerHTML = value;
+          editorRef.current.innerHTML = sanitized;
         }
       }
     }, [value]);
@@ -273,8 +274,9 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
       getHtml: () => editorRef.current?.innerHTML || "",
       setHtml: (newHtml: string) => {
         if (editorRef.current) {
-          editorRef.current.innerHTML = newHtml;
-          onChange?.(newHtml);
+          const cleaned = sanitizeRichDescriptionHtml(newHtml);
+          editorRef.current.innerHTML = cleaned;
+          onChange?.(cleaned);
         }
       },
     }));
@@ -558,6 +560,35 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
           exec("indent");
         }
       }
+    };
+
+    // Paste Event Handler: Automatically cleans Microsoft Word / external copy-paste artifacts
+    const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+      if (disabled) return;
+      e.preventDefault();
+
+      const clipboardData = e.clipboardData;
+      const pastedHtml = clipboardData.getData("text/html");
+      const pastedText = clipboardData.getData("text/plain");
+
+      if (pastedHtml) {
+        const cleaned = sanitizeRichDescriptionHtml(pastedHtml);
+        document.execCommand("insertHTML", false, cleaned);
+      } else if (pastedText) {
+        const cleaned = sanitizeRichDescriptionHtml(pastedText);
+        if (cleaned.includes("\n")) {
+          const formatted = cleaned
+            .split("\n")
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => `<p>${line}</p>`)
+            .join("");
+          document.execCommand("insertHTML", false, formatted);
+        } else {
+          document.execCommand("insertText", false, cleaned);
+        }
+      }
+      handleInput();
     };
 
     return (
@@ -1129,6 +1160,7 @@ export const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>
           ref={editorRef}
           contentEditable={!disabled}
           onInput={handleInput}
+          onPaste={handlePaste}
           onKeyUp={updateActiveFormats}
           onMouseUp={updateActiveFormats}
           onKeyDown={handleKeyDown}

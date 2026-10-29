@@ -29,6 +29,7 @@ import {
   DEFAULT_AGENCY_CONTACT,
   DEFAULT_TRIP_INCLUDES,
   parseTripIncludes,
+  sanitizeRichDescriptionHtml,
 } from "@/lib/itinerary";
 
 import alleppeyFallbackImg from "@assets/escora/destinations/alleppey.jpg";
@@ -308,7 +309,7 @@ export function BrandLogo({
 
 function renderRichDescription(htmlOrText?: string | null) {
   if (!htmlOrText) return null;
-  const raw = String(htmlOrText).trim();
+  const raw = sanitizeRichDescriptionHtml(String(htmlOrText).trim());
   if (!raw) return null;
 
   // Check if content contains HTML tags

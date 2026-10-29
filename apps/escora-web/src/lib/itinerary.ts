@@ -282,3 +282,49 @@ export function formatDayDateHeader(dayNum: number, dateStr?: string | null): st
   const year = d.toLocaleDateString("en-IN", { year: "numeric" });
   return `Day ${dayNum} | ${weekday} | ${day} ${month} ${year}`;
 }
+
+/**
+ * Cleans rich text HTML or plain text pasted from Microsoft Word, Google Docs, Apple Notes, or websites.
+ * Eliminates:
+ * 1. Microsoft Word Wingdings / Symbol pseudo-bullets (which turn into '§' or '▪' in standard web fonts)
+ * 2. Duplicate bullet symbols at the start of <li> elements (e.g. "• ▪", "• §", "▪", "§")
+ * 3. Leading tabs, multiple non-breaking spaces (&nbsp;) inside list items causing awkward indentation
+ * 4. Word Office XML, comments (<!--[if ...]>), and mso-* classes
+ */
+export function sanitizeRichDescriptionHtml(htmlOrText?: string | null): string {
+  if (!htmlOrText) return "";
+  let s = String(htmlOrText);
+
+  // 1. Remove Word comments and mso / office xml tags
+  s = s.replace(/<!--[\s\S]*?-->/g, "");
+  s = s.replace(/<\/?(?:o|w|m|v):[a-z0-9_-]+[^>]*>/gi, "");
+  s = s.replace(/<!\[if[\s\S]*?<!\[endif\]>/gi, "");
+
+  // 2. Remove Wingdings / Symbol spans entirely (they contain pseudo-bullets like §, ·, \uF0A7)
+  s = s.replace(/<span[^>]*font-family:\s*[^;"'>]*(?:Wingdings|Symbol|Webdings)[^;"'>]*[^>]*>[\s\S]*?<\/span>/gi, "");
+
+  // 3. Remove inline styles containing Wingdings/Symbol font-family
+  s = s.replace(/font-family:\s*[^;"'>]*(?:Wingdings|Symbol|Webdings)[^;"'>]*;?/gi, "");
+
+  // 4. Strip duplicate bullets / pseudo-bullets at the start of <li> elements
+  // Characters: • (\u2022), ▪ (\u25AA), ■ (\u25A0), ▫ (\u25AB), ◦ (\u25E6), § (\u00A7), ‣ (\u2023), ⁃ (\u2043), · (\u00B7), -, *, –, —
+  // Also handle cases where a span wraps the bullet: <li><span ...>• ▪</span> Heritage Stay</li>
+  s = s.replace(/(<li[^>]*>)\s*(?:(?:<span[^>]*>)?\s*[•▪■▫◦§‣⁃–—*·\uF0A7\uF0B7\uF0D8]\s*(?:<\/span>)?\s*)+/gi, "$1");
+
+  // 5. Remove leading non-breaking spaces, regular spaces, and tabs inside <li>
+  s = s.replace(/(<li[^>]*>)(?:&nbsp;|\s|\u00A0)+/gi, "$1");
+
+  // 6. Clean up standalone § used as bullets outside <li> (e.g. at start of paragraph or after line breaks)
+  s = s.replace(/(^|<p[^>]*>|<br\s*\/?>)\s*§\s+/gi, "$1• ");
+
+  // 7. Clean up any remaining double bullets outside of li: e.g. "• ▪ " or "• § "
+  s = s.replace(/[•▪■▫◦§‣⁃]\s*[•▪■▫◦§‣⁃]\s*/g, "• ");
+
+  // 8. If a line starts with "§ " at beginning of text, replace with "• " or clean
+  s = s.replace(/(^|\n)\s*§\s+/g, "$1• ");
+
+  // 9. Normalize multiple consecutive &nbsp; down to a clean single space in running text
+  s = s.replace(/(?:&nbsp;|\u00A0){2,}/g, " ");
+
+  return s;
+}

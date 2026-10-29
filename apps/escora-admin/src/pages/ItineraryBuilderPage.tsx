@@ -96,6 +96,7 @@ import {
   DEFAULT_AGENCY_CONTACT,
   DEFAULT_WE_ALSO_PROVIDE_OPTIONS,
   generateProposalReferenceNumber,
+  sanitizeRichDescriptionHtml,
   type ItineraryDay,
   type ItineraryStay,
   type ItineraryPricing,
@@ -771,6 +772,7 @@ export default function ItineraryBuilderPage() {
           return {
             ...d,
             day: i + 1,
+            description: d.description ? sanitizeRichDescriptionHtml(d.description) : undefined,
             imageUrl: sanitizedImages[0] || undefined,
             imageUrls: sanitizedImages.length > 0 ? sanitizedImages : undefined,
           };

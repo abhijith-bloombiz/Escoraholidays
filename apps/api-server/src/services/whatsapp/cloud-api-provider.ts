@@ -118,7 +118,34 @@ export class CloudApiWhatsAppProvider implements WhatsAppProvider {
     // Construct Meta payload
     let payload: Record<string, any>;
 
-    if (type === "template" && templateName) {
+    if (type === "interactive" && request.interactive) {
+      payload = {
+        messaging_product: "whatsapp",
+        recipient_type: "individual",
+        to: waRecipient,
+        type: "interactive",
+        interactive: {
+          type: request.interactive.type || "button",
+          ...(request.interactive.header
+            ? {
+                header:
+                  request.interactive.header.type === "image" && request.interactive.header.imageUrl
+                    ? { type: "image", image: { link: request.interactive.header.imageUrl } }
+                    : { type: "text", text: request.interactive.header.text },
+              }
+            : {}),
+          body: {
+            text: request.interactive.body.text,
+          },
+          ...(request.interactive.footer
+            ? {
+                footer: { text: request.interactive.footer.text },
+              }
+            : {}),
+          action: request.interactive.action,
+        },
+      };
+    } else if (type === "template" && templateName) {
       // Meta pre-approved test template: "hello_world"
       if (templateName === "hello_world") {
         payload = {

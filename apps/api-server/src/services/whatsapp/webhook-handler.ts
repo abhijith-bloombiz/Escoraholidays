@@ -7,7 +7,7 @@ import {
 } from "@workspace/db";
 import { config } from "../../config/env";
 import { logger } from "../../lib/logger";
-import { setWhatsAppConsent } from "./whatsapp-service";
+import { setWhatsAppConsent, sendWhatsAppMessage, getWhatsAppSettings } from "./whatsapp-service";
 import { normalizePhoneNumber } from "./types";
 
 /**
@@ -217,7 +217,13 @@ export async function processWhatsAppWebhookPayload(payload: any): Promise<Proce
       if (Array.isArray(value.messages)) {
         for (const msgObj of value.messages) {
           const fromWaId = msgObj.from;
-          const bodyText = msgObj.text?.body?.trim() || msgObj.button?.text?.trim() || "";
+          const buttonId = msgObj.interactive?.button_reply?.id || msgObj.button?.payload || null;
+          const bodyText =
+            msgObj.text?.body?.trim() ||
+            msgObj.interactive?.button_reply?.title?.trim() ||
+            msgObj.interactive?.list_reply?.title?.trim() ||
+            msgObj.button?.text?.trim() ||
+            "";
           const timestampSeconds = Number(msgObj.timestamp) || Math.floor(Date.now() / 1000);
           const eventTime = new Date(timestampSeconds * 1000);
 
@@ -373,6 +379,116 @@ export async function processWhatsAppWebhookPayload(payload: any): Promise<Proce
               },
             });
             result.processedInbound++;
+
+            // 4. Automated Welcome Greeting or Interactive Button Response
+            if (!isStop) {
+              try {
+                const settings = await getWhatsAppSettings();
+                const isGreeting =
+                  ["hi", "hello", "hey", "namaste", "enquire", "welcome", "hola"].includes(cleanKeyword) ||
+                  cleanKeyword.startsWith("hi") ||
+                  cleanKeyword.startsWith("hello") ||
+                  cleanKeyword.startsWith("hey");
+
+                if (buttonId) {
+                  // Customer clicked one of our interactive buttons
+                  let responseText = "";
+                  if (buttonId.includes("package") || buttonId === "btn_packages") {
+                    responseText =
+                      settings.welcomeButton1Reply ||
+                      "🌴 *Escora Signature Collections*\n\n1. *Munnar Mist Sanctuary (4D/3N)* — Slow-living amidst ancient tea estates.\n2. *Vembanad Houseboat Serenity (3D/2N)* — Private luxury backwater cruise.\n3. *Wayanad Rainforest Retreat (4D/3N)* — Ayurveda & wellness sanctuary.\n\nReply with a package name or your travel dates to get full pricing details!";
+                  } else if (buttonId.includes("custom") || buttonId === "btn_custom_trip") {
+                    responseText =
+                      settings.welcomeButton2Reply ||
+                      "✍️ *Plan a Custom Itinerary*\n\nPlease let us know:\n• Your expected travel dates\n• Number of travelers (adults & children)\n• Preferred style (Romantic Honeymoon, Family Sanctuary, or Wellness)\n\nOur private travel designer will curate a slow-luxury itinerary for you.";
+                  } else if (buttonId.includes("concierge") || buttonId === "btn_concierge") {
+                    responseText =
+                      settings.welcomeButton3Reply ||
+                      "🛎️ *Escora Concierge Assigned*\n\nNamaste! Our senior travel designer has been notified and will assist you right here in this chat shortly.\n\nDirect Concierge Line: +91 94000 00000.";
+                  }
+
+                  if (responseText) {
+                    await sendWhatsAppMessage({
+                      recipientPhone: normalizedPhone,
+                      recipientName: contactName,
+                      messageType: "manual_concierge_message",
+                      category: "transactional",
+                      trigger: `button_click_${buttonId}`,
+                      relatedType: "enquiry",
+                      relatedId: matchedEnquiryId,
+                      bodyText: responseText,
+                      idempotencyKey: `auto_btn_${buttonId}_${msgObj.id || Date.now()}`,
+                      metadata: { buttonId, buttonTitle: bodyText },
+                    });
+                  }
+                } else if (settings.welcomeGreetingEnabled !== false) {
+                  // Check if we recently sent an automated greeting within the last 24h
+                  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                  const recentGreeting = await WhatsAppMessageModel.findOne({
+                    recipientPhone: normalizedPhone,
+                    trigger: "welcome_greeting_bot",
+                    createdAt: { $gte: oneDayAgo },
+                  }).lean();
+
+                  if (!recentGreeting || isGreeting) {
+                    const currentHour = new Date().getHours();
+                    const greetingTime =
+                      currentHour < 12 ? "Good Morning" : currentHour < 17 ? "Good Afternoon" : "Good Evening";
+                    const baseText =
+                      settings.welcomeGreetingText ||
+                      "Good day {{first_name}}! Welcome to Escora Holidays. Simply select an option below or type your enquiry to get started.";
+                    const personalizedText = baseText
+                      .replace(/\{\{first_name\}\}/g, contactName !== "WhatsApp Guest" ? contactName : "there")
+                      .replace(/\{\{greeting_time\}\}/g, greetingTime);
+
+                    const bannerUrl =
+                      settings.welcomeBannerUrl ||
+                      "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80";
+                    const btn1 = (settings.welcomeButton1Label || "🌴 Tour Packages").slice(0, 20);
+                    const btn2 = (settings.welcomeButton2Label || "✍️ Plan Custom Trip").slice(0, 20);
+                    const btn3 = (settings.welcomeButton3Label || "🛎️ Talk to Concierge").slice(0, 20);
+
+                    await sendWhatsAppMessage({
+                      recipientPhone: normalizedPhone,
+                      recipientName: contactName,
+                      messageType: "enquiry_acknowledgement",
+                      category: "transactional",
+                      trigger: "welcome_greeting_bot",
+                      relatedType: "enquiry",
+                      relatedId: matchedEnquiryId,
+                      bodyText: `${personalizedText}\n\n[Options: 1. ${btn1} | 2. ${btn2} | 3. ${btn3}]`,
+                      interactive: {
+                        type: "button",
+                        header: {
+                          type: "image",
+                          imageUrl: bannerUrl,
+                        },
+                        body: {
+                          text: personalizedText,
+                        },
+                        footer: {
+                          text: "Escora Holidays · Bespoke Luxury",
+                        },
+                        action: {
+                          buttons: [
+                            { type: "reply", reply: { id: "btn_packages", title: btn1 } },
+                            { type: "reply", reply: { id: "btn_custom_trip", title: btn2 } },
+                            { type: "reply", reply: { id: "btn_concierge", title: btn3 } },
+                          ],
+                        },
+                      },
+                      idempotencyKey: `welcome_${msgObj.id || Date.now()}`,
+                      metadata: {
+                        bannerUrl,
+                        buttons: [btn1, btn2, btn3],
+                      },
+                    });
+                  }
+                }
+              } catch (botErr: any) {
+                logger.warn({ err: botErr?.message, phone: normalizedPhone }, "[WhatsAppWebhook] Automated greeting bot error");
+              }
+            }
           } catch (err: any) {
             logger.error({ err: err?.message, fromWaId }, "[WhatsAppWebhook] Error creating inbound audit message");
             result.errors.push(err?.message || "Failed to record inbound message");

@@ -12,5 +12,7 @@ export interface ItineraryAiDay {
   title: string;
   description?: string;
   destination?: string;
+  imageUrl?: string;
+  imageUrls?: string[];
   activities: ItineraryAiActivity[];
 }

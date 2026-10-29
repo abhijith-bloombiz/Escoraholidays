@@ -1,6 +1,7 @@
 import { DestinationModel, PackageModel, type IDestination, type IPackage } from "@workspace/db";
 import { aiService } from "./ai-service";
 import { AiServiceError } from "./types";
+import { imageSearchService } from "../image-search-service";
 import { logger } from "../../lib/logger";
 
 export interface TripPlanRequestData {
@@ -37,6 +38,8 @@ export interface DayItineraryItem {
   eveningActivity: string;
   stayRecommendation: string;
   travelNote?: string;
+  imageUrl?: string;
+  imageUrls?: string[];
 }
 
 import { currencyService, type TripBudgetDetails, type SupportedCurrency } from "../currency-service";
@@ -218,6 +221,7 @@ JSON OUTPUT SCHEMA:
       "title": "Short descriptive title (3–6 words, e.g. 'Colonial Fort Kochi & Sunset Harbor')",
       "destination": "Verified destination name from catalog",
       "destinationSlug": "Matching slug from catalog",
+      "imageSearchQuery": "Munnar tea plantation misty morning",
       "theme": "One concise sentence (15–25 words) capturing the day's focus and atmosphere",
       "morningActivity": "Short label or compact text (10–18 words) focusing on distinctive experience or landmark",
       "afternoonActivity": "Short label or compact text (10–18 words) focusing on distinctive experience or landmark",
@@ -276,9 +280,21 @@ JSON OUTPUT SCHEMA:
   }
 
   const rawDays: any[] = Array.isArray(parsedRaw.days) ? parsedRaw.days : [];
-  const normalizedDays: DayItineraryItem[] = [];
   const referencedDestSlugs = new Set<string>();
 
+  // Concurrently resolve exact photos for all itinerary days (Method B)
+  const dayPhotoPromises = [];
+  for (let i = 0; i < durationDays; i++) {
+    const rawDay = rawDays[i] || {};
+    const destName = rawDay.destination || "Kerala";
+    const matchedDest = destByLower.get(destName.toLowerCase()) || destBySlug.get((rawDay.destinationSlug || "").toLowerCase());
+    const fallbackPhoto = matchedDest?.imageUrl || "";
+    const query = rawDay.imageSearchQuery || `${matchedDest?.name || destName} ${rawDay.title || ""}`;
+    dayPhotoPromises.push(imageSearchService.searchPhotos(query, 3, fallbackPhoto, i));
+  }
+  const resolvedPhotos = await Promise.all(dayPhotoPromises);
+
+  const normalizedDays: DayItineraryItem[] = [];
   for (let i = 0; i < durationDays; i++) {
     const rawDay = rawDays[i] || {};
     const dayNum = i + 1;
@@ -289,6 +305,8 @@ JSON OUTPUT SCHEMA:
     if (matchedDest) {
       referencedDestSlugs.add(matchedDest.slug);
     }
+
+    const photos = resolvedPhotos[i] || [];
 
     normalizedDays.push({
       day: dayNum,
@@ -301,6 +319,8 @@ JSON OUTPUT SCHEMA:
       eveningActivity: rawDay.eveningActivity || "Atmospheric sunset viewing and local culinary dinner.",
       stayRecommendation: rawDay.stayRecommendation || "Curated slow-luxury boutique sanctuary.",
       travelNote: rawDay.travelNote || undefined,
+      imageUrl: photos[0] || undefined,
+      imageUrls: photos.length > 0 ? photos : undefined,
     });
   }
 

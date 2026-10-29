@@ -2681,6 +2681,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ItineraryAiActivity"
+        imageUrl:
+          type: string
+          description: Matched landscape photograph URL for the day's experience
+        imageUrls:
+          type: array
+          items:
+            type: string
+          description: Up to 3 side-by-side landscape photograph URLs for the day
 
     ItineraryAiStay:
       type: object
@@ -4036,6 +4044,14 @@ components:
           type: string
         travelNote:
           type: string
+        imageUrl:
+          type: string
+          description: Matched landscape photograph URL for the day's experience
+        imageUrls:
+          type: array
+          items:
+            type: string
+          description: Matched landscape photograph URLs for the day
 
     TripPlanEntity:
       type: object

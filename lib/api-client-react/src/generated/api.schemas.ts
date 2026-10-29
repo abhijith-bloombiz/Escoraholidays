@@ -434,6 +434,8 @@ export interface ItineraryAiDay {
   title: string;
   description?: string;
   destination?: string;
+  imageUrl?: string;
+  imageUrls?: string[];
   activities: ItineraryAiActivity[];
 }
 
@@ -1316,6 +1318,8 @@ export interface TripItineraryDay {
   eveningActivity: string;
   stayRecommendation: string;
   travelNote?: string;
+  imageUrl?: string;
+  imageUrls?: string[];
 }
 
 export interface TripPlanEntity {

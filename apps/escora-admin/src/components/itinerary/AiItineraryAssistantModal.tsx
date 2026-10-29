@@ -473,8 +473,8 @@ export default function AiItineraryAssistantModal({
               {/* Proposal Header Card */}
               <Card className="border border-border bg-card">
                 <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                    <div className="flex-1">
                       <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider bg-primary/10 text-primary border-primary/20 mb-1.5">
                         {generatedDraft.destination} · {generatedDraft.durationDays} Days / {generatedDraft.durationNights} Nights
                       </Badge>
@@ -482,6 +482,18 @@ export default function AiItineraryAssistantModal({
                         {generatedDraft.title}
                       </CardTitle>
                     </div>
+                    {generatedDraft.coverImageUrl && (
+                      <div className="relative shrink-0">
+                        <img
+                          src={generatedDraft.coverImageUrl}
+                          alt="Proposal Cover"
+                          className="h-16 w-28 object-cover rounded-lg border border-border shadow-2xs"
+                        />
+                        <span className="absolute bottom-1 right-1 bg-black/70 text-white text-[9px] px-1 rounded font-mono">
+                          Cover
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <CardDescription className="text-xs text-muted-foreground leading-relaxed pt-2">
                     {generatedDraft.summary}
@@ -599,6 +611,26 @@ export default function AiItineraryAssistantModal({
                                 </div>
                               ))}
                             </div>
+
+                            {/* Matched Visuals (Method B) */}
+                            {((day.imageUrls && day.imageUrls.length > 0) || day.imageUrl) && (
+                              <div className="pt-2 border-t border-border/40">
+                                <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider block mb-1.5 font-semibold">
+                                  📸 Matched Visuals ({((day.imageUrls || [day.imageUrl])).filter(Boolean).length} Photos):
+                                </span>
+                                <div className="flex items-center gap-2 overflow-x-auto pb-1">
+                                  {((day.imageUrls && day.imageUrls.length > 0) ? day.imageUrls : [day.imageUrl!]).filter((url): url is string => Boolean(url)).map((imgUrl: string, iIdx: number) => (
+                                    <img
+                                      key={iIdx}
+                                      src={imgUrl}
+                                      alt={`Day ${day.day} visual ${iIdx + 1}`}
+                                      className="h-16 w-24 object-cover rounded border border-border shrink-0 shadow-2xs hover:scale-105 transition-transform"
+                                      loading="lazy"
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

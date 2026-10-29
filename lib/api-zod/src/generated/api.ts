@@ -871,6 +871,8 @@ export const AssistItineraryResponse = zod.object({
   "title": zod.string(),
   "description": zod.string().optional(),
   "destination": zod.string().optional(),
+  "imageUrl": zod.string().optional(),
+  "imageUrls": zod.array(zod.string()).optional(),
   "activities": zod.array(zod.object({
   "time": zod.string().optional().describe('Indicative activity time window (e.g. \'Morning\', \'Late Afternoon\', \'Sunset\')'),
   "title": zod.string(),

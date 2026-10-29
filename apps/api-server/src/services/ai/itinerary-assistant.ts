@@ -2,6 +2,7 @@ import { DestinationModel, PackageModel, EnquiryModel } from "@workspace/db";
 import { AssistItineraryResponse, type ItineraryAiAssistResponse } from "@workspace/api-zod";
 import { aiService } from "./ai-service";
 import { AiServiceError } from "./types";
+import { imageSearchService } from "../image-search-service";
 import { logger } from "../../lib/logger";
 
 export interface ItineraryAssistantServiceInput {
@@ -33,86 +34,60 @@ function buildItineraryAssistantSystemPrompt(
 ): string {
   const destList =
     publishedDestinations.length > 0
-      ? publishedDestinations.slice(0, 12).map((d) => `${d.name} (${d.region})`).join(", ")
-      : "Fort Kochi, Munnar, Alleppey, Thekkady, Wayanad, Kumarakom, Marari, Varkala";
+      ? publishedDestinations.slice(0, 10).map((d) => d.name).join(", ")
+      : "Fort Kochi, Munnar, Alleppey, Thekkady, Wayanad, Kumarakom";
 
   const pkgList =
     publishedPackages.length > 0
-      ? publishedPackages.slice(0, 8).map((p) => `${p.title} (${p.duration})`).join(", ")
-      : "The Malabar Escape, Cardamom Hills Retreat, Spice Coast Odyssey";
+      ? publishedPackages.slice(0, 6).map((p) => p.title).join(", ")
+      : "The Malabar Escape, Cardamom Hills Retreat";
 
-  return `You are the Senior Itinerary Designer at Escora Holidays, an ultra-luxury slow travel company specializing in handcrafted private journeys across Kerala, India.
+  return `Senior Itinerary Designer at Escora Holidays — bespoke slow-luxury journeys across Kerala.
+Pacing: Unhurried, restorative, immersive.
 
-PHILOSOPHY & BOTANICAL TONE:
-• Pacing: Unhurried, restorative, deeply immersed in heritage, spice mist, tea plantations, and backwaters.
-• You assist the internal travel concierge in drafting bespoke day-by-day travel proposals for guests.
+CATALOGUE:
+Destinations: ${destList}
+Signature Journeys: ${pkgList}
 
-APPROVED ESCORA CATALOGUE (Grounded Knowledge):
-• Destinations: ${destList}
-• Signature Journeys: ${pkgList}
-
-STRICT GUARDRAILS & FACTUAL RULES:
-1. CATALOG GROUNDING: Draw routes, destinations, and themes from Escora's verified catalogue.
-2. ZERO HALLUCINATED CONFIRMATIONS: Never state that a hotel room is booked, a tariff is locked, or flights are confirmed. Accommodations are indicative slow-luxury recommendations.
-3. UNCONFIRMED ITEMS: In the "unconfirmedItems" array, explicitly list any boutique sanctuaries, permits, or exclusive experiences that require manual operational verification by the concierge before sharing with the client.
-4. TRAVEL DESIGNER ADVICE: Provide realistic route logistics, drive durations between destinations (e.g. Kochi to Munnar ~4.5h), and seasonal pacing advice.
-5. ITERATIVE REFINEMENT: If the travel designer provides a "refinementPrompt" or existing itinerary, adjust the proposal to incorporate their exact instructions (e.g. changing days, altering pace, swapping properties).
-
-OUTPUT FORMAT: Respond with valid JSON matching this exact structure:
+RULES:
+1. Ground routes & themes in Escora's verified Kerala catalogue.
+2. Accommodations are indicative luxury recommendations; never state room/tariff is confirmed.
+3. List unconfirmed boutique stays/permits in "unconfirmedItems" for concierge operational check.
+4. Provide realistic road transit times (e.g. Kochi to Munnar ~4.5h) in "travelDesignerAdvice".
+5. For each day, provide a specific "imageSearchQuery" (e.g. "Munnar Lockhart tea factory misty hills") for photographic matching.
+6. Return valid JSON only matching this schema:
 {
-  "title": "Evocative slow-luxury title (e.g., Cardamom Hills & Serene Waters: An Unhurried Kerala Journey)",
-  "destination": "Primary destination region (e.g., Munnar, Thekkady & Kumarakom)",
+  "title": "Evocative slow-luxury title",
+  "destination": "Primary region(s)",
   "durationDays": 7,
   "durationNights": 6,
-  "summary": "1-2 paragraphs of slow-luxury narrative detailing the journey's soul and pace.",
+  "summary": "1-2 paragraphs slow-luxury narrative",
   "coverImageUrl": "",
   "days": [
     {
       "day": 1,
-      "date": "2026-11-20 or empty",
-      "title": "Arrival in Kochi & Heritage Stroll",
-      "destination": "Fort Kochi",
-      "description": "Day overview...",
+      "date": "YYYY-MM-DD or empty",
+      "title": "Day title",
+      "destination": "Location",
+      "imageSearchQuery": "Specific landmark photo query",
+      "description": "Day overview",
       "activities": [
-        { "time": "Morning", "title": "Private airport greeting", "description": "Escorted private transfer..." },
-        { "time": "Sunset", "title": "Harbor boat promenade", "description": "Viewing Chinese fishing nets..." }
+        { "time": "Morning", "title": "Activity title", "description": "Short description" }
       ]
     }
   ],
   "stays": [
-    {
-      "name": "Brunton Boatyard or Indicative Heritage Sanctuary",
-      "location": "Fort Kochi",
-      "nights": 2,
-      "roomType": "Sea Facing Room",
-      "notes": "Subject to seasonal availability confirmation"
-    }
+    { "name": "Sanctuary name", "location": "Location", "nights": 2, "roomType": "Room category", "notes": "Notes" }
   ],
-  "inclusions": [
-    "Private chauffeur-driven luxury vehicle throughout",
-    "Daily artisanal breakfast and curated dinner",
-    "Private guided heritage walk in Fort Kochi",
-    "Exclusive private backwater cruise"
-  ],
-  "exclusions": [
-    "International and domestic airfares",
-    "Discretionary gratuities and personal laundry",
-    "Spa treatments outside inclusions"
-  ],
+  "inclusions": ["Chauffeur luxury vehicle", "Curated breakfast"],
+  "exclusions": ["Airfares", "Discretionary gratuities"],
   "verifiedCatalogMatches": {
-    "destinations": [
-      { "name": "Fort Kochi", "slug": "fort-kochi", "region": "Central Kerala", "highlights": "Colonial heritage" }
-    ],
-    "packages": [
-      { "title": "The Malabar Escape", "slug": "the-malabar-escape", "duration": "7 Nights" }
-    ]
+    "destinations": [{ "name": "Fort Kochi", "slug": "fort-kochi", "region": "Central Kerala", "highlights": "Colonial heritage" }],
+    "packages": [{ "title": "The Malabar Escape", "slug": "the-malabar-escape", "duration": "7 Nights" }]
   },
-  "unconfirmedItems": [
-    "Room availability and seasonal rate at Windermere Estate",
-    "Private chef confirmation for backwater cruise"
-  ],
-  "travelDesignerAdvice": "Scenic mountain drive from Kochi to Munnar takes ~4.5 hours; suggest morning departure.",
-  "disclaimer": "AI-generated draft proposal. Staff review and confirmation required before saving or sharing with guest."
+  "unconfirmedItems": ["Room confirmation needed"],
+  "travelDesignerAdvice": "Scenic drive advice",
+  "disclaimer": "AI-generated draft proposal. Staff review required."
 }`;
 }
 
@@ -270,16 +245,22 @@ ${notes ? `• Special Requests / Client Notes: "${notes}"\n` : ""}${enquiryCont
   try {
     const raw = JSON.parse(completion.content);
 
-    // Find best matching cover image from verified published destinations
+    // Find best matching cover image from verified published destinations or stock search
     let coverImageUrl = "";
     if (raw.coverImageUrl && typeof raw.coverImageUrl === "string" && raw.coverImageUrl.startsWith("http")) {
       coverImageUrl = raw.coverImageUrl;
     } else {
       const targetDest = (raw.destination || destination || "").toLowerCase();
       const matchedDest = publishedDestinations.find(
-        (d) => d.imageUrl && targetDest.includes(d.name.toLowerCase())
+        (d) => d.imageUrl && d.imageUrl.startsWith("http") && targetDest.includes(d.name.toLowerCase())
       );
-      coverImageUrl = matchedDest?.imageUrl || publishedDestinations[0]?.imageUrl || "";
+      coverImageUrl = matchedDest?.imageUrl || "";
+      if (!coverImageUrl) {
+        coverImageUrl = await imageSearchService.searchSinglePhoto(
+          `${raw.destination || destination || "Kerala"} luxury resort kerala`,
+          publishedDestinations[0]?.imageUrl || ""
+        );
+      }
     }
 
     // Match catalog entities for verified badge lists
@@ -313,29 +294,49 @@ ${notes ? `• Special Requests / Client Notes: "${notes}"\n` : ""}${enquiryCont
       });
     }
 
-    // Sanitize days array
-    const sanitizedDays = Array.isArray(raw.days)
-      ? raw.days.map((d: any, index: number) => ({
-          day: typeof d.day === "number" ? d.day : index + 1,
-          date: typeof d.date === "string" ? d.date : "",
-          title: typeof d.title === "string" ? d.title : `Day ${index + 1}: Kerala Discovery`,
-          description: typeof d.description === "string" ? d.description : "",
-          destination: typeof d.destination === "string" ? d.destination : raw.destination || "Kerala",
-          activities: Array.isArray(d.activities)
-            ? d.activities.map((a: any) => ({
-                time: typeof a.time === "string" ? a.time : "Daytime",
-                title: typeof a.title === "string" ? a.title : "Curated exploration",
-                description: typeof a.description === "string" ? a.description : "",
-              }))
-            : [
-                {
-                  time: "Morning",
-                  title: "Slow breakfast & orientation",
-                  description: "Relaxed morning enjoying plantation breezes",
-                },
-              ],
-        }))
-      : [];
+    // Resolve exact matching photography for each day concurrently (Method B)
+    const rawDaysList: any[] = Array.isArray(raw.days) ? raw.days : [];
+    const dayPhotoPromises = rawDaysList.map(async (d: any, dayIdx: number) => {
+      const destName = typeof d.destination === "string" ? d.destination : raw.destination || "Kerala";
+      const matchedDest = publishedDestinations.find(
+        (pd) => pd.imageUrl && pd.imageUrl.startsWith("http") && destName.toLowerCase().includes(pd.name.toLowerCase())
+      );
+      const fallback = matchedDest?.imageUrl || "";
+      const query = d.imageSearchQuery || `${destName} ${d.title || ""}`;
+      const photos = await imageSearchService.searchPhotos(query, 3, fallback, dayIdx);
+      return {
+        imageUrl: photos[0],
+        imageUrls: photos,
+      };
+    });
+    const resolvedDayPhotos = await Promise.all(dayPhotoPromises);
+
+    // Sanitize days array with attached high-resolution photos
+    const sanitizedDays = rawDaysList.map((d: any, index: number) => {
+      const photos = resolvedDayPhotos[index] || { imageUrl: "", imageUrls: [] };
+      return {
+        day: typeof d.day === "number" ? d.day : index + 1,
+        date: typeof d.date === "string" ? d.date : "",
+        title: typeof d.title === "string" ? d.title : `Day ${index + 1}: Kerala Discovery`,
+        description: typeof d.description === "string" ? d.description : "",
+        destination: typeof d.destination === "string" ? d.destination : raw.destination || "Kerala",
+        imageUrl: photos.imageUrl || undefined,
+        imageUrls: photos.imageUrls.length > 0 ? photos.imageUrls : undefined,
+        activities: Array.isArray(d.activities)
+          ? d.activities.map((a: any) => ({
+              time: typeof a.time === "string" ? a.time : "Daytime",
+              title: typeof a.title === "string" ? a.title : "Curated exploration",
+              description: typeof a.description === "string" ? a.description : "",
+            }))
+          : [
+              {
+                time: "Morning",
+                title: "Slow breakfast & orientation",
+                description: "Relaxed morning enjoying plantation breezes",
+              },
+            ],
+      };
+    });
 
     // Sanitize stays array
     const sanitizedStays = Array.isArray(raw.stays)

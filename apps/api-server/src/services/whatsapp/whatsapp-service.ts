@@ -66,6 +66,15 @@ export async function getWhatsAppSettings(): Promise<IWhatsAppSetting> {
       simulateAutoDelivery: config.whatsappSimulateAutoDeliver,
       enquiryFollowupDelayHours: 24,
       postTripFeedbackDelayHours: 24,
+      welcomeGreetingEnabled: true,
+      welcomeBannerUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80",
+      welcomeGreetingText: "Good day {{first_name}}! Welcome to Escora Holidays. Simply select an option below or type your enquiry to get started.",
+      welcomeButton1Label: "🌴 Tour Packages",
+      welcomeButton2Label: "✍️ Plan Custom Trip",
+      welcomeButton3Label: "🛎️ Talk to Concierge",
+      welcomeButton1Reply: "🌴 *Escora Signature Collections*\n\n1. *Munnar Mist Sanctuary (4D/3N)* — Slow-living amidst ancient tea estates.\n2. *Vembanad Houseboat Serenity (3D/2N)* — Private luxury backwater cruise.\n3. *Wayanad Rainforest Retreat (4D/3N)* — Ayurveda & wellness sanctuary.\n\nReply with a package name or your travel dates to get full pricing details!",
+      welcomeButton2Reply: "✍️ *Plan a Custom Itinerary*\n\nPlease let us know:\n• Your expected travel dates\n• Number of travelers (adults & children)\n• Preferred style (Romantic Honeymoon, Family Sanctuary, or Wellness)\n\nOur private travel designer will curate a slow-luxury itinerary for you.",
+      welcomeButton3Reply: "🛎️ *Escora Concierge Assigned*\n\nNamaste! Our senior travel designer has been notified and will assist you right here in this chat shortly.\n\nDirect Concierge Line: +91 94000 00000.",
       updatedAt: new Date(),
     };
 
@@ -90,6 +99,15 @@ export async function getWhatsAppSettings(): Promise<IWhatsAppSetting> {
       simulateAutoDelivery: config.whatsappSimulateAutoDeliver,
       enquiryFollowupDelayHours: 24,
       postTripFeedbackDelayHours: 24,
+      welcomeGreetingEnabled: true,
+      welcomeBannerUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=80",
+      welcomeGreetingText: "Good day {{first_name}}! Welcome to Escora Holidays. Simply select an option below or type your enquiry to get started.",
+      welcomeButton1Label: "🌴 Tour Packages",
+      welcomeButton2Label: "✍️ Plan Custom Trip",
+      welcomeButton3Label: "🛎️ Talk to Concierge",
+      welcomeButton1Reply: "🌴 *Escora Signature Collections*\n\n1. *Munnar Mist Sanctuary (4D/3N)* — Slow-living amidst ancient tea estates.\n2. *Vembanad Houseboat Serenity (3D/2N)* — Private luxury backwater cruise.\n3. *Wayanad Rainforest Retreat (4D/3N)* — Ayurveda & wellness sanctuary.\n\nReply with a package name or your travel dates to get full pricing details!",
+      welcomeButton2Reply: "✍️ *Plan a Custom Itinerary*\n\nPlease let us know:\n• Your expected travel dates\n• Number of travelers (adults & children)\n• Preferred style (Romantic Honeymoon, Family Sanctuary, or Wellness)\n\nOur private travel designer will curate a slow-luxury itinerary for you.",
+      welcomeButton3Reply: "🛎️ *Escora Concierge Assigned*\n\nNamaste! Our senior travel designer has been notified and will assist you right here in this chat shortly.\n\nDirect Concierge Line: +91 94000 00000.",
       updatedAt: new Date(),
     };
   }
@@ -169,6 +187,7 @@ export interface SendWhatsAppMessageOptions {
   templateName?: string;
   templateLanguage?: string;
   templateVariables?: Record<string, any>;
+  interactive?: any;
   idempotencyKey: string;
   metadata?: Record<string, any>;
 }
@@ -335,10 +354,11 @@ export async function sendWhatsAppMessage(
     sendResult = await provider.sendMessage({
       to: normalizedPhone,
       recipientName,
-      type: templateName ? "template" : "text",
+      type: options.interactive ? "interactive" : templateName ? "template" : "text",
       templateName,
       templateLanguage,
       templateVariables,
+      interactive: options.interactive,
       text: bodyText,
       idempotencyKey,
       metadata,
@@ -385,7 +405,9 @@ export async function sendWhatsAppMessage(
         status: finalStatus,
         error: sendResult.error || null,
         sentAt: sendResult.sentAt,
+        direction: (metadata?.direction as any) || "outbound",
         metadata,
+        interactive: options.interactive || null,
         updatedAt: new Date(),
       },
       $setOnInsert: { createdAt: new Date() },

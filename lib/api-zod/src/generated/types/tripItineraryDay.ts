@@ -16,4 +16,6 @@ export interface TripItineraryDay {
   eveningActivity: string;
   stayRecommendation: string;
   travelNote?: string;
+  imageUrl?: string;
+  imageUrls?: string[];
 }

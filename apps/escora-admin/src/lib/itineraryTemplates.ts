@@ -13,10 +13,21 @@ import {
   parseDays,
   parseStays,
 } from "@/lib/itinerary";
-import alleppeyCoverImg from "@assets/escora/destinations/alleppey.jpg";
-import kovalamCleanImg from "@assets/escora/destinations/kovalam-clean.jpg";
-import padmanabhaswamyImg from "@assets/escora/destinations/padmanabhaswamy-temple.jpg";
-import varkalaImg from "@assets/escora/destinations/varkala.jpg";
+export const STOCK_PADMANABHA = "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_KOVALAM = "https://images.unsplash.com/photo-1715785849770-22374ff8bdfb?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_VARKALA = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_POOVAR = "https://images.unsplash.com/photo-1623864703759-4509539ab8ee?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_ALLEPPEY = "https://images.unsplash.com/photo-1593693397690-362cb9666c6b?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_MUNNAR = "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_KOCHI = "https://images.unsplash.com/photo-1444927714506-8492d94b4e3d?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_THEKKADY = "https://images.unsplash.com/photo-1548707309-dcebeab9ea9b?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_WAYANAD = "https://images.unsplash.com/photo-1691342538271-5a97b7c1c089?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_RESORT = "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_WATERFALL = "https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_SPICE = "https://images.unsplash.com/photo-1567337710282-00832b415979?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_SUNSET_LAGOON = "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_KASHMIR = "https://images.unsplash.com/photo-1566837945700-30057527ade0?auto=format&fit=crop&w=1600&q=80";
+export const STOCK_THAILAND = "https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=1600&q=80";
 
 export interface ItineraryTemplate {
   id: string;
@@ -80,7 +91,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
       destination: "Trivandrum International Airport (TRV), Chacka, Thiruvananthapuram, Keralam, India",
       vehicleType: "Private Dedicated Chauffeur Driven AC Sedan / SUV",
     },
-    coverImageUrl: padmanabhaswamyImg,
+    coverImageUrl: STOCK_PADMANABHA,
     days: [
       {
         day: 1,
@@ -92,7 +103,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         optionalActivities: ["Optional (on request): an evening Kathakali performance at Margi."],
         meals: "Dinner at leisure. Trivandrum offers a good mix of local Kerala cuisine and multi-cuisine dining options around the city.",
         stay: "Stay: Uday Samudra Leisure Beach Hotel",
-        imageUrls: [padmanabhaswamyImg, varkalaImg],
+        imageUrls: [STOCK_PADMANABHA, STOCK_RESORT, STOCK_KOVALAM],
         activities: [],
       },
       {
@@ -108,7 +119,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         ],
         meals: "Dinner at leisure. Kovalam has a wide choice of seafood and multi-cuisine restaurants along the coast.",
         stay: "Stay: The Leela Kovalam, a Raviz Hotel",
-        imageUrls: [kovalamCleanImg, alleppeyCoverImg, varkalaImg],
+        imageUrls: [STOCK_KOVALAM, STOCK_POOVAR, STOCK_VARKALA],
         activities: [],
       },
       {
@@ -118,7 +129,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         subtitle: "Kovalam to Departure",
         description:
           "After a leisurely breakfast, enjoy a final stroll along the shoreline. Check out of your resort and if time permits, enjoy some shopping at Lulu Mall before proceeding to the airport, departing with beautiful memories of Kerala.",
-        imageUrls: [kovalamCleanImg],
+        imageUrls: [STOCK_VARKALA, STOCK_RESORT, STOCK_KOVALAM],
         activities: [],
       },
     ],
@@ -165,12 +176,14 @@ export const itineraryTemplates: ItineraryTemplate[] = [
     description: "6 Days · 5 Nights — Kochi, Munnar, Thekkady, Alleppey",
     destination: "Kerala, India",
     title: "Kerala Classic — 6 Days · 5 Nights",
+    coverImageUrl: STOCK_MUNNAR,
     days: [
       {
         day: 1,
         title: "Arrival in Kochi — Fort Kochi & Mattancherry",
         description:
           "Arrive at Cochin Airport, where you will be met and assisted before being transferred to your hotel for check-in. In the afternoon, set out to discover the old-world charm of Fort Kochi and Mattancherry, a walk through centuries of trading history left behind by the Portuguese, Dutch and British. An evening Kathakali dance performance showcases Kerala's classical art form. Wellness & Ayurveda: traditional treatments are available both at your hotel and at reputed centres nearby. Optional, on request: kayaking through the backwaters around Fort Kochi, or a leisurely boat ride. Dinner at leisure — Fort Kochi offers a wide range of restaurants and cafés, from authentic Kerala seafood to continental fare.",
+        imageUrls: [STOCK_KOCHI, STOCK_PADMANABHA, STOCK_RESORT],
         activities: [
           { title: "Jew Town, historic Paradesi Synagogue & local shopping" },
           { time: "18:00", title: "Chinese fishing nets at sunset" },
@@ -182,6 +195,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Kochi — Munnar",
         description:
           "After breakfast, check out and drive up to Munnar along the scenic hill route, stopping en route at the Cheeyappara and Valara waterfalls and pausing at a tea plantation to see how Kerala's famous tea is grown and processed. On arrival, check into your resort and spend the rest of the day at leisure.",
+        imageUrls: [STOCK_MUNNAR, STOCK_WATERFALL, STOCK_SPICE],
         activities: [
           { title: "Cheeyappara & Valara waterfalls" },
           { title: "Tea plantation stop" },
@@ -192,6 +206,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Munnar Sightseeing",
         description:
           "A full day dedicated to the natural beauty of Munnar. Optional, on request: the Kolukkumalai Sunrise Jeep Safari, a trek to Meesapulimala, or a zipline adventure across the valley.",
+        imageUrls: [
+          STOCK_MUNNAR,
+          "https://images.unsplash.com/photo-1598555231777-621ef8db7992?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [
           { title: "The colourful Flower Garden" },
           { title: "Eravikulam National Park — home to the endangered Nilgiri Tahr" },
@@ -205,6 +224,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Munnar — Thekkady",
         description:
           "Check out after breakfast and drive to Thekkady. En route, stop at a working spice plantation to walk among pepper vines, cardamom groves and cinnamon trees. Later, head to the Periyar Tiger Reserve for a boat cruise across Periyar Lake, keeping an eye out for elephants, bison and other wildlife. An optional elephant safari through the Thekkady forest offers a closer encounter with these gentle giants.",
+        imageUrls: [STOCK_THEKKADY, STOCK_SPICE, STOCK_RESORT],
         activities: [
           { title: "Spice plantation walk" },
           { title: "Periyar Lake boat cruise" },
@@ -215,6 +235,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Thekkady — Alappuzha (Houseboat)",
         description:
           "After breakfast, drive to Alappuzha, the heart of Kerala's backwaters. Check into your private houseboat and set off on a leisurely cruise through a maze of palm-fringed canals, paddy fields and quiet waterside villages, including a Shikkara cruise on Vembanad Lake. A personal chef travels with you, preparing fresh, home-style Kerala meals through the day. Optional, on request: exploring narrower canals aboard a traditional small boat, or a speed boat ride.",
+        imageUrls: [STOCK_ALLEPPEY, STOCK_SUNSET_LAGOON, STOCK_RESORT],
         activities: [
           { title: "Backwater cruise through palm-fringed canals" },
           { title: "Shikkara cruise on Vembanad Lake" },
@@ -225,6 +246,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Alappuzha — Kochi — Departure",
         description:
           "Disembark after breakfast and drive back to Kochi. Spend some time shopping for souvenirs and essentials before being transferred to Cochin Airport in time for your onward journey, bringing your Kerala tour to a close.",
+        imageUrls: [STOCK_KOCHI, STOCK_ALLEPPEY, STOCK_RESORT],
         activities: [{ title: "Souvenir shopping" }, { title: "Transfer to Cochin Airport" }],
       },
     ],
@@ -244,12 +266,14 @@ export const itineraryTemplates: ItineraryTemplate[] = [
     description: "1 Day · 1 Night — Varkala Cliff & Beach",
     destination: "Varkala, Kerala",
     title: "Varkala Coastal Escape — 1 Day · 1 Night",
+    coverImageUrl: STOCK_VARKALA,
     days: [
       {
         day: 1,
         title: "Arrival in Varkala",
         description:
           "Arrive in Varkala, where you will be met and transferred to your hotel for check-in. Spend the day at Varkala Cliff, the town's signature stretch where red laterite cliffs drop straight down to the Arabian Sea, lined with cafes and shops along the top. Just below, Varkala Beach offers a relaxed spot for a swim or a quiet walk by the water. For those looking to explore further, Kappil Beach & Backwaters, Anjengo Fort, and Black Beach make for a scenic detour, along with a boat trip to Ponnumthuruthu Island (Golden Island). Dinner at leisure — the cliff top offers a fine choice of sea-facing cafes, from local Kerala flavours to continental fare. Optional, on request: surfing with Copa Cabana Surf School, paragliding with Fly Varkala Adventure Club, parasailing with Joy Water Sports, or kayaking at Anjengo Lake / Golden Island Boating. Overnight stay in Varkala.",
+        imageUrls: [STOCK_VARKALA, STOCK_KOVALAM, STOCK_RESORT],
         activities: [
           { title: "Varkala Cliff walk & cafes" },
           { title: "Varkala Beach — swim or quiet walk" },
@@ -268,12 +292,14 @@ export const itineraryTemplates: ItineraryTemplate[] = [
     description: "4 Days · 3 Nights — Kozhikode (Calicut), Wayanad",
     destination: "Kozhikode & Wayanad, Kerala",
     title: "Kozhikode & Wayanad — 4 Days · 3 Nights",
+    coverImageUrl: STOCK_WAYANAD,
     days: [
       {
         day: 1,
         title: "Arrival in Kozhikode — City & Beach",
         description:
           "Arrive at Kozhikode (Calicut) Airport, where you will be met and assisted before being transferred to your hotel for check-in. Kozhikode is a city with an easy coastal charm, long known as a historic spice-trading port on the Malabar Coast. In the afternoon, take a walk along Kozhikode Beach as the sky turns gold over the Arabian Sea. Round off the evening browsing SM Street, the city's old shopping lane. Optional, on request: a visit to a clinical wellness sanctuary for a therapy session or a quiet reset. Dinner at leisure — Kozhikode is celebrated as home to some of the world's best biryani, alongside thousands of varieties of street food. Overnight stay in Kozhikode.",
+        imageUrls: [STOCK_KOCHI, STOCK_SUNSET_LAGOON, STOCK_RESORT],
         activities: [
           { title: "Kozhikode Beach at sunset" },
           { title: "SM Street shopping lane" },
@@ -284,6 +310,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Kozhikode — Wayanad",
         description:
           "Check out and drive up into the hills of Wayanad along a winding ghat road, stopping en route at the dramatic hairpin bends of Thamarasseri Churam and pausing at Lakkidi View Point as the mist rolls over the Western Ghats. On arrival, check into your resort. In the evening, explore the activities and facilities provided by your resort — guided nature walks, yoga sessions, bird watching, or a campfire evening. Overnight stay in Wayanad.",
+        imageUrls: [STOCK_WAYANAD, STOCK_WATERFALL, STOCK_SPICE],
         activities: [
           { title: "Thamarasseri Churam hairpin bends" },
           { title: "Lakkidi View Point" },
@@ -294,6 +321,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Wayanad Sightseeing & Trekking",
         description:
           "A full day dedicated to the natural beauty and trekking trails of Wayanad. Optional, on request: a jeep safari through the Muthanga or Tholpetti forest ranges, kayaking or a zipline crossing, or a visit to Kuruva Island and the eco-park glass bridge at Mepaly. Wildlife enthusiasts may also wish to explore the Wayanad Wildlife Sanctuary. Overnight stay in Wayanad.",
+        imageUrls: [
+          STOCK_WAYANAD,
+          "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80",
+          STOCK_WATERFALL,
+        ],
         activities: [
           { title: "Chembra Peak — heart-shaped lake & trekking trails" },
           { title: "Pookode Lake" },
@@ -308,6 +340,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Wayanad — Kozhikode — Departure",
         description:
           "Check out and drive back down to Kozhikode. Spend some time shopping for souvenirs at SM Street or HiLITE Mall before being transferred to the airport in time for your onward journey.",
+        imageUrls: [STOCK_KOCHI, STOCK_RESORT, STOCK_WAYANAD],
         activities: [{ title: "Souvenir shopping" }, { title: "Transfer to airport" }],
       },
       {
@@ -315,6 +348,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Optional Extensions (if you have more days)",
         description:
           "Several 1-day extensions can be combined with this itinerary as time allows: Mudumalai Wildlife Sanctuary (part of the Nilgiri Biosphere Reserve, home to elephants, tigers and dense teak forest); Kannur (handloom weaves, historic St. Angelo Fort, the Theyyam ritual art form, and Muzhappilangad — India's longest drive-in beach; in this extended version, departure would be from Kannur International Airport instead of Kozhikode); or Kasaragod (the imposing Bekal Fort, quiet backwaters, and a rich multilingual culture). Ask your consultant to shape any of these around your preferred pace.",
+        imageUrls: [STOCK_WAYANAD, "https://images.unsplash.com/photo-1519082572439-7ed19908e47e?auto=format&fit=crop&w=1600&q=80", STOCK_RESORT],
         activities: [],
       },
     ],
@@ -332,12 +366,18 @@ export const itineraryTemplates: ItineraryTemplate[] = [
     description: "9 Days · 8 Nights — Kochi, Munnar, Thekkady, Alleppey, Kovalam, Kanyakumari",
     destination: "Kerala & Kanyakumari, India",
     title: "Kerala Group Tour — 9 Days · 8 Nights",
+    coverImageUrl: STOCK_ALLEPPEY,
     days: [
       {
         day: 1,
         title: "Cochin — Arrival & Sightseeing",
         description:
           "Upon arrival at Kochi Airport/Railway Station, you will be warmly welcomed by our representative and transferred to your hotel. After check-in and a short refreshment break, proceed for a local sightseeing tour of Fort Kochi. Visit the historic St. Francis Church, recognized as the oldest European church in India. Explore the charming lanes lined with 500-year-old Portuguese houses and witness the iconic Chinese Fishing Nets. Continue to the 16th-century Paradesi Synagogue at Jew Town, and visit the nearby Mattancherry Palace, renowned for its exquisite murals depicting scenes from Indian epics. Note: the Paradesi Synagogue and Mattancherry Palace remain closed on Fridays and Saturdays. Overnight stay at Kochi.",
+        imageUrls: [
+          STOCK_KOCHI,
+          "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [
           { title: "St. Francis Church" },
           { title: "Chinese Fishing Nets" },
@@ -350,6 +390,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Cochin to Munnar — Transfer & Sightseeing",
         description:
           "After breakfast, check out from hotel and proceed towards the hill station Munnar. On reaching, check in at the resort, have a small refreshment and set out to traverse the beauty of Munnar — the convergence of three types of mountain streams 1600m above sea level, famous for its tea plantations, nook towns, corkscrew towpath and small waterfalls. In the evening, visit Blossom Park, Tea Gardens and enjoy a nature-friendly elephant ride. Overnight stay at Munnar.",
+        imageUrls: [
+          STOCK_MUNNAR,
+          "https://images.unsplash.com/photo-1598555231777-621ef8db7992?auto=format&fit=crop&w=1600&q=80",
+          STOCK_WATERFALL,
+        ],
         activities: [
           { title: "Tea plantations & scenic drive" },
           { title: "Blossom Park & Tea Gardens" },
@@ -361,6 +406,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Munnar — Full Day Sightseeing",
         description:
           "In the morning after breakfast, get set for fabulous scenery — the Rose Garden, the beauty of Mattupetty Dam and Kundala Dam, the Elephant Arrival Point, lakes, and Eravikulam National Park. Enjoy a wonderful shopping experience at the Spice Garden in the evening with a mist atmosphere. Late night stay at resort.",
+        imageUrls: [
+          "https://images.unsplash.com/photo-1596422846543-75c6fc197f07?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1600&q=80",
+          STOCK_SPICE,
+        ],
         activities: [
           { title: "Rose Garden" },
           { title: "Mattupetty Dam & Kundala Dam" },
@@ -373,6 +423,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Munnar to Thekkady — Transfer & Sightseeing",
         description:
           "Early in the morning after breakfast, move towards the tropical evergreen forest at Thekkady. On the way enjoy the beauty of dense forest Periyar Wildlife Sanctuary, one of the world's most fascinating natural wildlife reserves. Take a cruise on the lake followed by a jungle walk. Thereafter visit the spice plantations, bird watching and shopping. Optional activities including elephant safari, Kalarippayattu (martial arts) and Kathakali available. Late night stay at hotel in Thekkady.",
+        imageUrls: [
+          STOCK_THEKKADY,
+          "https://images.unsplash.com/photo-1567337710282-00832b415979?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [
           { title: "Periyar Lake cruise" },
           { title: "Jungle walk" },
@@ -384,6 +439,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Thekkady to Alleppey — Transfer & Houseboat Overnight Stay",
         description:
           "In the morning after breakfast, move on to the next destination known for its immense natural beauty — Alleppey. On arrival, check into the Houseboat/Hotel by afternoon. Feel the adorable greenery of paddy fields, villages with nostalgic small churches and experience the day-to-day life of village people. Discover exotic land blushed by the Arabian Sea. Overnight stay at Houseboat/Hotel. Includes a day cruise on the Alleppey backwaters.",
+        imageUrls: [
+          STOCK_ALLEPPEY,
+          "https://images.unsplash.com/photo-1623864703759-4509539ab8ee?auto=format&fit=crop&w=1600&q=80",
+          STOCK_SUNSET_LAGOON,
+        ],
         activities: [
           { title: "Backwater houseboat cruise" },
           { title: "Village life & paddy fields" },
@@ -394,6 +454,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Alleppey to Kovalam — Via Jatayu Earth's Center",
         description:
           "After breakfast, check out from your hotel in Alleppey and begin your scenic drive towards Kovalam. En route, visit the famous Jatayu Earth's Center, home to the world's largest bird sculpture dedicated to the legendary character Jatayu from the epic Ramayana. Enjoy the massive rock-top sculpture and learn about the mythological story behind it. Continue your journey to Kovalam, check in to your hotel and relax. Spend the evening at Kovalam Beach, famous for its crescent-shaped shoreline, golden sands and serene Arabian Sea views. Overnight stay in Kovalam.",
+        imageUrls: [
+          STOCK_KOVALAM,
+          STOCK_VARKALA,
+          "https://images.unsplash.com/photo-1519082572439-7ed19908e47e?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [
           { title: "Jatayu Earth's Center" },
           { title: "Kovalam Beach sunset" },
@@ -404,6 +469,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Kovalam — Kovalam Sightseeing",
         description:
           "Morning after breakfast, proceed to Kovalam Lighthouse Beach, Hawa Beach and Ashoka Beach — evening is the best time to visit and enjoy the sunset. It's an internationally famous beach offering snorkelling, catamaran rides, sunset viewing, cycling and more. Overnight stay at Beach resort.",
+        imageUrls: [
+          "https://images.unsplash.com/photo-1715785849770-22374ff8bdfb?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+          STOCK_RESORT,
+        ],
         activities: [
           { title: "Lighthouse Beach, Hawa Beach, Ashoka Beach" },
           { title: "Sunset viewing" },
@@ -414,6 +484,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Kovalam to Kanyakumari — Transfer & Sightseeing",
         description:
           "After breakfast, check out from the hotel and proceed towards Kanyakumari, also known as Cape Comorin — the unique confluence of the Arabian Sea, the Indian Ocean, and the Bay of Bengal. En route, visit the historic Padmanabhapuram Palace, showcasing traditional Kerala architecture. By afternoon, arrive in Kanyakumari and check into your hotel. Later, take a boat ride to the iconic Vivekananda Rock Memorial, continue to the Gandhi Memorial, and admire the Thiruvalluvar Statue. In the evening, witness the spectacular sunset at Kanyakumari. Overnight stay at the hotel.",
+        imageUrls: [
+          STOCK_POOVAR,
+          STOCK_PADMANABHA,
+          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [
           { title: "Padmanabhapuram Palace" },
           { title: "Vivekananda Rock Memorial" },
@@ -425,6 +500,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Kanyakumari to Trivandrum — Transfer & Departure",
         description:
           "Morning after breakfast, check out from the resort and proceed to Trivandrum Airport/Railway Station according to your departure time for your onward journey.",
+        imageUrls: [
+          STOCK_PADMANABHA,
+          STOCK_SUNSET_LAGOON,
+          STOCK_KOVALAM,
+        ],
         activities: [{ title: "Transfer to Trivandrum Airport" }],
       },
     ],
@@ -466,12 +546,18 @@ export const itineraryTemplates: ItineraryTemplate[] = [
     description: "5 Days · 4 Nights — Srinagar, Gulmarg, Pahalgam",
     destination: "Jammu and Kashmir, India",
     title: "Jammu & Kashmir — 5 Days · 4 Nights",
+    coverImageUrl: STOCK_KASHMIR,
     days: [
       {
         day: 1,
         title: "Arrival in Srinagar & Dal Lake Enchantment",
         description:
           "Arrive at Srinagar International Airport and transfer to your pre-booked houseboat on the serene Dal Lake. Settle in and then embark on a peaceful evening ride, gliding through the tranquil waters of Dal Lake. Witness the vibrant floating markets, where vendors sell fresh produce and handicrafts from their boats. Enjoy the picturesque views of the surrounding mountains as the day unfolds. The evening is yours to relax and soak in the unique atmosphere of your houseboat.",
+        imageUrls: [
+          STOCK_KASHMIR,
+          "https://images.unsplash.com/photo-1600334129128-685c5582fd35?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [{ title: "Shikara ride on Dal Lake" }, { title: "Floating markets" }],
       },
       {
@@ -479,6 +565,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Srinagar's Mughal Gardens & Old City Charm",
         description:
           "Begin your day by exploring the magnificent Mughal Gardens of Srinagar. Visit the terraced Shalimar Bagh, the enchanting Nishat Bagh, and the serene Chashme Shahi, each offering unique perspectives on Mughal-era landscaping. Continue to the Hazratbal Shrine, and explore the local markets of the old city. Wander through its narrow lanes, discover ancient mosques like the Hazratbal Shrine, and experience the local culture. You'll have opportunities to browse for traditional Kashmiri handicrafts such as pashmina shawls and intricate wood carvings.",
+        imageUrls: [
+          "https://images.unsplash.com/photo-1598555231777-621ef8db7992?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1600&q=80",
+          STOCK_KASHMIR,
+        ],
         activities: [
           { title: "Shalimar Bagh, Nishat Bagh, Chashme Shahi" },
           { title: "Old city market walk" },
@@ -489,6 +580,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Gulmarg: Meadow of Flowers & Gondola Ride",
         description:
           "Embark on a scenic drive to Gulmarg, renowned as the 'Meadow of Flowers'. Upon arrival, experience the thrill of the Gulmarg Gondola, one of the highest cable cars in the world, offering unique architectural activities like horse riding or simply taking in the majestic mountain views. The crisp mountain air and stunning landscapes will provide an unforgettable experience.",
+        imageUrls: [
+          "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1598555231777-621ef8db7992?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1600334129128-685c5582fd35?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [{ title: "Gulmarg Gondola cable car" }, { title: "Horse riding" }],
       },
       {
@@ -496,6 +592,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Pahalgam: Valley of Shepherds & Lidder River",
         description:
           "Travel to Pahalgam, a picturesque valley situated at the confluence of the Lidder River and streams. Explore the breathtaking landscapes, from lush green meadows to dense pine forests. Enjoy a leisurely walk along the Lidder River, listening to the soothing sound of the water and admiring the serene surroundings.",
+        imageUrls: [
+          "https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=1600&q=80",
+          STOCK_KASHMIR,
+        ],
         activities: [{ title: "Lidder River walk" }, { title: "Betaab Valley & Aru Valley" }],
       },
       {
@@ -503,6 +604,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Srinagar Exploration & Departure",
         description:
           "Enjoy a final breakfast in Srinagar, perhaps with one last glimpse of Dal Lake. Depending on your flight schedule, you might have time for some last-minute exploration or a visit to the Pari Mahal (The Palace of Fairies) for its terraced gardens and historical significance. Afterwards, you will be transferred to Srinagar International Airport for your onward journey, carrying with you cherished memories of Kashmir's unparalleled beauty.",
+        imageUrls: [
+          STOCK_KASHMIR,
+          "https://images.unsplash.com/photo-1600334129128-685c5582fd35?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1598555231777-621ef8db7992?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [{ title: "Pari Mahal (optional)" }, { title: "Transfer to Srinagar Airport" }],
       },
     ],
@@ -538,12 +644,18 @@ export const itineraryTemplates: ItineraryTemplate[] = [
     description: "8 Days · 7 Nights — Bangkok, Ayutthaya, Chiang Mai",
     destination: "Thailand",
     title: "Thailand — 8 Days · 7 Nights",
+    coverImageUrl: STOCK_THAILAND,
     days: [
       {
         day: 1,
         title: "Arrival in Bangkok & River Exploration",
         description:
           "Arrive at Suvarnabhumi Airport (BKK), Bangkok. Transfer to your hotel and check in. Embark on a local boat tour along the Chao Phraya River, visiting iconic temples like Wat Arun (Temple of Dawn) and Wat Pho (Reclining Buddha). Enjoy a delicious dinner at a riverside restaurant, experiencing the vibrant atmosphere.",
+        imageUrls: [
+          STOCK_THAILAND,
+          "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [{ title: "Chao Phraya River boat tour" }, { title: "Wat Arun & Wat Pho" }],
       },
       {
@@ -551,6 +663,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Bangkok's Temples & Markets",
         description:
           "Visit the Grand Palace and the Emerald Buddha Temple, two of Bangkok's most significant landmarks. Explore the bustling Chatuchak Weekend Market (if open) or the vibrant street market at Asiatique The Riverfront. Enjoy local unique souvenirs and street food. In the evening, relax to a night market bazaar for a traditional Thai massage.",
+        imageUrls: [
+          "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1600&q=80",
+          "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=1600&q=80",
+          STOCK_THAILAND,
+        ],
         activities: [{ title: "Grand Palace & Emerald Buddha Temple" }, { title: "Asiatique The Riverfront" }],
       },
       {
@@ -558,6 +675,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Ayutthaya Historical Park",
         description:
           "Take a day trip to Ayutthaya, the former capital of Siam. Explore the magnificent ancient temples and palaces, a UNESCO World Heritage site. Hire a bicycle to explore the park efficiently. Enjoy a local lunch in Ayutthaya before returning to Bangkok in the late afternoon.",
+        imageUrls: [
+          "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1600&q=80",
+          STOCK_THAILAND,
+          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [{ title: "Ayutthaya Historical Park (UNESCO site)" }],
       },
       {
@@ -565,6 +687,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Flight to Chiang Mai & Old City Charm",
         description:
           "Fly from Bangkok to Chiang Mai. Check into your hotel and begin exploring the charming Old City. Visit Wat Chedi Luang and Wat Phra Singh, and wander through the narrow streets, admiring traditional Lanna architecture. Enjoy a local restaurant in the evening, trying Khao Soi, a northern Thai specialty.",
+        imageUrls: [
+          "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1600&q=80",
+          STOCK_THAILAND,
+          STOCK_RESORT,
+        ],
         activities: [{ title: "Wat Chedi Luang & Wat Phra Singh" }, { title: "Khao Soi dinner" }],
       },
       {
@@ -572,6 +699,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Elephant Sanctuary & Doi Suthep",
         description:
           "Visit an ethical elephant sanctuary, learning about interacting responsibly with these gentle giants, feeding and bathing them. In the afternoon, visit Doi Suthep-Pui National Park, home to the stunning Wat Phra That Doi Suthep temple, offering panoramic views of Chiang Mai.",
+        imageUrls: [
+          STOCK_THEKKADY,
+          "https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1600&q=80",
+          STOCK_THAILAND,
+        ],
         activities: [{ title: "Ethical elephant sanctuary" }, { title: "Wat Phra That Doi Suthep" }],
       },
       {
@@ -579,6 +711,11 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Chiang Mai Cooking Class & Night Bazaar",
         description:
           "Participate in a hands-on Thai cooking class, learning to prepare some of the country's most popular dishes. In the evening, explore the Chiang Mai Night Bazaar, a vibrant market filled with handicrafts, clothing and street food. Enjoy a final dinner exploring the dishes in Chiang Mai.",
+        imageUrls: [
+          STOCK_SPICE,
+          "https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=1600&q=80",
+          STOCK_RESORT,
+        ],
         activities: [{ title: "Thai cooking class" }, { title: "Chiang Mai Night Bazaar" }],
       },
       {
@@ -586,12 +723,22 @@ export const itineraryTemplates: ItineraryTemplate[] = [
         title: "Departure from Chiang Mai",
         description:
           "Enjoy a leisurely breakfast. Depending on your flight schedule, you might have time for some last-minute shopping or exploring a local cafe. Transfer to Chiang Mai International Airport (CNX) for your departure flight.",
+        imageUrls: [
+          STOCK_THAILAND,
+          "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1600&q=80",
+          STOCK_RESORT,
+        ],
         activities: [{ title: "Transfer to Chiang Mai International Airport" }],
       },
       {
         day: 8,
         title: "Travel Day",
         description: "Travel day — arrive home.",
+        imageUrls: [
+          STOCK_THAILAND,
+          STOCK_RESORT,
+          "https://images.unsplash.com/photo-1528181304800-259b08848526?auto=format&fit=crop&w=1600&q=80",
+        ],
         activities: [],
       },
     ],

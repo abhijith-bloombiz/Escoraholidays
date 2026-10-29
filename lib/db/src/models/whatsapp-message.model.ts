@@ -72,6 +72,7 @@ export interface IWhatsAppMessage {
   deliveredAt?: Date | null;
   readAt?: Date | null;
   metadata?: Record<string, any>;
+  interactive?: any;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -145,6 +146,7 @@ const whatsappMessageSchema = new Schema<IWhatsAppMessage>(
     deliveredAt: { type: Date, default: null },
     readAt: { type: Date, default: null },
     metadata: { type: Schema.Types.Mixed, default: {} },
+    interactive: { type: Schema.Types.Mixed, default: null },
     createdAt: { type: Date, required: true, default: Date.now, index: true },
     updatedAt: { type: Date, required: true, default: Date.now },
   },
@@ -179,6 +181,7 @@ export const insertWhatsAppMessageSchema = z.object({
   templateVariables: z.record(z.any()).optional().nullable(),
   idempotencyKey: z.string().min(1),
   metadata: z.record(z.any()).optional(),
+  interactive: z.any().optional(),
 });
 
 export type InsertWhatsAppMessage = z.infer<typeof insertWhatsAppMessageSchema>;

@@ -5,11 +5,43 @@
 export interface SendWhatsAppMessageRequest {
   to: string; // Recipient phone number (raw or formatted)
   recipientName: string;
-  type: "template" | "text";
+  type: "template" | "text" | "interactive";
   templateName?: string;
   templateLanguage?: string;
   templateVariables?: Record<string, any>;
   text?: string;
+  interactive?: {
+    type: "button" | "list";
+    header?: {
+      type: "image" | "text";
+      imageUrl?: string;
+      text?: string;
+    };
+    body: {
+      text: string;
+    };
+    footer?: {
+      text?: string;
+    };
+    action: {
+      buttons?: Array<{
+        type: "reply";
+        reply: {
+          id: string;
+          title: string;
+        };
+      }>;
+      button?: string;
+      sections?: Array<{
+        title: string;
+        rows: Array<{
+          id: string;
+          title: string;
+          description?: string;
+        }>;
+      }>;
+    };
+  };
   idempotencyKey: string;
   metadata?: Record<string, any>;
 }

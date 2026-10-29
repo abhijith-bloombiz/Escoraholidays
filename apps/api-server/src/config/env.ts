@@ -51,6 +51,8 @@ export interface AppConfig {
   groqApiKey?: string;
   groqModel: string;
   groqBaseUrl?: string;
+  unsplashAccessKey?: string;
+  pexelsApiKey?: string;
   campaignSendingEnabled: boolean;
   resendWebhookSecret?: string;
   campaignSchedulerIntervalMs: number;
@@ -250,6 +252,8 @@ export const config: AppConfig = {
   groqApiKey: process.env.GROQ_API_KEY?.trim() || undefined,
   groqModel: process.env.GROQ_MODEL?.trim() || "llama-3.3-70b-versatile",
   groqBaseUrl: process.env.GROQ_BASE_URL?.trim() || undefined,
+  unsplashAccessKey: process.env.UNSPLASH_ACCESS_KEY?.trim() || undefined,
+  pexelsApiKey: process.env.PEXELS_API_KEY?.trim() || undefined,
   campaignSendingEnabled: process.env.CAMPAIGN_SENDING_ENABLED === "true",
   resendWebhookSecret: process.env.RESEND_WEBHOOK_SECRET || undefined,
   campaignSchedulerIntervalMs: Number(process.env.CAMPAIGN_SCHEDULER_INTERVAL_MS) || 20000,

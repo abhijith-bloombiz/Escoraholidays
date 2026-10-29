@@ -26,6 +26,8 @@ import {
   queueApprovalRequiredNotification,
 } from "../services/notification-service";
 import { triggerWhatsAppItineraryUpdate } from "../services/whatsapp";
+import { imageSearchService } from "../services/image-search-service";
+import { getStockCoverPhoto, getStockPhotosForDay } from "../services/stock-photos";
 
 const router: IRouter = Router();
 
@@ -352,6 +354,27 @@ router.post(
     }
   }
 );
+/**
+ * GET /api/itineraries/stock-photos
+ * Fast, reliable stock photos matching a destination or query.
+ * Always returns guaranteed high-resolution direct Unsplash image URLs.
+ */
+router.get("/itineraries/stock-photos", async (req: Request, res: Response): Promise<void> => {
+  const query = String(req.query.query || "").trim();
+  const count = Math.max(1, Math.min(Number(req.query.count) || 3, 6));
+  const dayIndex = Number(req.query.dayIndex) || 0;
+
+  try {
+    const photos = await imageSearchService.searchPhotos(query, count, "", dayIndex);
+    const cover = getStockCoverPhoto(query);
+    res.json({ photos, cover });
+  } catch (err: any) {
+    logger.warn({ err: err?.message, query }, "[ItineraryRoute] Failed to search stock photos");
+    const photos = getStockPhotosForDay(query, count, dayIndex);
+    const cover = getStockCoverPhoto(query);
+    res.json({ photos, cover });
+  }
+});
 
 export default router;
 

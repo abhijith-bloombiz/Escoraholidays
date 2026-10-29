@@ -2147,6 +2147,24 @@ export default function TripPlannerPage() {
                             )}
                           </div>
 
+                          {/* Matched Day Photo (Method B) */}
+                          {day.imageUrl && (
+                            <div className="relative rounded-xl overflow-hidden h-44 sm:h-52 w-full border border-[#D5DED7]/70 shadow-2xs group">
+                              <img
+                                src={day.imageUrl}
+                                alt={day.title}
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                loading="lazy"
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                              <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-white text-[11px] font-mono">
+                                <span className="bg-black/40 backdrop-blur-xs px-2.5 py-0.5 rounded-full border border-white/20">
+                                  📍 {day.destination}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
                           {/* 3 Activities Blocks */}
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
                             <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#D5DED7]/60 space-y-1">

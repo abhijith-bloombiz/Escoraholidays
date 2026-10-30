@@ -19,6 +19,9 @@ const HERO_VIDEOS = [
 
 const HERO_SLIDES = HERO_VIDEOS;
 
+// Temporarily hide the hero quick search bar per user request
+const SHOW_HERO_SEARCH_BAR = false;
+
 const COMPANIONS = {
   topLeft: {
     name: 'Alleppey & Vembanad',
@@ -584,8 +587,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
               </div>
             )}
 
-            {/* Floating Plan A Journey Quick Bar (Initial Screen) */}
-            {searchBarOpacity > 0.01 && (
+            {/* Floating Plan A Journey Quick Bar (Initial Screen) - Temporarily hidden per user request */}
+            {SHOW_HERO_SEARCH_BAR && searchBarOpacity > 0.01 && (
               <div
                 style={{
                   position: 'absolute',
@@ -1908,60 +1911,62 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
               </div>
             </div>
 
-            {/* Mobile Filter Search Box */}
-            <form
-              onSubmit={handleQuickSearch}
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '20px',
-                padding: '1.25rem',
-                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.75rem',
-                border: '1px solid rgba(0, 0, 0, 0.06)',
-                marginBottom: '2rem'
-              }}
-            >
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div className="hero-filter-cell" style={{ background: '#F8F6F1', borderRadius: '12px', padding: '0.65rem' }}>
-                  <select value={destination} onChange={(e) => setDestination(e.target.value)} className="hero-native-overlay-select">
-                    <option value="" disabled hidden>Destinations</option>
-                    <option value="All Destinations">All Destinations</option>
-                    {remoteDestinations && remoteDestinations.length > 0 ? (
-                      remoteDestinations.filter(d => d.published).map(d => (
-                        <option key={d.id} value={d.name}>{d.name}</option>
-                      ))
-                    ) : (
-                      <>
-                        <option value="Munnar">Munnar Highlands</option>
-                        <option value="Alleppey">Alleppey Backwaters</option>
-                        <option value="Wayanad">Wayanad Rainforest</option>
-                        <option value="Fort Kochi">Fort Kochi Heritage</option>
-                        <option value="Varkala">Varkala Sea Cliffs</option>
-                      </>
-                    )}
-                  </select>
-                  <MapPin size={13} color="#B48235" />
-                  <span className="hero-filter-label" style={{ fontSize: '0.74rem' }}>{destination || 'DESTINATIONS'}</span>
+            {/* Mobile Filter Search Box - Temporarily hidden per user request */}
+            {SHOW_HERO_SEARCH_BAR && (
+              <form
+                onSubmit={handleQuickSearch}
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: '20px',
+                  padding: '1.25rem',
+                  boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.75rem',
+                  border: '1px solid rgba(0, 0, 0, 0.06)',
+                  marginBottom: '2rem'
+                }}
+              >
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div className="hero-filter-cell" style={{ background: '#F8F6F1', borderRadius: '12px', padding: '0.65rem' }}>
+                    <select value={destination} onChange={(e) => setDestination(e.target.value)} className="hero-native-overlay-select">
+                      <option value="" disabled hidden>Destinations</option>
+                      <option value="All Destinations">All Destinations</option>
+                      {remoteDestinations && remoteDestinations.length > 0 ? (
+                        remoteDestinations.filter(d => d.published).map(d => (
+                          <option key={d.id} value={d.name}>{d.name}</option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="Munnar">Munnar Highlands</option>
+                          <option value="Alleppey">Alleppey Backwaters</option>
+                          <option value="Wayanad">Wayanad Rainforest</option>
+                          <option value="Fort Kochi">Fort Kochi Heritage</option>
+                          <option value="Varkala">Varkala Sea Cliffs</option>
+                        </>
+                      )}
+                    </select>
+                    <MapPin size={13} color="#B48235" />
+                    <span className="hero-filter-label" style={{ fontSize: '0.74rem' }}>{destination || 'DESTINATIONS'}</span>
+                  </div>
+
+                  <div className="hero-filter-cell" style={{ background: '#F8F6F1', borderRadius: '12px', padding: '0.65rem' }}>
+                    <select value={dates} onChange={(e) => setDates(e.target.value)} className="hero-native-overlay-select">
+                      <option value="" disabled hidden>Travel Dates</option>
+                      <option value="Flexible">Flexible Dates</option>
+                      <option value="Nov-Mar">Nov - Mar</option>
+                      <option value="Apr-Jun">Apr - Jun</option>
+                    </select>
+                    <Calendar size={13} color="#B48235" />
+                    <span className="hero-filter-label" style={{ fontSize: '0.74rem' }}>{dates || 'DATES'}</span>
+                  </div>
                 </div>
 
-                <div className="hero-filter-cell" style={{ background: '#F8F6F1', borderRadius: '12px', padding: '0.65rem' }}>
-                  <select value={dates} onChange={(e) => setDates(e.target.value)} className="hero-native-overlay-select">
-                    <option value="" disabled hidden>Travel Dates</option>
-                    <option value="Flexible">Flexible Dates</option>
-                    <option value="Nov-Mar">Nov - Mar</option>
-                    <option value="Apr-Jun">Apr - Jun</option>
-                  </select>
-                  <Calendar size={13} color="#B48235" />
-                  <span className="hero-filter-label" style={{ fontSize: '0.74rem' }}>{dates || 'DATES'}</span>
-                </div>
-              </div>
-
-              <button type="submit" className="btn-pill btn-gold" style={{ width: '100%', padding: '0.85rem' }}>
-                Search Journey
-              </button>
-            </form>
+                <button type="submit" className="btn-pill btn-gold" style={{ width: '100%', padding: '0.85rem' }}>
+                  Search Journey
+                </button>
+              </form>
+            )}
 
             {/* Mobile Destination Cards Carousel */}
             <div>

@@ -186,6 +186,7 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
           >
             {/* Card 1: Tilted Left (Back Left) - Vertically Centered */}
             <div
+              className="dispatch-card"
               style={{
                 position: 'absolute',
                 left: '4%',
@@ -200,14 +201,6 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
                 transition: 'transform 0.9s var(--ease-luxury) 0.15s, opacity 0.8s var(--ease-luxury) 0.15s, box-shadow 0.4s ease',
                 zIndex: 1
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-54%) rotate(-7deg) scale(1.04)';
-                e.currentTarget.style.zIndex = '10';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(-54%) rotate(-12deg) scale(1)';
-                e.currentTarget.style.zIndex = '1';
-              }}
             >
               <img
                 src={LIMITED_OFFERS_IMAGES.tiltedLeft}
@@ -218,6 +211,7 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
 
             {/* Card 2: Tilted Right (Back Right) - Vertically Centered */}
             <div
+              className="dispatch-card"
               style={{
                 position: 'absolute',
                 right: '4%',
@@ -232,14 +226,6 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
                 transition: 'transform 0.9s var(--ease-luxury) 0.28s, opacity 0.8s var(--ease-luxury) 0.28s, box-shadow 0.4s ease',
                 zIndex: 2
               }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-58%) rotate(12deg) scale(1.04)';
-                e.currentTarget.style.zIndex = '10';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(-58%) rotate(18deg) scale(1)';
-                e.currentTarget.style.zIndex = '2';
-              }}
             >
               <img
                 src={LIMITED_OFFERS_IMAGES.tiltedRight}
@@ -250,6 +236,7 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
 
             {/* Card 3: Upright in Front (Center-Right) - Vertically Centered */}
             <div
+              className="dispatch-card"
               style={{
                 position: 'absolute',
                 right: '16%',
@@ -263,12 +250,6 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
                 boxShadow: '0 24px 50px rgba(0, 0, 0, 0.22)',
                 transition: 'transform 0.9s var(--ease-luxury) 0.4s, opacity 0.8s var(--ease-luxury) 0.4s, box-shadow 0.4s ease',
                 zIndex: 4
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-44%) scale(1.04)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(-44%) scale(1)';
               }}
             >
               <img
@@ -284,6 +265,27 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
       </div>
 
       <style>{`
+        .dispatch-card {
+          isolation: isolate;
+          -webkit-mask-image: -webkit-radial-gradient(white, black);
+          mask-image: radial-gradient(white, black);
+          cursor: pointer;
+        }
+        .dispatch-card:hover {
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.26) !important;
+          z-index: 10 !important;
+        }
+        .dispatch-card img {
+          transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          will-change: transform;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          pointer-events: none;
+        }
+        .dispatch-card:hover img {
+          transform: scale(1.06) translate3d(0, 0, 0) !important;
+        }
         @media (max-width: 600px) {
           .offers-grid {
             grid-template-columns: 1fr !important;

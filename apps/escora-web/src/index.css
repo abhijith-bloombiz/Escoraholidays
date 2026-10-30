@@ -122,6 +122,17 @@ body {
   box-shadow: 0 6px 18px rgba(180, 130, 53, 0.35);
 }
 
+.btn-emerald {
+  background-color: #2D6A4F;
+  color: #FFFFFF;
+}
+
+.btn-emerald:hover {
+  background-color: #1E5E3A;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(45, 106, 79, 0.35);
+}
+
 .btn-outline {
   background: transparent;
   color: #121316;
@@ -280,7 +291,9 @@ body {
 .contact-layout-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2.5rem;
+  gap: 2rem;
+  max-width: 1120px;
+  margin: 0 auto;
   align-items: start;
   position: relative;
 }

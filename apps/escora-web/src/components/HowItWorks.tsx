@@ -11,7 +11,6 @@ import {
   ChevronRight,
   CheckCircle2,
   Clock,
-  Sparkles,
   type LucideIcon
 } from 'lucide-react';
 import { useScrollReveal } from '../hooks/useScrollAnimation';
@@ -104,7 +103,7 @@ const MILESTONES: Milestone[] = [
     timeframe: "Unhurried Return",
     deliverable: "Lifelong Connection",
     icon: HeartHandshake,
-    image: "/images/dest_5_varkala.jpg",
+    image: "/images/memoir_archive_farewell.jpg",
     lead: "Thoughtful departure care and an enduring Kerala connection.",
     detail: "We coordinate comfortable airport transfers, curated departure gifts, and post-trip follow-up, ensuring your return home is as serene and memorable as your days in God's Own Country.",
     deliverables: ["Airport Transfer Protocol", "Complimentary Curated Spice Gift", "Private Return Traveler Privileges"]
@@ -296,28 +295,15 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
             <h2
               className="font-display"
               style={{
-                fontSize: 'clamp(1.9rem, 3.2vw, 2.8rem)',
+                fontSize: 'clamp(2.35rem, 3.8vw, 3.4rem)',
                 color: '#121316',
                 lineHeight: 1.05,
                 letterSpacing: '0.04em',
-                marginBottom: '0.45rem'
+                marginBottom: 0
               }}
             >
-              HOW WE CRAFT YOUR JOURNEY
+              FROM YOUR VISION TO REALITY
             </h2>
-
-            <p
-              style={{
-                fontSize: 'clamp(0.88rem, 1vw, 0.98rem)',
-                color: '#5C5850',
-                lineHeight: 1.5,
-                maxWidth: '620px',
-                margin: '0 auto',
-                fontWeight: 400
-              }}
-            >
-              From your initial conversation to seamless 24/7 on-ground concierge support.
-            </p>
           </div>
 
           {/* Lightship-Inspired Milestone Scrubber Bar */}
@@ -331,7 +317,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
             }}
             className="milestone-scrubber-wrapper"
           >
-            {/* Continuous Gold Connecting Hairline */}
+            {/* Continuous Green Connecting Hairline */}
             <div
               style={{
                 position: 'absolute',
@@ -339,7 +325,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
                 left: '5%',
                 right: '5%',
                 height: '2px',
-                backgroundColor: 'rgba(18, 19, 22, 0.1)',
+                backgroundColor: 'rgba(18, 19, 22, 0.08)',
                 zIndex: 0
               }}
             >
@@ -348,7 +334,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
                 style={{
                   height: '100%',
                   width: `${(activeIdx / (MILESTONES.length - 1)) * 100}%`,
-                  backgroundColor: '#B48235',
+                  background: 'linear-gradient(90deg, #1E5E3A 0%, #2D6A4F 100%)',
                   transition: 'width 0.45s cubic-bezier(0.16, 1, 0.3, 1)'
                 }}
               />
@@ -391,16 +377,33 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
                         width: '42px',
                         height: '42px',
                         borderRadius: '50%',
-                        backgroundColor: isCurrent ? '#121316' : isPast ? '#B48235' : '#FFFFFF',
-                        border: isCurrent ? '2px solid #D4A359' : isPast ? '2px solid #B48235' : '2px solid rgba(18, 19, 22, 0.15)',
-                        color: isCurrent ? '#D4A359' : isPast ? '#FFFFFF' : '#6B7280',
+                        backgroundColor: isCurrent
+                          ? '#121316'
+                          : isPast
+                          ? '#F0F6F2'
+                          : '#FFFFFF',
+                        border: isCurrent
+                          ? '2px solid #121316'
+                          : isPast
+                          ? '1.5px solid #2D6A4F'
+                          : '1.5px solid rgba(18, 19, 22, 0.12)',
+                        color: isCurrent
+                          ? '#FAF5ED'
+                          : isPast
+                          ? '#1E5E3A'
+                          : '#8A857A',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        fontSize: '0.82rem',
+                        fontSize: '0.85rem',
                         fontWeight: 700,
-                        fontFamily: 'monospace',
-                        boxShadow: isCurrent ? '0 0 0 5px rgba(212, 163, 89, 0.25)' : 'none',
+                        fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                        letterSpacing: '0.02em',
+                        boxShadow: isCurrent
+                          ? '0 0 0 5px rgba(45, 106, 79, 0.22), 0 8px 18px rgba(18, 19, 22, 0.15)'
+                          : isPast
+                          ? '0 2px 8px rgba(45, 106, 79, 0.12)'
+                          : '0 2px 6px rgba(18, 19, 22, 0.03)',
                         transform: isCurrent ? 'scale(1.08)' : 'scale(1)',
                         transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}
@@ -412,9 +415,10 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
                     <span
                       style={{
                         fontSize: '0.72rem',
-                        fontWeight: isCurrent ? 700 : 500,
-                        color: isCurrent ? '#121316' : '#6B7280',
-                        letterSpacing: '0.04em',
+                        fontWeight: isCurrent ? 700 : isPast ? 600 : 500,
+                        fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                        color: isCurrent ? '#121316' : isPast ? '#2D6A4F' : '#8A857A',
+                        letterSpacing: '0.08em',
                         textTransform: 'uppercase',
                         transition: 'color 0.25s ease'
                       }}
@@ -459,33 +463,22 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
               }}
             >
               <div key={activeMilestone.step} className="bespoke-step-fade">
-                {/* Monospace Phase Tracker */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginBottom: '0.85rem'
-                  }}
-                >
-                  <span
+                {/* Timeframe */}
+                {activeMilestone.timeframe && (
+                  <div
                     style={{
-                      fontSize: '0.72rem',
-                      fontFamily: 'monospace',
-                      letterSpacing: '0.14em',
-                      textTransform: 'uppercase',
-                      color: '#9E6F29',
-                      fontWeight: 700
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-end',
+                      marginBottom: '0.85rem'
                     }}
                   >
-                    [ STAGE {activeMilestone.step} // 06 ] • {activeMilestone.tag}
-                  </span>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.74rem', color: '#6B7280', fontWeight: 600 }}>
-                    <Clock size={12} color="#B48235" />
-                    <span>{activeMilestone.timeframe}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.74rem', color: '#6B7280', fontWeight: 600 }}>
+                      <Clock size={12} color="#2D6A4F" />
+                      <span>{activeMilestone.timeframe}</span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Title */}
                 <h3
@@ -595,7 +588,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
 
                 <button
                   onClick={() => onOpenEnquiry && onOpenEnquiry({ interest: `Planning: ${activeMilestone.title}` })}
-                  className="btn-pill btn-gold"
+                  className="btn-pill btn-emerald"
                   style={{
                     padding: '0.6rem 1.35rem',
                     fontSize: '0.8rem',
@@ -604,10 +597,23 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
                     textTransform: 'uppercase',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.45rem'
+                    gap: '0.45rem',
+                    backgroundColor: '#2D6A4F',
+                    color: '#FFFFFF',
+                    transition: 'all 0.25s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#1E5E3A';
+                    e.currentTarget.style.boxShadow = '0 6px 18px rgba(45, 106, 79, 0.35)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#2D6A4F';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
-                  <span>Start Stage {activeMilestone.step}</span>
+                  <span>Contact</span>
                   <ArrowRight size={13} />
                 </button>
               </div>
@@ -619,10 +625,6 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
                 position: 'relative',
                 minHeight: '340px',
                 backgroundColor: '#121316',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                padding: '1.5rem',
                 overflow: 'hidden'
               }}
             >
@@ -644,62 +646,6 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
                   }}
                 />
               ))}
-
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(180deg, rgba(14, 20, 18, 0.25) 0%, rgba(14, 20, 18, 0.85) 100%)',
-                  zIndex: 2,
-                  pointerEvents: 'none'
-                }}
-              />
-
-              {/* Top Badge */}
-              <div style={{ position: 'relative', zIndex: 3 }}>
-                <span
-                  key={activeMilestone.step}
-                  className="bespoke-step-fade"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.35rem',
-                    backgroundColor: 'rgba(18, 19, 22, 0.8)',
-                    backdropFilter: 'blur(8px)',
-                    color: '#FFFFFF',
-                    borderRadius: '9999px',
-                    padding: '0.3rem 0.8rem',
-                    fontSize: '0.74rem',
-                    fontWeight: 600,
-                    border: '1px solid rgba(255, 255, 255, 0.15)'
-                  }}
-                >
-                  <Sparkles size={11} color="#D4A359" />
-                  <span>Deliverable: {activeMilestone.deliverable}</span>
-                </span>
-              </div>
-
-              {/* Bottom Assurance Pill */}
-              <div
-                style={{
-                  position: 'relative',
-                  zIndex: 3,
-                  backgroundColor: 'rgba(18, 19, 22, 0.82)',
-                  backdropFilter: 'blur(12px)',
-                  borderRadius: '16px',
-                  padding: '1.1rem',
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  color: '#FFFFFF'
-                }}
-              >
-                <div style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: '#D4A359', fontWeight: 700, marginBottom: '0.25rem' }}>
-                  THE ESCORA GUARANTEE
-                </div>
-                <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.5, margin: 0 }}>
-                  100% private departures. Direct curator phone access. Every route individually drafted with zero fixed cookie-cutter templates.
-                </p>
-              </div>
-
             </div>
 
           </div>

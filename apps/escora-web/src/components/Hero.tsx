@@ -24,29 +24,80 @@ const SHOW_HERO_SEARCH_BAR = false;
 
 const COMPANIONS = {
   topLeft: {
-    name: 'Alleppey & Vembanad',
-    tag: 'BACKWATERS',
-    subtitle: 'Silent Lagoons & Private Charters',
-    image: '/images/tour_1_backwaters.jpg'
+    name: 'Bekal',
+    tag: 'HERITAGE SEA STRONGHOLD',
+    coordinates: '12.39°N 75.03°E',
+    subtitle: "Kerala's largest fort — a 17th-century laterite stronghold above unspoiled northern beaches.",
+    image: '/images/dest_bekal.jpg'
   },
   bottomLeft: {
-    name: 'Wayanad Rainforest',
-    tag: 'RAINFOREST',
-    subtitle: 'Ancient Mist & Treehouse Sanctuaries',
-    image: '/images/dest_1_wayanad.jpg'
+    name: 'Fort Kochi',
+    tag: 'SPICE PORT & BIENNALE',
+    coordinates: '9.96°N 76.24°E',
+    subtitle: 'Historic spice port with colonial architecture and Chinese fishing nets.',
+    image: '/images/dest_fort_kochi.jpg'
   },
   topRight: {
-    name: 'Fort Kochi Harbour',
-    tag: 'HERITAGE',
-    subtitle: 'Colonial Waterfront & Art Biennales',
-    image: '/images/hero/sleeba-thomas-7FNVvI2Lezc-unsplash.jpg'
+    name: 'Kannur',
+    tag: 'MYSTIC THEYYAM RITUAL',
+    coordinates: '11.87°N 75.37°E',
+    subtitle: "Malabar's untouristed coast — Muzhappilangad's drive-in beach, Thalassery's forts, and the ritual fire of Theyyam.",
+    image: '/images/dest_kannur.jpg'
   },
   bottomRight: {
-    name: 'Varkala Sea Cliffs',
-    tag: 'COASTLINE',
-    subtitle: 'Dramatic Ocean Vistas & Peace',
+    name: 'Varkala',
+    tag: 'RED CLIFF SANCTUARY',
+    coordinates: '8.73°N 76.71°E',
+    subtitle: 'Dramatic red laterite cliffs meeting the Arabian Sea, yoga shalas and ocean sunsets.',
     image: '/images/dest_5_varkala.jpg'
   }
+};
+
+const formatDestinationCoordinates = (
+  dest?: { latitude?: number | null; longitude?: number | null; name?: string } | null,
+  fallbackName?: string
+): string => {
+  if (
+    dest &&
+    typeof dest.latitude === 'number' &&
+    typeof dest.longitude === 'number' &&
+    (dest.latitude !== 0 || dest.longitude !== 0)
+  ) {
+    const latDir = dest.latitude >= 0 ? 'N' : 'S';
+    const lonDir = dest.longitude >= 0 ? 'E' : 'W';
+    return `${Math.abs(dest.latitude).toFixed(2)}°${latDir} ${Math.abs(dest.longitude).toFixed(2)}°${lonDir}`;
+  }
+  const n = (dest?.name || fallbackName || '').toLowerCase();
+  if (n.includes('bekal')) return '12.39°N 75.03°E';
+  if (n.includes('kochi')) return '9.97°N 76.24°E';
+  if (n.includes('kannur')) return '11.87°N 75.37°E';
+  if (n.includes('varkala')) return '8.74°N 76.72°E';
+  if (n.includes('kovalam')) return '8.40°N 76.98°E';
+  if (n.includes('munnar')) return '10.09°N 77.06°E';
+  if (n.includes('alleppey') || n.includes('alappuzha')) return '9.49°N 76.33°E';
+  if (n.includes('wayanad')) return '11.68°N 76.13°E';
+  if (n.includes('kumarakom')) return '9.62°N 76.43°E';
+  if (n.includes('thekkady')) return '9.60°N 77.16°E';
+  return '9.93°N 76.26°E';
+};
+
+const resolveDestinationImage = (
+  dest?: { name?: string; imageUrl?: string | null } | null,
+  fallback: string = '/images/dest_3_munnar.jpg'
+): string => {
+  if (dest?.imageUrl && typeof dest.imageUrl === 'string' && dest.imageUrl.trim() !== '') {
+    return dest.imageUrl.trim();
+  }
+  const n = (dest?.name || '').toLowerCase();
+  if (n.includes('bekal')) return '/images/dest_bekal.jpg';
+  if (n.includes('kochi')) return '/images/dest_fort_kochi.jpg';
+  if (n.includes('kannur')) return '/images/dest_kannur.jpg';
+  if (n.includes('varkala')) return '/images/dest_5_varkala.jpg';
+  if (n.includes('kovalam')) return '/images/dest_kovalam.jpg';
+  if (n.includes('kumarakom')) return '/images/dest_kumarakom.jpg';
+  if (n.includes('munnar')) return '/images/dest_3_munnar.jpg';
+  if (n.includes('wayanad')) return '/images/dest_1_wayanad.jpg';
+  return fallback;
 };
 
 const EXP_CARDS = [
@@ -105,47 +156,77 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
 
-  const liveCompanions = useMemo(() => {
-    if (!remoteDestinations || remoteDestinations.length < 4) {
-      return COMPANIONS;
+  // 1. Center Flagship Destination from Admin Panel
+  const centerDestination = useMemo(() => {
+    if (!remoteDestinations || remoteDestinations.length === 0) {
+      return {
+        id: -1,
+        name: 'Munnar Tea Highlands',
+        shortName: 'Munnar',
+        tag: 'HIGHLANDS & ESTATES',
+        coordinates: '10.09°N 77.06°E',
+        subtitle: 'Misty summits, 150-year-old planter estates, and golden sunrise tea trails.',
+        image: '/images/dest_3_munnar.jpg'
+      };
     }
     const published = remoteDestinations.filter((d) => d.published);
-    const items = published.length >= 4 ? published : remoteDestinations;
+    const pool = published.length > 0 ? published : remoteDestinations;
+    // Prefer Munnar if present for the iconic highland transition
+    const munnar = pool.find((d) => d.name.toLowerCase().includes('munnar'));
+    const featured = munnar || pool[0];
+
+    const hasHighlands = featured.name.toLowerCase().includes('highland');
+    const displayName = hasHighlands ? featured.name : `${featured.name} Highlands`;
+
     return {
-      topLeft: {
-        name: items[0]?.name || COMPANIONS.topLeft.name,
-        tag: (items[0]?.type || COMPANIONS.topLeft.tag).toUpperCase(),
-        subtitle: items[0]?.shortDesc || COMPANIONS.topLeft.subtitle,
-        image: items[0]?.imageUrl || COMPANIONS.topLeft.image,
-      },
-      bottomLeft: {
-        name: items[1]?.name || COMPANIONS.bottomLeft.name,
-        tag: (items[1]?.type || COMPANIONS.bottomLeft.tag).toUpperCase(),
-        subtitle: items[1]?.shortDesc || COMPANIONS.bottomLeft.subtitle,
-        image: items[1]?.imageUrl || COMPANIONS.bottomLeft.image,
-      },
-      topRight: {
-        name: items[2]?.name || COMPANIONS.topRight.name,
-        tag: (items[2]?.type || COMPANIONS.topRight.tag).toUpperCase(),
-        subtitle: items[2]?.shortDesc || COMPANIONS.topRight.subtitle,
-        image: items[2]?.imageUrl || COMPANIONS.topRight.image,
-      },
-      bottomRight: {
-        name: items[3]?.name || COMPANIONS.bottomRight.name,
-        tag: (items[3]?.type || COMPANIONS.bottomRight.tag).toUpperCase(),
-        subtitle: items[3]?.shortDesc || COMPANIONS.bottomRight.subtitle,
-        image: items[3]?.imageUrl || COMPANIONS.bottomRight.image,
-      },
+      id: featured.id,
+      name: displayName,
+      shortName: featured.name,
+      tag: (featured.type || 'HIGHLANDS').toUpperCase(),
+      coordinates: formatDestinationCoordinates(featured, featured.name),
+      subtitle: featured.shortDesc || featured.description || 'Misty summits, 150-year-old planter estates, and golden sunrise tea trails.',
+      image: resolveDestinationImage(featured, '/images/dest_3_munnar.jpg')
     };
   }, [remoteDestinations]);
 
-  const centerDestinationImage = useMemo(() => {
-    if (remoteDestinations && remoteDestinations.length > 0) {
-      const munnar = remoteDestinations.find((d) => d.name.toLowerCase().includes('munnar'));
-      if (munnar?.imageUrl) return munnar.imageUrl;
+  // 2. The 4 Companion Wing Destinations from Admin Panel (excluding the center card)
+  const liveCompanions = useMemo(() => {
+    if (!remoteDestinations || remoteDestinations.length === 0) {
+      return COMPANIONS;
     }
-    return '/images/dest_3_munnar.jpg';
-  }, [remoteDestinations]);
+    const published = remoteDestinations.filter((d) => d.published);
+    const pool = published.length > 0 ? published : remoteDestinations;
+
+    // Exclude the destination chosen for the center card to ensure 0 duplicates
+    const companions = pool.filter((d) => d.id !== centerDestination.id);
+    const items = companions.length >= 4 ? companions : pool;
+
+    const fallbackSlots = [
+      COMPANIONS.topLeft,
+      COMPANIONS.bottomLeft,
+      COMPANIONS.topRight,
+      COMPANIONS.bottomRight
+    ];
+
+    const getSlot = (idx: number, fallback: typeof COMPANIONS.topLeft) => {
+      const item = items[idx];
+      if (!item) return fallback;
+      return {
+        name: item.name,
+        tag: (item.type || fallback.tag).toUpperCase(),
+        coordinates: formatDestinationCoordinates(item, item.name),
+        subtitle: item.shortDesc || item.description || fallback.subtitle,
+        image: resolveDestinationImage(item, fallback.image)
+      };
+    };
+
+    return {
+      topLeft: getSlot(0, fallbackSlots[0]),
+      bottomLeft: getSlot(1, fallbackSlots[1]),
+      topRight: getSlot(2, fallbackSlots[2]),
+      bottomRight: getSlot(3, fallbackSlots[3])
+    };
+  }, [remoteDestinations, centerDestination]);
 
   const mobileDestinations = useMemo(() => {
     if (remoteDestinations && remoteDestinations.length > 0) {
@@ -153,15 +234,15 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       const items = published.length > 0 ? published : remoteDestinations;
       return items.map((d) => ({
         name: d.name,
-        image: d.imageUrl || '/images/dest_1_wayanad.jpg',
+        image: resolveDestinationImage(d, '/images/dest_1_wayanad.jpg'),
         tag: (d.type || 'SANCTUARY').toUpperCase(),
       }));
     }
     return [
       { name: 'Munnar Highlands', image: '/images/dest_3_munnar.jpg', tag: 'HIGHLANDS' },
-      { name: 'Alleppey Backwaters', image: '/images/tour_1_backwaters.jpg', tag: 'BACKWATERS' },
-      { name: 'Wayanad Rainforest', image: '/images/dest_1_wayanad.jpg', tag: 'RAINFOREST' },
-      { name: 'Fort Kochi Heritage', image: '/images/hero/sleeba-thomas-7FNVvI2Lezc-unsplash.jpg', tag: 'HERITAGE' },
+      { name: 'Bekal Fortress', image: '/images/dest_bekal.jpg', tag: 'NORTH COAST' },
+      { name: 'Fort Kochi Heritage', image: '/images/dest_fort_kochi.jpg', tag: 'HERITAGE' },
+      { name: 'Kannur Ritual Fire', image: '/images/dest_kannur.jpg', tag: 'MYSTIC TRADITIONS' },
       { name: 'Varkala Sea Cliffs', image: '/images/dest_5_varkala.jpg', tag: 'COASTLINE' },
     ];
   }, [remoteDestinations]);
@@ -388,6 +469,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const gridGap = 'clamp(16px, 1.8vw, 24px)';
   const card2x2Height = 'clamp(225px, 29.5vh, 275px)';
   const munnarFeaturedHeight = `calc(2 * ${card2x2Height} + clamp(14px, 1.8vh, 18px))`;
+  const card3dShadow = '0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 20px 36px -6px rgba(0, 0, 0, 0.16), 0 36px 64px -12px rgba(0, 0, 0, 0.14)';
 
   // Stage 4 (4 Experience Cards Grid Constants)
   const expCardWidth = 'clamp(240px, 21.5vw, 315px)';
@@ -417,12 +499,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     : 'translateX(0px)';
 
   const centerBorderRadius = phase4Raw > 0
-    ? phase4Ease * 8
+    ? phase4Ease * 14
     : phase3Raw > 0
-      ? (1 - expandEase) * 8
+      ? (1 - expandEase) * 14
       : isRearranged
-        ? 8
-        : shrinkEase * 8; // 0px to 8px small subtle curve
+        ? 14
+        : shrinkEase * 14; // 0px to 14px smooth curve
 
   const centerShadow = phase4Raw > 0
     ? 0.35 * phase4Ease
@@ -784,22 +866,24 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 </h2>
               </div>
 
-              {/* The 3 Columns Grid Row */}
+              {/* The 3 Columns Grid Row — Concept 3 3D Amphitheater */}
               <div
-                className="bento-stage-grid"
+                className="bento-stage-grid bento-theater-stage"
                 style={{
                   width: '100%',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: phase4Raw > 0 ? '0px' : gridGap,
-                  position: 'relative'
+                  position: 'relative',
+                  perspective: '1400px'
                 }}
               >
                 {/* ---------------------------------------------------- */}
-                {/* COLUMN 1: LEFT COMPANIONS (Alleppey Wide & Wayanad Narrow) */}
+                {/* COLUMN 1: LEFT COMPANIONS (3D Inward Amphitheater Wing) */}
                 {/* ---------------------------------------------------- */}
                 <div
+                  className="bento-col-left bento-theater-wing-left"
                   style={{
                     width: colWidth,
                     display: phase4Raw > 0 ? 'none' : 'flex',
@@ -810,46 +894,59 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     pointerEvents: (bentoCardOpacity > 0.4 && expandRaw < 0.2) ? 'auto' : 'none',
                     flexShrink: 0,
                     alignSelf: 'center',
-                    transform: 'translateX(0px)',
+                    transform: isRearranged
+                      ? 'perspective(1200px) rotateY(4.5deg)'
+                      : 'translateX(0px)',
+                    transformOrigin: 'right center',
                     transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
                     zIndex: 2
                   }}
                 >
-                  {/* Card 1: Alleppey Backwaters */}
+                  {/* Card 1: Bekal Fortress (Top-Left) */}
                   <div
                     onClick={() => handleCardClick(liveCompanions.topLeft.name)}
-                    className="bento-companion-card"
+                    className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
                       height: isRearranged ? card2x2Height : 'clamp(220px, 28vh, 300px)',
                       position: 'relative',
-                      borderRadius: '8px',
+                      borderRadius: '14px',
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
+                      border: 'none',
+                      boxShadow: card3dShadow,
                       backgroundColor: '#121316',
                       transform: isRearranged
                         ? 'scale(1)'
                         : `translateX(${leftCard1SlideX}px) translateY(${leftCard1SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
-                      border: 'none'
+                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none'
                     }}
                   >
                     <img
                       src={liveCompanions.topLeft.image}
                       alt={liveCompanions.topLeft.name}
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        if (!target.dataset.fallbackApplied) {
+                          target.dataset.fallbackApplied = 'true';
+                          target.src = '/images/dest_fort_kochi.jpg';
+                        }
+                      }}
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
-                        display: 'block'
+                        display: 'block',
+                        transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}
+                      className="bento-companion-img"
                     />
                     <div
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0.86) 100%)'
+                        background: 'linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.28) 40%, rgba(18,19,22,0.92) 100%)',
+                        pointerEvents: 'none'
                       }}
                     />
                     <div
@@ -858,18 +955,25 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        padding: '1.3rem 1.45rem',
+                        padding: '1.25rem 1.4rem',
                         color: '#FFFFFF',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.2rem',
+                        zIndex: 2
                       }}
                     >
                       <h3
                         className="font-display"
                         style={{
-                          fontSize: 'clamp(1.18rem, 1.35vw, 1.32rem)',
-                          margin: '0 0 0.25rem 0',
+                          fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)',
+                          margin: 0,
                           color: '#FFFFFF',
-                          lineHeight: 1.15
+                          lineHeight: 1.15,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em'
                         }}
                       >
                         {liveCompanions.topLeft.name}
@@ -877,8 +981,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       <p
                         style={{
                           fontSize: 'clamp(0.72rem, 0.8vw, 0.78rem)',
-                          color: 'rgba(255, 255, 255, 0.82)',
-                          margin: 0
+                          color: 'rgba(255, 255, 255, 0.85)',
+                          margin: '0.25rem 0 0 0',
+                          lineHeight: 1.42,
+                          maxWidth: '280px',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
                         }}
                       >
                         {liveCompanions.topLeft.subtitle}
@@ -886,42 +996,52 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     </div>
                   </div>
 
-                  {/* Card 2: Wayanad Rainforest */}
+                  {/* Card 2: Fort Kochi Spice Port (Bottom-Left) */}
                   <div
                     onClick={() => handleCardClick(liveCompanions.bottomLeft.name)}
-                    className="bento-companion-card"
+                    className="bento-companion-card bento-theater-card"
                     style={{
                       width: isRearranged ? '100%' : 'clamp(240px, 21vw, 330px)',
                       height: isRearranged ? card2x2Height : 'clamp(195px, 25vh, 265px)',
                       position: 'relative',
-                      borderRadius: '8px',
+                      borderRadius: '14px',
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
+                      border: 'none',
+                      boxShadow: card3dShadow,
                       backgroundColor: '#121316',
                       alignSelf: isRearranged ? 'stretch' : 'flex-end',
                       transform: isRearranged
                         ? 'scale(1)'
                         : `translateX(${leftCard2SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
-                      border: 'none'
+                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none'
                     }}
                   >
                     <img
                       src={liveCompanions.bottomLeft.image}
                       alt={liveCompanions.bottomLeft.name}
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        if (!target.dataset.fallbackApplied) {
+                          target.dataset.fallbackApplied = 'true';
+                          target.src = '/images/dest_kannur.jpg';
+                        }
+                      }}
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
-                        display: 'block'
+                        display: 'block',
+                        transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}
+                      className="bento-companion-img"
                     />
                     <div
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0.86) 100%)'
+                        background: 'linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.28) 40%, rgba(18,19,22,0.92) 100%)',
+                        pointerEvents: 'none'
                       }}
                     />
                     <div
@@ -930,18 +1050,25 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        padding: '1.3rem 1.45rem',
+                        padding: '1.25rem 1.4rem',
                         color: '#FFFFFF',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.2rem',
+                        zIndex: 2
                       }}
                     >
                       <h3
                         className="font-display"
                         style={{
-                          fontSize: 'clamp(1.18rem, 1.35vw, 1.32rem)',
-                          margin: '0 0 0.25rem 0',
+                          fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)',
+                          margin: 0,
                           color: '#FFFFFF',
-                          lineHeight: 1.15
+                          lineHeight: 1.15,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em'
                         }}
                       >
                         {liveCompanions.bottomLeft.name}
@@ -949,8 +1076,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       <p
                         style={{
                           fontSize: 'clamp(0.72rem, 0.8vw, 0.78rem)',
-                          color: 'rgba(255, 255, 255, 0.82)',
-                          margin: 0
+                          color: 'rgba(255, 255, 255, 0.85)',
+                          margin: '0.25rem 0 0 0',
+                          lineHeight: 1.42,
+                          maxWidth: '280px',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
                         }}
                       >
                         {liveCompanions.bottomLeft.subtitle}
@@ -980,7 +1113,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     width: centerCardWidth,
                     height: centerCardHeight,
                     borderRadius: `${centerBorderRadius}px`,
-                    boxShadow: `0 24px 60px rgba(0, 0, 0, ${centerShadow})`,
+                    boxShadow: card3dShadow,
                     overflow: 'hidden',
                     zIndex: phase4Raw > 0 ? 6 : 5,
                     backgroundColor: '#0B1410',
@@ -993,7 +1126,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   }}
                   onClick={() => {
                     if (phase1Progress > 0.4 && phase3Raw < 0.15) {
-                      handleCardClick('Munnar Tea Highlands');
+                      handleCardClick(centerDestination.shortName || centerDestination.name);
                     } else if (phase4Raw > 0.6) {
                       handleExpCardClick('Kayaking', 'Alleppey Waters');
                     }
@@ -1058,7 +1191,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      backgroundImage: `url('${centerDestinationImage}')`,
+                      backgroundImage: `url('${centerDestination.image}')`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center 48%',
                       opacity: destImageEase > 0.01 ? Math.min(1, destImageEase * 1.25) * Math.max(0, 1 - expandRaw * 1.5) : 0,
@@ -1136,7 +1269,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       flexDirection: 'column',
                       alignItems: 'center',
                       textAlign: 'center',
-                      gap: '0.4rem',
+                      gap: '0.35rem',
                       pointerEvents: (centerLabelOpacity > 0.4 && expandRaw < 0.1) ? 'auto' : 'none'
                     }}
                   >
@@ -1146,41 +1279,48 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         fontSize: 'clamp(1.45rem, 1.8vw, 1.75rem)',
                         margin: 0,
                         color: '#FFFFFF',
-                        lineHeight: 1.1
+                        lineHeight: 1.1,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.035em'
                       }}
                     >
-                      Munnar Tea Highlands
+                      {centerDestination.name}
                     </h3>
                     <p
                       style={{
                         fontSize: 'clamp(0.8rem, 0.9vw, 0.86rem)',
-                        color: 'rgba(255, 255, 255, 0.82)',
-                        margin: 0,
-                        lineHeight: 1.45
+                        color: 'rgba(255, 255, 255, 0.85)',
+                        margin: '0.2rem 0 0 0',
+                        lineHeight: 1.45,
+                        maxWidth: '340px',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden'
                       }}
                     >
-                      Misty summits, 150-year-old planter estates, and golden sunrise tea trails.
+                      {centerDestination.subtitle}
                     </p>
-                    <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ marginTop: '0.4rem', display: 'flex', justifyContent: 'center' }}>
                       <span
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
                           gap: '0.45rem',
-                          padding: '0.45rem 1.1rem',
+                          padding: '0.45rem 1.15rem',
                           borderRadius: '999px',
                           backgroundColor: 'rgba(255, 255, 255, 0.16)',
                           backdropFilter: 'blur(8px)',
                           WebkitBackdropFilter: 'blur(8px)',
-                          border: '1px solid rgba(255, 255, 255, 0.3)',
+                          border: '1px solid rgba(255, 255, 255, 0.35)',
                           fontSize: '0.76rem',
-                          fontWeight: 600,
+                          fontWeight: 700,
                           letterSpacing: '0.06em',
                           textTransform: 'uppercase',
                           color: '#FFFFFF'
                         }}
                       >
-                        Explore Munnar <ArrowUpRight size={14} />
+                        Explore {centerDestination.shortName} <ArrowUpRight size={14} />
                       </span>
                     </div>
                   </div>
@@ -1214,9 +1354,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 </div>
 
                 {/* ---------------------------------------------------- */}
-                {/* COLUMN 3: RIGHT COMPANIONS (Fort Kochi Narrow & Varkala Wide) */}
+                {/* COLUMN 3: RIGHT COMPANIONS (3D Inward Amphitheater Wing) */}
                 {/* ---------------------------------------------------- */}
                 <div
+                  className="bento-col-right bento-theater-wing-right"
                   style={{
                     width: colWidth,
                     display: phase4Raw > 0 ? 'none' : 'flex',
@@ -1227,7 +1368,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     pointerEvents: (bentoCardOpacity > 0.4 && expandRaw < 0.2) ? 'auto' : 'none',
                     flexShrink: 0,
                     alignSelf: 'center',
-                    transform: 'translateX(0px)',
+                    transform: isRearranged
+                      ? 'perspective(1200px) rotateY(-4.5deg)'
+                      : 'translateX(0px)',
+                    transformOrigin: 'left center',
                     transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
                     zIndex: 2
                   }}
@@ -1244,42 +1388,52 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     aria-hidden="true"
                   />
 
-                  {/* Card 4: Fort Kochi Harbour (Compact Indented Card) */}
+                  {/* Card 4: Kannur Ritual Fire (Top-Right) */}
                   <div
                     onClick={() => handleCardClick(liveCompanions.topRight.name)}
-                    className="bento-companion-card"
+                    className="bento-companion-card bento-theater-card"
                     style={{
                       width: isRearranged ? '100%' : 'clamp(240px, 21vw, 330px)',
                       height: isRearranged ? card2x2Height : 'clamp(195px, 25vh, 265px)',
                       position: 'relative',
-                      borderRadius: '8px',
+                      borderRadius: '14px',
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
+                      border: 'none',
+                      boxShadow: card3dShadow,
                       backgroundColor: '#121316',
                       alignSelf: isRearranged ? 'stretch' : 'flex-start',
                       transform: isRearranged
                         ? 'scale(1)'
                         : `translateX(${rightCard4SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
-                      border: 'none'
+                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none'
                     }}
                   >
                     <img
                       src={liveCompanions.topRight.image}
                       alt={liveCompanions.topRight.name}
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        if (!target.dataset.fallbackApplied) {
+                          target.dataset.fallbackApplied = 'true';
+                          target.src = '/images/dest_kovalam.jpg';
+                        }
+                      }}
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
-                        display: 'block'
+                        display: 'block',
+                        transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}
+                      className="bento-companion-img"
                     />
                     <div
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0.86) 100%)'
+                        background: 'linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.28) 40%, rgba(18,19,22,0.92) 100%)',
+                        pointerEvents: 'none'
                       }}
                     />
                     <div
@@ -1288,18 +1442,25 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        padding: '1.3rem 1.45rem',
+                        padding: '1.25rem 1.4rem',
                         color: '#FFFFFF',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.2rem',
+                        zIndex: 2
                       }}
                     >
                       <h3
                         className="font-display"
                         style={{
-                          fontSize: 'clamp(1.18rem, 1.35vw, 1.32rem)',
-                          margin: '0 0 0.25rem 0',
+                          fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)',
+                          margin: 0,
                           color: '#FFFFFF',
-                          lineHeight: 1.15
+                          lineHeight: 1.15,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em'
                         }}
                       >
                         {liveCompanions.topRight.name}
@@ -1307,8 +1468,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       <p
                         style={{
                           fontSize: 'clamp(0.72rem, 0.8vw, 0.78rem)',
-                          color: 'rgba(255, 255, 255, 0.82)',
-                          margin: 0
+                          color: 'rgba(255, 255, 255, 0.85)',
+                          margin: '0.25rem 0 0 0',
+                          lineHeight: 1.42,
+                          maxWidth: '280px',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
                         }}
                       >
                         {liveCompanions.topRight.subtitle}
@@ -1316,41 +1483,51 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     </div>
                   </div>
 
-                  {/* Card 5: Varkala Sea Cliffs (Wide Landscape Card) */}
+                  {/* Card 5: Varkala Sea Cliffs (Bottom-Right) */}
                   <div
                     onClick={() => handleCardClick(liveCompanions.bottomRight.name)}
-                    className="bento-companion-card"
+                    className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
                       height: isRearranged ? card2x2Height : 'clamp(220px, 28vh, 300px)',
                       position: 'relative',
-                      borderRadius: '8px',
+                      borderRadius: '14px',
                       overflow: 'hidden',
                       cursor: 'pointer',
-                      boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
+                      border: 'none',
+                      boxShadow: card3dShadow,
                       backgroundColor: '#121316',
                       transform: isRearranged
                         ? 'scale(1)'
                         : `translateX(${rightCard5SlideX}px) translateY(${rightCard5SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
-                      border: 'none'
+                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none'
                     }}
                   >
                     <img
                       src={liveCompanions.bottomRight.image}
                       alt={liveCompanions.bottomRight.name}
+                      onError={(e) => {
+                        const target = e.currentTarget as HTMLImageElement;
+                        if (!target.dataset.fallbackApplied) {
+                          target.dataset.fallbackApplied = 'true';
+                          target.src = '/images/dest_5_varkala.jpg';
+                        }
+                      }}
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
-                        display: 'block'
+                        display: 'block',
+                        transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)'
                       }}
+                      className="bento-companion-img"
                     />
                     <div
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(180deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.25) 45%, rgba(0,0,0,0.86) 100%)'
+                        background: 'linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.28) 40%, rgba(18,19,22,0.92) 100%)',
+                        pointerEvents: 'none'
                       }}
                     />
                     <div
@@ -1359,18 +1536,25 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        padding: '1.3rem 1.45rem',
+                        padding: '1.25rem 1.4rem',
                         color: '#FFFFFF',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.2rem',
+                        zIndex: 2
                       }}
                     >
                       <h3
                         className="font-display"
                         style={{
-                          fontSize: 'clamp(1.18rem, 1.35vw, 1.32rem)',
-                          margin: '0 0 0.25rem 0',
+                          fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)',
+                          margin: 0,
                           color: '#FFFFFF',
-                          lineHeight: 1.15
+                          lineHeight: 1.15,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.04em'
                         }}
                       >
                         {liveCompanions.bottomRight.name}
@@ -1378,8 +1562,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       <p
                         style={{
                           fontSize: 'clamp(0.72rem, 0.8vw, 0.78rem)',
-                          color: 'rgba(255, 255, 255, 0.82)',
-                          margin: 0
+                          color: 'rgba(255, 255, 255, 0.85)',
+                          margin: '0.25rem 0 0 0',
+                          lineHeight: 1.42,
+                          maxWidth: '280px',
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
                         }}
                       >
                         {liveCompanions.bottomRight.subtitle}
@@ -1761,12 +1951,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     style={{
                       flex: '0 0 240px',
                       height: '320px',
-                      borderRadius: '8px',
+                      borderRadius: '12px',
                       overflow: 'hidden',
                       position: 'relative',
                       scrollSnapAlign: 'start',
                       backgroundColor: '#121316',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      border: 'none',
+                      boxShadow: card3dShadow
                     }}
                   >
                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -1964,25 +2156,41 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .bento-companion-card {
-          box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-          transition: box-shadow 0.4s ease;
+        .bento-theater-stage {
+          perspective: 1400px;
         }
 
-        .bento-companion-card:hover {
-          box-shadow: 0 24px 50px rgba(0, 0, 0, 0.22), 0 0 20px rgba(212, 175, 55, 0.25) !important;
+        .bento-theater-wing-left,
+        .bento-theater-wing-right {
+          transform-style: preserve-3d;
         }
 
-        .bento-companion-card:hover img {
-          transform: scale(1.06);
+        .bento-theater-card {
+          border: none !important;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 20px 36px -6px rgba(0, 0, 0, 0.16), 0 36px 64px -12px rgba(0, 0, 0, 0.14) !important;
+          transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease !important;
+        }
+
+        .bento-theater-card:hover {
+          border: none !important;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 14px 24px -3px rgba(0, 0, 0, 0.12), 0 32px 54px -6px rgba(0, 0, 0, 0.20), 0 52px 84px -12px rgba(0, 0, 0, 0.16) !important;
+          transform: perspective(1200px) rotateY(0deg) scale(1.025) translateY(-4px) !important;
+        }
+
+        .bento-theater-card:hover img {
+          transform: scale(1.06) !important;
         }
 
         .bento-center-card {
-          transition: box-shadow 0.4s ease;
+          border: none !important;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 20px 36px -6px rgba(0, 0, 0, 0.16), 0 36px 64px -12px rgba(0, 0, 0, 0.14) !important;
+          transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease !important;
         }
 
         .bento-center-card:hover {
-          box-shadow: 0 30px 70px rgba(0, 0, 0, 0.28), 0 0 24px rgba(212, 175, 55, 0.25) !important;
+          border: none !important;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 14px 24px -3px rgba(0, 0, 0, 0.12), 0 32px 54px -6px rgba(0, 0, 0, 0.20), 0 52px 84px -12px rgba(0, 0, 0, 0.16) !important;
+          transform: scale(1.015) translateY(-4px) !important;
         }
 
         .bento-center-card:hover img {
@@ -1990,11 +2198,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
         }
 
         .exp-showcase-card {
-          transition: box-shadow 0.4s ease, border-color 0.3s ease, transform 0.3s ease;
+          border: none !important;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 20px 36px -6px rgba(0, 0, 0, 0.16), 0 36px 64px -12px rgba(0, 0, 0, 0.14) !important;
+          transition: box-shadow 0.4s ease, transform 0.3s ease;
         }
 
         .exp-showcase-card:hover {
-          box-shadow: 0 32px 75px rgba(0, 0, 0, 0.55), 0 0 24px rgba(212, 175, 55, 0.22) !important;
+          border: none !important;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 14px 24px -3px rgba(0, 0, 0, 0.12), 0 32px 54px -6px rgba(0, 0, 0, 0.20), 0 52px 84px -12px rgba(0, 0, 0, 0.16) !important;
         }
 
         .exp-showcase-card:hover img {

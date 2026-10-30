@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'wouter';
 import { Menu, X } from 'lucide-react';
 
 export interface NavbarProps {
@@ -132,8 +133,8 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
       >
         <div className="section-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           {/* Logo */}
-          <a
-            href="#"
+          <Link
+            href="/"
             onClick={() => setIsVisible(true)}
             style={{
               display: 'flex',
@@ -155,7 +156,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
                 transition: 'height 0.3s ease'
               }}
             />
-          </a>
+          </Link>
 
           {/* Desktop Navigation Links */}
           <nav
@@ -167,14 +168,11 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
             className="desktop-nav"
           >
             {[
-              { label: 'Destinations', href: '#destinations' },
-              { label: 'Experiences', href: '#experiences' },
-              { label: 'The Standard', href: '#why-escora' },
-              { label: 'Healing', href: '#retreat' },
-              { label: 'Stories', href: '#testimonials' },
-              { label: 'Journal', href: '#newsletter' }
+              { label: 'Destinations', href: '/destinations' },
+              { label: 'Experiences', href: '/experiences' },
+              { label: 'About', href: '/about' }
             ].map((item) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 onClick={() => setIsVisible(true)}
@@ -199,18 +197,32 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
                 }}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
 
           {/* Right Action Button */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+            <Link
+              href="/plan"
+              className="btn-pill btn-gold"
+              style={{
+                fontSize: '0.82rem',
+                padding: '0.62rem 1.4rem',
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+                fontWeight: 700
+              }}
+            >
+              Plan a Journey
+            </Link>
+
             <button
               onClick={onOpenEnquiry}
               className="btn-pill btn-white"
               style={{
-                fontSize: '0.85rem',
-                padding: '0.65rem 1.6rem',
+                fontSize: '0.82rem',
+                padding: '0.62rem 1.3rem',
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
                 fontWeight: 700
@@ -260,18 +272,16 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
             display: 'flex',
             flexDirection: 'column',
             padding: '6rem 2rem 2rem',
-            gap: '1.75rem'
+            gap: '1.75rem',
+            overflowY: 'auto'
           }}
         >
           {[
-            { label: 'Destinations', href: '#destinations' },
-            { label: 'Experiences', href: '#experiences' },
-            { label: 'The Standard', href: '#why-escora' },
-            { label: 'Healing', href: '#retreat' },
-            { label: 'Stories', href: '#testimonials' },
-            { label: 'Journal', href: '#newsletter' }
+            { label: 'Destinations', href: '/destinations' },
+            { label: 'Experiences', href: '/experiences' },
+            { label: 'About Escora', href: '/about' }
           ].map((item) => (
-            <a
+            <Link
               key={item.label}
               href={item.href}
               onClick={() => setMobileMenuOpen(false)}
@@ -284,28 +294,26 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
               }}
             >
               {item.label}
-            </a>
+            </Link>
           ))}
 
-          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', paddingTop: '1.5rem' }}>
+            <Link
+              href="/plan"
+              onClick={() => setMobileMenuOpen(false)}
+              className="btn-pill btn-gold"
+              style={{ width: '100%', padding: '0.9rem', textAlign: 'center', fontSize: '0.95rem' }}
+            >
+              Plan a Journey
+            </Link>
             <a
               href="https://wa.me/918157003344"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: '#D4AF37', fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              style={{ color: '#D4AF37', fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center' }}
             >
               WhatsApp / Concierge: +91 8157 003 344
             </a>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (onOpenEnquiry) onOpenEnquiry();
-              }}
-              className="btn-pill btn-gold"
-              style={{ width: '100%', padding: '0.9rem' }}
-            >
-              Plan a Journey
-            </button>
           </div>
         </div>
       )}

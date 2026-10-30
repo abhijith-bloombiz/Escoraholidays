@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'wouter';
 import { ArrowRight, CheckCircle2, Phone, Mail, MapPin } from 'lucide-react';
 import { ESCORA_INFO } from '../data/escoraData';
 import { useScrollReveal } from '../hooks/useScrollAnimation';
@@ -254,10 +255,15 @@ export default function Footer({ onShowToast }: FooterProps) {
                   EXPLORE
                 </h4>
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {['DESTINATIONS', 'EXPERIENCE', 'TOURS & PACKAGES', 'SPECIAL OFFERS', 'TRAVEL INSPIRATION'].map((link) => (
-                    <li key={link}>
-                      <a
-                        href="#destinations"
+                  {[
+                    { label: 'DESTINATIONS', href: '/destinations' },
+                    { label: 'EXPERIENCES', href: '/experiences' },
+                    { label: 'PLAN A JOURNEY', href: '/plan' },
+                    { label: 'AYURVEDIC HEALING', href: '/experiences/ayurveda-wellness' }
+                  ].map((item) => (
+                    <li key={item.label}>
+                      <Link
+                        href={item.href}
                         className="font-display"
                         style={{
                           color: '#FFFFFF',
@@ -270,8 +276,8 @@ export default function Footer({ onShowToast }: FooterProps) {
                         onMouseEnter={(e) => (e.currentTarget.style.color = '#B48235')}
                         onMouseLeave={(e) => (e.currentTarget.style.color = '#FFFFFF')}
                       >
-                        {link}
-                      </a>
+                        {item.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -299,10 +305,15 @@ export default function Footer({ onShowToast }: FooterProps) {
                   COMPANY
                 </h4>
                 <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {['ABOUT US', 'OUR STORY', 'WHY CHOOSE US', 'SUSTAINABILITY', 'CAREERS'].map((link) => (
-                    <li key={link}>
-                      <a
-                        href="#hero"
+                  {[
+                    { label: 'ABOUT ESCORA', href: '/about' },
+                    { label: 'THE STANDARD', href: '/#why-escora' },
+                    { label: 'HOW IT WORKS', href: '/#how-it-works' },
+                    { label: 'TRAVELLER STORIES', href: '/#testimonials' }
+                  ].map((item) => (
+                    <li key={item.label}>
+                      <Link
+                        href={item.href}
                         className="font-display"
                         style={{
                           color: '#FFFFFF',
@@ -315,8 +326,8 @@ export default function Footer({ onShowToast }: FooterProps) {
                         onMouseEnter={(e) => (e.currentTarget.style.color = '#B48235')}
                         onMouseLeave={(e) => (e.currentTarget.style.color = '#FFFFFF')}
                       >
-                        {link}
-                      </a>
+                        {item.label}
+                      </Link>
                     </li>
                   ))}
                 </ul>

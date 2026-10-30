@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useScrollReveal } from '../hooks/useScrollAnimation';
-import { Compass, Sparkles, Clock, ShieldCheck, ArrowUpRight, type LucideIcon } from 'lucide-react';
+import { Compass, Sparkles, Clock, ShieldCheck, type LucideIcon } from 'lucide-react';
 
 export interface PhilosophyConfig {
   cardHeight: number;
@@ -16,21 +16,16 @@ export interface PhilosophyConfig {
 // =========================================================================
 export const PHILOSOPHY_CONFIG: PhilosophyConfig = {
   // 1. Uniform height of each card in pixels
-  cardHeight: 290,
+  cardHeight: 250,
 
   // 2. Vertical offset ratio between consecutive cards (relative to cardHeight):
-  //    0.5  = starts at exactly half the height of the previous card
-  //    0.35 = moderately pronounced staircase
-  //    0.25 = subtle staircase
-  staggerRatio: 0.4,
+  staggerRatio: 0.28,
 
   // 3. Scroll distance in pixels required for cards to level out into a flat row:
-  //    Larger (e.g., 700) = slower, smoother leveling animation
-  //    Smaller (e.g., 400) = faster, snappier leveling animation
-  animDistance: 580,
+  animDistance: 540,
 
   // 4. Clearance margin (in px) from bottom of viewport before sticky locking
-  bottomClearance: 15,
+  bottomClearance: 25,
 
   // 5. Brief hold distance (in px) once cards level before full-screen overlap begins
   leveledPause: 120,
@@ -140,8 +135,9 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
       // Desktop: Calculate exact geometry so Card 4 is 100% visible before sticky locks
       const navbar = 72;
       const headerHeight = headerEl ? headerEl.offsetHeight : 135;
-      const gridTop = 10 + headerHeight + 16;
-      const card4BottomRelative = gridTop + cardHeight + currentMaxStagger;
+      const headerMarginBottom = headerEl ? parseFloat(window.getComputedStyle(headerEl).marginBottom) || 32 : 32;
+      const gridOffsetTop = gridEl ? gridEl.offsetTop : (headerHeight + headerMarginBottom + 25);
+      const card4BottomRelative = gridOffsetTop + cardHeight + currentMaxStagger;
 
       // Card 4 must be fully visible (bottom <= vh - bottomClearance) when sticky locks
       const neededForCard4 = (vh - bottomClearance) - card4BottomRelative;
@@ -153,12 +149,24 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
       stickyEl.style.top = `${currentStickyTop}px`;
 
       // Full-screen stacking track height:
-      // Distance from sticky top to viewport bottom (vh - currentStickyTop) +
-      // leveling animation (animDistance) + brief hold (leveledPause) +
-      // full viewport height (vh) for "The Art of Healing" to slide all the way up and completely overlap full screen
-      const pauseDist = PHILOSOPHY_CONFIG.leveledPause || 120;
-      trackEl.style.height = `${Math.round((vh - currentStickyTop) + animDistance + pauseDist + vh)}px`;
+      // Distance from Card 4 relative bottom (card4BottomRelative) +
+      // scroll distance until Card 4 starts moving (animDistance * 2/3) +
+      // full viewport height (vh) + 85px allowance (preserving a clean 35px+ visible gap below Card 4 accounting for the section's 48px top-corner curve)
+      const card4StartScroll = animDistance * (2 / 3);
+      const gapFromCard4Bottom = 85;
+      trackEl.style.height = `${Math.round(card4BottomRelative + card4StartScroll + vh + gapFromCard4Bottom)}px`;
+
+      // Cache track absolute top to eliminate layout reflows during scroll
+      let top = 0;
+      let el: HTMLElement | null = trackEl;
+      while (el) {
+        top += el.offsetTop;
+        el = el.offsetParent as HTMLElement | null;
+      }
+      cachedTrackTop = top;
     };
+
+    let cachedTrackTop = 0;
 
     const updateScrollAnimation = () => {
       const trackEl = trackRef.current;
@@ -175,11 +183,13 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
         return;
       }
 
-      const trackRect = trackEl.getBoundingClientRect();
+      const trackTop = cachedTrackTop > 0
+        ? cachedTrackTop - window.scrollY
+        : trackEl.getBoundingClientRect().top;
 
       // BEFORE Card 4 reaches full visibility in the viewport:
       // Keep cards in their complete resting staircase formation.
-      if (trackRect.top > currentStickyTop) {
+      if (trackTop > currentStickyTop) {
         gridEl.style.setProperty('--step-0', '0px');
         gridEl.style.setProperty('--step-1', `${currentSTEP * 1}px`);
         gridEl.style.setProperty('--step-2', `${currentSTEP * 2}px`);
@@ -195,15 +205,27 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
 
       // AFTER reaching Card 4 full visibility:
       // The screen is sticky! Animate cards 1 to 4 to even positions while pinned.
-      const scrollPastSticky = currentStickyTop - trackRect.top;
+      const scrollPastSticky = currentStickyTop - trackTop;
       const progress = Math.min(1, Math.max(0, scrollPastSticky / animDistance));
 
-      const shift = progress * currentMaxStagger;
+      // Sequential one-by-one card leveling:
+      // Card 2 moves first until it reaches 0px (completed).
+      // ONLY THEN Card 3 moves until it reaches 0px (completed).
+      // ONLY THEN Card 4 moves until it reaches 0px (completed).
+      const p1 = Math.min(1, Math.max(0, progress / (1 / 3)));
+      const p1Ease = p1 < 0.5 ? 2 * p1 * p1 : 1 - Math.pow(-2 * p1 + 2, 2) / 2;
       const step0 = 0;
-      const step1 = Math.max(0, Math.round(currentSTEP * 1 - shift));
-      const step2 = Math.max(0, Math.round(currentSTEP * 2 - shift));
-      const step3 = Math.max(0, Math.round(currentSTEP * 3 - shift));
-      const padBottom = Math.max(0, Math.round((1 - progress) * currentMaxStagger));
+      const step1 = Math.max(0, Math.round(currentSTEP * 1 * (1 - p1Ease)));
+
+      const p2 = Math.min(1, Math.max(0, (progress - 1 / 3) / (1 / 3)));
+      const p2Ease = p2 < 0.5 ? 2 * p2 * p2 : 1 - Math.pow(-2 * p2 + 2, 2) / 2;
+      const step2 = Math.max(0, Math.round(currentSTEP * 2 * (1 - p2Ease)));
+
+      const p3 = Math.min(1, Math.max(0, (progress - 2 / 3) / (1 / 3)));
+      const p3Ease = p3 < 0.5 ? 2 * p3 * p3 : 1 - Math.pow(-2 * p3 + 2, 2) / 2;
+      const step3 = Math.max(0, Math.round(currentSTEP * 3 * (1 - p3Ease)));
+
+      const padBottom = Math.max(0, Math.round(Math.max(step1, step2, step3)));
 
       gridEl.style.setProperty('--step-0', `${step0}px`);
       gridEl.style.setProperty('--step-1', `${step1}px`);
@@ -212,10 +234,9 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
       gridEl.style.setProperty('--grid-pad-bottom', `${padBottom}px`);
 
       // Micro-depth transition: as "The Art of Healing" sweeps upward full-screen over this section,
-      // gently recede the underlying section with subtle scale and dimming
-      const pauseDist = PHILOSOPHY_CONFIG.leveledPause || 120;
+      // gently recede the underlying section with subtle scale and dimming after the 35px gap
       const vh = window.innerHeight;
-      const overlapStart = animDistance + pauseDist;
+      const overlapStart = animDistance + 45;
       const overlapProgress = Math.min(1, Math.max(0, (scrollPastSticky - overlapStart) / (vh * 0.95)));
 
       if (contentRef.current) {
@@ -298,8 +319,8 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
             ref={contentRef}
             className="section-wrapper"
             style={{
-              paddingTop: '0.75rem',
-              paddingBottom: 'clamp(2rem, 4vw, 3.5rem)',
+              paddingTop: 'clamp(1.5rem, 3.5vh, 2.5rem)',
+              paddingBottom: 'clamp(1.5rem, 3vw, 2.5rem)',
               willChange: 'transform, opacity',
               transition: 'transform 0.08s linear, opacity 0.08s linear'
             }}
@@ -308,81 +329,46 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
             <div
               ref={headerRef}
               style={{
-                maxWidth: '860px',
-                margin: '0 auto 1.25rem',
+                maxWidth: '1300px',
+                margin: '0 auto clamp(1.75rem, 3.2vh, 2.5rem)',
                 textAlign: 'center',
                 opacity: isVisible ? 1 : 0,
                 transform: isVisible ? 'translateY(0)' : 'translateY(22px)',
                 transition: 'opacity 0.8s var(--ease-luxury), transform 0.8s var(--ease-luxury)'
               }}
             >
-              {/* Eyebrow Badge */}
-              <div
+              {/* Gold Eyebrow */}
+              <span
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.55rem',
-                  padding: '0.24rem 0.9rem',
-                  borderRadius: '999px',
-                  backgroundColor: 'rgba(1, 29, 63, 0.05)',
-                  border: '1px solid rgba(1, 29, 63, 0.12)',
-                  marginBottom: '0.5rem'
+                  fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                  fontSize: 'clamp(0.82rem, 0.95vw, 0.88rem)',
+                  letterSpacing: '0.2em',
+                  textTransform: 'uppercase',
+                  fontWeight: 700,
+                  color: '#9E6F29',
+                  marginBottom: '0.65rem',
+                  display: 'inline-block',
+                  lineHeight: 1
                 }}
               >
-                <span
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: '#011D3F'
-                  }}
-                />
-                <span
-                  style={{
-                    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
-                    textTransform: 'uppercase',
-                    fontSize: '0.72rem',
-                    letterSpacing: '0.2em',
-                    color: '#011D3F',
-                    fontWeight: 700
-                  }}
-                >
-                  THE ESCORA PHILOSOPHY
-                </span>
-              </div>
+                THE ESCORA DIFFERENCE
+              </span>
 
               {/* Main Headline */}
               <h2
-                className="font-display"
+                className="font-display why-escora-heading"
                 style={{
-                  fontSize: 'clamp(1.9rem, 2.9vw, 3.2rem)',
-                  color: '#011D3F',
-                  lineHeight: 1.08,
-                  letterSpacing: '0.015em',
-                  fontWeight: 400,
-                  margin: '0 0 0.5rem',
-                  textTransform: 'uppercase'
+                  fontSize: 'clamp(1.75rem, 3.6vw, 3.8rem)',
+                  color: '#000000',
+                  lineHeight: 1.05,
+                  letterSpacing: '0.035em',
+                  textTransform: 'uppercase',
+                  margin: 0,
+                  whiteSpace: 'nowrap'
                 }}
               >
-                WE MAKE BESPOKE KERALA <br className="hidden-mobile" />
-                <span style={{ color: '#9E6F29' }}>
-                  TRAVEL EFFORTLESS.
-                </span>
+                YOUR JOURNEY, BEAUTIFULLY CRAFTED.
               </h2>
-
-              {/* Shortened Section Description */}
-              <p
-                style={{
-                  fontSize: 'clamp(0.86rem, 1vw, 0.98rem)',
-                  color: '#55606E',
-                  lineHeight: 1.5,
-                  maxWidth: '580px',
-                  margin: '0 auto',
-                  fontWeight: 400
-                }}
-              >
-                Zero cookie-cutter routes. 100% private departures, handpicked sanctuaries, and 24/7 personal concierge care across Kerala.
-              </p>
             </div>
 
             {/* 4 Cascading / Stepped Cards Layout */}
@@ -432,7 +418,7 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
                         </div>
                       </div>
 
-                      {/* Bottom Area: Title + Description + Subtle Action Indicator */}
+                      {/* Bottom Area: Title + Description */}
                       <div className="card-bottom-content">
                         <h3 className="card-title">
                           {card.title}
@@ -440,11 +426,6 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
                         <p className="card-desc">
                           {card.desc}
                         </p>
-
-                        <div className="card-footer-cta">
-                          <span>Explore Pillar</span>
-                          <ArrowUpRight size={14} />
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -533,10 +514,9 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
           width: 100%;
           height: var(--card-height, ${cardHeight}px);
           box-sizing: border-box;
-          padding: 1.45rem 1.4rem 1.4rem;
+          padding: 1.5rem 1.4rem;
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
           cursor: pointer;
           position: relative;
           transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
@@ -546,14 +526,18 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
 
         @media (max-width: 1024px) and (min-width: 768px) {
           .cascading-card {
-            height: 335px;
+            height: auto;
+            min-height: 250px;
           }
         }
 
         @media (max-width: 767px) {
           .cascading-card {
             height: auto;
-            min-height: 310px;
+            min-height: 220px;
+          }
+          .why-escora-heading {
+            white-space: normal !important;
           }
         }
 
@@ -574,7 +558,7 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: auto;
+          margin-bottom: 1.25rem;
         }
 
         .card-icon-wrap {
@@ -626,53 +610,32 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
 
         /* Bottom Content */
         .card-bottom-content {
-          margin-top: auto;
           display: flex;
           flex-direction: column;
-          justify-content: flex-end;
         }
 
         .card-title {
-          font-size: clamp(1.08rem, 1.25vw, 1.24rem);
+          font-size: clamp(1.05rem, 1.2vw, 1.18rem);
           font-weight: 700;
           color: #011D3F;
-          line-height: 1.22;
+          line-height: 1.25;
           letter-spacing: -0.01em;
-          min-height: 2.85rem;
+          min-height: 2.45rem;
           display: flex;
           align-items: flex-start;
-          margin: 0 0 0.45rem;
+          margin: 0 0 0.5rem;
         }
 
         .card-desc {
           font-size: 0.84rem;
           color: #55606E;
-          line-height: 1.48;
-          min-height: 3.6rem;
+          line-height: 1.5;
           margin: 0;
           font-weight: 400;
           font-family: var(--font-body);
         }
 
-        /* Card Footer CTA */
-        .card-footer-cta {
-          display: inline-flex;
-          align-items: center;
-          gap: 0.35rem;
-          margin-top: 0.65rem;
-          font-size: 0.76rem;
-          font-weight: 600;
-          color: #9E6F29;
-          letter-spacing: 0.02em;
-          opacity: 0;
-          transform: translateY(6px);
-          transition: opacity 0.35s ease, transform 0.35s ease;
-        }
 
-        .cascading-card:hover .card-footer-cta {
-          opacity: 1;
-          transform: translateY(0);
-        }
       `}</style>
     </section>
   );

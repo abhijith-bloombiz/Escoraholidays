@@ -15,6 +15,69 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
   const [canScrollRight, setCanScrollRight] = useState<boolean>(true);
   const [activeIndex, setActiveIndex] = useState<number>(0);
 
+  // Cursor follow & Spotlight refs & states
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [isCardHovered, setIsCardHovered] = useState<boolean>(false);
+  const [isMouseDown, setIsMouseDown] = useState<boolean>(false);
+
+  const mouseRef = useRef<{ x: number; y: number }>({ x: 300, y: 300 });
+  const posRef = useRef<{ x: number; y: number }>({ x: 300, y: 300 });
+  const cursorDotRef = useRef<HTMLDivElement | null>(null);
+  const cursorRingRef = useRef<HTMLDivElement | null>(null);
+  const spotlightRef = useRef<HTMLDivElement | null>(null);
+
+  // Fluid physics-based cursor interpolation via direct DOM updates
+  useEffect(() => {
+    let animId: number;
+    const loop = () => {
+      // Lerp ring position
+      posRef.current.x += (mouseRef.current.x - posRef.current.x) * 0.16;
+      posRef.current.y += (mouseRef.current.y - posRef.current.y) * 0.16;
+
+      if (cursorRingRef.current) {
+        cursorRingRef.current.style.transform = `translate3d(${posRef.current.x}px, ${posRef.current.y}px, 0) translate(-50%, -50%)`;
+      }
+      if (cursorDotRef.current) {
+        cursorDotRef.current.style.transform = `translate3d(${mouseRef.current.x}px, ${mouseRef.current.y}px, 0) translate(-50%, -50%)`;
+      }
+      if (spotlightRef.current) {
+        spotlightRef.current.style.background = `radial-gradient(600px circle at ${mouseRef.current.x}px ${mouseRef.current.y}px, rgba(212, 163, 89, 0.35) 0%, rgba(45, 106, 79, 0.18) 35%, transparent 70%)`;
+      }
+      animId = requestAnimationFrame(loop);
+    };
+    animId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  const updatePointer = (clientX: number, clientY: number) => {
+    if (!sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    const x = clientX - rect.left;
+    const y = clientY - rect.top;
+    mouseRef.current = { x, y };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    updatePointer(e.clientX, e.clientY);
+    if (!isHovered) setIsHovered(true);
+  };
+
+  const handlePointerEnter = (e: React.PointerEvent<HTMLElement>) => {
+    if (!sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    mouseRef.current = { x, y };
+    posRef.current = { x, y };
+    setIsHovered(true);
+  };
+
+  const handlePointerLeave = () => {
+    setIsHovered(false);
+    setIsCardHovered(false);
+    setIsMouseDown(false);
+  };
+
   const checkScroll = () => {
     if (!scrollContainerRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
@@ -50,15 +113,181 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
     <section
       id="destinations"
       ref={sectionRef}
+      onPointerMove={handlePointerMove}
+      onPointerEnter={handlePointerEnter}
+      onPointerLeave={handlePointerLeave}
+      onPointerDown={() => setIsMouseDown(true)}
+      onPointerUp={() => setIsMouseDown(false)}
       style={{
-        backgroundColor: '#FFFFFF',
+        background: 'linear-gradient(135deg, #FAF4EA 0%, #F5E8D2 25%, #E3EFE9 50%, #F5E5CE 75%, #FAF4EA 100%)',
+        backgroundSize: '300% 300%',
+        animation: 'keralaGradientFlow 14s ease-in-out infinite alternate',
         padding: '6.5rem 0 7.5rem',
         borderTop: '1px solid rgba(0, 0, 0, 0.05)',
         position: 'relative',
         overflow: 'hidden'
       }}
     >
-      <div className="section-wrapper">
+      {/* Animated Ambient Gradient Orbs & Meshes */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          pointerEvents: 'none',
+          overflow: 'hidden',
+          zIndex: 0
+        }}
+      >
+        {/* Floating Orb 1: Warm Champagne Gold Glow */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-6%',
+            left: '-6%',
+            width: '680px',
+            height: '680px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(212, 163, 89, 0.45) 0%, rgba(229, 185, 118, 0.25) 40%, rgba(212, 163, 89, 0.08) 65%, transparent 80%)',
+            filter: 'blur(50px)',
+            animation: 'driftOrbGold 16s ease-in-out infinite alternate',
+            willChange: 'transform'
+          }}
+        />
+
+        {/* Floating Orb 2: Lush Kerala Emerald Aura */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-10%',
+            right: '-6%',
+            width: '740px',
+            height: '740px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(45, 106, 79, 0.38) 0%, rgba(56, 128, 96, 0.2) 45%, rgba(45, 106, 79, 0.06) 70%, transparent 85%)',
+            filter: 'blur(55px)',
+            animation: 'driftOrbEmerald 18s ease-in-out infinite alternate',
+            willChange: 'transform'
+          }}
+        />
+
+        {/* Floating Orb 3: Central Golden Pulse */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '20%',
+            right: '25%',
+            width: '540px',
+            height: '540px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(243, 214, 158, 0.42) 0%, rgba(212, 163, 89, 0.16) 50%, transparent 75%)',
+            filter: 'blur(45px)',
+            animation: 'pulseOrbAmber 13s ease-in-out infinite alternate',
+            willChange: 'transform'
+          }}
+        />
+
+        {/* Interactive Mouse Gradient Spotlight Tracking Cursor */}
+        <div
+          ref={spotlightRef}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            background: 'radial-gradient(600px circle at 50% 50%, rgba(212, 163, 89, 0.35) 0%, rgba(45, 106, 79, 0.18) 35%, transparent 70%)',
+            opacity: isHovered ? 1 : 0,
+            transition: 'opacity 0.4s ease'
+          }}
+        />
+
+        {/* Luxury Micro-texture Matrix Overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            backgroundImage: 'radial-gradient(rgba(18, 19, 22, 0.035) 1px, transparent 1px)',
+            backgroundSize: '30px 30px',
+            opacity: 0.8,
+            pointerEvents: 'none'
+          }}
+        />
+      </div>
+
+      {/* Interactive Cursor Follower - Smooth Outer Ring / Card Badge */}
+      <div
+        ref={cursorRingRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          pointerEvents: 'none',
+          zIndex: 40,
+          opacity: isHovered ? 1 : 0,
+          transition: 'opacity 0.3s ease, width 0.35s cubic-bezier(0.16, 1, 0.3, 1), height 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease',
+          width: isCardHovered ? '88px' : (isMouseDown ? '36px' : '46px'),
+          height: isCardHovered ? '88px' : (isMouseDown ? '36px' : '46px'),
+          borderRadius: '50%',
+          backgroundColor: isCardHovered ? 'rgba(18, 19, 22, 0.94)' : 'rgba(212, 163, 89, 0.18)',
+          border: isCardHovered ? '2px solid #D4AF37' : '2px solid rgba(180, 130, 53, 0.85)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          boxShadow: isCardHovered
+            ? '0 14px 35px rgba(0, 0, 0, 0.4), 0 0 25px rgba(212, 163, 89, 0.5)'
+            : '0 4px 18px rgba(180, 130, 53, 0.35), 0 0 10px rgba(212, 163, 89, 0.25)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: '#FFFFFF'
+        }}
+      >
+        {isCardHovered && (
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '2px',
+              animation: 'scaleInSoft 0.22s var(--ease-luxury)'
+            }}
+          >
+            <span
+              style={{
+                fontSize: '0.62rem',
+                fontWeight: 700,
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                color: '#FFFFFF',
+                fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif"
+              }}
+            >
+              EXPLORE
+            </span>
+            <ArrowUpRight size={15} color="#D4AF37" />
+          </div>
+        )}
+      </div>
+
+      {/* Interactive Cursor Follower - Instant Inner Pointer Dot */}
+      <div
+        ref={cursorDotRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          pointerEvents: 'none',
+          zIndex: 41,
+          opacity: isHovered && !isCardHovered ? 1 : 0,
+          transition: 'opacity 0.2s ease',
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          backgroundColor: '#B48235',
+          boxShadow: '0 0 10px #D4AF37, 0 0 4px #FFFFFF'
+        }}
+      />
+
+      <div className="section-wrapper" style={{ position: 'relative', zIndex: 2 }}>
 
         {/* Armenia Travel Style Header: Left Title + Right Navigation Arrows */}
         <div
@@ -236,13 +465,29 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
                 boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
                 transition: 'transform 0.4s var(--ease-luxury), box-shadow 0.4s var(--ease-luxury)'
               }}
+              onPointerEnter={(e) => {
+                setIsCardHovered(true);
+                e.currentTarget.style.transform = 'translateY(-6px)';
+                e.currentTarget.style.boxShadow = '0 16px 40px rgba(0, 0, 0, 0.14)';
+                const img = e.currentTarget.querySelector('img');
+                if (img) img.style.transform = 'scale(1.08)';
+              }}
+              onPointerLeave={(e) => {
+                setIsCardHovered(false);
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.08)';
+                const img = e.currentTarget.querySelector('img');
+                if (img) img.style.transform = 'scale(1)';
+              }}
               onMouseEnter={(e) => {
+                setIsCardHovered(true);
                 e.currentTarget.style.transform = 'translateY(-6px)';
                 e.currentTarget.style.boxShadow = '0 16px 40px rgba(0, 0, 0, 0.14)';
                 const img = e.currentTarget.querySelector('img');
                 if (img) img.style.transform = 'scale(1.08)';
               }}
               onMouseLeave={(e) => {
+                setIsCardHovered(false);
                 e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.08)';
                 const img = e.currentTarget.querySelector('img');
@@ -400,6 +645,35 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
         </div>
 
       </div>
+
+      <style>{`
+        @keyframes keralaGradientFlow {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes driftOrbGold {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(80px, -60px) scale(1.15); }
+          66% { transform: translate(-50px, 70px) scale(0.9); }
+          100% { transform: translate(60px, -30px) scale(1.08); }
+        }
+        @keyframes driftOrbEmerald {
+          0% { transform: translate(0px, 0px) scale(1); }
+          33% { transform: translate(-80px, 60px) scale(0.92); }
+          66% { transform: translate(60px, -50px) scale(1.16); }
+          100% { transform: translate(-40px, 30px) scale(1.04); }
+        }
+        @keyframes pulseOrbAmber {
+          0% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(90px, 70px) scale(1.15); }
+          100% { transform: translate(-60px, -50px) scale(0.85); }
+        }
+        @keyframes scaleInSoft {
+          from { opacity: 0; transform: scale(0.65); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </section>
   );
 }

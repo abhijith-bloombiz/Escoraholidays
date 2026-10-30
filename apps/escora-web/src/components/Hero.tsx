@@ -7,13 +7,19 @@ const HERO_VIDEOS = [
     id: 'hero-video-1',
     video: '/hero/15015065_1920_1080_60fps.mp4',
     title: 'KERALA HIGHLANDS',
-    subtitle: 'Misty Summits & Ancient Valleys'
+    subtitle: 'Misty Summits & Ancient Valleys',
+    eyebrow: "GOD'S OWN COUNTRY",
+    headingLine1: 'A WORLD WAITING',
+    headingLine2: 'TO BE DISCOVERED'
   },
   {
     id: 'hero-video-2',
     video: '/hero/9154179-uhd_3840_2160_25fps.mp4',
     title: 'HERITAGE WATERWAYS',
-    subtitle: 'Arabian Sea & Living Legacies'
+    subtitle: 'Arabian Sea & Living Legacies',
+    eyebrow: "GOD'S OWN COUNTRY",
+    headingLine1: 'DISCOVER MORE,',
+    headingLine2: 'TRAVEL FURTHER.'
   }
 ];
 
@@ -142,8 +148,6 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const heroVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isDesktop, setIsDesktop] = useState(true);
-  const [isRearranged, setIsRearranged] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Live CMS Destinations from Admin Panel
   const { data: remoteDestinations } = useListDestinations();
@@ -256,20 +260,13 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     return () => window.removeEventListener('resize', checkDesktop);
   }, []);
 
-  // Ensure experience video plays smoothly
-  useEffect(() => {
-    if (expVideoRef.current) {
-      expVideoRef.current.play().catch(() => {});
-    }
-  }, []);
-
   // Synchronize active hero video playback on slide change or play/pause toggle
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     heroVideoRefs.current.forEach((videoEl, idx) => {
       if (!videoEl) return;
       if (idx === currentSlide) {
-        if (isPlaying) {
+        if (isPlaying && scrollProgress < 0.35) {
           videoEl.currentTime = 0;
           videoEl.play().catch(() => {});
         } else {
@@ -288,7 +285,38 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     return () => {
       timers.forEach((t) => clearTimeout(t));
     };
-  }, [currentSlide, isPlaying]);
+  }, [currentSlide, isPlaying, scrollProgress]);
+
+  // Smart video decode management: pause out-of-view videos to liberate GPU/CPU resources
+  useEffect(() => {
+    const isHeroVisible = scrollProgress < 0.35;
+    const isExpVisible = scrollProgress >= 0.30 && scrollProgress <= 1.05;
+
+    // 1. Hero videos management
+    const currentHeroVideo = heroVideoRefs.current[currentSlide];
+    if (isHeroVisible && isPlaying) {
+      if (currentHeroVideo && currentHeroVideo.paused) {
+        currentHeroVideo.play().catch(() => {});
+      }
+    } else {
+      heroVideoRefs.current.forEach((v) => {
+        if (v && !v.paused) v.pause();
+      });
+    }
+
+    // 2. Experience video management
+    if (expVideoRef.current) {
+      if (isExpVisible) {
+        if (expVideoRef.current.paused) {
+          expVideoRef.current.play().catch(() => {});
+        }
+      } else {
+        if (!expVideoRef.current.paused) {
+          expVideoRef.current.pause();
+        }
+      }
+    }
+  }, [scrollProgress, currentSlide, isPlaying]);
 
   // Hero video carousel loop (continuously repeats through the 2 hero videos)
   useEffect(() => {
@@ -299,39 +327,60 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     return () => clearInterval(interval);
   }, [isPlaying]);
 
-  // Synchronized scroll listener
+  // High-performance synchronized scroll listener with zero layout thrashing
   useEffect(() => {
-    let rafId: number | null = null;
+    if (!isDesktop) return;
 
-    const updateScroll = () => {
-      if (!containerRef.current || !isDesktop) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const scrollDistance = rect.height - window.innerHeight;
-      if (scrollDistance > 0) {
-        const rawProgress = -rect.top / scrollDistance;
-        const clamped = Math.min(1, Math.max(0, rawProgress));
+    let rafId: number | null = null;
+    let lastProgress = -1;
+    let cachedDistance = 0;
+
+    const measure = () => {
+      if (!containerRef.current) return;
+      cachedDistance = containerRef.current.offsetHeight - window.innerHeight;
+    };
+    measure();
+    window.addEventListener('resize', measure, { passive: true });
+
+    const updateScroll = (currentY?: number) => {
+      if (cachedDistance <= 0) return;
+      const y = typeof currentY === 'number' ? currentY : window.scrollY;
+      const raw = y / cachedDistance;
+      const clamped = Math.min(1, Math.max(0, raw));
+
+      // Threshold check to avoid re-rendering Hero component tree on micro subpixel noise
+      if (
+        Math.abs(clamped - lastProgress) >= 0.0008 ||
+        (clamped === 0 && lastProgress !== 0) ||
+        (clamped === 1 && lastProgress !== 1)
+      ) {
+        lastProgress = clamped;
         setScrollProgress(clamped);
       }
     };
 
-    const handleScroll = () => {
+    const handleScroll = (e?: any) => {
+      const scrollY = typeof e?.scroll === 'number' ? e.scroll : window.scrollY;
       if (rafId) return;
       rafId = requestAnimationFrame(() => {
-        updateScroll();
+        updateScroll(scrollY);
         rafId = null;
       });
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
     const lenis = (window as any).lenis;
-    if (lenis) {
+    if (lenis && typeof lenis.on === 'function') {
       lenis.on('scroll', handleScroll);
+    } else {
+      window.addEventListener('scroll', handleScroll, { passive: true });
     }
-    updateScroll();
+
+    updateScroll(window.scrollY);
 
     return () => {
+      window.removeEventListener('resize', measure);
       window.removeEventListener('scroll', handleScroll);
-      if (lenis) {
+      if (lenis && typeof lenis.off === 'function') {
         lenis.off('scroll', handleScroll);
       }
       if (rafId) cancelAnimationFrame(rafId);
@@ -365,33 +414,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     }
   };
 
-  // Phase 1 scroll progress (0 -> 1): happens during first 26% of total scroll distance
-  const phase1Progress = Math.min(1, Math.max(0, scrollProgress / 0.26));
-
-  // Auto-animate rearrangement when Phase 1 completes, with smooth reversal when scrolled back up
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    if (phase1Progress >= 0.96) {
-      if (!isRearranged) {
-        setIsRearranged(true);
-        setIsTransitioning(true);
-        timer = setTimeout(() => setIsTransitioning(false), 900);
-      }
-    } else if (phase1Progress < 0.88) {
-      if (isRearranged) {
-        setIsRearranged(false);
-        setIsTransitioning(true);
-        timer = setTimeout(() => setIsTransitioning(false), 900);
-      }
-    }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [phase1Progress, isRearranged]);
+  // Phase 1 scroll progress (0 -> 1): happens during first 20% of total scroll distance
+  const phase1Progress = Math.min(1, Math.max(0, scrollProgress / 0.20));
 
   // Interpolated progress calculations
-  // Phase 1 (0 -> 0.55): Hero shrinks into center card
-  const shrinkRaw = Math.min(1, phase1Progress / 0.55);
+  // Phase 1 (0 -> 0.60): Hero shrinks into center card (0 -> 0.12 of scrollProgress)
+  const shrinkRaw = Math.min(1, phase1Progress / 0.60);
   const shrinkEase = shrinkRaw < 0.5
     ? 2 * shrinkRaw * shrinkRaw
     : 1 - Math.pow(-2 * shrinkRaw + 2, 2) / 2;
@@ -413,7 +441,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const searchBarOpacity = Math.max(0, 1 - Math.min(1, shrinkRaw / 0.12));
   const searchBarSlide = Math.min(1, shrinkRaw / 0.12) * 35;
 
-  // Phase 2 (0.35 -> 1.0 of Phase 1): Companion Bento cards slide into Lightship staggered positions
+  // Phase 2 (0.35 -> 1.0 of Phase 1): Companion Bento cards slide into Lightship staggered positions (0.07 -> 0.20 of scrollProgress)
   const bentoRaw = Math.min(1, Math.max(0, (phase1Progress - 0.35) / 0.65));
   const bentoEase = bentoRaw < 0.5
     ? 2 * bentoRaw * bentoRaw
@@ -431,24 +459,32 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   // Center card label fade in as bento docks
   const centerLabelOpacity = Math.min(1, Math.max(0, (phase1Progress - 0.6) / 0.35));
 
-  // Phase 3 scroll progress (0 -> 1): Center card expands to Fullscreen Experience Video (scroll 0.40 -> 0.68)
-  const phase3Raw = Math.min(1, Math.max(0, (scrollProgress - 0.40) / 0.28));
+  // Purely scroll-controlled Stage 3 Bento Rearrangement (0.20 -> 0.28 of scrollProgress)
+  // Leaves 0.28 -> 0.34 as a stable resting dwell zone where the completed bento grid sits settled
+  const rearrangeRaw = Math.min(1, Math.max(0, (scrollProgress - 0.20) / 0.08));
+  const rearrangeEase = rearrangeRaw < 0.5
+    ? 2 * rearrangeRaw * rearrangeRaw
+    : 1 - Math.pow(-2 * rearrangeRaw + 2, 2) / 2;
 
-  // Destination heading glides up and fades out during first 22% of Phase 3
-  const headingExitRaw = Math.min(1, phase3Raw / 0.22);
+  // Phase 3 scroll progress (0 -> 1): Center card expands to Fullscreen Experience Video (scroll 0.34 -> 0.56)
+  const phase3Raw = Math.min(1, Math.max(0, (scrollProgress - 0.34) / 0.22));
+
+  // Destination heading glides up and fades out during first 20% of Phase 3
+  const headingExitRaw = Math.min(1, phase3Raw / 0.20);
   const headingExitEase = headingExitRaw < 0.5 ? 2 * headingExitRaw * headingExitRaw : 1 - Math.pow(-2 * headingExitRaw + 2, 2) / 2;
 
-  // Center card expands to 100vw x 100vh between 0.0 and 0.72 of Phase 3
-  // Leaving 0.72 to 1.0 as a steady resting fullscreen experience hero!
-  const expandRaw = Math.min(1, phase3Raw / 0.72);
+  // Center card expands to 100vw x 100vh between 0.0 and 0.70 of Phase 3
+  // Leaving 0.70 to 1.0 as a steady resting fullscreen experience hero!
+  const expandRaw = Math.min(1, phase3Raw / 0.70);
   const expandEase = expandRaw < 0.5 ? 2 * expandRaw * expandRaw : 1 - Math.pow(-2 * expandRaw + 2, 2) / 2;
 
   // Experience section info reveals as card reaches full width (between 0.65 and 0.95 of expandRaw)
   const expInfoProgress = Math.min(1, Math.max(0, (expandRaw - 0.65) / 0.30));
   const expInfoEase = expInfoProgress < 0.5 ? 2 * expInfoProgress * expInfoProgress : 1 - Math.pow(-2 * expInfoProgress + 2, 2) / 2;
 
-  // Phase 4 scroll progress (0 -> 1): Heading moves to top + Video card transforms alongside 3 other cards (scroll 0.68 -> 1.00)
-  const phase4Raw = Math.min(1, Math.max(0, (scrollProgress - 0.68) / 0.30));
+  // Phase 4 scroll progress (0 -> 1): Fullscreen video card shrinks into Card 1 while 3 companion cards fade in (scroll 0.56 -> 0.74)
+  // Leaves 0.74 to 1.00 as a generous resting dwell buffer (~150vh) where the 4 cards stay docked in place before page unpins and scrolls!
+  const phase4Raw = Math.min(1, Math.max(0, (scrollProgress - 0.56) / 0.18));
   const phase4Ease = phase4Raw < 0.5 ? 2 * phase4Raw * phase4Raw : 1 - Math.pow(-2 * phase4Raw + 2, 2) / 2;
 
   // Heading moves smoothly to the top during Phase 4 transition
@@ -463,7 +499,6 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     : bentoCardOpacity * Math.max(0, 1 - Math.max(0, expandRaw - 0.85) / 0.15);
 
   // Stage 2 Layout & Animation Constants (Symmetrical 3-Column: Left 2 cards, Center Munnar, Right 2 cards)
-  const rearrangeTransition = 'transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), width 0.85s cubic-bezier(0.16, 1, 0.3, 1), height 0.85s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.85s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.7s ease';
   const colWidth = 'clamp(280px, 23.5vw, 360px)';
   const munnarWidth = 'clamp(360px, 30vw, 450px)';
   const gridGap = 'clamp(16px, 1.8vw, 24px)';
@@ -482,29 +517,27 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     ? `calc(100vw - (100vw - ${expCardWidth}) * ${phase4Ease})`
     : phase3Raw > 0
       ? `calc(${munnarWidth} + (100vw - ${munnarWidth}) * ${expandEase})`
-      : isRearranged
-        ? munnarWidth
-        : `calc(100vw - (100vw - clamp(350px, 29vw, 440px)) * ${shrinkEase})`;
+      : shrinkEase < 1
+        ? `calc(100vw - (100vw - clamp(350px, 29vw, 440px)) * ${shrinkEase})`
+        : (rearrangeEase >= 1 ? munnarWidth : `calc(clamp(350px, 29vw, 440px) * ${1 - rearrangeEase} + ${munnarWidth} * ${rearrangeEase})`);
 
   const centerCardHeight = phase4Raw > 0
     ? `calc(100vh - (100vh - ${expCardHeight}) * ${phase4Ease})`
     : phase3Raw > 0
       ? `calc(${munnarFeaturedHeight} + (100vh - ${munnarFeaturedHeight}) * ${expandEase})`
-      : isRearranged
-        ? munnarFeaturedHeight
-        : `calc(100vh - (100vh - clamp(620px, 80vh, 850px)) * ${shrinkEase})`;
+      : shrinkEase < 1
+        ? `calc(100vh - (100vh - clamp(620px, 80vh, 850px)) * ${shrinkEase})`
+        : (rearrangeEase >= 1 ? munnarFeaturedHeight : `calc(clamp(620px, 80vh, 850px) * ${1 - rearrangeEase} + ${munnarFeaturedHeight} * ${rearrangeEase})`);
 
   const centerCardTransform = phase4Raw > 0
     ? `translate(calc(-1.5 * (${expCardWidth} + ${expCardGap}) * ${phase4Ease}), calc(${expCardOffsetY} * ${phase4Ease}))`
     : 'translateX(0px)';
 
   const centerBorderRadius = phase4Raw > 0
-    ? phase4Ease * 14
+    ? phase4Ease * 20
     : phase3Raw > 0
       ? (1 - expandEase) * 14
-      : isRearranged
-        ? 14
-        : shrinkEase * 14; // 0px to 14px smooth curve
+      : shrinkEase * 14; // 0px to 14px smooth curve
 
   const centerShadow = phase4Raw > 0
     ? 0.35 * phase4Ease
@@ -519,7 +552,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       style={{
         position: 'relative',
         backgroundColor: '#FFFFFF',
-        height: isDesktop ? '580vh' : 'auto',
+        height: isDesktop ? '680vh' : 'auto',
         minHeight: '100vh',
         width: '100%'
       }}
@@ -539,7 +572,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
         id="experiences"
         style={{
           position: 'absolute',
-          top: isDesktop ? '390vh' : '1080px',
+          top: isDesktop ? '350vh' : '1080px',
           pointerEvents: 'none'
         }}
       />
@@ -597,11 +630,13 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     transform: `translateY(-${heroTextSlide * 0.7}px)`,
                     textAlign: 'center',
                     maxWidth: '1100px',
+                    width: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center'
                   }}
                 >
+                  {/* Stable Anchored Eyebrow - Eliminates blinking between slides */}
                   <span
                     style={{
                       display: 'inline-block',
@@ -611,28 +646,65 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       letterSpacing: '0.24em',
                       color: '#D4AF37',
                       fontWeight: 700,
-                      marginBottom: '1.1rem',
+                      marginBottom: '1.2rem',
                       textShadow: '0 2px 12px rgba(0, 0, 0, 0.85)'
                     }}
                   >
                     GOD'S OWN COUNTRY
                   </span>
 
-                  <h1
-                    className="font-display"
+                  {/* Heading Crossfade Stack with Soft Gaussian Mist Dissolve */}
+                  <div
                     style={{
-                      fontSize: 'clamp(3.8rem, 7.5vw, 6.8rem)',
-                      color: '#FFFFFF',
-                      lineHeight: 0.92,
-                      letterSpacing: '0.03em',
-                      textTransform: 'uppercase',
-                      margin: 0,
-                      textShadow: '0 6px 30px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.85)'
+                      display: 'grid',
+                      gridTemplateColumns: '1fr',
+                      justifyItems: 'center',
+                      width: '100%',
+                      position: 'relative'
                     }}
                   >
-                    DISCOVER MORE, <br />
-                    TRAVEL FURTHER.
-                  </h1>
+                    {HERO_VIDEOS.map((slide, idx) => {
+                      const isActive = idx === currentSlide;
+                      return (
+                        <div
+                          key={slide.id}
+                          style={{
+                            gridArea: '1 / 1',
+                            opacity: isActive ? 1 : 0,
+                            transform: isActive
+                              ? 'translate3d(0, 0px, 0) scale(1)'
+                              : 'translate3d(0, -10px, 0) scale(0.985)',
+                            transition: isActive
+                              ? 'opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), transform 1.5s cubic-bezier(0.16, 1, 0.3, 1)'
+                              : 'opacity 0.9s cubic-bezier(0.4, 0, 0.7, 1), transform 1.0s cubic-bezier(0.4, 0, 0.7, 1)',
+                            pointerEvents: isActive ? 'auto' : 'none',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            textAlign: 'center',
+                            width: '100%',
+                            willChange: 'opacity, transform'
+                          }}
+                        >
+                          <h1
+                            className="font-display"
+                            style={{
+                              fontSize: 'clamp(3.8rem, 7.5vw, 6.8rem)',
+                              color: '#FFFFFF',
+                              lineHeight: 0.92,
+                              letterSpacing: '0.03em',
+                              textTransform: 'uppercase',
+                              margin: 0,
+                              textShadow: '0 6px 30px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.85)'
+                            }}
+                          >
+                            {slide.headingLine1} <br />
+                            {slide.headingLine2}
+                          </h1>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             )}
@@ -819,17 +891,15 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   flexDirection: 'column',
                   alignItems: 'center',
                   textAlign: 'center',
-                  opacity: Math.max(0, (isRearranged ? 1 : 0) * (1 - headingExitEase * 1.5)),
+                  opacity: Math.max(0, rearrangeEase * (1 - headingExitEase * 1.5)),
                   transform: phase3Raw > 0
                     ? `translateY(${-headingExitEase * 45}px)`
-                    : (isRearranged ? 'translateY(0)' : 'translateY(-22px)'),
-                  maxHeight: isRearranged ? `calc(130px * ${1 - headingExitEase})` : '0px',
-                  marginBottom: isRearranged ? `calc(clamp(16px, 2.2vh, 26px) * ${1 - headingExitEase})` : '0px',
+                    : `translateY(${(1 - rearrangeEase) * -22}px)`,
+                  maxHeight: `calc(130px * ${rearrangeEase} * ${1 - headingExitEase})`,
+                  marginBottom: `calc(clamp(16px, 2.2vh, 26px) * ${rearrangeEase} * ${1 - headingExitEase})`,
                   overflow: 'hidden',
-                  pointerEvents: (isRearranged && headingExitEase < 0.2) ? 'auto' : 'none',
-                  transition: phase3Raw > 0
-                    ? 'none'
-                    : 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+                  pointerEvents: (rearrangeEase > 0.8 && headingExitEase < 0.2) ? 'auto' : 'none',
+                  transition: 'none',
                   zIndex: 10
                 }}
               >
@@ -888,17 +958,15 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     width: colWidth,
                     display: phase4Raw > 0 ? 'none' : 'flex',
                     flexDirection: 'column',
-                    alignItems: isRearranged ? 'stretch' : 'flex-end',
-                    gap: isRearranged ? 'clamp(14px, 1.8vh, 18px)' : 'clamp(14px, 1.8vh, 20px)',
+                    alignItems: 'stretch',
+                    gap: 'clamp(14px, 1.8vh, 18px)',
                     opacity: sideCardsOpacity,
                     pointerEvents: (bentoCardOpacity > 0.4 && expandRaw < 0.2) ? 'auto' : 'none',
                     flexShrink: 0,
                     alignSelf: 'center',
-                    transform: isRearranged
-                      ? 'perspective(1200px) rotateY(4.5deg)'
-                      : 'translateX(0px)',
+                    transform: `perspective(1200px) rotateY(${rearrangeEase * 4.5}deg)`,
                     transformOrigin: 'right center',
-                    transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
+                    transition: 'none',
                     zIndex: 2
                   }}
                 >
@@ -908,7 +976,9 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
-                      height: isRearranged ? card2x2Height : 'clamp(220px, 28vh, 300px)',
+                      height: rearrangeEase >= 1
+                        ? card2x2Height
+                        : (rearrangeEase <= 0 ? 'clamp(220px, 28vh, 300px)' : `calc(clamp(220px, 28vh, 300px) * ${1 - rearrangeEase} + ${card2x2Height} * ${rearrangeEase})`),
                       position: 'relative',
                       borderRadius: '14px',
                       overflow: 'hidden',
@@ -916,10 +986,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       border: 'none',
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
-                      transform: isRearranged
-                        ? 'scale(1)'
-                        : `translateX(${leftCard1SlideX}px) translateY(${leftCard1SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none'
+                      transform: `translateX(${leftCard1SlideX}px) translateY(${leftCard1SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
+                      transition: 'none'
                     }}
                   >
                     <img
@@ -962,7 +1030,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: '0.2rem',
-                        zIndex: 2
+                        zIndex: 2,
+                        pointerEvents: 'none'
                       }}
                     >
                       <h3
@@ -1001,8 +1070,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     onClick={() => handleCardClick(liveCompanions.bottomLeft.name)}
                     className="bento-companion-card bento-theater-card"
                     style={{
-                      width: isRearranged ? '100%' : 'clamp(240px, 21vw, 330px)',
-                      height: isRearranged ? card2x2Height : 'clamp(195px, 25vh, 265px)',
+                      width: rearrangeEase >= 1
+                        ? '100%'
+                        : (rearrangeEase <= 0 ? 'clamp(240px, 21vw, 330px)' : `calc(clamp(240px, 21vw, 330px) * ${1 - rearrangeEase} + 100% * ${rearrangeEase})`),
+                      height: rearrangeEase >= 1
+                        ? card2x2Height
+                        : (rearrangeEase <= 0 ? 'clamp(195px, 25vh, 265px)' : `calc(clamp(195px, 25vh, 265px) * ${1 - rearrangeEase} + ${card2x2Height} * ${rearrangeEase})`),
                       position: 'relative',
                       borderRadius: '14px',
                       overflow: 'hidden',
@@ -1010,11 +1083,9 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       border: 'none',
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
-                      alignSelf: isRearranged ? 'stretch' : 'flex-end',
-                      transform: isRearranged
-                        ? 'scale(1)'
-                        : `translateX(${leftCard2SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none'
+                      alignSelf: rearrangeEase >= 1 ? 'stretch' : 'flex-end',
+                      transform: `translateX(${leftCard2SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
+                      transition: 'none'
                     }}
                   >
                     <img
@@ -1057,7 +1128,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: '0.2rem',
-                        zIndex: 2
+                        zIndex: 2,
+                        pointerEvents: 'none'
                       }}
                     >
                       <h3
@@ -1094,11 +1166,11 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   {/* Invisible Balance Spacer */}
                   <div
                     style={{
-                      height: isRearranged ? '0px' : 'clamp(180px, 22vh, 230px)',
-                      visibility: 'hidden',
+                      height: `calc((1 - ${rearrangeEase}) * clamp(180px, 22vh, 230px))`,
+                      visibility: rearrangeEase >= 1 ? 'hidden' : 'visible',
                       pointerEvents: 'none',
                       overflow: 'hidden',
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? 'height 0.85s cubic-bezier(0.16, 1, 0.3, 1)' : 'none'
+                      transition: 'none'
                     }}
                     aria-hidden="true"
                   />
@@ -1121,7 +1193,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     flexShrink: 0,
                     alignSelf: 'center',
                     transform: centerCardTransform,
-                    transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
+                    transition: 'none',
                     border: 'none'
                   }}
                   onClick={() => {
@@ -1270,7 +1342,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       alignItems: 'center',
                       textAlign: 'center',
                       gap: '0.35rem',
-                      pointerEvents: (centerLabelOpacity > 0.4 && expandRaw < 0.1) ? 'auto' : 'none'
+                      pointerEvents: 'none'
                     }}
                   >
                     <h3
@@ -1339,7 +1411,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         opacity: phase4Ease,
                         transform: `translateY(${(1 - phase4Ease) * 20}px)`,
                         background: 'linear-gradient(180deg, transparent 0%, rgba(11,20,16,0.92) 80%)',
-                        pointerEvents: phase4Raw > 0.6 ? 'auto' : 'none',
+                        pointerEvents: 'none',
                         textAlign: 'center'
                       }}
                     >
@@ -1362,28 +1434,26 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     width: colWidth,
                     display: phase4Raw > 0 ? 'none' : 'flex',
                     flexDirection: 'column',
-                    alignItems: isRearranged ? 'stretch' : 'flex-start',
-                    gap: isRearranged ? 'clamp(14px, 1.8vh, 18px)' : 'clamp(14px, 1.8vh, 20px)',
+                    alignItems: 'stretch',
+                    gap: 'clamp(14px, 1.8vh, 18px)',
                     opacity: sideCardsOpacity,
                     pointerEvents: (bentoCardOpacity > 0.4 && expandRaw < 0.2) ? 'auto' : 'none',
                     flexShrink: 0,
                     alignSelf: 'center',
-                    transform: isRearranged
-                      ? 'perspective(1200px) rotateY(-4.5deg)'
-                      : 'translateX(0px)',
+                    transform: `perspective(1200px) rotateY(${-rearrangeEase * 4.5}deg)`,
                     transformOrigin: 'left center',
-                    transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
+                    transition: 'none',
                     zIndex: 2
                   }}
                 >
                   {/* Invisible Top Balance Spacer */}
                   <div
                     style={{
-                      height: isRearranged ? '0px' : 'clamp(180px, 22vh, 230px)',
-                      visibility: 'hidden',
+                      height: `calc((1 - ${rearrangeEase}) * clamp(180px, 22vh, 230px))`,
+                      visibility: rearrangeEase >= 1 ? 'hidden' : 'visible',
                       pointerEvents: 'none',
                       overflow: 'hidden',
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? 'height 0.85s cubic-bezier(0.16, 1, 0.3, 1)' : 'none'
+                      transition: 'none'
                     }}
                     aria-hidden="true"
                   />
@@ -1393,8 +1463,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     onClick={() => handleCardClick(liveCompanions.topRight.name)}
                     className="bento-companion-card bento-theater-card"
                     style={{
-                      width: isRearranged ? '100%' : 'clamp(240px, 21vw, 330px)',
-                      height: isRearranged ? card2x2Height : 'clamp(195px, 25vh, 265px)',
+                      width: rearrangeEase >= 1
+                        ? '100%'
+                        : (rearrangeEase <= 0 ? 'clamp(240px, 21vw, 330px)' : `calc(clamp(240px, 21vw, 330px) * ${1 - rearrangeEase} + 100% * ${rearrangeEase})`),
+                      height: rearrangeEase >= 1
+                        ? card2x2Height
+                        : (rearrangeEase <= 0 ? 'clamp(195px, 25vh, 265px)' : `calc(clamp(195px, 25vh, 265px) * ${1 - rearrangeEase} + ${card2x2Height} * ${rearrangeEase})`),
                       position: 'relative',
                       borderRadius: '14px',
                       overflow: 'hidden',
@@ -1402,11 +1476,9 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       border: 'none',
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
-                      alignSelf: isRearranged ? 'stretch' : 'flex-start',
-                      transform: isRearranged
-                        ? 'scale(1)'
-                        : `translateX(${rightCard4SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none'
+                      alignSelf: rearrangeEase >= 1 ? 'stretch' : 'flex-start',
+                      transform: `translateX(${rightCard4SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
+                      transition: 'none'
                     }}
                   >
                     <img
@@ -1449,7 +1521,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: '0.2rem',
-                        zIndex: 2
+                        zIndex: 2,
+                        pointerEvents: 'none'
                       }}
                     >
                       <h3
@@ -1489,7 +1562,9 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
-                      height: isRearranged ? card2x2Height : 'clamp(220px, 28vh, 300px)',
+                      height: rearrangeEase >= 1
+                        ? card2x2Height
+                        : (rearrangeEase <= 0 ? 'clamp(220px, 28vh, 300px)' : `calc(clamp(220px, 28vh, 300px) * ${1 - rearrangeEase} + ${card2x2Height} * ${rearrangeEase})`),
                       position: 'relative',
                       borderRadius: '14px',
                       overflow: 'hidden',
@@ -1497,10 +1572,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       border: 'none',
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
-                      transform: isRearranged
-                        ? 'scale(1)'
-                        : `translateX(${rightCard5SlideX}px) translateY(${rightCard5SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none'
+                      transform: `translateX(${rightCard5SlideX}px) translateY(${rightCard5SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
+                      transition: 'none'
                     }}
                   >
                     <img
@@ -1543,7 +1616,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: '0.2rem',
-                        zIndex: 2
+                        zIndex: 2,
+                        pointerEvents: 'none'
                       }}
                     >
                       <h3
@@ -1621,8 +1695,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                             alt={card.title}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                           />
-                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 45%, rgba(11,20,16,0.92) 100%)' }} />
-                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.6rem 1.4rem', color: '#FFFFFF', zIndex: 2, textAlign: 'center' }}>
+                          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 45%, rgba(11,20,16,0.92) 100%)', pointerEvents: 'none' }} />
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.6rem 1.4rem', color: '#FFFFFF', zIndex: 2, textAlign: 'center', pointerEvents: 'none' }}>
                             <h3 className="font-display" style={{ fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)', color: '#FFFFFF', margin: '0 0 0.35rem 0', lineHeight: 1.2 }}>
                               {card.title}
                             </h3>
@@ -1834,13 +1908,64 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   color: '#FFFFFF'
                 }}
               >
-                <span style={{ display: 'inline-block', fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif", fontSize: 'clamp(0.82rem, 2.5vw, 0.92rem)', letterSpacing: '0.22em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+                <span
+                  style={{
+                    display: 'inline-block',
+                    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                    fontSize: 'clamp(0.82rem, 2.5vw, 0.92rem)',
+                    letterSpacing: '0.22em',
+                    color: '#D4AF37',
+                    fontWeight: 700,
+                    textTransform: 'uppercase',
+                    marginBottom: '0.35rem'
+                  }}
+                >
                   GOD'S OWN COUNTRY
                 </span>
-                <h1 className="font-display" style={{ fontSize: '2.4rem', margin: '0.35rem 0 0', color: '#FFFFFF', lineHeight: 0.95, textTransform: 'uppercase' }}>
-                  DISCOVER MORE, <br />
-                  TRAVEL FURTHER.
-                </h1>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr',
+                    width: '100%',
+                    position: 'relative'
+                  }}
+                >
+                  {HERO_VIDEOS.map((slide, idx) => {
+                    const isActive = idx === currentSlide;
+                    return (
+                      <div
+                        key={slide.id}
+                        style={{
+                          gridArea: '1 / 1',
+                          opacity: isActive ? 1 : 0,
+                          transform: isActive
+                            ? 'translate3d(0, 0px, 0) scale(1)'
+                            : 'translate3d(0, -6px, 0) scale(0.985)',
+                          transition: isActive
+                            ? 'opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), transform 1.5s cubic-bezier(0.16, 1, 0.3, 1)'
+                            : 'opacity 0.9s cubic-bezier(0.4, 0, 0.7, 1), transform 1.0s cubic-bezier(0.4, 0, 0.7, 1)',
+                          pointerEvents: isActive ? 'auto' : 'none',
+                          width: '100%',
+                          willChange: 'opacity, transform'
+                        }}
+                      >
+                        <h1
+                          className="font-display"
+                          style={{
+                            fontSize: '2.4rem',
+                            margin: '0.15rem 0 0',
+                            color: '#FFFFFF',
+                            lineHeight: 0.95,
+                            textTransform: 'uppercase'
+                          }}
+                        >
+                          {slide.headingLine1} <br />
+                          {slide.headingLine2}
+                        </h1>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
@@ -2168,49 +2293,99 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
         .bento-theater-card {
           border: none !important;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 20px 36px -6px rgba(0, 0, 0, 0.16), 0 36px 64px -12px rgba(0, 0, 0, 0.14) !important;
-          transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s ease !important;
+          transition: box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          transform-style: preserve-3d;
+          -webkit-transform-style: preserve-3d;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          will-change: transform;
+          -webkit-mask-image: -webkit-radial-gradient(white, black);
+          mask-image: radial-gradient(white, black);
+          isolation: isolate;
         }
 
+        /* Elevate shadow on hover with stable geometry to eliminate shaking and cursor jitter */
         .bento-theater-card:hover {
           border: none !important;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 14px 24px -3px rgba(0, 0, 0, 0.12), 0 32px 54px -6px rgba(0, 0, 0, 0.20), 0 52px 84px -12px rgba(0, 0, 0, 0.16) !important;
-          transform: perspective(1200px) rotateY(0deg) scale(1.025) translateY(-4px) !important;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 16px 36px -4px rgba(0, 0, 0, 0.18), 0 32px 64px -6px rgba(0, 0, 0, 0.22) !important;
         }
 
-        .bento-theater-card:hover img {
-          transform: scale(1.06) !important;
+        .bento-companion-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          will-change: transform;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+        }
+
+        .bento-theater-card:hover .bento-companion-img {
+          transform: scale(1.045) translate3d(0, 0, 0) !important;
         }
 
         .bento-center-card {
           border: none !important;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 20px 36px -6px rgba(0, 0, 0, 0.16), 0 36px 64px -12px rgba(0, 0, 0, 0.14) !important;
-          transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease !important;
+          transition: box-shadow 0.4s ease !important;
+          transform-style: preserve-3d;
+          -webkit-transform-style: preserve-3d;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          will-change: transform, width, height;
+          -webkit-mask-image: -webkit-radial-gradient(white, black);
+          mask-image: radial-gradient(white, black);
+          isolation: isolate;
         }
 
         .bento-center-card:hover {
           border: none !important;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 14px 24px -3px rgba(0, 0, 0, 0.12), 0 32px 54px -6px rgba(0, 0, 0, 0.20), 0 52px 84px -12px rgba(0, 0, 0, 0.16) !important;
-          transform: scale(1.015) translateY(-4px) !important;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 18px 40px -4px rgba(0, 0, 0, 0.20), 0 36px 68px -8px rgba(0, 0, 0, 0.22) !important;
         }
 
-        .bento-center-card:hover img {
-          transform: scale(1.04);
+        .bento-center-card video,
+        .bento-center-card img {
+          will-change: transform;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
         .exp-showcase-card {
           border: none !important;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 20px 36px -6px rgba(0, 0, 0, 0.16), 0 36px 64px -12px rgba(0, 0, 0, 0.14) !important;
-          transition: box-shadow 0.4s ease, transform 0.3s ease;
+          transition: box-shadow 0.4s ease !important;
+          transform-style: preserve-3d;
+          -webkit-transform-style: preserve-3d;
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
+          will-change: transform;
+          -webkit-mask-image: -webkit-radial-gradient(white, black);
+          mask-image: radial-gradient(white, black);
+          isolation: isolate;
         }
 
         .exp-showcase-card:hover {
           border: none !important;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 14px 24px -3px rgba(0, 0, 0, 0.12), 0 32px 54px -6px rgba(0, 0, 0, 0.20), 0 52px 84px -12px rgba(0, 0, 0, 0.16) !important;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05), 0 18px 40px -4px rgba(0, 0, 0, 0.20), 0 36px 68px -8px rgba(0, 0, 0, 0.22) !important;
+        }
+
+        .exp-showcase-card img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          will-change: transform;
+          transform: translate3d(0, 0, 0);
+          backface-visibility: hidden;
+          -webkit-backface-visibility: hidden;
         }
 
         .exp-showcase-card:hover img {
-          transform: scale(1.05);
-          transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+          transform: scale(1.045) translate3d(0, 0, 0) !important;
         }
 
         @keyframes bounceSubtle {

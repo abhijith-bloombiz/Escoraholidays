@@ -154,7 +154,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
     const base: React.CSSProperties = {
       backgroundColor: '#FFFFFF',
       borderRadius: '24px',
-      padding: 'clamp(1.75rem, 3vw, 2.5rem)',
+      padding: 'clamp(1.5rem, 2.4vw, 2rem)',
       border: '1px solid rgba(0, 0, 0, 0.06)',
       position: 'relative'
     };
@@ -173,7 +173,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
       return {
         ...base,
         opacity: 0,
-        transform: 'translateX(calc(100% + 2.5rem)) translateY(24px)',
+        transform: 'translateX(calc(100% + 2rem)) translateY(24px)',
         zIndex: 3,
         pointerEvents: 'none',
         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)'
@@ -184,7 +184,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
       return {
         ...base,
         opacity: 1,
-        transform: 'translateX(calc(100% + 2.5rem)) translateY(0)',
+        transform: 'translateX(calc(100% + 2rem)) translateY(0)',
         zIndex: 3,
         boxShadow: '0 12px 35px rgba(0, 0, 0, 0.07)',
         transition: 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
@@ -219,7 +219,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
     const base: React.CSSProperties = {
       backgroundColor: '#FFFFFF',
       borderRadius: '24px',
-      padding: 'clamp(2rem, 3.5vw, 3rem)',
+      padding: 'clamp(1.5rem, 2.4vw, 2rem)',
       border: '1px solid rgba(180, 130, 53, 0.25)',
       position: 'relative'
     };
@@ -238,7 +238,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
       return {
         ...base,
         opacity: 0,
-        transform: 'translateX(calc(-100% - 2.5rem)) translateY(24px)',
+        transform: 'translateX(calc(-100% - 2rem)) translateY(24px)',
         zIndex: 1,
         pointerEvents: 'none',
         boxShadow: '0 12px 40px rgba(0, 0, 0, 0.05)'
@@ -249,7 +249,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
       return {
         ...base,
         opacity: 1,
-        transform: 'translateX(calc(-100% - 2.5rem)) translateY(0)',
+        transform: 'translateX(calc(-100% - 2rem)) translateY(0)',
         zIndex: 1,
         boxShadow: '0 12px 40px rgba(0, 0, 0, 0.05)',
         transition: 'opacity 0.6s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)'
@@ -322,7 +322,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                 fontWeight: 700
               }}
             >
-              CONCIERGE DESK
+              LET'S BEGIN
             </span>
           </div>
 
@@ -336,7 +336,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
               marginBottom: '0.75rem'
             }}
           >
-            PLAN YOUR BESPOKE KERALA JOURNEY
+            YOUR KERALA JOURNEY<br />STARTS HERE.
           </h2>
 
           <p
@@ -358,7 +358,9 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
           style={{
             display: 'grid',
             gridTemplateColumns: isDesktop ? 'repeat(2, minmax(0, 1fr))' : '1fr',
-            gap: '2.5rem',
+            gap: '2rem',
+            maxWidth: '1120px',
+            margin: '0 auto',
             alignItems: 'start',
             position: 'relative'
           }}
@@ -371,11 +373,11 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
           >
 
             {/* Left Column Header */}
-            <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '1.4rem' }}>
               <h3
                 className="font-display"
                 style={{
-                  fontSize: '1.75rem',
+                  fontSize: '1.55rem',
                   color: '#121316',
                   letterSpacing: '0.03em',
                   lineHeight: 1.15,
@@ -387,7 +389,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
             </div>
 
             {/* Direct Contact Items */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem', marginBottom: '1.5rem' }}>
 
               {/* Telephone */}
               <a
@@ -535,11 +537,11 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                 justifyContent: 'center',
                 gap: '0.6rem',
                 width: '100%',
-                padding: '0.85rem 1.25rem',
+                padding: '0.75rem 1.25rem',
                 backgroundColor: '#121316',
                 color: '#FFFFFF',
                 borderRadius: '9999px',
-                fontSize: '0.88rem',
+                fontSize: '0.85rem',
                 fontWeight: 600,
                 textDecoration: 'none',
                 transition: 'all 0.25s ease',
@@ -628,12 +630,12 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
-                <div style={{ marginBottom: '0.5rem' }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+                <div style={{ marginBottom: '0.35rem' }}>
                   <h3
                     className="font-display"
                     style={{
-                      fontSize: '1.75rem',
+                      fontSize: '1.55rem',
                       color: '#121316',
                       letterSpacing: '0.04em',
                       lineHeight: 1.1,
@@ -645,9 +647,9 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                 </div>
 
                 {/* Row 1: Full Name & Email */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.45rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                       Full Name *
                     </label>
                     <input
@@ -659,11 +661,11 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                       onChange={handleChange}
                       style={{
                         width: '100%',
-                        padding: '0.85rem 1rem',
+                        padding: '0.72rem 0.95rem',
                         borderRadius: '12px',
                         border: '1px solid rgba(0, 0, 0, 0.12)',
                         backgroundColor: '#F8F6F1',
-                        fontSize: '0.9rem',
+                        fontSize: '0.88rem',
                         color: '#121316',
                         outline: 'none',
                         fontFamily: 'var(--font-body)',
@@ -675,7 +677,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.45rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                       Email Address *
                     </label>
                     <input
@@ -687,11 +689,11 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                       onChange={handleChange}
                       style={{
                         width: '100%',
-                        padding: '0.85rem 1rem',
+                        padding: '0.72rem 0.95rem',
                         borderRadius: '12px',
                         border: '1px solid rgba(0, 0, 0, 0.12)',
                         backgroundColor: '#F8F6F1',
-                        fontSize: '0.9rem',
+                        fontSize: '0.88rem',
                         color: '#121316',
                         outline: 'none',
                         fontFamily: 'var(--font-body)',
@@ -704,9 +706,9 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                 </div>
 
                 {/* Row 2: Phone & Travel Window */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.45rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                       Phone / WhatsApp *
                     </label>
                     <input
@@ -718,11 +720,11 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                       onChange={handleChange}
                       style={{
                         width: '100%',
-                        padding: '0.85rem 1rem',
+                        padding: '0.72rem 0.95rem',
                         borderRadius: '12px',
                         border: '1px solid rgba(0, 0, 0, 0.12)',
                         backgroundColor: '#F8F6F1',
-                        fontSize: '0.9rem',
+                        fontSize: '0.88rem',
                         color: '#121316',
                         outline: 'none',
                         fontFamily: 'var(--font-body)',
@@ -734,7 +736,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.45rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                       Estimated Travel Period
                     </label>
                     <select
@@ -743,11 +745,11 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                       onChange={handleChange}
                       style={{
                         width: '100%',
-                        padding: '0.85rem 1rem',
+                        padding: '0.72rem 0.95rem',
                         borderRadius: '12px',
                         border: '1px solid rgba(0, 0, 0, 0.12)',
                         backgroundColor: '#F8F6F1',
-                        fontSize: '0.9rem',
+                        fontSize: '0.88rem',
                         color: '#121316',
                         outline: 'none',
                         fontFamily: 'var(--font-body)',
@@ -765,10 +767,10 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
 
                 {/* Duration Pills */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.55rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.45rem' }}>
                     Preferred Journey Duration
                   </label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.6rem' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                     {DURATION_OPTIONS.map((dur) => {
                       const isSelected = formData.duration === dur;
                       return (
@@ -777,9 +779,9 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                           key={dur}
                           onClick={() => setFormData((prev) => ({ ...prev, duration: dur }))}
                           style={{
-                            padding: '0.45rem 1rem',
+                            padding: '0.38rem 0.88rem',
                             borderRadius: '9999px',
-                            fontSize: '0.82rem',
+                            fontSize: '0.8rem',
                             fontWeight: isSelected ? 700 : 500,
                             backgroundColor: isSelected ? '#121316' : '#F8F6F1',
                             color: isSelected ? '#FFFFFF' : '#4B5563',
@@ -797,7 +799,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
 
                 {/* Primary Interest Dropdown */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.45rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                     Primary Travel Style or Focus
                   </label>
                   <select
@@ -806,11 +808,11 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                     onChange={handleChange}
                     style={{
                       width: '100%',
-                      padding: '0.85rem 1rem',
+                      padding: '0.72rem 0.95rem',
                       borderRadius: '12px',
                       border: '1px solid rgba(0, 0, 0, 0.12)',
                       backgroundColor: '#F8F6F1',
-                      fontSize: '0.9rem',
+                      fontSize: '0.88rem',
                       color: '#121316',
                       outline: 'none',
                       fontFamily: 'var(--font-body)',
@@ -825,7 +827,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
 
                 {/* Notes */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.45rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#121316', letterSpacing: '0.04em', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                     Special Wishes, Party Size or Pacing
                   </label>
                   <textarea
@@ -836,11 +838,11 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                     onChange={handleChange}
                     style={{
                       width: '100%',
-                      padding: '0.85rem 1rem',
+                      padding: '0.72rem 0.95rem',
                       borderRadius: '12px',
                       border: '1px solid rgba(0, 0, 0, 0.12)',
                       backgroundColor: '#F8F6F1',
-                      fontSize: '0.9rem',
+                      fontSize: '0.88rem',
                       color: '#121316',
                       outline: 'none',
                       fontFamily: 'var(--font-body)',
@@ -858,8 +860,8 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                   disabled={loading}
                   className="btn-pill btn-gold"
                   style={{
-                    padding: '0.95rem 2rem',
-                    fontSize: '0.92rem',
+                    padding: '0.85rem 1.75rem',
+                    fontSize: '0.9rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

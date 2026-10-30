@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, CheckCircle2, Phone, Mail, MapPin } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Phone, Mail, MapPin, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react';
 import { ESCORA_INFO } from '../data/escoraData';
 import { useScrollReveal } from '../hooks/useScrollAnimation';
 
@@ -400,11 +400,103 @@ export default function Footer({ onShowToast }: FooterProps) {
             </div>
 
             {/* Official Social Links */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', fontWeight: 600, letterSpacing: '0.1em' }}>
-              <a href="https://www.instagram.com/escora_holidays" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#B48235')} onMouseLeave={(e) => (e.currentTarget.style.color = 'inherit')}>IG</a>
-              <a href="https://www.facebook.com/people/Escora-holidays" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#B48235')} onMouseLeave={(e) => (e.currentTarget.style.color = 'inherit')}>FB</a>
-              <a href="https://www.linkedin.com/company/escora-holidays/about/" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#B48235')} onMouseLeave={(e) => (e.currentTarget.style.color = 'inherit')}>IN</a>
-              <a href="https://www.youtube.com/@escoraholidays" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'none', transition: 'color 0.2s' }} onMouseEnter={(e) => (e.currentTarget.style.color = '#B48235')} onMouseLeave={(e) => (e.currentTarget.style.color = 'inherit')}>YT</a>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+              <a
+                href="https://www.instagram.com/escora_holidays"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.65)',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color 0.2s ease, transform 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#B48235';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <Instagram size={18} />
+              </a>
+              <a
+                href="https://www.facebook.com/people/Escora-holidays"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.65)',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color 0.2s ease, transform 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#B48235';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <Facebook size={18} />
+              </a>
+              <a
+                href="https://www.linkedin.com/company/escora-holidays/about/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.65)',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color 0.2s ease, transform 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#B48235';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <Linkedin size={18} />
+              </a>
+              <a
+                href="https://www.youtube.com/@escoraholidays"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="YouTube"
+                style={{
+                  color: 'rgba(255, 255, 255, 0.65)',
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'color 0.2s ease, transform 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#B48235';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <Youtube size={18} />
+              </a>
             </div>
           </div>
 

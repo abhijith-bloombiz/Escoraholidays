@@ -238,12 +238,12 @@ export default function Testimonials() {
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: '24px',
-              padding: 'clamp(1.5rem, 2.2vw, 2.2rem) clamp(1.75rem, 2.6vw, 2.75rem)',
+              padding: 'clamp(1.85rem, 2.6vw, 2.5rem) clamp(2rem, 3vw, 3rem)',
               boxShadow: '0 12px 36px rgba(0, 0, 0, 0.06)',
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
-              minHeight: 'clamp(270px, 32vh, 310px)',
+              minHeight: 'clamp(320px, 38vh, 370px)',
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.96)',
               transition: 'opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury)',
@@ -257,9 +257,9 @@ export default function Testimonials() {
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
-                marginBottom: '0.85rem',
+                marginBottom: '0.95rem',
                 borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-                paddingBottom: '0.65rem',
+                paddingBottom: '0.75rem',
                 animation: 'fadeUpSoft 0.45s var(--ease-luxury)'
               }}
             >
@@ -267,7 +267,7 @@ export default function Testimonials() {
                 <h3
                   className="font-display"
                   style={{
-                    fontSize: '1.4rem',
+                    fontSize: '1.45rem',
                     color: '#121316',
                     letterSpacing: '0.04em',
                     lineHeight: 1.1,
@@ -276,7 +276,7 @@ export default function Testimonials() {
                 >
                   {item.author}
                 </h3>
-                <p style={{ fontSize: '0.85rem', color: '#9CA3AF', margin: '0.2rem 0 0 0' }}>
+                <p style={{ fontSize: '0.88rem', color: '#9CA3AF', margin: '0.25rem 0 0 0' }}>
                   {item.role}
                 </p>
               </div>
@@ -286,10 +286,10 @@ export default function Testimonials() {
             <blockquote
               key={`quote-${activeIdx}`}
               style={{
-                fontSize: 'clamp(1.06rem, 1.3vw, 1.25rem)',
+                fontSize: 'clamp(1.1rem, 1.35vw, 1.28rem)',
                 fontWeight: 400,
                 color: '#121316',
-                lineHeight: 1.5,
+                lineHeight: 1.55,
                 fontFamily: 'var(--font-body)',
                 fontStyle: 'normal',
                 margin: 0
@@ -299,7 +299,7 @@ export default function Testimonials() {
             </blockquote>
 
             {/* Pagination dots indicator */}
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '1.25rem' }}>
               {testimonialsList.map((_, idx) => (
                 <button
                   key={idx}
@@ -325,7 +325,7 @@ export default function Testimonials() {
               borderRadius: '24px',
               overflow: 'hidden',
               boxShadow: '0 16px 40px rgba(0, 0, 0, 0.1)',
-              minHeight: 'clamp(270px, 32vh, 310px)',
+              minHeight: 'clamp(320px, 38vh, 370px)',
               position: 'relative',
               width: '100%',
               height: '100%',
@@ -400,8 +400,8 @@ export default function Testimonials() {
             height: auto !important;
           }
           .testimonial-grid > div:last-child {
-            min-height: 280px !important;
-            height: 320px !important;
+            min-height: 310px !important;
+            height: 350px !important;
           }
         }
 

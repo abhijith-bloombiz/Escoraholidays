@@ -231,6 +231,7 @@ export default function SignatureExperiences({ onOpenEnquiry }: SignatureExperie
             >
               <span
                 style={{
+                  fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                   fontSize: '0.75rem',
                   letterSpacing: '0.2em',
                   textTransform: 'uppercase',

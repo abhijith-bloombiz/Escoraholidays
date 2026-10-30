@@ -314,6 +314,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
           >
             <span
               style={{
+                fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                 textTransform: 'uppercase',
                 fontSize: '0.78rem',
                 letterSpacing: '0.2em',

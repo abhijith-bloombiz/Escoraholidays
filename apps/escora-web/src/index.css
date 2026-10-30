@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
   --bg-cream: #F8F6F1;
@@ -15,7 +15,8 @@
   --border-dark: rgba(255, 255, 255, 0.12);
   --font-display: 'Bebas Neue', 'Oswald', 'Impact', 'Haettenschweiler', 'Arial Narrow Bold', sans-serif;
   --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-serif: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-eyebrow: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --radius-pill: 9999px;
   --radius-card: 20px;
   --radius-panel: 24px;
@@ -60,6 +61,13 @@ body {
 
 .font-body {
   font-family: var(--font-body);
+}
+
+.section-eyebrow {
+  font-family: var(--font-eyebrow);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
 }
 
 /* Section Containers */

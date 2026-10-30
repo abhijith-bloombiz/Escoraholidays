@@ -86,12 +86,13 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
             >
               <span
                 style={{
-                  fontFamily: 'var(--font-serif)',
+                  fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                   textTransform: 'uppercase',
-                  fontSize: '0.76rem',
-                  letterSpacing: '0.22em',
+                  fontWeight: 700,
+                  fontSize: 'clamp(0.82rem, 0.95vw, 0.88rem)',
+                  letterSpacing: '0.2em',
                   color: '#9E6F29',
-                  fontWeight: 600
+                  lineHeight: 1
                 }}
               >
                 DISCOVER KERALA
@@ -99,13 +100,13 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
             </div>
 
             <h2
+              className="font-display"
               style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: 'clamp(2.2rem, 3.8vw, 3.2rem)',
+                fontSize: 'clamp(2.85rem, 4.6vw, 4.4rem)',
                 color: '#121316',
-                lineHeight: 1.15,
-                letterSpacing: '-0.015em',
-                fontWeight: 500,
+                lineHeight: 1.02,
+                letterSpacing: '0.035em',
+                textTransform: 'uppercase',
                 margin: 0
               }}
             >
@@ -226,7 +227,7 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
               style={{
                 flex: '0 0 clamp(280px, 26vw, 340px)',
                 height: '480px',
-                borderRadius: '20px',
+                borderRadius: '8px',
                 overflow: 'hidden',
                 position: 'relative',
                 cursor: 'pointer',
@@ -325,6 +326,8 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
                   color: '#FFFFFF',
                   display: 'flex',
                   flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
                   gap: '0.45rem'
                 }}
               >

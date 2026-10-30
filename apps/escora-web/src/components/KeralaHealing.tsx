@@ -211,6 +211,7 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.45rem',
+                fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                 fontSize: '0.8rem',
                 color: '#9E6F29',
                 letterSpacing: '0.14em',

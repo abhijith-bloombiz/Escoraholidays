@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MapPin, Calendar, Compass, Users, ChevronDown, ArrowRight, ArrowUpRight, Play, Pause, Sparkles } from 'lucide-react';
+import { MapPin, Calendar, Compass, Users, ChevronDown, ArrowRight, ArrowUpRight, Sparkles } from 'lucide-react';
 import { useListDestinations } from '@workspace/api-client-react';
 
 const HERO_VIDEOS = [
@@ -1191,39 +1191,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     }}
                   />
 
-                  {/* Lightship Play / Pause Media Badge (Top Hero Fold only) */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setIsPlaying(!isPlaying);
-                    }}
-                    aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
-                    style={{
-                      position: 'absolute',
-                      top: '1.25rem',
-                      left: '50%',
-                      transform: 'translateX(-50%)',
-                      zIndex: 6,
-                      width: '38px',
-                      height: '38px',
-                      borderRadius: '50%',
-                      backgroundColor: 'rgba(18, 19, 22, 0.75)',
-                      backdropFilter: 'blur(12px)',
-                      WebkitBackdropFilter: 'blur(12px)',
-                      border: '1px solid rgba(255, 255, 255, 0.28)',
-                      color: '#FFFFFF',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      opacity: Math.max(0, (1 - destImageEase) * (1 - shrinkEase * 2) * (1 - expandRaw * 4)),
-                      pointerEvents: (destImageEase < 0.25 && shrinkEase < 0.3) ? 'auto' : 'none',
-                      transition: 'opacity 0.3s ease, transform 0.2s ease, background-color 0.2s ease',
-                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35)'
-                    }}
-                  >
-                    {isPlaying ? <Pause size={14} /> : <Play size={14} style={{ marginLeft: '2px' }} />}
-                  </button>
+
 
                   {/* Center Card Destination Details (Fades in when docked, fades out on expansion) */}
                   <div

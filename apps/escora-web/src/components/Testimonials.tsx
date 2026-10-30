@@ -185,11 +185,11 @@ export default function Testimonials() {
           </div>
         </div>
 
-        {/* Testimonial Two-Column Panel */}
+        {/* Testimonial Two-Column Panel: 70% Left Quote Card, 30% Right Photo Card */}
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))',
+            gridTemplateColumns: 'minmax(0, 7fr) minmax(0, 3fr)',
             gap: '2rem',
             alignItems: 'stretch'
           }}
@@ -279,14 +279,13 @@ export default function Testimonials() {
             </div>
           </div>
 
-          {/* Right: Portrait Image */}
+          {/* Right: Portrait Image (30% Card) */}
           <div
             style={{
               borderRadius: '24px',
               overflow: 'hidden',
               boxShadow: '0 16px 40px rgba(0, 0, 0, 0.1)',
               minHeight: '280px',
-              maxHeight: '340px',
               position: 'relative',
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.96)',
@@ -341,12 +340,13 @@ export default function Testimonials() {
           }
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 900px) {
           .testimonial-grid {
             grid-template-columns: 1fr !important;
           }
           .testimonial-grid > div:last-child {
-            min-height: 220px !important;
+            min-height: 240px !important;
+            max-height: 340px !important;
           }
         }
       `}</style>

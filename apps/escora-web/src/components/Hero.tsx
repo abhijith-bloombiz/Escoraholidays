@@ -739,8 +739,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   transform: phase3Raw > 0
                     ? `translateY(${-headingExitEase * 45}px)`
                     : (isRearranged ? 'translateY(0)' : 'translateY(-22px)'),
-                  maxHeight: isRearranged ? `calc(135px * ${1 - headingExitEase})` : '0px',
-                  marginBottom: isRearranged ? `calc(clamp(12px, 1.6vh, 20px) * ${1 - headingExitEase})` : '0px',
+                  maxHeight: isRearranged ? `calc(100px * ${1 - headingExitEase})` : '0px',
+                  marginBottom: isRearranged ? `calc(clamp(14px, 2vh, 22px) * ${1 - headingExitEase})` : '0px',
                   overflow: 'hidden',
                   pointerEvents: (isRearranged && headingExitEase < 0.2) ? 'auto' : 'none',
                   transition: phase3Raw > 0
@@ -749,78 +749,36 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   zIndex: 10
                 }}
               >
-                {/* Eyebrow Badge */}
-                <div
+                {/* Eyebrow */}
+                <span
                   style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    padding: '0.35rem 0.95rem',
-                    borderRadius: '999px',
-                    backgroundColor: 'rgba(180, 130, 53, 0.09)',
-                    border: '1px solid rgba(180, 130, 53, 0.28)',
-                    marginBottom: '0.45rem'
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: 'clamp(0.72rem, 0.85vw, 0.82rem)',
+                    fontWeight: 600,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: '#9E6F29',
+                    marginBottom: '0.4rem',
+                    display: 'inline-block'
                   }}
                 >
-                  <span
-                    style={{
-                      width: '6px',
-                      height: '6px',
-                      borderRadius: '50%',
-                      backgroundColor: '#B48235',
-                      display: 'inline-block'
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.22em',
-                      textTransform: 'uppercase',
-                      color: '#9E6F29'
-                    }}
-                  >
-                    KERALA SANCTUARIES
-                  </span>
-                </div>
+                  DISCOVER KERALA
+                </span>
 
-                {/* Section Title */}
+                {/* Main Heading */}
                 <h2
-                  className="font-display"
                   style={{
-                    fontSize: 'clamp(1.95rem, 2.7vw, 2.65rem)',
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: 'clamp(1.85rem, 2.8vw, 2.75rem)',
                     color: '#121316',
                     lineHeight: 1.15,
-                    letterSpacing: '0.02em',
-                    fontWeight: 400,
-                    margin: '0 0 0.35rem 0'
+                    letterSpacing: '-0.015em',
+                    fontWeight: 500,
+                    margin: 0
                   }}
                 >
-                  Sanctuaries of{' '}
-                  <span
-                    style={{
-                      fontStyle: 'italic',
-                      color: '#9E6F29',
-                      fontFamily: 'var(--font-serif)',
-                      fontWeight: 400
-                    }}
-                  >
-                    Timeless Calm
-                  </span>
+                  Where Every Landscape Tells a Story
                 </h2>
-
-                {/* Subtitle */}
-                <p
-                  style={{
-                    fontSize: 'clamp(0.85rem, 0.95vw, 0.92rem)',
-                    color: '#5A626A',
-                    lineHeight: 1.5,
-                    margin: 0,
-                    maxWidth: '620px'
-                  }}
-                >
-                  Five iconic landscapes crafted for stillness • 100% private bespoke departures.
-                </p>
               </div>
 
               {/* The 3 Columns Grid Row */}
@@ -1922,13 +1880,34 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
 
             {/* Mobile Destination Cards Carousel */}
             <div>
-              <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h3 className="font-display" style={{ fontSize: '1.4rem', margin: 0, color: '#121316' }}>
-                  Top Kerala Destinations
-                </h3>
-                <span style={{ fontSize: '0.74rem', color: '#9E6F29', fontWeight: 700, letterSpacing: '0.1em' }}>
-                  {mobileDestinations.length} SANCTUARIES
+              <div style={{ marginBottom: '1.25rem', textAlign: 'left' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: '0.74rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.22em',
+                    textTransform: 'uppercase',
+                    color: '#9E6F29',
+                    display: 'block',
+                    marginBottom: '0.35rem'
+                  }}
+                >
+                  DISCOVER KERALA
                 </span>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-serif)',
+                    fontSize: 'clamp(1.5rem, 5.5vw, 1.85rem)',
+                    margin: 0,
+                    color: '#121316',
+                    lineHeight: 1.2,
+                    fontWeight: 500,
+                    letterSpacing: '-0.015em'
+                  }}
+                >
+                  Where Every Landscape Tells a Story
+                </h3>
               </div>
 
               <div

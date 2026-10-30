@@ -86,40 +86,31 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
             >
               <span
                 style={{
+                  fontFamily: 'var(--font-serif)',
                   textTransform: 'uppercase',
                   fontSize: '0.76rem',
-                  letterSpacing: '0.2em',
+                  letterSpacing: '0.22em',
                   color: '#9E6F29',
-                  fontWeight: 700
+                  fontWeight: 600
                 }}
               >
-                TOP DESTINATIONS
+                DISCOVER KERALA
               </span>
             </div>
 
             <h2
-              className="font-display"
               style={{
-                fontSize: 'clamp(2.2rem, 4vw, 3.4rem)',
+                fontFamily: 'var(--font-serif)',
+                fontSize: 'clamp(2.2rem, 3.8vw, 3.2rem)',
                 color: '#121316',
-                lineHeight: 1.1,
-                letterSpacing: '0.02em',
-                marginBottom: '0.85rem'
-              }}
-            >
-              Don't Miss Kerala's Iconic Landscapes
-            </h2>
-
-            <p
-              style={{
-                fontSize: 'clamp(0.95rem, 1.1vw, 1.05rem)',
-                color: '#5C5850',
-                lineHeight: 1.6,
+                lineHeight: 1.15,
+                letterSpacing: '-0.015em',
+                fontWeight: 500,
                 margin: 0
               }}
             >
-              From mist-shrouded tea summits and ancient rainforests to silent backwater lagoons and golden cliff shores.
-            </p>
+              Where Every Landscape Tells a Story
+            </h2>
           </div>
 
           {/* Right Navigation Arrows (Armenia Travel Rounded Square Controls) */}

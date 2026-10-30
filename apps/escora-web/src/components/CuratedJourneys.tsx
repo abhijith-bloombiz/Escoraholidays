@@ -77,6 +77,7 @@ export default function CuratedJourneys({ onOpenItinerary, onOpenEnquiry }: Cura
           >
             <span
               style={{
+                fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                 textTransform: 'uppercase',
                 fontSize: '0.76rem',
                 letterSpacing: '0.2em',

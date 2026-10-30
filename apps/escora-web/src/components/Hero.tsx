@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MapPin, Calendar, Compass, Users, ChevronDown, ArrowRight, ArrowUpRight, Sparkles } from 'lucide-react';
+import { MapPin, Calendar, Compass, Users, ChevronDown, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useListDestinations } from '@workspace/api-client-react';
 
 const HERO_VIDEOS = [
@@ -322,11 +322,15 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     ? 2 * destImageRaw * destImageRaw
     : 1 - Math.pow(-2 * destImageRaw + 2, 2) / 2;
 
-  // Hero text and search bar fade out during first 35% of Phase 1
-  const heroTextOpacity = Math.max(0, 1 - phase1Progress * 2.8);
-  const heroTextSlide = phase1Progress * 75; // px
-  const searchBarOpacity = Math.max(0, 1 - phase1Progress * 3.5);
-  const searchBarSlide = phase1Progress * 40;
+  // Continuous smooth Hero text fade: only fades in when scrolling back up after the hero screen almost completely appears (shrinkRaw <= 0.12, >97% expanded)
+  const heroFadeRaw = Math.min(1, Math.max(0, shrinkRaw / 0.12));
+  const heroFadeEase = heroFadeRaw < 0.5
+    ? 2 * heroFadeRaw * heroFadeRaw
+    : 1 - Math.pow(-2 * heroFadeRaw + 2, 2) / 2;
+  const heroTextOpacity = Math.max(0, 1 - heroFadeEase);
+  const heroTextSlide = heroFadeEase * 45; // gentle 45px upward glide
+  const searchBarOpacity = Math.max(0, 1 - Math.min(1, shrinkRaw / 0.12));
+  const searchBarSlide = Math.min(1, shrinkRaw / 0.12) * 35;
 
   // Phase 2 (0.35 -> 1.0 of Phase 1): Companion Bento cards slide into Lightship staggered positions
   const bentoRaw = Math.min(1, Math.max(0, (phase1Progress - 0.35) / 0.65));
@@ -413,12 +417,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     : 'translateX(0px)';
 
   const centerBorderRadius = phase4Raw > 0
-    ? phase4Ease * 22
+    ? phase4Ease * 8
     : phase3Raw > 0
-      ? (1 - expandEase) * 22
+      ? (1 - expandEase) * 8
       : isRearranged
-        ? 22
-        : shrinkEase * 28; // 0px to 28px
+        ? 8
+        : shrinkEase * 8; // 0px to 8px small subtle curve
 
   const centerShadow = phase4Raw > 0
     ? 0.35 * phase4Ease
@@ -432,8 +436,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       ref={containerRef}
       style={{
         position: 'relative',
-        backgroundColor: (phase3Raw > 0.82 || phase4Raw > 0) ? '#0B1410' : '#FFFFFF',
-        transition: 'background-color 0.4s ease',
+        backgroundColor: '#FFFFFF',
         height: isDesktop ? '580vh' : 'auto',
         minHeight: '100vh',
         width: '100%'
@@ -471,8 +474,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: phase3Raw > 0.82 ? '#0B1410' : '#FFFFFF',
-          transition: 'background-color 0.4s ease',
+          backgroundColor: '#FFFFFF',
           padding: isDesktop ? '0' : '5.5rem 1.25rem 4rem'
         }}
       >
@@ -521,13 +523,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   <span
                     style={{
                       display: 'inline-block',
+                      fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                       textTransform: 'uppercase',
-                      fontSize: 'clamp(0.78rem, 0.9vw, 0.88rem)',
+                      fontSize: 'clamp(0.85rem, 1.1vw, 1rem)',
                       letterSpacing: '0.24em',
                       color: '#D4AF37',
                       fontWeight: 700,
-                      marginBottom: '1rem',
-                      textShadow: '0 2px 10px rgba(0, 0, 0, 0.85)'
+                      marginBottom: '1.1rem',
+                      textShadow: '0 2px 12px rgba(0, 0, 0, 0.85)'
                     }}
                   >
                     GOD'S OWN COUNTRY
@@ -734,32 +737,32 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   flexDirection: 'column',
                   alignItems: 'center',
                   textAlign: 'center',
-                  padding: '0 1.5rem',
                   opacity: Math.max(0, (isRearranged ? 1 : 0) * (1 - headingExitEase * 1.5)),
                   transform: phase3Raw > 0
                     ? `translateY(${-headingExitEase * 45}px)`
                     : (isRearranged ? 'translateY(0)' : 'translateY(-22px)'),
-                  maxHeight: isRearranged ? `calc(100px * ${1 - headingExitEase})` : '0px',
-                  marginBottom: isRearranged ? `calc(clamp(14px, 2vh, 22px) * ${1 - headingExitEase})` : '0px',
+                  maxHeight: isRearranged ? `calc(130px * ${1 - headingExitEase})` : '0px',
+                  marginBottom: isRearranged ? `calc(clamp(16px, 2.2vh, 26px) * ${1 - headingExitEase})` : '0px',
                   overflow: 'hidden',
                   pointerEvents: (isRearranged && headingExitEase < 0.2) ? 'auto' : 'none',
                   transition: phase3Raw > 0
                     ? 'none'
-                    : 'opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1), max-height 0.75s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.75s cubic-bezier(0.16, 1, 0.3, 1)',
+                    : 'opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1), margin-bottom 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
                   zIndex: 10
                 }}
               >
                 {/* Eyebrow */}
                 <span
                   style={{
-                    fontFamily: 'var(--font-serif)',
-                    fontSize: 'clamp(0.72rem, 0.85vw, 0.82rem)',
-                    fontWeight: 600,
-                    letterSpacing: '0.22em',
+                    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                    fontSize: 'clamp(0.82rem, 0.95vw, 0.88rem)',
+                    letterSpacing: '0.2em',
                     textTransform: 'uppercase',
+                    fontWeight: 700,
                     color: '#9E6F29',
-                    marginBottom: '0.4rem',
-                    display: 'inline-block'
+                    marginBottom: '0.65rem',
+                    display: 'inline-block',
+                    lineHeight: 1
                   }}
                 >
                   DISCOVER KERALA
@@ -767,13 +770,13 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
 
                 {/* Main Heading */}
                 <h2
+                  className="font-display"
                   style={{
-                    fontFamily: 'var(--font-serif)',
-                    fontSize: 'clamp(1.85rem, 2.8vw, 2.75rem)',
+                    fontSize: 'clamp(2.85rem, 4.6vw, 4.4rem)',
                     color: '#121316',
-                    lineHeight: 1.15,
-                    letterSpacing: '-0.015em',
-                    fontWeight: 500,
+                    lineHeight: 1.02,
+                    letterSpacing: '0.035em',
+                    textTransform: 'uppercase',
                     margin: 0
                   }}
                 >
@@ -820,7 +823,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       width: '100%',
                       height: isRearranged ? card2x2Height : 'clamp(220px, 28vh, 300px)',
                       position: 'relative',
-                      borderRadius: isRearranged ? 'clamp(18px, 1.6vw, 22px)' : 'clamp(22px, 2vw, 28px)',
+                      borderRadius: '8px',
                       overflow: 'hidden',
                       cursor: 'pointer',
                       boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
@@ -829,7 +832,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         ? 'scale(1)'
                         : `translateX(${leftCard1SlideX}px) translateY(${leftCard1SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
                       transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                      border: 'none'
                     }}
                   >
                     <img
@@ -856,25 +859,15 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         left: 0,
                         right: 0,
                         padding: '1.3rem 1.45rem',
-                        color: '#FFFFFF'
+                        color: '#FFFFFF',
+                        textAlign: 'center'
                       }}
                     >
-                      <span
-                        style={{
-                          fontSize: '0.66rem',
-                          letterSpacing: '0.18em',
-                          color: '#D4AF37',
-                          fontWeight: 700,
-                          textTransform: 'uppercase'
-                        }}
-                      >
-                        {liveCompanions.topLeft.tag}
-                      </span>
                       <h3
                         className="font-display"
                         style={{
                           fontSize: 'clamp(1.18rem, 1.35vw, 1.32rem)',
-                          margin: '0.2rem 0',
+                          margin: '0 0 0.25rem 0',
                           color: '#FFFFFF',
                           lineHeight: 1.15
                         }}
@@ -901,7 +894,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       width: isRearranged ? '100%' : 'clamp(240px, 21vw, 330px)',
                       height: isRearranged ? card2x2Height : 'clamp(195px, 25vh, 265px)',
                       position: 'relative',
-                      borderRadius: isRearranged ? 'clamp(18px, 1.6vw, 22px)' : 'clamp(18px, 1.6vw, 24px)',
+                      borderRadius: '8px',
                       overflow: 'hidden',
                       cursor: 'pointer',
                       boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
@@ -911,7 +904,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         ? 'scale(1)'
                         : `translateX(${leftCard2SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
                       transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                      border: 'none'
                     }}
                   >
                     <img
@@ -938,25 +931,15 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         left: 0,
                         right: 0,
                         padding: '1.3rem 1.45rem',
-                        color: '#FFFFFF'
+                        color: '#FFFFFF',
+                        textAlign: 'center'
                       }}
                     >
-                      <span
-                        style={{
-                          fontSize: '0.66rem',
-                          letterSpacing: '0.18em',
-                          color: '#D4AF37',
-                          fontWeight: 700,
-                          textTransform: 'uppercase'
-                        }}
-                      >
-                        {liveCompanions.bottomLeft.tag}
-                      </span>
                       <h3
                         className="font-display"
                         style={{
                           fontSize: 'clamp(1.18rem, 1.35vw, 1.32rem)',
-                          margin: '0.2rem 0',
+                          margin: '0 0 0.25rem 0',
                           color: '#FFFFFF',
                           lineHeight: 1.15
                         }}
@@ -1006,13 +989,13 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     alignSelf: 'center',
                     transform: centerCardTransform,
                     transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
-                    border: phase4Raw > 0.1 ? '1px solid rgba(255, 255, 255, 0.14)' : (phase3Raw > 0.05 ? 'none' : (shrinkEase > 0.3 ? '1px solid rgba(0, 0, 0, 0.08)' : 'none'))
+                    border: 'none'
                   }}
                   onClick={() => {
                     if (phase1Progress > 0.4 && phase3Raw < 0.15) {
                       handleCardClick('Munnar Tea Highlands');
                     } else if (phase4Raw > 0.6) {
-                      handleExpCardClick('Private Chef Twilight Cruise', 'Alleppey Waters');
+                      handleExpCardClick('Kayaking', 'Alleppey Waters');
                     }
                   }}
                   className="bento-center-card"
@@ -1124,12 +1107,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     </video>
                   </div>
 
-                  {/* Luxury Ambient & Vignette Overlays */}
+                  {/* Luxury Ambient & Vignette Overlays - Lightened for vibrant video clarity */}
                   <div
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      backgroundImage: `linear-gradient(180deg, rgba(11, 20, 16, ${0.25 + 0.45 * expInfoEase}) 0%, rgba(11, 20, 16, ${0.15 + 0.25 * expInfoEase}) 35%, rgba(11, 20, 16, ${0.2 + 0.45 * expInfoEase}) 65%, rgba(11, 20, 16, ${0.65 + 0.3 * expInfoEase}) 100%)`,
+                      backgroundImage: `linear-gradient(180deg, rgba(11, 20, 16, ${0.15 - 0.05 * expandEase}) 0%, rgba(11, 20, 16, ${0.08 + 0.04 * expandEase}) 35%, rgba(11, 20, 16, 0.14) 65%, rgba(11, 20, 16, ${0.62 - 0.44 * expandEase}) 100%)`,
                       zIndex: 4,
                       pointerEvents: 'none'
                     }}
@@ -1151,21 +1134,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       transform: `translateY(${expandEase * 25}px)`,
                       display: 'flex',
                       flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
                       gap: '0.4rem',
                       pointerEvents: (centerLabelOpacity > 0.4 && expandRaw < 0.1) ? 'auto' : 'none'
                     }}
                   >
-                    <span
-                      style={{
-                        fontSize: '0.72rem',
-                        letterSpacing: '0.2em',
-                        color: '#D4AF37',
-                        fontWeight: 700,
-                        textTransform: 'uppercase'
-                      }}
-                    >
-                      CENTRAL HIGHLANDS • 1,600M
-                    </span>
                     <h3
                       className="font-display"
                       style={{
@@ -1187,7 +1161,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     >
                       Misty summits, 150-year-old planter estates, and golden sunrise tea trails.
                     </p>
-                    <div style={{ marginTop: '0.5rem' }}>
+                    <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center' }}>
                       <span
                         style={{
                           display: 'inline-flex',
@@ -1211,7 +1185,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     </div>
                   </div>
 
-                  {/* Card 1 Experience Details: Private Chef Twilight Cruise (Fades in during Phase 4) */}
+                  {/* Card 1 Experience Details: Kayaking (Fades in during Phase 4) */}
                   {phase4Raw > 0.05 && (
                     <div
                       style={{
@@ -1225,39 +1199,16 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         opacity: phase4Ease,
                         transform: `translateY(${(1 - phase4Ease) * 20}px)`,
                         background: 'linear-gradient(180deg, transparent 0%, rgba(11,20,16,0.92) 80%)',
-                        pointerEvents: phase4Raw > 0.6 ? 'auto' : 'none'
+                        pointerEvents: phase4Raw > 0.6 ? 'auto' : 'none',
+                        textAlign: 'center'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                        <span style={{ fontSize: '0.68rem', letterSpacing: '0.18em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase' }}>
-                          EXCLUSIVE CHARTER
-                        </span>
-                        <span style={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.65)' }}>4 Hours</span>
-                      </div>
-                      <h3 className="font-display" style={{ fontSize: 'clamp(1.15rem, 1.3vw, 1.3rem)', color: '#FFFFFF', margin: '0 0 0.3rem 0', lineHeight: 1.2 }}>
-                        Private Chef Twilight Cruise
+                      <h3 className="font-display" style={{ fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)', color: '#FFFFFF', margin: '0 0 0.35rem 0', lineHeight: 1.2 }}>
+                        Kayaking
                       </h3>
-                      <p style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.78)', margin: '0 0 0.8rem 0', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        Drift along silent lagoons aboard a handcrafted Kettuvallam with your personal chef.
+                      <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.82)', margin: 0, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        Glide through silent lagoons and tranquil backwaters on a private kayak.
                       </p>
-                      <span
-                        style={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: '0.4rem',
-                          padding: '0.4rem 0.95rem',
-                          borderRadius: '999px',
-                          backgroundColor: 'rgba(212, 175, 55, 0.18)',
-                          border: '1px solid rgba(212, 175, 55, 0.45)',
-                          color: '#E6C665',
-                          fontSize: '0.72rem',
-                          fontWeight: 600,
-                          letterSpacing: '0.06em',
-                          textTransform: 'uppercase'
-                        }}
-                      >
-                        Curate Experience <ArrowUpRight size={13} />
-                      </span>
                     </div>
                   )}
                 </div>
@@ -1301,7 +1252,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       width: isRearranged ? '100%' : 'clamp(240px, 21vw, 330px)',
                       height: isRearranged ? card2x2Height : 'clamp(195px, 25vh, 265px)',
                       position: 'relative',
-                      borderRadius: isRearranged ? 'clamp(18px, 1.6vw, 22px)' : 'clamp(18px, 1.6vw, 24px)',
+                      borderRadius: '8px',
                       overflow: 'hidden',
                       cursor: 'pointer',
                       boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
@@ -1311,7 +1262,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         ? 'scale(1)'
                         : `translateX(${rightCard4SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
                       transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                      border: 'none'
                     }}
                   >
                     <img
@@ -1338,25 +1289,15 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         left: 0,
                         right: 0,
                         padding: '1.3rem 1.45rem',
-                        color: '#FFFFFF'
+                        color: '#FFFFFF',
+                        textAlign: 'center'
                       }}
                     >
-                      <span
-                        style={{
-                          fontSize: '0.66rem',
-                          letterSpacing: '0.18em',
-                          color: '#D4AF37',
-                          fontWeight: 700,
-                          textTransform: 'uppercase'
-                        }}
-                      >
-                        {liveCompanions.topRight.tag}
-                      </span>
                       <h3
                         className="font-display"
                         style={{
                           fontSize: 'clamp(1.18rem, 1.35vw, 1.32rem)',
-                          margin: '0.2rem 0',
+                          margin: '0 0 0.25rem 0',
                           color: '#FFFFFF',
                           lineHeight: 1.15
                         }}
@@ -1383,7 +1324,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       width: '100%',
                       height: isRearranged ? card2x2Height : 'clamp(220px, 28vh, 300px)',
                       position: 'relative',
-                      borderRadius: isRearranged ? 'clamp(18px, 1.6vw, 22px)' : 'clamp(22px, 2vw, 28px)',
+                      borderRadius: '8px',
                       overflow: 'hidden',
                       cursor: 'pointer',
                       boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06)',
@@ -1392,7 +1333,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         ? 'scale(1)'
                         : `translateX(${rightCard5SlideX}px) translateY(${rightCard5SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
                       transition: (phase3Raw === 0 && (isRearranged || isTransitioning)) ? rearrangeTransition : 'none',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                      border: 'none'
                     }}
                   >
                     <img
@@ -1419,25 +1360,15 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         left: 0,
                         right: 0,
                         padding: '1.3rem 1.45rem',
-                        color: '#FFFFFF'
+                        color: '#FFFFFF',
+                        textAlign: 'center'
                       }}
                     >
-                      <span
-                        style={{
-                          fontSize: '0.66rem',
-                          letterSpacing: '0.18em',
-                          color: '#D4AF37',
-                          fontWeight: 700,
-                          textTransform: 'uppercase'
-                        }}
-                      >
-                        {liveCompanions.bottomRight.tag}
-                      </span>
                       <h3
                         className="font-display"
                         style={{
                           fontSize: 'clamp(1.18rem, 1.35vw, 1.32rem)',
-                          margin: '0.2rem 0',
+                          margin: '0 0 0.25rem 0',
                           color: '#FFFFFF',
                           lineHeight: 1.15
                         }}
@@ -1482,10 +1413,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                             position: 'absolute',
                             width: expCardWidth,
                             height: expCardHeight,
-                            borderRadius: '22px',
+                            borderRadius: `${centerBorderRadius}px`,
                             overflow: 'hidden',
                             boxShadow: `0 24px 60px rgba(0, 0, 0, ${0.35 * phase4Ease})`,
-                            border: '1px solid rgba(255, 255, 255, 0.14)',
+                            border: 'none',
                             backgroundColor: '#0B1410',
                             transform: `translate(calc(${slotMultiplier} * (${expCardWidth} + ${expCardGap})), calc(${expCardOffsetY} + ${(1 - phase4Ease) * 55}px)) scale(${0.94 + 0.06 * phase4Ease})`,
                             opacity: phase4Ease,
@@ -1501,37 +1432,13 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                           />
                           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 45%, rgba(11,20,16,0.92) 100%)' }} />
-                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.6rem 1.4rem', color: '#FFFFFF', zIndex: 2 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                              <span style={{ fontSize: '0.68rem', letterSpacing: '0.18em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase' }}>
-                                {card.tag}
-                              </span>
-                              <span style={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.65)' }}>{card.duration}</span>
-                            </div>
-                            <h3 className="font-display" style={{ fontSize: 'clamp(1.15rem, 1.3vw, 1.3rem)', color: '#FFFFFF', margin: '0 0 0.3rem 0', lineHeight: 1.2 }}>
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.6rem 1.4rem', color: '#FFFFFF', zIndex: 2, textAlign: 'center' }}>
+                            <h3 className="font-display" style={{ fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)', color: '#FFFFFF', margin: '0 0 0.35rem 0', lineHeight: 1.2 }}>
                               {card.title}
                             </h3>
-                            <p style={{ fontSize: '0.78rem', color: 'rgba(255, 255, 255, 0.78)', margin: '0 0 0.8rem 0', lineHeight: 1.4, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                            <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.82)', margin: 0, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                               {card.desc}
                             </p>
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                padding: '0.4rem 0.95rem',
-                                borderRadius: '999px',
-                                backgroundColor: 'rgba(212, 175, 55, 0.18)',
-                                border: '1px solid rgba(212, 175, 55, 0.45)',
-                                color: '#E6C665',
-                                fontSize: '0.72rem',
-                                fontWeight: 600,
-                                letterSpacing: '0.06em',
-                                textTransform: 'uppercase'
-                              }}
-                            >
-                              Curate Experience <ArrowUpRight size={13} />
-                            </span>
                           </div>
                         </div>
                       );
@@ -1549,7 +1456,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       left: '50%',
                       top: '50%',
                       transform: phase4Raw > 0
-                        ? `translate(-50%, calc(-50% - ${(headingMoveEase * 28).toFixed(2)}vh))`
+                        ? `translate(-50%, calc(-50% - ${(headingMoveEase * 29).toFixed(2)}vh))`
                         : 'translate(-50%, -50%)',
                       width: '100%',
                       maxWidth: '1200px',
@@ -1563,91 +1470,74 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       pointerEvents: phase4Raw > 0.2 ? 'none' : (expInfoEase > 0.5 ? 'auto' : 'none')
                     }}
                   >
-                    {/* Eyebrow Badge */}
-                    <div
+                    {/* Eyebrow - Sized and styled matching Discover Kerala */}
+                    <span
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.55rem',
-                        padding: phase4Raw > 0 ? '0.36rem 1.05rem' : '0.42rem 1.25rem',
-                        borderRadius: '999px',
-                        backgroundColor: 'rgba(212, 175, 55, 0.16)',
-                        border: '1px solid rgba(212, 175, 55, 0.45)',
-                        backdropFilter: 'blur(16px)',
-                        WebkitBackdropFilter: 'blur(16px)',
-                        marginBottom: phase4Raw > 0 ? '0.65rem' : '1.35rem',
-                        boxShadow: '0 8px 24px rgba(0, 0, 0, 0.25)',
-                        transition: 'padding 0.3s ease, margin 0.3s ease'
+                        fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                        fontSize: 'clamp(0.82rem, 0.95vw, 0.88rem)',
+                        letterSpacing: '0.2em',
+                        textTransform: 'uppercase',
+                        fontWeight: 700,
+                        color: phase4Raw > 0 ? '#9E6F29' : '#E6C665',
+                        marginBottom: '0.65rem',
+                        display: 'inline-block',
+                        lineHeight: 1,
+                        textShadow: phase4Raw > 0 ? 'none' : '0 2px 14px rgba(0, 0, 0, 0.75)',
+                        transition: 'color 0.4s ease, text-shadow 0.4s ease'
                       }}
                     >
-                      <Sparkles size={phase4Raw > 0 ? 13 : 14} color="#D4AF37" />
-                      <span
-                        style={{
-                          fontSize: phase4Raw > 0 ? '0.70rem' : '0.74rem',
-                          fontWeight: 700,
-                          letterSpacing: '0.24em',
-                          textTransform: 'uppercase',
-                          color: '#E6C665',
-                          transition: 'font-size 0.3s ease'
-                        }}
-                      >
-                        BREATHTAKING EXPERIENCES
-                      </span>
-                    </div>
+                      BREATHTAKING EXPERIENCES
+                    </span>
 
-                    {/* Grand Experience Headline */}
+                    {/* Grand Experience Headline - Sized matching Discover Kerala */}
                     <h2
                       className="font-display"
                       style={{
-                        fontSize: phase4Raw > 0
-                          ? 'clamp(1.75rem, 2.35vw, 2.3rem)'
-                          : 'clamp(2.4rem, 4.6vw, 4.2rem)',
-                        color: '#FFFFFF',
-                        lineHeight: 1.1,
-                        letterSpacing: '0.02em',
-                        fontWeight: 400,
-                        margin: phase4Raw > 0
-                          ? '0 0 clamp(0.35rem, 0.6vh, 0.55rem) 0'
-                          : '0 0 1.2rem 0',
-                        textShadow: '0 4px 28px rgba(0, 0, 0, 0.75)',
-                        transition: 'font-size 0.35s ease, margin 0.35s ease'
+                        fontSize: 'clamp(2.85rem, 4.6vw, 4.4rem)',
+                        color: phase4Raw > 0 ? '#121316' : '#FFFFFF',
+                        lineHeight: 1.02,
+                        letterSpacing: '0.035em',
+                        textTransform: 'uppercase',
+                        margin: phase4Raw > 0 ? 0 : '0 0 1.2rem 0',
+                        textShadow: phase4Raw > 0 ? 'none' : '0 4px 28px rgba(0, 0, 0, 0.75)',
+                        transition: 'color 0.4s ease, text-shadow 0.4s ease, margin 0.35s ease'
                       }}
                     >
-                      Moments Beyond{' '}
-                      <span
-                        style={{
-                          fontStyle: 'italic',
-                          color: '#E6C665',
-                          fontFamily: 'var(--font-serif)'
-                        }}
-                      >
-                        The Guidebooks
+                      MOMENTS BEYOND{' '}
+                      <span style={{ color: phase4Raw > 0 ? '#121316' : '#E6C665', transition: 'color 0.4s ease' }}>
+                        THE GUIDEBOOKS
                       </span>
                     </h2>
 
-                    {/* Editorial Subtitle */}
-                    <p
-                      style={{
-                        fontSize: phase4Raw > 0 ? 'clamp(0.82rem, 0.88vw, 0.92rem)' : 'clamp(0.95rem, 1.15vw, 1.12rem)',
-                        color: 'rgba(255, 255, 255, 0.82)',
-                        lineHeight: 1.45,
-                        margin: 0,
-                        maxWidth: phase4Raw > 0 ? '620px' : '720px',
-                        textShadow: '0 2px 12px rgba(0, 0, 0, 0.7)',
-                        transition: 'font-size 0.35s ease, max-width 0.35s ease'
-                      }}
-                    >
-                      Exclusive private charters, dawn tea cuppings in colonial bungalows, and sacred ritual arts accessible only through Escora's private local network.
-                    </p>
+                    {/* Editorial Subtitle - Visible in Phase 3, removed when scrolling and reaching Phase 4 */}
+                    {phase4Raw < 0.28 && (
+                      <p
+                        style={{
+                          opacity: Math.max(0, 1 - phase4Raw * 4),
+                          maxHeight: phase4Raw > 0 ? `${Math.max(0, (1 - phase4Raw * 4) * 80)}px` : 'auto',
+                          overflow: 'hidden',
+                          marginTop: phase4Raw > 0 ? `${Math.max(0, (1 - phase4Raw * 4) * 0.8)}rem` : '0.8rem',
+                          marginBottom: 0,
+                          fontSize: 'clamp(0.95rem, 1.15vw, 1.12rem)',
+                          color: 'rgba(255, 255, 255, 0.82)',
+                          lineHeight: 1.45,
+                          maxWidth: '720px',
+                          textShadow: '0 2px 12px rgba(0, 0, 0, 0.7)',
+                          transition: 'opacity 0.2s ease'
+                        }}
+                      >
+                        Exclusive private charters, dawn tea cuppings in colonial bungalows, and sacred ritual arts accessible only through Escora's private local network.
+                      </p>
+                    )}
 
-                    {/* Phase 3 Action Block (Chip, CTA Button, Scroll Indicator) */}
+                    {/* Phase 3 Action Block (CTA Button) - Fades out before Phase 4 starts */}
                     {phase4Raw < 0.28 && (
                       <div
                         style={{
                           opacity: Math.max(0, 1 - phase4Raw * 4),
-                          maxHeight: phase4Raw > 0 ? `${Math.max(0, (1 - phase4Raw * 4) * 240)}px` : 'auto',
+                          maxHeight: phase4Raw > 0 ? `${Math.max(0, (1 - phase4Raw * 4) * 120)}px` : 'auto',
                           overflow: 'hidden',
-                          marginTop: phase4Raw > 0 ? `${Math.max(0, (1 - phase4Raw * 4) * 1.6)}rem` : '1.6rem',
+                          marginTop: phase4Raw > 0 ? `${Math.max(0, (1 - phase4Raw * 4) * 1.8)}rem` : '1.8rem',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
@@ -1655,46 +1545,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           transition: 'opacity 0.2s ease'
                         }}
                       >
-                        {/* Highlight Chip */}
-                        <div
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.75rem',
-                            padding: '0.5rem 1.35rem',
-                            borderRadius: '999px',
-                            backgroundColor: 'rgba(18, 19, 22, 0.72)',
-                            backdropFilter: 'blur(16px)',
-                            WebkitBackdropFilter: 'blur(16px)',
-                            border: '1px solid rgba(255, 255, 255, 0.22)',
-                            boxShadow: '0 12px 30px rgba(0, 0, 0, 0.4)'
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: '7px',
-                              height: '7px',
-                              borderRadius: '50%',
-                              backgroundColor: '#D4AF37',
-                              boxShadow: '0 0 10px #D4AF37',
-                              display: 'inline-block'
-                            }}
-                          />
-                          <span
-                            style={{
-                              fontSize: '0.76rem',
-                              letterSpacing: '0.12em',
-                              textTransform: 'uppercase',
-                              color: '#FFFFFF',
-                              fontWeight: 600
-                            }}
-                          >
-                            Private Chef Twilight Cruise • Alleppey Waters
-                          </span>
-                        </div>
-
                         {/* CTA Button */}
-                        <div style={{ marginTop: '1.4rem' }}>
+                        <div>
                           <button
                             type="button"
                             onClick={() => {
@@ -1721,25 +1573,6 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           >
                             Curate Private Experience <ArrowRight size={15} />
                           </button>
-                        </div>
-
-                        {/* Scroll Indicator */}
-                        <div
-                          style={{
-                            marginTop: '2.4rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            color: 'rgba(255, 255, 255, 0.82)',
-                            fontSize: '0.72rem',
-                            letterSpacing: '0.2em',
-                            textTransform: 'uppercase',
-                            fontWeight: 600,
-                            textShadow: '0 2px 8px rgba(0, 0, 0, 0.7)'
-                          }}
-                        >
-                          <span>Scroll to explore signature experiences</span>
-                          <ChevronDown size={14} className="bounce-subtle" color="#D4AF37" />
                         </div>
                       </div>
                     )}
@@ -1811,7 +1644,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   color: '#FFFFFF'
                 }}
               >
-                <span style={{ fontSize: '0.72rem', letterSpacing: '0.22em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase' }}>
+                <span style={{ display: 'inline-block', fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif", fontSize: 'clamp(0.82rem, 2.5vw, 0.92rem)', letterSpacing: '0.22em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase', marginBottom: '0.25rem' }}>
                   GOD'S OWN COUNTRY
                 </span>
                 <h1 className="font-display" style={{ fontSize: '2.4rem', margin: '0.35rem 0 0', color: '#FFFFFF', lineHeight: 0.95, textTransform: 'uppercase' }}>
@@ -1880,30 +1713,31 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
 
             {/* Mobile Destination Cards Carousel */}
             <div>
-              <div style={{ marginBottom: '1.25rem', textAlign: 'left' }}>
+              <div style={{ marginBottom: '1.35rem', textAlign: 'left' }}>
                 <span
                   style={{
-                    fontFamily: 'var(--font-serif)',
-                    fontSize: '0.74rem',
-                    fontWeight: 600,
-                    letterSpacing: '0.22em',
+                    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                    fontSize: '0.8rem',
+                    letterSpacing: '0.2em',
                     textTransform: 'uppercase',
+                    fontWeight: 700,
                     color: '#9E6F29',
                     display: 'block',
-                    marginBottom: '0.35rem'
+                    marginBottom: '0.55rem',
+                    lineHeight: 1
                   }}
                 >
                   DISCOVER KERALA
                 </span>
                 <h3
+                  className="font-display"
                   style={{
-                    fontFamily: 'var(--font-serif)',
-                    fontSize: 'clamp(1.5rem, 5.5vw, 1.85rem)',
+                    fontSize: 'clamp(2.2rem, 7.5vw, 2.75rem)',
                     margin: 0,
                     color: '#121316',
-                    lineHeight: 1.2,
-                    fontWeight: 500,
-                    letterSpacing: '-0.015em'
+                    lineHeight: 1.02,
+                    letterSpacing: '0.03em',
+                    textTransform: 'uppercase'
                   }}
                 >
                   Where Every Landscape Tells a Story
@@ -1927,7 +1761,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     style={{
                       flex: '0 0 240px',
                       height: '320px',
-                      borderRadius: '16px',
+                      borderRadius: '8px',
                       overflow: 'hidden',
                       position: 'relative',
                       scrollSnapAlign: 'start',
@@ -1937,9 +1771,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   >
                     <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.85) 100%)' }} />
-                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.25rem', color: '#FFFFFF' }}>
-                      <span style={{ fontSize: '0.65rem', color: '#D4AF37', fontWeight: 700, letterSpacing: '0.15em' }}>{item.tag}</span>
-                      <h4 className="font-display" style={{ fontSize: '1.2rem', margin: '0.2rem 0', color: '#FFFFFF' }}>{item.name}</h4>
+                    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.25rem', color: '#FFFFFF', textAlign: 'center' }}>
+                      <h4 className="font-display" style={{ fontSize: '1.2rem', margin: 0, color: '#FFFFFF' }}>{item.name}</h4>
                     </div>
                   </div>
                 ))}
@@ -1953,17 +1786,36 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 marginTop: '3.5rem'
               }}
             >
-              {/* Top Heading: Eyebrow, Heading, Description */}
+              {/* Top Heading: Eyebrow, Heading */}
               <div style={{ textAlign: 'center', marginBottom: '1.6rem' }}>
-                <span style={{ fontSize: '0.68rem', letterSpacing: '0.2em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase', display: 'inline-block', marginBottom: '0.4rem' }}>
+                <span
+                  style={{
+                    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                    fontSize: '0.8rem',
+                    letterSpacing: '0.2em',
+                    textTransform: 'uppercase',
+                    fontWeight: 700,
+                    color: '#9E6F29',
+                    display: 'block',
+                    marginBottom: '0.55rem',
+                    lineHeight: 1
+                  }}
+                >
                   BREATHTAKING EXPERIENCES
                 </span>
-                <h3 className="font-display" style={{ fontSize: '1.75rem', margin: '0 0 0.5rem 0', color: '#FFFFFF', lineHeight: 1.15 }}>
-                  Moments Beyond <span style={{ fontStyle: 'italic', color: '#E6C665' }}>The Guidebooks</span>
+                <h3
+                  className="font-display"
+                  style={{
+                    fontSize: 'clamp(2.2rem, 7.5vw, 2.75rem)',
+                    margin: 0,
+                    color: '#121316',
+                    lineHeight: 1.02,
+                    letterSpacing: '0.03em',
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  MOMENTS BEYOND THE GUIDEBOOKS
                 </h3>
-                <p style={{ fontSize: '0.84rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.5, margin: '0 auto', maxWidth: '420px' }}>
-                  Exclusive private charters, dawn tea cuppings in colonial bungalows, and sacred ritual arts accessible only through Escora.
-                </p>
               </div>
 
               {/* 4 Experience Cards Stack on Mobile */}
@@ -1972,10 +1824,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 <div
                   style={{
                     position: 'relative',
-                    borderRadius: '20px',
+                    borderRadius: '8px',
                     overflow: 'hidden',
                     backgroundColor: '#0B1410',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    border: 'none',
                     boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
                   }}
                 >
@@ -1998,25 +1850,11 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     </video>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(11,20,16,0.95) 100%)' }} />
                   </div>
-                  <div style={{ padding: '1.35rem', color: '#FFFFFF', marginTop: '-35px', position: 'relative', zIndex: 2 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                      <span style={{ fontSize: '0.66rem', letterSpacing: '0.18em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase' }}>
-                        EXCLUSIVE CHARTER
-                      </span>
-                      <span style={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.65)' }}>4 Hours</span>
-                    </div>
-                    <h4 className="font-display" style={{ fontSize: '1.25rem', margin: '0.2rem 0', color: '#FFFFFF' }}>Private Chef Twilight Cruise</h4>
-                    <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.45, margin: '0 0 1rem 0' }}>
-                      Drift along silent lagoons aboard a handcrafted Kettuvallam with your personal chef.
+                  <div style={{ padding: '1.35rem', color: '#FFFFFF', marginTop: '-35px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
+                    <h4 className="font-display" style={{ fontSize: '1.25rem', margin: '0 0 0.35rem 0', color: '#FFFFFF' }}>Kayaking</h4>
+                    <p style={{ fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.82)', lineHeight: 1.45, margin: 0 }}>
+                      Glide through silent lagoons and tranquil backwaters on a private kayak.
                     </p>
-                    <button
-                      type="button"
-                      onClick={() => handleExpCardClick('Private Chef Twilight Cruise', 'Alleppey Waters')}
-                      className="btn-pill btn-gold"
-                      style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.82rem' }}
-                    >
-                      Curate Experience <ArrowRight size={14} />
-                    </button>
                   </div>
                 </div>
 
@@ -2024,38 +1862,26 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 {EXP_CARDS.map((card) => (
                   <div
                     key={card.id}
+                    onClick={() => handleExpCardClick(card.title, card.location)}
                     style={{
                       position: 'relative',
-                      borderRadius: '20px',
+                      borderRadius: '8px',
                       overflow: 'hidden',
                       backgroundColor: '#0B1410',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
+                      border: 'none',
+                      boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)',
+                      cursor: 'pointer'
                     }}
                   >
                     <div style={{ height: '200px', position: 'relative', overflow: 'hidden' }}>
                       <img src={card.image} alt={card.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(11,20,16,0.95) 100%)' }} />
                     </div>
-                    <div style={{ padding: '1.35rem', color: '#FFFFFF', marginTop: '-35px', position: 'relative', zIndex: 2 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
-                        <span style={{ fontSize: '0.66rem', letterSpacing: '0.18em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase' }}>
-                          {card.tag}
-                        </span>
-                        <span style={{ fontSize: '0.72rem', color: 'rgba(255, 255, 255, 0.65)' }}>{card.duration}</span>
-                      </div>
-                      <h4 className="font-display" style={{ fontSize: '1.25rem', margin: '0.2rem 0', color: '#FFFFFF' }}>{card.title}</h4>
-                      <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.8)', lineHeight: 1.45, margin: '0 0 1rem 0' }}>
+                    <div style={{ padding: '1.35rem', color: '#FFFFFF', marginTop: '-35px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
+                      <h4 className="font-display" style={{ fontSize: '1.25rem', margin: '0 0 0.35rem 0', color: '#FFFFFF' }}>{card.title}</h4>
+                      <p style={{ fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.82)', lineHeight: 1.45, margin: 0 }}>
                         {card.desc}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => handleExpCardClick(card.title, card.location)}
-                        className="btn-pill btn-gold"
-                        style={{ width: '100%', padding: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontSize: '0.82rem' }}
-                      >
-                        Curate Experience <ArrowRight size={14} />
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -2140,12 +1966,11 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
 
         .bento-companion-card {
           box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
-          transition: box-shadow 0.4s ease, border-color 0.3s ease;
+          transition: box-shadow 0.4s ease;
         }
 
         .bento-companion-card:hover {
           box-shadow: 0 24px 50px rgba(0, 0, 0, 0.22), 0 0 20px rgba(212, 175, 55, 0.25) !important;
-          border-color: rgba(212, 175, 55, 0.45) !important;
         }
 
         .bento-companion-card:hover img {
@@ -2153,12 +1978,11 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
         }
 
         .bento-center-card {
-          transition: box-shadow 0.4s ease, border-color 0.3s ease;
+          transition: box-shadow 0.4s ease;
         }
 
         .bento-center-card:hover {
           box-shadow: 0 30px 70px rgba(0, 0, 0, 0.28), 0 0 24px rgba(212, 175, 55, 0.25) !important;
-          border-color: rgba(212, 175, 55, 0.45) !important;
         }
 
         .bento-center-card:hover img {
@@ -2171,7 +1995,6 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
 
         .exp-showcase-card:hover {
           box-shadow: 0 32px 75px rgba(0, 0, 0, 0.55), 0 0 24px rgba(212, 175, 55, 0.22) !important;
-          border-color: rgba(212, 175, 55, 0.55) !important;
         }
 
         .exp-showcase-card:hover img {

@@ -98,38 +98,64 @@ export default function Testimonials() {
       ref={sectionRef}
       style={{
         backgroundColor: '#F8F6F1',
-        padding: '5rem 0 7rem',
+        minHeight: '100vh',
         borderTop: '1px solid rgba(0, 0, 0, 0.05)',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 'clamp(2rem, 3.5vh, 3rem) 0',
+        boxSizing: 'border-box'
       }}
     >
-      <div className="section-wrapper">
+      <div
+        className="section-wrapper"
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '100%'
+        }}
+      >
 
         {/* Header Row: Heading parallel to Navigation Arrows */}
         <div
+          className="testimonials-header-row"
           style={{
+            position: 'relative',
+            width: '100%',
             display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1.5rem',
-            marginBottom: '2rem',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: 'clamp(1.75rem, 3vh, 2.5rem)',
             opacity: isVisible ? 1 : 0,
             transform: isVisible ? 'translateY(0)' : 'translateY(32px)',
             transition: 'opacity 0.8s var(--ease-luxury), transform 0.8s var(--ease-luxury)'
           }}
         >
-          <div>
+          {/* Centered Heading Block */}
+          <div
+            style={{
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              maxWidth: '680px'
+            }}
+          >
             <div
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.5rem',
-                marginBottom: '0.65rem'
+                marginBottom: '0.45rem'
               }}
             >
               <span
                 style={{
+                  fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                   textTransform: 'uppercase',
                   fontSize: '0.78rem',
                   letterSpacing: '0.2em',
@@ -144,11 +170,11 @@ export default function Testimonials() {
             <h2
               className="font-display"
               style={{
-                fontSize: 'clamp(2.1rem, 4vw, 3.4rem)',
+                fontSize: 'clamp(2.1rem, 3.8vw, 3.2rem)',
                 color: '#121316',
                 lineHeight: 1.05,
                 letterSpacing: '0.04em',
-                marginBottom: '0.5rem'
+                marginBottom: '0.35rem'
               }}
             >
               WHAT OUR TRAVELERS SAY
@@ -156,9 +182,9 @@ export default function Testimonials() {
 
             <p
               style={{
-                fontSize: 'clamp(0.95rem, 1.1vw, 1.05rem)',
+                fontSize: 'clamp(0.9rem, 1.05vw, 1rem)',
                 color: '#5C5850',
-                lineHeight: 1.5,
+                lineHeight: 1.45,
                 margin: 0
               }}
             >
@@ -166,8 +192,19 @@ export default function Testimonials() {
             </p>
           </div>
 
-          {/* Square Navigation Arrows */}
-          <div style={{ display: 'flex', gap: '0.75rem', paddingBottom: '0.25rem' }}>
+          {/* Square Navigation Arrows aligned vertically with the heading area */}
+          <div
+            className="testimonials-nav-arrows"
+            style={{
+              position: 'absolute',
+              right: 0,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              display: 'flex',
+              gap: '0.75rem',
+              alignItems: 'center'
+            }}
+          >
             <button
               onClick={handlePrev}
               className="nav-arrow-btn light"
@@ -190,8 +227,9 @@ export default function Testimonials() {
           style={{
             display: 'grid',
             gridTemplateColumns: 'minmax(0, 7fr) minmax(0, 3fr)',
-            gap: '2rem',
-            alignItems: 'stretch'
+            gap: '1.75rem',
+            alignItems: 'stretch',
+            width: '100%'
           }}
           className="testimonial-grid"
         >
@@ -200,28 +238,28 @@ export default function Testimonials() {
             style={{
               backgroundColor: '#FFFFFF',
               borderRadius: '24px',
-              padding: 'clamp(1.75rem, 2.5vw, 2.5rem)',
+              padding: 'clamp(1.5rem, 2.2vw, 2.2rem) clamp(1.75rem, 2.6vw, 2.75rem)',
               boxShadow: '0 12px 36px rgba(0, 0, 0, 0.06)',
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'space-between',
-              minHeight: '280px',
+              justifyContent: 'center',
+              minHeight: 'clamp(270px, 32vh, 310px)',
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.96)',
               transition: 'opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury)',
               transitionDelay: isVisible ? '0.14s' : '0s'
             }}
           >
-            {/* Top row: Author Info (social acronyms PIN, IN, X, FB removed) */}
+            {/* Top row: Author Info */}
             <div
               key={`author-${activeIdx}`}
               style={{
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
-                marginBottom: '1.5rem',
+                marginBottom: '0.85rem',
                 borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-                paddingBottom: '1rem',
+                paddingBottom: '0.65rem',
                 animation: 'fadeUpSoft 0.45s var(--ease-luxury)'
               }}
             >
@@ -229,15 +267,16 @@ export default function Testimonials() {
                 <h3
                   className="font-display"
                   style={{
-                    fontSize: '1.45rem',
+                    fontSize: '1.4rem',
                     color: '#121316',
                     letterSpacing: '0.04em',
-                    lineHeight: 1.1
+                    lineHeight: 1.1,
+                    margin: 0
                   }}
                 >
                   {item.author}
                 </h3>
-                <p style={{ fontSize: '0.85rem', color: '#9CA3AF', marginTop: '0.25rem' }}>
+                <p style={{ fontSize: '0.85rem', color: '#9CA3AF', margin: '0.2rem 0 0 0' }}>
                   {item.role}
                 </p>
               </div>
@@ -247,19 +286,20 @@ export default function Testimonials() {
             <blockquote
               key={`quote-${activeIdx}`}
               style={{
-                fontSize: 'clamp(1.15rem, 1.8vw, 1.45rem)',
+                fontSize: 'clamp(1.06rem, 1.3vw, 1.25rem)',
                 fontWeight: 400,
                 color: '#121316',
-                lineHeight: 1.45,
-                fontFamily: 'var(--font-serif)',
-                fontStyle: 'normal'
+                lineHeight: 1.5,
+                fontFamily: 'var(--font-body)',
+                fontStyle: 'normal',
+                margin: 0
               }}
             >
               {renderLetterByLetter(item.quote, isVisible)}
             </blockquote>
 
             {/* Pagination dots indicator */}
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '1rem' }}>
               {testimonialsList.map((_, idx) => (
                 <button
                   key={idx}
@@ -279,14 +319,16 @@ export default function Testimonials() {
             </div>
           </div>
 
-          {/* Right: Portrait Image (30% Card) */}
+          {/* Right: Portrait Image (30% Card) matching height with Left Card */}
           <div
             style={{
               borderRadius: '24px',
               overflow: 'hidden',
               boxShadow: '0 16px 40px rgba(0, 0, 0, 0.1)',
-              minHeight: '280px',
+              minHeight: 'clamp(270px, 32vh, 310px)',
               position: 'relative',
+              width: '100%',
+              height: '100%',
               opacity: isVisible ? 1 : 0,
               transform: isVisible ? 'translateY(0) scale(1)' : 'translateY(40px) scale(0.96)',
               transition: 'opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury)',
@@ -298,6 +340,9 @@ export default function Testimonials() {
               src={item.image}
               alt={item.author}
               style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
                 width: '100%',
                 height: '100%',
                 objectFit: 'cover',
@@ -341,12 +386,37 @@ export default function Testimonials() {
         }
 
         @media (max-width: 900px) {
+          #testimonials {
+            min-height: auto !important;
+            height: auto !important;
+            padding: 4.5rem 0 !important;
+          }
           .testimonial-grid {
             grid-template-columns: 1fr !important;
+            gap: 1.5rem !important;
+          }
+          .testimonial-grid > div:first-child {
+            min-height: auto !important;
+            height: auto !important;
           }
           .testimonial-grid > div:last-child {
-            min-height: 240px !important;
-            max-height: 340px !important;
+            min-height: 280px !important;
+            height: 320px !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .testimonials-header-row {
+            flex-direction: column !important;
+            align-items: center !important;
+            gap: 1.25rem !important;
+            margin-bottom: 1.5rem !important;
+          }
+          .testimonials-nav-arrows {
+            position: static !important;
+            top: auto !important;
+            transform: none !important;
+            padding-bottom: 0 !important;
           }
         }
       `}</style>

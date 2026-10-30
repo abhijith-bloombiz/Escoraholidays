@@ -339,8 +339,9 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
                 />
                 <span
                   style={{
+                    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
                     textTransform: 'uppercase',
-                    fontSize: '0.68rem',
+                    fontSize: '0.72rem',
                     letterSpacing: '0.2em',
                     color: '#011D3F',
                     fontWeight: 700
@@ -364,15 +365,8 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
                 }}
               >
                 WE MAKE BESPOKE KERALA <br className="hidden-mobile" />
-                <span
-                  style={{
-                    fontStyle: 'italic',
-                    color: '#9E6F29',
-                    textTransform: 'none',
-                    fontFamily: 'var(--font-serif)'
-                  }}
-                >
-                  Travel Effortless.
+                <span style={{ color: '#9E6F29' }}>
+                  TRAVEL EFFORTLESS.
                 </span>
               </h2>
 
@@ -440,7 +434,7 @@ export default function WhyEscora({ onOpenEnquiry }: WhyEscoraProps) {
 
                       {/* Bottom Area: Title + Description + Subtle Action Indicator */}
                       <div className="card-bottom-content">
-                        <h3 className="card-title font-serif">
+                        <h3 className="card-title">
                           {card.title}
                         </h3>
                         <p className="card-desc">

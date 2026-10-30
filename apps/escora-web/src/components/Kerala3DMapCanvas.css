@@ -1,0 +1,114 @@
+/* ══════════════════════════════════════════════════════════════
+   KERALA 3D MAP CANVAS — STYLING
+   Clean & Modular 3D Relief Interactive Canvas
+   ══════════════════════════════════════════════════════════════ */
+
+.kerala-3d-map-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  height: clamp(480px, 58vh, 600px);
+  margin: 0 auto;
+}
+
+.kerala-3d-map-three-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Floating District Markers on 3D Map */
+.map-floating-pin-pill {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 5.5px;
+  background: #FFFFFF;
+  padding: 4px 10px 4px 7.5px;
+  border-radius: 999px;
+  border: 1px solid rgba(180, 130, 53, 0.35);
+  box-shadow: 0 4px 12px rgba(18, 19, 22, 0.1);
+  cursor: pointer;
+  white-space: nowrap;
+  user-select: none;
+  z-index: 5;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  will-change: transform, opacity, left, top;
+}
+
+.map-floating-pin-pill .pin-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #B48235;
+  box-shadow: 0 0 6px rgba(180, 130, 53, 0.5);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.map-floating-pin-pill .pin-text {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #121316;
+  line-height: 1;
+}
+
+.map-floating-pin-pill:hover {
+  transform: translate(-50%, -50%) scale(1.1) !important;
+  background: #FFFFFF;
+  border-color: #B48235;
+  box-shadow: 0 6px 18px rgba(180, 130, 53, 0.25);
+  z-index: 10;
+}
+
+.map-floating-pin-pill.is-active,
+.map-floating-pin-pill.is-dest-target {
+  background: #121316;
+  border-color: #B48235;
+  transform: translate(-50%, -50%) scale(1.12) !important;
+  box-shadow: 0 8px 24px rgba(18, 19, 22, 0.28);
+  z-index: 12;
+}
+
+.map-floating-pin-pill.is-active .pin-dot,
+.map-floating-pin-pill.is-dest-target .pin-dot {
+  background: #D4A359;
+  box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4.5px rgba(212, 163, 89, 0.65);
+}
+
+.map-floating-pin-pill.is-active .pin-text,
+.map-floating-pin-pill.is-dest-target .pin-text {
+  color: #FFFFFF;
+  font-weight: 800;
+}
+
+@media (max-width: 959px) {
+  .kerala-3d-map-wrap {
+    max-width: 440px;
+    height: clamp(380px, 48vh, 460px);
+  }
+}
+
+@media (max-width: 767px) {
+  .kerala-3d-map-wrap {
+    max-width: 340px;
+    height: 340px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .map-floating-pin-pill {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: translate(-50%, -50%) !important;
+    pointer-events: auto !important;
+  }
+}

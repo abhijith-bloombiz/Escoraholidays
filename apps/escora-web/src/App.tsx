@@ -16,6 +16,12 @@ import ItineraryModal from './components/ItineraryModal';
 import Toast from './components/Toast';
 import type { TravelCategoryItem } from './data/escoraData';
 import ItineraryShare from './pages/itinerary-share';
+import DestinationsPage from './pages/destinations';
+import DestinationDetailPage from './pages/destination-detail';
+import ExperiencesPage from './pages/experiences';
+import ExperienceDetailPage from './pages/experience-detail';
+import PlanJourneyPage from './pages/plan';
+import AboutPage from './pages/about';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -185,6 +191,16 @@ export default function App() {
       <WouterRouter>
         <Switch>
           <Route path="/" component={LandingPage} />
+          <Route path="/destinations" component={DestinationsPage} />
+          <Route path="/destinations/:slug">
+            {(params) => <DestinationDetailPage slug={params.slug} key={params.slug} />}
+          </Route>
+          <Route path="/experiences" component={ExperiencesPage} />
+          <Route path="/experiences/:slug">
+            {(params) => <ExperienceDetailPage slug={params.slug} key={params.slug} />}
+          </Route>
+          <Route path="/plan" component={PlanJourneyPage} />
+          <Route path="/about" component={AboutPage} />
           <Route path="/itinerary/:token">
             {(params) => <ItineraryShare mode="itinerary" key={params.token} />}
           </Route>

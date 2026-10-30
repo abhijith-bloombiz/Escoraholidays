@@ -4,13 +4,6 @@ import { useListDestinations } from '@workspace/api-client-react';
 
 const HERO_SLIDES = [
   {
-    id: 'munnar',
-    image: '/images/hero/dream-holidays-Jqc2nOH3u3Y-unsplash_(1)_upscaled.jpg',
-    title: 'MUNNAR TEA HIGHLANDS',
-    subtitle: 'Misty Summits & Colonial Soul',
-    position: 'center 45%'
-  },
-  {
     id: 'idukki',
     image: '/images/hero/5-idukky_upscaled.png',
     title: 'IDUKKI HIGHLANDS',
@@ -23,6 +16,13 @@ const HERO_SLIDES = [
     title: 'FORT KOCHI HARBOUR',
     subtitle: 'Colonial Waterfront & Heritage Waterways',
     position: 'center 50%'
+  },
+  {
+    id: 'munnar-valley',
+    image: '/images/hero/dream-holidays-Jqc2nOH3u3Y-unsplash_(1)_upscaled.jpg',
+    title: 'HIGHLAND MISTS',
+    subtitle: 'Misty Summits & Colonial Soul',
+    position: 'center 45%'
   }
 ];
 
@@ -142,6 +142,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     };
   }, [remoteDestinations]);
 
+  const centerDestinationImage = useMemo(() => {
+    if (remoteDestinations && remoteDestinations.length > 0) {
+      const munnar = remoteDestinations.find((d) => d.name.toLowerCase().includes('munnar'));
+      if (munnar?.imageUrl) return munnar.imageUrl;
+    }
+    return '/images/dest_3_munnar.jpg';
+  }, [remoteDestinations]);
+
   const mobileDestinations = useMemo(() => {
     if (remoteDestinations && remoteDestinations.length > 0) {
       const published = remoteDestinations.filter((d) => d.published);
@@ -153,7 +161,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       }));
     }
     return [
-      { name: 'Munnar Highlands', image: '/images/hero/dream-holidays-Jqc2nOH3u3Y-unsplash_(1)_upscaled.jpg', tag: 'HIGHLANDS' },
+      { name: 'Munnar Highlands', image: '/images/dest_3_munnar.jpg', tag: 'HIGHLANDS' },
       { name: 'Alleppey Backwaters', image: '/images/tour_1_backwaters.jpg', tag: 'BACKWATERS' },
       { name: 'Wayanad Rainforest', image: '/images/dest_1_wayanad.jpg', tag: 'RAINFOREST' },
       { name: 'Fort Kochi Heritage', image: '/images/hero/sleeba-thomas-7FNVvI2Lezc-unsplash.jpg', tag: 'HERITAGE' },
@@ -282,6 +290,13 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const shrinkEase = shrinkRaw < 0.5
     ? 2 * shrinkRaw * shrinkRaw
     : 1 - Math.pow(-2 * shrinkRaw + 2, 2) / 2;
+
+  // Smooth crossfade between Opening Hero Media and Destination Sanctuary Card Media:
+  // Starts after the shrink begins (~0.10) and finishes as the card settles into the bento grid (~0.70)
+  const destImageRaw = Math.min(1, Math.max(0, (shrinkRaw - 0.10) / 0.60));
+  const destImageEase = destImageRaw < 0.5
+    ? 2 * destImageRaw * destImageRaw
+    : 1 - Math.pow(-2 * destImageRaw + 2, 2) / 2;
 
   // Hero text and search bar fade out during first 35% of Phase 1
   const heroTextOpacity = Math.max(0, 1 - phase1Progress * 2.8);
@@ -1055,9 +1070,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   }}
                   className="bento-center-card"
                 >
-                  {/* Media Layer (High-Resolution Parallax Backgrounds) */}
+                  {/* Layer 1: Opening Hero Media Layer (High-Resolution Parallax Backgrounds) */}
                   {HERO_SLIDES.map((slide, idx) => {
                     const isActive = idx === currentSlide;
+                    const heroSlideOpacity = isActive
+                      ? Math.max(0, (1 - destImageEase) * (1 - expandRaw * 1.5))
+                      : 0;
                     return (
                       <div
                         key={slide.id}
@@ -1067,7 +1085,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           backgroundImage: `url('${slide.image}')`,
                           backgroundSize: 'cover',
                           backgroundPosition: slide.position,
-                          opacity: isActive ? Math.max(0, 1 - expandRaw * 1.5) : 0,
+                          opacity: heroSlideOpacity,
                           transform: isActive ? 'scale(1.05)' : 'scale(1.0)',
                           transition: 'opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1), transform 8s cubic-bezier(0.16, 1, 0.3, 1)',
                           zIndex: 1
@@ -1076,14 +1094,30 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     );
                   })}
 
-                  {/* Flagship Experience Video Layer */}
+                  {/* Layer 2: Dedicated Destination Card Image (Munnar Tea Highlands - Crossfades in as hero card shrinks into bento) */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      backgroundImage: `url('${centerDestinationImage}')`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center 48%',
+                      opacity: Math.min(1, destImageEase * 1.25) * Math.max(0, 1 - expandRaw * 1.5),
+                      transform: `scale(${1.06 - 0.06 * destImageEase})`,
+                      zIndex: 2,
+                      transition: 'background-image 0.5s ease',
+                      pointerEvents: 'none'
+                    }}
+                  />
+
+                  {/* Layer 3: Flagship Experience Video Layer (Smoothly fades in as center card expands in Phase 3) */}
                   <div
                     style={{
                       position: 'absolute',
                       inset: 0,
                       opacity: Math.min(1, expandRaw * 1.8),
                       transform: `scale(${1.08 - 0.08 * expandEase})`,
-                      zIndex: 2,
+                      zIndex: 3,
                       pointerEvents: 'none',
                       overflow: 'hidden'
                     }}
@@ -1112,12 +1146,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       position: 'absolute',
                       inset: 0,
                       backgroundImage: `linear-gradient(180deg, rgba(11, 20, 16, ${0.25 + 0.45 * expInfoEase}) 0%, rgba(11, 20, 16, ${0.15 + 0.25 * expInfoEase}) 35%, rgba(11, 20, 16, ${0.2 + 0.45 * expInfoEase}) 65%, rgba(11, 20, 16, ${0.65 + 0.3 * expInfoEase}) 100%)`,
-                      zIndex: 3,
+                      zIndex: 4,
                       pointerEvents: 'none'
                     }}
                   />
 
-                  {/* Lightship Play / Pause Media Badge (Center Top) */}
+                  {/* Lightship Play / Pause Media Badge (Top Hero Fold only) */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -1142,8 +1176,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: 'pointer',
-                      opacity: Math.max(0, centerLabelOpacity * (1 - expandRaw * 4)),
-                      pointerEvents: expandRaw > 0.1 ? 'none' : (centerLabelOpacity > 0.4 ? 'auto' : 'none'),
+                      opacity: Math.max(0, (1 - destImageEase) * (1 - shrinkEase * 2) * (1 - expandRaw * 4)),
+                      pointerEvents: (destImageEase < 0.25 && shrinkEase < 0.3) ? 'auto' : 'none',
                       transition: 'opacity 0.3s ease, transform 0.2s ease, background-color 0.2s ease',
                       boxShadow: '0 4px 14px rgba(0, 0, 0, 0.35)'
                     }}
@@ -1777,8 +1811,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
               }}
             >
               <img
-                src="/images/hero/dream-holidays-Jqc2nOH3u3Y-unsplash_(1)_upscaled.jpg"
-                alt="Munnar Tea Highlands"
+                src="/images/hero/5-idukky_upscaled.png"
+                alt="Kerala Highlands"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
               <div

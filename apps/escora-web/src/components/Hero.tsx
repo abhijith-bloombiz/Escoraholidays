@@ -1086,6 +1086,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           muted
                           playsInline
                           preload="auto"
+                          disablePictureInPicture
+                          disableRemotePlayback
+                          controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+                          data-video-popout="false"
+                          tabIndex={-1}
+                          aria-hidden="true"
                           onEnded={() => {
                             if (idx === currentSlide && isPlaying) {
                               setCurrentSlide((curr) => (curr + 1) % HERO_VIDEOS.length);
@@ -1096,6 +1102,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                             height: '100%',
                             objectFit: 'cover',
                             display: 'block',
+                            pointerEvents: 'none',
                             backgroundColor: '#0B1410'
                           }}
                         >
@@ -1141,11 +1148,18 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       muted
                       playsInline
                       preload="auto"
+                      disablePictureInPicture
+                      disableRemotePlayback
+                      controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+                      data-video-popout="false"
+                      tabIndex={-1}
+                      aria-hidden="true"
                       style={{
                         width: '100%',
                         height: '100%',
                         objectFit: 'cover',
-                        display: 'block'
+                        display: 'block',
+                        pointerEvents: 'none'
                       }}
                     >
                       <source src="/Experience-section/12881094-hd_1920_1080_30fps.mp4" type="video/mp4" />
@@ -1800,6 +1814,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     muted
                     playsInline
                     preload="auto"
+                    disablePictureInPicture
+                    disableRemotePlayback
+                    controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+                    data-video-popout="false"
+                    tabIndex={-1}
+                    aria-hidden="true"
                     style={{
                       position: 'absolute',
                       inset: 0,
@@ -1807,6 +1827,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       height: '100%',
                       objectFit: 'cover',
                       display: 'block',
+                      pointerEvents: 'none',
                       opacity: isActive ? 1 : 0,
                       transition: 'opacity 1.2s ease',
                       backgroundColor: '#0B1410'
@@ -1986,7 +2007,13 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       muted
                       playsInline
                       preload="auto"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      disablePictureInPicture
+                      disableRemotePlayback
+                      controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+                      data-video-popout="false"
+                      tabIndex={-1}
+                      aria-hidden="true"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
                     >
                       <source src="/Experience-section/12881094-hd_1920_1080_30fps.mp4" type="video/mp4" />
                     </video>

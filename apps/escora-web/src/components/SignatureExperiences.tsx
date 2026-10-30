@@ -162,7 +162,13 @@ export default function SignatureExperiences({ onOpenEnquiry }: SignatureExperie
               muted
               playsInline
               preload="auto"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              disablePictureInPicture
+              disableRemotePlayback
+              controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+              data-video-popout="false"
+              tabIndex={-1}
+              aria-hidden="true"
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
             >
               <source src="/Experience-section/12881094-hd_1920_1080_30fps.mp4" type="video/mp4" />
             </video>

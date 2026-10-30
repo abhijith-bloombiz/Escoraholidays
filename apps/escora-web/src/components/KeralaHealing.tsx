@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { ArrowRight, ArrowUpRight, Star, Flower2, Heart, Sparkles } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { ArrowRight, Flower2, Heart, Sparkles } from 'lucide-react';
 import { useScrollReveal } from '../hooks/useScrollAnimation';
 
 interface HealingCard {
@@ -15,7 +15,7 @@ interface HealingCard {
 const HEALING_CARDS: HealingCard[] = [
   {
     id: 'ayurveda',
-    num: '01 / 03',
+    num: '01 / 04',
     pill: 'ASHTAVAIDYA HERITAGE',
     title: 'Classical Ayurveda & Panchakarma',
     desc: 'Unbroken 5,000-year lineage: pulse diagnosis (Nadi Pariksha) by Senior Vaidyas, synchronized four-hand herbal Abhyanga rituals, and warm Shirodhara.',
@@ -24,7 +24,7 @@ const HEALING_CARDS: HealingCard[] = [
   },
   {
     id: 'yoga',
-    num: '02 / 03',
+    num: '02 / 04',
     pill: 'MINDFUL AWAKENING & PRANAYAMA',
     title: 'Sunrise Yoga by the Waters',
     desc: 'Open-air dawn yoga pavilions overlooking tranquil backwaters, guided Vedic breathwork, somatic alignment, and restorative sunset sound meditation.',
@@ -33,12 +33,21 @@ const HEALING_CARDS: HealingCard[] = [
   },
   {
     id: 'kalaripayattu',
-    num: '03 / 03',
+    num: '03 / 04',
     pill: 'ANCIENT WARRIOR DISCIPLINE',
     title: 'Kalaripayattu Martial Movement & Marma',
     desc: "Kerala's 3,000-year-old warrior discipline combining biomechanical flexibility sequences, breath mastery, and restorative therapeutic Marma Chikitsa.",
     image: '/images/retreat_3_kalaripayattu.jpg',
     highlights: ['3,000-Yr Discipline', 'Marma Pressure Points', 'Mobility Mastery']
+  },
+  {
+    id: 'naturopathy',
+    num: '04 / 04',
+    pill: 'SATTVIC BOTANICAL NOURISHMENT',
+    title: 'Naturopathy & Sattvic Living',
+    desc: 'Farm-to-table organic nutrition harvested daily from estate herbal gardens, bespoke dosha broths, and restorative waterfront sanctuary stillness.',
+    image: '/images/exp_pool_villa.jpg',
+    highlights: ['Estate Herbal Gardens', 'Custom Dosha Broths', 'Restorative Sanctuary']
   }
 ];
 
@@ -48,6 +57,7 @@ export interface KeralaHealingProps {
 
 export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
   const [sectionRef, isVisible] = useScrollReveal<HTMLElement>({ threshold: 0.1, reEnter: true });
+  const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
 
   const handleConsultation = (experienceTitle?: string) => {
     if (onOpenEnquiry) {
@@ -84,6 +94,75 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
       window.removeEventListener('resize', updateOverlap);
     };
   }, [sectionRef]);
+
+  // 2-Card Cycling Stacking Animation:
+  // Keeps at most 2 cards in the tiered stack at any time during desktop scroll.
+  // When card i arrives, card i-2 fades out smoothly, and card i-1 slides up to slot 1 (-28px).
+  useEffect(() => {
+    let ticking = false;
+
+    const updateCardTransforms = () => {
+      ticking = false;
+      const cards = cardsRef.current;
+      if (!cards || cards.length === 0) return;
+
+      if (window.innerWidth <= 1040) {
+        cards.forEach((card) => {
+          if (card) {
+            card.style.transform = '';
+            card.style.opacity = '';
+          }
+        });
+        return;
+      }
+
+      // Calculate arrival progress of incoming cards (i >= 2)
+      // When card i arrives at top: 124px, p[i] = 1.
+      // Hermite smoothstep easing: p * p * (3 - 2 * p)
+      const p = [];
+      for (let i = 2; i < cards.length; i++) {
+        const card = cards[i];
+        if (!card) continue;
+        const rect = card.getBoundingClientRect();
+        const rawP = Math.max(0, Math.min(1, 1 - (rect.top - 124) / 260));
+        p[i] = rawP * rawP * (3 - 2 * rawP);
+      }
+
+      cards.forEach((card, k) => {
+        if (!card) return;
+        if (k === 0) {
+          // Card 0: fades out smoothly and drifts upward slightly as Card 2 arrives
+          const p2 = p[2] || 0;
+          card.style.opacity = (1 - p2).toString();
+          card.style.transform = 'translateY(' + (-14 * p2) + 'px)';
+        } else {
+          // Card k:
+          // Slides up from 124px to 96px (-28px) when Card k+1 arrives
+          // Fades out smoothly when Card k+2 arrives
+          const slideUp = p[k + 1] || 0;
+          const fadeOut = p[k + 2] || 0;
+          card.style.opacity = (1 - fadeOut).toString();
+          card.style.transform = 'translateY(' + (-28 * slideUp - 14 * fadeOut) + 'px)';
+        }
+      });
+    };
+
+    const onScrollOrResize = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(updateCardTransforms);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScrollOrResize, { passive: true });
+    window.addEventListener('resize', onScrollOrResize, { passive: true });
+    updateCardTransforms();
+
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize);
+      window.removeEventListener('resize', onScrollOrResize);
+    };
+  }, []);
 
 
   return (
@@ -168,7 +247,7 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
               Kerala is the unbroken birthplace of classical Ayurveda. Every ESCORA retreat begins with an unhurried 1-on-1 pulse diagnosis (<em>Nadi Pariksha</em>) with a Senior Vaidya, followed by synchronized four-hand Abhyanga oil therapies, warm herbal Shirodhara, and customized sattvic estate nutrition.
             </p>
 
-            <div style={{ marginBottom: '2.5rem' }}>
+            <div>
               <button
                 onClick={() => handleConsultation()}
                 className="btn-pill btn-gold"
@@ -183,60 +262,9 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
                   gap: '0.5rem'
                 }}
               >
-                <span>Consult a Senior Vaidya</span>
+                <span>Plan a Journey</span>
                 <ArrowRight size={14} />
               </button>
-            </div>
-
-            {/* Traveler Proof Pill */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
-                {['photo-1534528741775-53994a69daeb', 'photo-1507003211169-0a1dd7228f2d', 'photo-1517841905240-472988babdf9'].map((img, idx) => (
-                  <img
-                    key={idx}
-                    src={`https://images.unsplash.com/${img}?auto=format&fit=crop&w=80&h=80&q=80`}
-                    alt="Guest avatar"
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      border: '2px solid #F8F6F1',
-                      marginLeft: idx === 0 ? 0 : '-10px',
-                      objectFit: 'cover'
-                    }}
-                  />
-                ))}
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    backgroundColor: '#121316',
-                    color: '#D4A359',
-                    fontSize: '0.74rem',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginLeft: '-10px',
-                    border: '2px solid #F8F6F1'
-                  }}
-                >
-                  5★
-                </div>
-              </div>
-
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginBottom: '0.15rem' }}>
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={12} fill="#B48235" color="#B48235" />
-                  ))}
-                  <span style={{ fontSize: '0.84rem', fontWeight: 700, color: '#121316', marginLeft: '0.35rem' }}>4.9/5</span>
-                </div>
-                <div style={{ fontSize: '0.78rem', color: '#6B7280', fontWeight: 500 }}>
-                  Doctor-Supervised • 100% Curative
-                </div>
-              </div>
             </div>
 
           </div>
@@ -248,27 +276,29 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
               position: 'relative',
               width: '100%',
               display: 'flex',
-              flexDirection: 'column',
-              paddingBottom: '450px'
+              flexDirection: 'column'
             }}
           >
             {HEALING_CARDS.map((card, idx) => (
               <div
                 key={card.id}
+                ref={(el) => { cardsRef.current[idx] = el; }}
                 className={`healing-stack-card healing-card-${idx}`}
                 style={{
                   position: 'sticky',
                   top: idx === 0 ? '96px' : '124px',
                   zIndex: idx + 2,
-                  marginBottom: idx === HEALING_CARDS.length - 1 ? '0px' : '420px',
+                  marginTop: idx === 0 ? '0px' : '460px',
+                  marginBottom: '0px',
                   height: '540px',
                   borderRadius: '28px',
                   overflow: 'hidden',
-                  boxShadow: '0 24px 60px rgba(0, 0, 0, 0.32), 0 6px 20px rgba(0, 0, 0, 0.16)',
-                  border: '1px solid rgba(255, 255, 255, 0.22)',
+                  boxShadow: '0 10px 28px rgba(18, 19, 22, 0.08), 0 2px 8px rgba(18, 19, 22, 0.04)',
+                  border: 'none',
                   backgroundColor: '#121316',
                   cursor: 'pointer',
-                  transition: 'box-shadow 0.35s ease, border-color 0.35s ease'
+                  transition: 'box-shadow 0.35s ease',
+                  willChange: 'transform, opacity'
                 }}
                 onClick={() => handleConsultation(card.title)}
                 role="button"
@@ -279,7 +309,7 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
                   }
                 }}
               >
-                {/* Background Image */}
+                {/* Background Image (Clean edge-to-edge without dark overlays) */}
                 <img
                   src={card.image}
                   alt={card.title}
@@ -293,154 +323,47 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
                   className="stack-card-img"
                 />
 
-                {/* Top Frosted Index Tab (Peeking when stacked behind next cards) */}
+                {/* Title at Bottom with Generous Border Space */}
                 <div
                   style={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '52px',
-                    padding: '0.85rem 1.4rem',
-                    background: 'linear-gradient(180deg, rgba(18, 19, 22, 0.88) 0%, rgba(18, 19, 22, 0.5) 75%, transparent 100%)',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
-                    zIndex: 3,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span
-                      style={{
-                        width: '7px',
-                        height: '7px',
-                        borderRadius: '50%',
-                        backgroundColor: '#D4A359',
-                        boxShadow: '0 0 8px #D4A359'
-                      }}
-                    />
-                    <span
-                      style={{
-                        fontSize: '0.72rem',
-                        fontWeight: 700,
-                        letterSpacing: '0.12em',
-                        color: '#FFFFFF',
-                        textTransform: 'uppercase'
-                      }}
-                    >
-                      {card.num}
-                    </span>
-                  </div>
-
-                  <span
-                    style={{
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.12em',
-                      color: '#D4A359',
-                      textTransform: 'uppercase'
-                    }}
-                  >
-                    {card.pill}
-                  </span>
-                </div>
-
-                {/* Bottom Shadow Gradient */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(180deg, rgba(18,19,22,0.15) 0%, rgba(18,19,22,0) 35%, rgba(18,19,22,0.45) 55%, rgba(18,19,22,0.94) 100%)',
-                    zIndex: 1
-                  }}
-                />
-
-                {/* Bottom Card Content */}
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '1.75rem',
-                    left: '1.6rem',
-                    right: '1.6rem',
+                    left: '1.75rem',
+                    right: '1.75rem',
+                    bottom: '2.25rem',
                     zIndex: 2,
-                    color: '#FFFFFF'
+                    textAlign: 'center',
+                    pointerEvents: 'none'
                   }}
                 >
-                  {/* Highlight Feature Pills */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', marginBottom: '0.75rem' }}>
-                    {card.highlights.map((h, hIdx) => (
-                      <span
-                        key={hIdx}
-                        style={{
-                          fontSize: '0.66rem',
-                          fontWeight: 600,
-                          letterSpacing: '0.04em',
-                          padding: '0.2rem 0.65rem',
-                          borderRadius: '999px',
-                          backgroundColor: 'rgba(255, 255, 255, 0.14)',
-                          backdropFilter: 'blur(10px)',
-                          WebkitBackdropFilter: 'blur(10px)',
-                          border: '1px solid rgba(255, 255, 255, 0.18)',
-                          color: '#FFFFFF'
-                        }}
-                      >
-                        {h}
-                      </span>
-                    ))}
-                  </div>
-
-                  {/* Title */}
                   <h3
                     style={{
-                      fontSize: 'clamp(1.2rem, 1.4vw, 1.45rem)',
+                      fontSize: 'clamp(1.4rem, 2vw, 1.95rem)',
                       fontFamily: 'var(--font-display)',
-                      fontWeight: 600,
+                      fontWeight: 700,
                       lineHeight: 1.15,
-                      letterSpacing: '0.015em',
-                      margin: '0 0 0.45rem',
+                      letterSpacing: '0.035em',
+                      margin: 0,
                       color: '#FFFFFF',
-                      textTransform: 'uppercase'
+                      textTransform: 'uppercase',
+                      textShadow: '0 2px 10px rgba(0, 0, 0, 0.95), 0 4px 22px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 0, 0, 0.6)'
                     }}
                   >
                     {card.title}
                   </h3>
-
-                  {/* Caption */}
-                  <p
-                    style={{
-                      fontSize: '0.82rem',
-                      color: 'rgba(255, 255, 255, 0.82)',
-                      lineHeight: 1.45,
-                      margin: '0 0 0.85rem',
-                      fontWeight: 400
-                    }}
-                  >
-                    {card.desc}
-                  </p>
-
-                  {/* Bottom Action Pill */}
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.35rem',
-                      fontSize: '0.74rem',
-                      fontWeight: 700,
-                      color: '#D4A359',
-                      letterSpacing: '0.06em',
-                      textTransform: 'uppercase'
-                    }}
-                    className="card-cta-link"
-                  >
-                    <span>Reserve Retreat Consultation</span>
-                    <ArrowUpRight size={13} />
-                  </div>
                 </div>
               </div>
             ))}
+
+            {/* Hold Spacer to keep full 3-card stack pinned & aligned before scrolling away */}
+            <div
+              className="healing-deck-spacer"
+              style={{
+                height: '900px',
+                width: '100%',
+                pointerEvents: 'none'
+              }}
+              aria-hidden="true"
+            />
           </div>
 
           {/* Right Column: Trova Specs Table & Fanned Photo Bento Card */}
@@ -550,8 +473,8 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
                 }}
               >
                 <img
-                  src="/images/exp_pool_villa.jpg"
-                  alt="Herbal Garden"
+                  src="/images/exp_treehouse.jpg"
+                  alt="Forest Sanctuary"
                   style={{
                     position: 'absolute',
                     left: '10px',
@@ -642,8 +565,7 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
           }
 
           .healing-stack-card:hover {
-            box-shadow: 0 32px 75px rgba(0, 0, 0, 0.35), 0 8px 25px rgba(0, 0, 0, 0.15) !important;
-            border-color: rgba(212, 163, 89, 0.5) !important;
+            box-shadow: 0 16px 36px rgba(18, 19, 22, 0.12), 0 4px 12px rgba(18, 19, 22, 0.06) !important;
           }
 
           .healing-stack-card:hover .stack-card-img {
@@ -667,7 +589,13 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
             }
             .healing-stack-card {
               height: 440px !important;
-              margin-bottom: 120px !important;
+              margin-top: 24px !important;
+              margin-bottom: 0px !important;
+              opacity: 1 !important;
+              transform: none !important;
+            }
+            .healing-deck-spacer {
+              display: none !important;
             }
           }
         `}</style>

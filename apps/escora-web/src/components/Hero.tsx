@@ -492,7 +492,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
               overflow: 'hidden'
             }}
           >
-            {/* Split Grand Editorial Typography: Left & Right */}
+            {/* Centered Cinematic Editorial Typography (Option 2) */}
             {heroTextOpacity > 0.01 && (
               <div
                 style={{
@@ -502,87 +502,80 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   pointerEvents: 'none',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0 5vw',
-                  maxWidth: '1720px',
+                  justifyContent: 'center',
+                  padding: '2.5rem 1.5rem 0',
                   margin: '0 auto'
                 }}
               >
-                {/* Left Headline (Lightship-Style) */}
                 <div
                   style={{
                     opacity: heroTextOpacity,
-                    transform: `translateX(-${heroTextSlide}px)`,
-                    maxWidth: '560px'
+                    transform: `translateY(-${heroTextSlide * 0.7}px)`,
+                    textAlign: 'center',
+                    maxWidth: '920px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.75rem'
                   }}
                 >
                   <span
                     style={{
-                      display: 'inline-block',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
                       textTransform: 'uppercase',
-                      fontSize: '0.76rem',
-                      letterSpacing: '0.22em',
-                      color: 'rgba(255, 255, 255, 0.85)',
-                      fontWeight: 700,
-                      marginBottom: '1rem',
-                      textShadow: '0 2px 8px rgba(0,0,0,0.6)'
-                    }}
-                  >
-                    GOD'S OWN COUNTRY
-                  </span>
-                  <h1
-                    className="font-display"
-                    style={{
-                      fontSize: 'clamp(3rem, 5.2vw, 5.2rem)',
-                      color: '#FFFFFF',
-                      lineHeight: 0.96,
-                      letterSpacing: '0.03em',
-                      textTransform: 'uppercase',
-                      margin: 0,
-                      textShadow: '0 4px 20px rgba(0, 0, 0, 0.55)'
-                    }}
-                  >
-                    Bespoke <br />Kerala.
-                  </h1>
-                </div>
-
-                {/* Right Headline (Lightship-Style) */}
-                <div
-                  style={{
-                    opacity: heroTextOpacity,
-                    transform: `translateX(${heroTextSlide}px)`,
-                    textAlign: 'right',
-                    maxWidth: '560px'
-                  }}
-                >
-                  <span
-                    style={{
-                      display: 'inline-block',
-                      textTransform: 'uppercase',
-                      fontSize: '0.76rem',
-                      letterSpacing: '0.22em',
+                      fontSize: 'clamp(0.72rem, 0.85vw, 0.82rem)',
+                      letterSpacing: '0.26em',
                       color: '#D4AF37',
                       fontWeight: 700,
-                      marginBottom: '1rem',
-                      textShadow: '0 2px 8px rgba(0,0,0,0.6)'
+                      marginBottom: '0.25rem',
+                      textShadow: '0 2px 10px rgba(0, 0, 0, 0.85)'
                     }}
                   >
-                    100% PRIVATE CHARTERS
+                    GOD'S OWN COUNTRY • 100% PRIVATE CHARTERS
                   </span>
-                  <h2
-                    className="font-display"
+
+                  <h1
                     style={{
-                      fontSize: 'clamp(3rem, 5.2vw, 5.2rem)',
+                      fontFamily: 'var(--font-serif)',
+                      fontSize: 'clamp(2.8rem, 5.5vw, 5.2rem)',
                       color: '#FFFFFF',
-                      lineHeight: 0.96,
-                      letterSpacing: '0.03em',
-                      textTransform: 'uppercase',
+                      lineHeight: 1.05,
+                      letterSpacing: '-0.015em',
+                      fontWeight: 500,
                       margin: 0,
-                      textShadow: '0 4px 20px rgba(0, 0, 0, 0.55)'
+                      textShadow: '0 6px 32px rgba(0, 0, 0, 0.75), 0 2px 10px rgba(0, 0, 0, 0.8)'
                     }}
                   >
-                    Crafted For <br />Stillness.
-                  </h2>
+                    Bespoke Kerala.{' '}
+                    <span
+                      style={{
+                        display: 'block',
+                        fontStyle: 'italic',
+                        fontWeight: 400,
+                        color: 'rgba(255, 255, 255, 0.96)',
+                        marginTop: '0.2rem'
+                      }}
+                    >
+                      Crafted for Stillness.
+                    </span>
+                  </h1>
+
+                  <p
+                    style={{
+                      fontSize: 'clamp(0.85rem, 1vw, 1.02rem)',
+                      letterSpacing: '0.12em',
+                      color: 'rgba(255, 255, 255, 0.88)',
+                      marginTop: '0.85rem',
+                      textTransform: 'uppercase',
+                      fontWeight: 500,
+                      maxWidth: '720px',
+                      textShadow: '0 2px 12px rgba(0, 0, 0, 0.85)'
+                    }}
+                  >
+                    Private Houseboats • Highland Tea Sanctuaries • Ancient Ayurveda
+                  </p>
                 </div>
               </div>
             )}
@@ -1899,14 +1892,17 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   color: '#FFFFFF'
                 }}
               >
-                <span style={{ fontSize: '0.72rem', letterSpacing: '0.2em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase' }}>
-                  GOD'S OWN COUNTRY
+                <span style={{ fontSize: '0.72rem', letterSpacing: '0.22em', color: '#D4AF37', fontWeight: 700, textTransform: 'uppercase' }}>
+                  GOD'S OWN COUNTRY • 100% PRIVATE
                 </span>
-                <h1 className="font-display" style={{ fontSize: '2.2rem', margin: '0.3rem 0', color: '#FFFFFF', lineHeight: 1.05 }}>
-                  Bespoke Kerala.
+                <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: '2.1rem', margin: '0.4rem 0', color: '#FFFFFF', lineHeight: 1.1, fontWeight: 500 }}>
+                  Bespoke Kerala.{' '}
+                  <span style={{ fontStyle: 'italic', fontWeight: 400, color: 'rgba(255, 255, 255, 0.95)' }}>
+                    Crafted for Stillness.
+                  </span>
                 </h1>
-                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.82)', margin: 0 }}>
-                  Crafted for Stillness • 100% Private Departures
+                <p style={{ fontSize: '0.8rem', letterSpacing: '0.08em', color: 'rgba(255, 255, 255, 0.84)', textTransform: 'uppercase', margin: 0 }}>
+                  Private Charters • Highland Sanctuaries
                 </p>
               </div>
             </div>

@@ -6,22 +6,13 @@ const HERO_VIDEOS = [
   {
     id: 'hero-video-1',
     video: '/hero/15015065_1920_1080_60fps.mp4',
-    poster: '/images/hero/5-idukky_upscaled.png',
     title: 'KERALA HIGHLANDS',
     subtitle: 'Misty Summits & Ancient Valleys'
   },
   {
     id: 'hero-video-2',
-    video: '/hero/16262226_3840_2160_60fps.mp4',
-    poster: '/images/tour_1_backwaters.jpg',
-    title: 'BACKWATER TRANQUILLITY',
-    subtitle: 'Drifting Through Silent Palms'
-  },
-  {
-    id: 'hero-video-3',
     video: '/hero/9154179-uhd_3840_2160_25fps.mp4',
-    poster: '/images/hero/sleeba-thomas-7FNVvI2Lezc-unsplash.jpg',
-    title: 'HERITAGE COASTLINE',
+    title: 'HERITAGE WATERWAYS',
     subtitle: 'Arabian Sea & Living Legacies'
   }
 ];
@@ -190,29 +181,37 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
 
   // Synchronize active hero video playback on slide change or play/pause toggle
   useEffect(() => {
+    const timers: ReturnType<typeof setTimeout>[] = [];
     heroVideoRefs.current.forEach((videoEl, idx) => {
       if (!videoEl) return;
       if (idx === currentSlide) {
         if (isPlaying) {
+          videoEl.currentTime = 0;
           videoEl.play().catch(() => {});
         } else {
           videoEl.pause();
         }
       } else {
-        videoEl.pause();
-        try {
-          videoEl.currentTime = 0;
-        } catch {}
+        // Smoothly pause previous video after crossfade transition
+        const timer = setTimeout(() => {
+          if (videoEl && idx !== currentSlide) {
+            videoEl.pause();
+          }
+        }, 1200);
+        timers.push(timer);
       }
     });
+    return () => {
+      timers.forEach((t) => clearTimeout(t));
+    };
   }, [currentSlide, isPlaying]);
 
-  // Hero video carousel loop (7.5s per cinematic video)
+  // Hero video carousel loop (continuously repeats through the 2 hero videos)
   useEffect(() => {
     if (!isPlaying) return;
     const interval = setInterval(() => {
       setCurrentSlide((curr) => (curr + 1) % HERO_VIDEOS.length);
-    }, 7500);
+    }, 8000);
     return () => clearInterval(interval);
   }, [isPlaying]);
 
@@ -1109,22 +1108,27 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           transition: 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 8s cubic-bezier(0.16, 1, 0.3, 1)',
                           zIndex: 1,
                           overflow: 'hidden',
-                          pointerEvents: 'none'
+                          pointerEvents: 'none',
+                          backgroundColor: '#0B1410'
                         }}
                       >
                         <video
                           ref={(el) => { heroVideoRefs.current[idx] = el; }}
                           autoPlay
-                          loop
                           muted
                           playsInline
                           preload="auto"
-                          poster={slide.poster}
+                          onEnded={() => {
+                            if (idx === currentSlide && isPlaying) {
+                              setCurrentSlide((curr) => (curr + 1) % HERO_VIDEOS.length);
+                            }
+                          }}
                           style={{
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
-                            display: 'block'
+                            display: 'block',
+                            backgroundColor: '#0B1410'
                           }}
                         >
                           <source src={slide.video} type="video/mp4" />
@@ -1141,7 +1145,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       backgroundImage: `url('${centerDestinationImage}')`,
                       backgroundSize: 'cover',
                       backgroundPosition: 'center 48%',
-                      opacity: Math.min(1, destImageEase * 1.25) * Math.max(0, 1 - expandRaw * 1.5),
+                      opacity: destImageEase > 0.01 ? Math.min(1, destImageEase * 1.25) * Math.max(0, 1 - expandRaw * 1.5) : 0,
+                      display: destImageEase > 0.01 ? 'block' : 'none',
                       transform: `scale(${1.06 - 0.06 * destImageEase})`,
                       zIndex: 2,
                       transition: 'background-image 0.5s ease',
@@ -1849,17 +1854,32 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 marginBottom: '1.5rem'
               }}
             >
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="auto"
-                poster="/images/hero/5-idukky_upscaled.png"
-                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-              >
-                <source src="/hero/15015065_1920_1080_60fps.mp4" type="video/mp4" />
-              </video>
+              {HERO_VIDEOS.map((slide, idx) => {
+                const isActive = idx === currentSlide;
+                return (
+                  <video
+                    key={slide.id}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="auto"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      display: 'block',
+                      opacity: isActive ? 1 : 0,
+                      transition: 'opacity 1.2s ease',
+                      backgroundColor: '#0B1410'
+                    }}
+                  >
+                    <source src={slide.video} type="video/mp4" />
+                  </video>
+                );
+              })}
               <div
                 style={{
                   position: 'absolute',

@@ -5,6 +5,8 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
+import Kerala3DMapCanvas, { DISTRICT_DETAILS } from '../components/Kerala3DMapCanvas';
+import '../components/Kerala3DMapSection.css';
 import { KERALA_DESTINATIONS, type DestinationDetail } from '../data/destinationsData';
 
 const CATEGORIES = ['All', 'Highlands', 'Backwaters', 'Coastal', 'Forest & Wildlife', 'Heritage'] as const;
@@ -14,6 +16,53 @@ export default function DestinationsPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
+  const [selectedDistrict, setSelectedDistrict] = useState<string | null>('Idukki');
+  const [activeDestSlug, setActiveDestSlug] = useState<string>('munnar');
+
+  const spotlightDest = useMemo(() => {
+    return KERALA_DESTINATIONS.find((d) => d.slug === activeDestSlug) || KERALA_DESTINATIONS[0];
+  }, [activeDestSlug]);
+
+  const handleSelectDistrict = (districtName: string, associatedDestId?: string) => {
+    setSelectedDistrict(districtName);
+    if (associatedDestId) {
+      const match = KERALA_DESTINATIONS.find(
+        (d) =>
+          d.slug.toLowerCase() === associatedDestId.toLowerCase() ||
+          d.slug.toLowerCase().includes(associatedDestId.toLowerCase())
+      );
+      if (match) {
+        setActiveDestSlug(match.slug);
+      }
+    }
+  };
+
+  const handleSelectPill = (dest: DestinationDetail) => {
+    setActiveDestSlug(dest.slug);
+    const districtEntry = Object.entries(DISTRICT_DETAILS).find(
+      ([_, v]) => v.associatedDestId === dest.slug
+    );
+    if (districtEntry) {
+      setSelectedDistrict(districtEntry[0]);
+    }
+  };
+
+  const handleJumpToGrid = (slug: string, type: string) => {
+    if (activeCategory !== 'All' && activeCategory !== type) {
+      setActiveCategory('All');
+    }
+    setTimeout(() => {
+      const el = document.getElementById(`destination-${slug}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.style.transition = 'box-shadow 0.4s ease';
+        el.style.boxShadow = '0 0 0 4px #D4A359, 0 20px 45px rgba(212, 163, 89, 0.35)';
+        setTimeout(() => {
+          el.style.boxShadow = '';
+        }, 2400);
+      }
+    }, 100);
+  };
 
   const filteredDestinations = useMemo(() => {
     return KERALA_DESTINATIONS.filter((dest) => {
@@ -155,6 +204,85 @@ export default function DestinationsPage() {
         </div>
       </section>
 
+      {/* ── Regional Geography & Terroirs Showcase ── */}
+      <section className="kerala-3d-map-section">
+        <div className="section-wrapper">
+          <div className="kerala-3d-map-header">
+            <div className="kerala-3d-map-eyebrow">
+              <Compass size={14} color="#9E6F29" /> Regional Geography &amp; Terroirs
+            </div>
+            <h2 className="font-display kerala-3d-map-title">
+              EXPLORE KERALA BY REGION
+            </h2>
+            <p className="kerala-3d-map-subtitle">
+              From mist-cloaked tea summits to silent backwater lagoons — explore Kerala's diverse terroirs and curated havens.
+            </p>
+          </div>
+
+          <div className="kerala-3d-map-grid">
+            {/* Kerala Map Canvas */}
+            <div className="kerala-3d-canvas-box">
+              <div className="kerala-3d-map-wrap">
+                <Kerala3DMapCanvas
+                  selectedDistrict={selectedDistrict}
+                  activeDestId={activeDestSlug}
+                  onSelectDistrict={handleSelectDistrict}
+                />
+              </div>
+            </div>
+
+            {/* Curated Spotlight Card */}
+            <div className="kerala-3d-spotlight-box">
+              {spotlightDest && (
+                <div className="kerala-3d-spotlight-card">
+                  <div className="kerala-3d-spotlight-image-wrap">
+                    <img
+                      src={spotlightDest.imageUrl}
+                      alt={spotlightDest.name}
+                      className="kerala-3d-spotlight-img"
+                    />
+                    <div className="kerala-3d-spotlight-image-scrim" />
+                  </div>
+
+                  <div className="kerala-3d-spotlight-body">
+                    <div className="kerala-3d-spotlight-title-row">
+                      <h3 className="font-display kerala-3d-spotlight-name">
+                        {spotlightDest.name}
+                      </h3>
+                      <span className="kerala-3d-spotlight-region">
+                        {spotlightDest.region}
+                      </span>
+                    </div>
+
+                    <p className="kerala-3d-spotlight-desc">
+                      {spotlightDest.shortDesc}
+                    </p>
+
+                    <div className="kerala-3d-spotlight-actions">
+                      <Link
+                        href={`/destinations/${spotlightDest.slug}`}
+                        className="kerala-3d-btn-primary"
+                      >
+                        <span>Explore Sanctuary Details</span>
+                        <ArrowRight size={16} />
+                      </Link>
+                      <button
+                        type="button"
+                        className="kerala-3d-btn-secondary"
+                        onClick={() => handleJumpToGrid(spotlightDest.slug, spotlightDest.type)}
+                      >
+                        <MapPin size={15} color="#D4A359" />
+                        <span>Jump to Collection</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Filter Chips Bar */}
       <section
         style={{
@@ -247,6 +375,7 @@ export default function DestinationsPage() {
                   style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}
                 >
                   <article
+                    id={`destination-${dest.slug}`}
                     className="portal-card"
                     style={{
                       backgroundColor: '#FFFFFF',

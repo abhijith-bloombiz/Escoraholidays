@@ -2,29 +2,31 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { MapPin, Calendar, Compass, Users, ChevronDown, ArrowRight, ArrowUpRight, Play, Pause, Sparkles } from 'lucide-react';
 import { useListDestinations } from '@workspace/api-client-react';
 
-const HERO_SLIDES = [
+const HERO_VIDEOS = [
   {
-    id: 'idukki',
-    image: '/images/hero/5-idukky_upscaled.png',
-    title: 'IDUKKI HIGHLANDS',
-    subtitle: 'Misty Summits & Ancient Valleys',
-    position: 'center 40%'
+    id: 'hero-video-1',
+    video: '/hero/15015065_1920_1080_60fps.mp4',
+    poster: '/images/hero/5-idukky_upscaled.png',
+    title: 'KERALA HIGHLANDS',
+    subtitle: 'Misty Summits & Ancient Valleys'
   },
   {
-    id: 'kochi',
-    image: '/images/hero/sleeba-thomas-7FNVvI2Lezc-unsplash.jpg',
-    title: 'FORT KOCHI HARBOUR',
-    subtitle: 'Colonial Waterfront & Heritage Waterways',
-    position: 'center 50%'
+    id: 'hero-video-2',
+    video: '/hero/16262226_3840_2160_60fps.mp4',
+    poster: '/images/tour_1_backwaters.jpg',
+    title: 'BACKWATER TRANQUILLITY',
+    subtitle: 'Drifting Through Silent Palms'
   },
   {
-    id: 'munnar-valley',
-    image: '/images/hero/dream-holidays-Jqc2nOH3u3Y-unsplash_(1)_upscaled.jpg',
-    title: 'HIGHLAND MISTS',
-    subtitle: 'Misty Summits & Colonial Soul',
-    position: 'center 45%'
+    id: 'hero-video-3',
+    video: '/hero/9154179-uhd_3840_2160_25fps.mp4',
+    poster: '/images/hero/sleeba-thomas-7FNVvI2Lezc-unsplash.jpg',
+    title: 'HERITAGE COASTLINE',
+    subtitle: 'Arabian Sea & Living Legacies'
   }
 ];
+
+const HERO_SLIDES = HERO_VIDEOS;
 
 const COMPANIONS = {
   topLeft: {
@@ -92,6 +94,7 @@ export interface HeroProps {
 export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestination }: HeroProps) {
   const containerRef = useRef<HTMLElement | null>(null);
   const expVideoRef = useRef<HTMLVideoElement | null>(null);
+  const heroVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isDesktop, setIsDesktop] = useState(true);
   const [isRearranged, setIsRearranged] = useState(false);
@@ -185,12 +188,31 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     }
   }, []);
 
-  // Hero carousel loop
+  // Synchronize active hero video playback on slide change or play/pause toggle
+  useEffect(() => {
+    heroVideoRefs.current.forEach((videoEl, idx) => {
+      if (!videoEl) return;
+      if (idx === currentSlide) {
+        if (isPlaying) {
+          videoEl.play().catch(() => {});
+        } else {
+          videoEl.pause();
+        }
+      } else {
+        videoEl.pause();
+        try {
+          videoEl.currentTime = 0;
+        } catch {}
+      }
+    });
+  }, [currentSlide, isPlaying]);
+
+  // Hero video carousel loop (7.5s per cinematic video)
   useEffect(() => {
     if (!isPlaying) return;
     const interval = setInterval(() => {
-      setCurrentSlide((curr) => (curr + 1) % HERO_SLIDES.length);
-    }, 6000);
+      setCurrentSlide((curr) => (curr + 1) % HERO_VIDEOS.length);
+    }, 7500);
     return () => clearInterval(interval);
   }, [isPlaying]);
 
@@ -1070,10 +1092,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   }}
                   className="bento-center-card"
                 >
-                  {/* Layer 1: Opening Hero Media Layer (High-Resolution Parallax Backgrounds) */}
-                  {HERO_SLIDES.map((slide, idx) => {
+                  {/* Layer 1: Opening Hero Video Carousel (Cinematic 4K/HD Videos from public/hero) */}
+                  {HERO_VIDEOS.map((slide, idx) => {
                     const isActive = idx === currentSlide;
-                    const heroSlideOpacity = isActive
+                    const heroVideoOpacity = isActive
                       ? Math.max(0, (1 - destImageEase) * (1 - expandRaw * 1.5))
                       : 0;
                     return (
@@ -1082,15 +1104,32 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         style={{
                           position: 'absolute',
                           inset: 0,
-                          backgroundImage: `url('${slide.image}')`,
-                          backgroundSize: 'cover',
-                          backgroundPosition: slide.position,
-                          opacity: heroSlideOpacity,
-                          transform: isActive ? 'scale(1.05)' : 'scale(1.0)',
-                          transition: 'opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1), transform 8s cubic-bezier(0.16, 1, 0.3, 1)',
-                          zIndex: 1
+                          opacity: heroVideoOpacity,
+                          transform: isActive ? 'scale(1.02)' : 'scale(1.0)',
+                          transition: 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 8s cubic-bezier(0.16, 1, 0.3, 1)',
+                          zIndex: 1,
+                          overflow: 'hidden',
+                          pointerEvents: 'none'
                         }}
-                      />
+                      >
+                        <video
+                          ref={(el) => { heroVideoRefs.current[idx] = el; }}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          preload="auto"
+                          poster={slide.poster}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            display: 'block'
+                          }}
+                        >
+                          <source src={slide.video} type="video/mp4" />
+                        </video>
+                      </div>
                     );
                   })}
 
@@ -1810,11 +1849,17 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 marginBottom: '1.5rem'
               }}
             >
-              <img
-                src="/images/hero/5-idukky_upscaled.png"
-                alt="Kerala Highlands"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                poster="/images/hero/5-idukky_upscaled.png"
+                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              >
+                <source src="/hero/15015065_1920_1080_60fps.mp4" type="video/mp4" />
+              </video>
               <div
                 style={{
                   position: 'absolute',

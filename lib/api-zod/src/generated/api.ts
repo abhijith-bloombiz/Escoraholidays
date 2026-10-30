@@ -181,7 +181,9 @@ export const GenerateTripPlanResponse = zod.object({
   "afternoonActivity": zod.string(),
   "eveningActivity": zod.string(),
   "stayRecommendation": zod.string(),
-  "travelNote": zod.string().optional()
+  "travelNote": zod.string().optional(),
+  "imageUrl": zod.string().optional().describe('Matched landscape photograph URL for the day\'s experience'),
+  "imageUrls": zod.array(zod.string()).optional().describe('Matched landscape photograph URLs for the day')
 })),
   "verifiedDestinations": zod.array(zod.object({
   "name": zod.string(),
@@ -255,6 +257,174 @@ export const LogoutResponse = zod.object({
 export const GetAuthMeResponse = zod.object({
   "authenticated": zod.boolean(),
   "username": zod.string().nullish()
+})
+
+
+/**
+ * @summary List all experiences
+ */
+export const ListExperiencesQueryParams = zod.object({
+  "category": zod.coerce.string().optional(),
+  "published": zod.coerce.boolean().optional(),
+  "featured": zod.coerce.boolean().optional()
+})
+
+export const ListExperiencesResponseItem = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "tagline": zod.string().nullish(),
+  "duration": zod.string().nullish(),
+  "intensity": zod.string().nullish(),
+  "bestTime": zod.string().nullish(),
+  "vibe": zod.string().nullish(),
+  "heroImage": zod.string().nullish(),
+  "gallery": zod.array(zod.string()).optional(),
+  "story": zod.string().nullish(),
+  "highlights": zod.array(zod.string()).optional(),
+  "inclusions": zod.array(zod.string()).optional(),
+  "destinations": zod.array(zod.object({
+  "name": zod.string(),
+  "slug": zod.string()
+})).optional(),
+  "conciergeTip": zod.string().nullish(),
+  "featured": zod.boolean().optional(),
+  "published": zod.boolean(),
+  "sortOrder": zod.number().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListExperiencesResponse = zod.array(ListExperiencesResponseItem)
+
+
+/**
+ * @summary Create an experience
+ */
+export const CreateExperienceBody = zod.object({
+  "slug": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "tagline": zod.string().optional(),
+  "duration": zod.string().optional(),
+  "intensity": zod.string().optional(),
+  "bestTime": zod.string().optional(),
+  "vibe": zod.string().optional(),
+  "heroImage": zod.string().optional(),
+  "gallery": zod.array(zod.string()).optional(),
+  "story": zod.string().optional(),
+  "highlights": zod.array(zod.string()).optional(),
+  "inclusions": zod.array(zod.string()).optional(),
+  "destinations": zod.array(zod.object({
+  "name": zod.string(),
+  "slug": zod.string()
+})).optional(),
+  "conciergeTip": zod.string().optional(),
+  "featured": zod.boolean().optional(),
+  "published": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+
+/**
+ * @summary Get experience by ID or slug
+ */
+export const GetExperienceParams = zod.object({
+  "id": zod.coerce.string()
+})
+
+export const GetExperienceResponse = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "tagline": zod.string().nullish(),
+  "duration": zod.string().nullish(),
+  "intensity": zod.string().nullish(),
+  "bestTime": zod.string().nullish(),
+  "vibe": zod.string().nullish(),
+  "heroImage": zod.string().nullish(),
+  "gallery": zod.array(zod.string()).optional(),
+  "story": zod.string().nullish(),
+  "highlights": zod.array(zod.string()).optional(),
+  "inclusions": zod.array(zod.string()).optional(),
+  "destinations": zod.array(zod.object({
+  "name": zod.string(),
+  "slug": zod.string()
+})).optional(),
+  "conciergeTip": zod.string().nullish(),
+  "featured": zod.boolean().optional(),
+  "published": zod.boolean(),
+  "sortOrder": zod.number().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update an experience
+ */
+export const UpdateExperienceParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateExperienceBody = zod.object({
+  "slug": zod.string().optional(),
+  "title": zod.string().optional(),
+  "category": zod.string().optional(),
+  "tagline": zod.string().optional(),
+  "duration": zod.string().optional(),
+  "intensity": zod.string().optional(),
+  "bestTime": zod.string().optional(),
+  "vibe": zod.string().optional(),
+  "heroImage": zod.string().optional(),
+  "gallery": zod.array(zod.string()).optional(),
+  "story": zod.string().optional(),
+  "highlights": zod.array(zod.string()).optional(),
+  "inclusions": zod.array(zod.string()).optional(),
+  "destinations": zod.array(zod.object({
+  "name": zod.string(),
+  "slug": zod.string()
+})).optional(),
+  "conciergeTip": zod.string().optional(),
+  "featured": zod.boolean().optional(),
+  "published": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const UpdateExperienceResponse = zod.object({
+  "id": zod.number(),
+  "slug": zod.string(),
+  "title": zod.string(),
+  "category": zod.string(),
+  "tagline": zod.string().nullish(),
+  "duration": zod.string().nullish(),
+  "intensity": zod.string().nullish(),
+  "bestTime": zod.string().nullish(),
+  "vibe": zod.string().nullish(),
+  "heroImage": zod.string().nullish(),
+  "gallery": zod.array(zod.string()).optional(),
+  "story": zod.string().nullish(),
+  "highlights": zod.array(zod.string()).optional(),
+  "inclusions": zod.array(zod.string()).optional(),
+  "destinations": zod.array(zod.object({
+  "name": zod.string(),
+  "slug": zod.string()
+})).optional(),
+  "conciergeTip": zod.string().nullish(),
+  "featured": zod.boolean().optional(),
+  "published": zod.boolean(),
+  "sortOrder": zod.number().optional(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete an experience
+ */
+export const DeleteExperienceParams = zod.object({
+  "id": zod.coerce.number()
 })
 
 
@@ -871,13 +1041,13 @@ export const AssistItineraryResponse = zod.object({
   "title": zod.string(),
   "description": zod.string().optional(),
   "destination": zod.string().optional(),
-  "imageUrl": zod.string().optional(),
-  "imageUrls": zod.array(zod.string()).optional(),
   "activities": zod.array(zod.object({
   "time": zod.string().optional().describe('Indicative activity time window (e.g. \'Morning\', \'Late Afternoon\', \'Sunset\')'),
   "title": zod.string(),
   "description": zod.string().optional()
-}))
+})),
+  "imageUrl": zod.string().optional().describe('Matched landscape photograph URL for the day\'s experience'),
+  "imageUrls": zod.array(zod.string()).optional().describe('Up to 3 side-by-side landscape photograph URLs for the day')
 })),
   "stays": zod.array(zod.object({
   "name": zod.string().describe('Indicative boutique sanctuary or heritage estate'),

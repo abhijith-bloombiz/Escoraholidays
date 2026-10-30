@@ -22,6 +22,7 @@ import ExperiencesPage from './pages/experiences';
 import ExperienceDetailPage from './pages/experience-detail';
 import PlanJourneyPage from './pages/plan';
 import AboutPage from './pages/about';
+import AiChatBot from './components/AiChatBot';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -209,6 +210,9 @@ export default function App() {
           </Route>
           <Route component={LandingPage} />
         </Switch>
+
+        {/* Floating AI Chat Bot Button on the Right Bottom Corner */}
+        <AiChatBot />
       </WouterRouter>
     </QueryClientProvider>
   );

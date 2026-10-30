@@ -289,6 +289,108 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthMeResponse"
 
+  # ── Experiences ───────────────────────────────────────────────
+  /experiences:
+    get:
+      operationId: listExperiences
+      summary: List all experiences
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+        - in: query
+          name: published
+          schema:
+            type: boolean
+        - in: query
+          name: featured
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Experience"
+    post:
+      operationId: createExperience
+      summary: Create an experience
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperienceInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Experience"
+
+  /experiences/{id}:
+    get:
+      operationId: getExperience
+      summary: Get experience by ID or slug
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Experience"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateExperience
+      summary: Update an experience
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExperienceUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Experience"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteExperience
+      summary: Delete an experience
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
   # ── Destinations ──────────────────────────────────────────────
   /destinations:
     get:
@@ -2020,6 +2122,168 @@ components:
       properties:
         error:
           type: string
+
+    # ── Experience ───────────────────────────────────────────────
+    ExperienceDestination:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+
+    Experience:
+      type: object
+      required: [id, title, slug, category, published, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        slug:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        tagline:
+          type: ["string", "null"]
+        duration:
+          type: ["string", "null"]
+        intensity:
+          type: ["string", "null"]
+        bestTime:
+          type: ["string", "null"]
+        vibe:
+          type: ["string", "null"]
+        heroImage:
+          type: ["string", "null"]
+        gallery:
+          type: array
+          items:
+            type: string
+        story:
+          type: ["string", "null"]
+        highlights:
+          type: array
+          items:
+            type: string
+        inclusions:
+          type: array
+          items:
+            type: string
+        destinations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceDestination"
+        conciergeTip:
+          type: ["string", "null"]
+        featured:
+          type: boolean
+        published:
+          type: boolean
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    ExperienceInput:
+      type: object
+      required: [title, slug, category]
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        tagline:
+          type: string
+        duration:
+          type: string
+        intensity:
+          type: string
+        bestTime:
+          type: string
+        vibe:
+          type: string
+        heroImage:
+          type: string
+        gallery:
+          type: array
+          items:
+            type: string
+        story:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+        inclusions:
+          type: array
+          items:
+            type: string
+        destinations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceDestination"
+        conciergeTip:
+          type: string
+        featured:
+          type: boolean
+        published:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    ExperienceUpdate:
+      type: object
+      properties:
+        slug:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        tagline:
+          type: string
+        duration:
+          type: string
+        intensity:
+          type: string
+        bestTime:
+          type: string
+        vibe:
+          type: string
+        heroImage:
+          type: string
+        gallery:
+          type: array
+          items:
+            type: string
+        story:
+          type: string
+        highlights:
+          type: array
+          items:
+            type: string
+        inclusions:
+          type: array
+          items:
+            type: string
+        destinations:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExperienceDestination"
+        conciergeTip:
+          type: string
+        featured:
+          type: boolean
+        published:
+          type: boolean
+        sortOrder:
+          type: integer
 
     # ── Destination ──────────────────────────────────────────────
     Destination:

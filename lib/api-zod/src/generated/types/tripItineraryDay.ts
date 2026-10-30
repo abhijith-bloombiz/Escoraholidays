@@ -16,6 +16,8 @@ export interface TripItineraryDay {
   eveningActivity: string;
   stayRecommendation: string;
   travelNote?: string;
+  /** Matched landscape photograph URL for the day's experience */
   imageUrl?: string;
+  /** Matched landscape photograph URLs for the day */
   imageUrls?: string[];
 }

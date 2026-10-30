@@ -55,3 +55,7 @@ Thumbs.db
 
 # Local upload storage
 apps/api-server/uploads/
+
+# Migrations & Backups
+Escora Design 2/
+apps/escora-web/src_backup/

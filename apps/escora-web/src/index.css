@@ -1,1000 +1,318 @@
-@import url("https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=Cinzel:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap");
-@import url("https://api.fontshare.com/v2/css?f[]=switzer@100,200,300,400,500,600,700,800,900&display=swap");
-@import "./fonts/fonarto.css";
-@import "./fonts/melodrama.css";
-@import "tailwindcss";
-@import "tw-animate-css";
-@plugin "@tailwindcss/typography";
-
-@font-face {
-  font-family: 'Fonarto';
-  src: url('/fonts/fonarto/Fonarto.woff2') format('woff2'),
-       url('/fonts/fonarto/Fonarto.woff') format('woff'),
-       url('/fonts/fonarto/Fonarto.ttf') format('truetype');
-  font-weight: 100 900;
-  font-display: swap;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: 'Fonarto XT';
-  src: url('/fonts/fonarto/Fonarto-XT.woff2') format('woff2'),
-       url('/fonts/fonarto/Fonarto-XT.woff') format('woff'),
-       url('/fonts/fonarto/Fonarto-XT.ttf') format('truetype');
-  font-weight: 100 900;
-  font-display: swap;
-  font-style: normal;
-}
-
-@custom-variant dark (&:is(.dark *));
-
-@theme inline {
-  --font-editorial: 'Fonarto', 'Playfair Display', Georgia, serif;
-  --color-background: var(--bg);
-  --color-foreground: var(--ink);
-  --color-border: var(--line);
-  --color-input: var(--line);
-  --color-ring: var(--gold);
-
-  --color-card: var(--bg-2);
-  --color-card-foreground: var(--ink);
-  --color-card-border: var(--line);
-
-  --color-popover: var(--bg-2);
-  --color-popover-foreground: var(--ink);
-  --color-popover-border: var(--line);
-
-  --color-primary: var(--gold);
-  --color-primary-foreground: var(--bg);
-  --color-primary-border: var(--gold-bright);
-
-  --color-secondary: var(--bg-3);
-  --color-secondary-foreground: var(--ink);
-  --color-secondary-border: var(--line);
-
-  --color-muted: var(--bg-2);
-  --color-muted-foreground: var(--ink-mute);
-  --color-muted-border: var(--line);
-
-  --color-accent: var(--gold);
-  --color-accent-foreground: var(--bg);
-  --color-accent-border: var(--gold-bright);
-
-  --color-destructive: #ff4a4a;
-  --color-destructive-foreground: #ffffff;
-  --color-destructive-border: #ff4a4a;
-
-  --color-bg: var(--bg);
-  --color-bg-2: var(--bg-2);
-  --color-bg-3: var(--bg-3);
-  --color-bg-elev: var(--bg-elev);
-
-  --color-gold: var(--gold);
-  --color-gold-bright: var(--gold-bright);
-
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-ink-mute: var(--ink-mute);
-  --color-ink-dim: var(--ink-dim);
-
-  --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-serif: 'Fonarto', 'Playfair Display', Georgia, serif;
-  --font-heading: 'Fonarto', 'Playfair Display', Georgia, serif;
-  --font-display: 'Fonarto', 'Playfair Display', Georgia, serif;
-  --font-mono: 'JetBrains Mono', monospace;
-
-  --text-xs: 0.75rem;
-  --text-xs--line-height: calc(1 / 0.75);
-  --text-sm: 0.875rem;
-  --text-sm--line-height: calc(1.25 / 0.875);
-  --text-base: 1rem;
-  --text-base--line-height: calc(1.5 / 1);
-  --text-lg: 1.125rem;
-  --text-lg--line-height: calc(1.75 / 1.125);
-  --text-xl: 1.25rem;
-  --text-xl--line-height: calc(1.75 / 1.25);
-  --text-2xl: 1.5rem;
-  --text-2xl--line-height: calc(2 / 1.5);
-  --text-3xl: 1.875rem;
-  --text-3xl--line-height: calc(2.25 / 1.875);
-  --text-4xl: 2.25rem;
-  --text-4xl--line-height: calc(2.5 / 2.25);
-  --text-5xl: 3rem;
-  --text-5xl--line-height: 1;
-  --text-6xl: 3.75rem;
-  --text-6xl--line-height: 1;
-  --text-7xl: 4.5rem;
-  --text-7xl--line-height: 1;
-  --text-8xl: 6rem;
-  --text-8xl--line-height: 1;
-  --text-9xl: 8rem;
-  --text-9xl--line-height: 1;
-
-  --radius-sm: 0.125rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-}
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --v3-deep: #1A3F2C;
-  --v3-botanical: #25432F;
-  --v3-forest: #3F5630;
-  --v3-sage: #597043;
-  --v3-soft: #788A63;
-  --v3-white: #FEFEFE;
-  --v3-grey: #CCD7D2;
-  --v3-mist: #E7EFE9;
-
-  --bg: #FEFEFE;
-  --bg-2: #E7EFE9;
-  --bg-3: #F3F7F4;
-  --bg-elev: #CCD7D2;
-  
-  --gold: #1A3F2C;
-  --gold-bright: #3F5630;
-  
-  --ink: #293D1F;
-  --ink-soft: #3F5630;
-  --ink-mute: #56664C;
-  --ink-dim: #788A63;
-  
-  --line: #CCD7D2;
-  --line-strong: #AFC0B6;
-
-  --hair: #CCD7D2;
-  --hair-soft: #DCE5E0;
-  --tint: rgba(26, 63, 44, 0.07);
-  --f-display: 'Fonarto', 'Playfair Display', Georgia, serif;
-  --f-serif: 'Fonarto', 'Playfair Display', Georgia, serif;
-  --f-heading: 'Fonarto', 'Playfair Display', Georgia, serif;
-  --f-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --f-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --f-mono: 'JetBrains Mono', ui-monospace, monospace;
-
-  /* ── Spacing & Responsive Layout System ── */
-  --container: 1440px;
-  --container-editorial: 1040px;
-  --container-prose: 860px;
-  --container-narrow: 680px;
-
-  --gutter: clamp(20px, 4vw, 64px);
-  --section-y: clamp(54px, 6.5vw, 88px);
-  --section-y-sm: clamp(38px, 4.5vw, 56px);
-  --header-gap-y: clamp(28px, 3.5vw, 44px);
-  --page-top-pad: clamp(100px, 11vw, 136px);
+  --bg-cream: #F8F6F1;
+  --bg-cream-alt: #F3EFE8;
+  --bg-card: #FFFFFF;
+  --bg-dark: #0D0F13;
+  --bg-dark-card: rgba(28, 30, 36, 0.82);
+  --color-text-dark: #121316;
+  --color-text-muted: #6B7280;
+  --color-text-light: #F9FAFB;
+  --color-gold: #B48235;
+  --color-gold-hover: #9E6F29;
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-dark: rgba(255, 255, 255, 0.12);
+  --font-display: 'Bebas Neue', 'Oswald', 'Impact', 'Haettenschweiler', 'Arial Narrow Bold', sans-serif;
+  --font-body: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --radius-pill: 9999px;
+  --radius-card: 20px;
+  --radius-panel: 24px;
+  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 12px 36px -8px rgba(0, 0, 0, 0.09);
+  --shadow-center: 0 24px 60px -12px rgba(0, 0, 0, 0.28);
+  --ease-luxury: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-drift: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-@media (max-width: 768px) {
-  :root {
-    --gutter: 20px;
-    --section-y: clamp(44px, 6vw, 64px);
-    --section-y-sm: clamp(30px, 4vw, 42px);
-    --header-gap-y: clamp(20px, 3vw, 32px);
-    --page-top-pad: 96px;
-  }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-@media (max-width: 380px) {
-  :root {
-    --gutter: 16px;
-    --page-top-pad: 90px;
-  }
+html {
+  font-family: var(--font-body);
+  background-color: var(--bg-cream);
+  color: var(--color-text-dark);
+  -webkit-font-smoothing: antialiased;
 }
 
-.dark {
-  --bg: #142719;
-  --bg-2: #1a3324;
-  --bg-3: #214030;
-  
-  --gold: #cbab6e;
-  --gold-bright: #e0c489;
-  
-  --ink: #f0ebe0;
-  --ink-soft: #d2d0c2;
-  --ink-mute: #94a092;
-  
-  --line: #2a4030;
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  body {
-    @apply font-sans antialiased bg-background text-foreground selection:bg-primary selection:text-primary-foreground;
-  }
-
-  h1, h2, h3, h4, h5, h6,
-  .h1, .h2, .h3, .h4, .h5, .h6 {
-    font-family: var(--f-heading);
-  }
-}
-
-/* ─── Natural Page Scrollbar Styling ─── */
-html, body {
+body {
   overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #758B78 #FAF8F5;
+  line-height: 1.5;
 }
 
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #FAF8F5;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: #758B78;
-  border-radius: 9999px;
-  border: 2px solid #FAF8F5;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: #193F2D;
-}
-
-/* Ensure all headings and display classes use Fonarto and NEVER italic */
-h1, h2, h3, h4, h5, h6,
-.h1, .h2, .h3, .h4, .h5, .h6,
-.display-xl, .display-lg, .display-md, .display-sm,
-.font-heading, .heading-font,
-.site-title,
-[class*="-title"],
-[class*="heading"] {
-  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
-  font-style: normal !important;
-}
-
-/* Base heading color: Deep Botanical #25432F unless explicitly light/white, inside dark themes/elements, or inside coverflow cards */
-h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-h4:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-h5:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-h6:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.h4:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.h5:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.h6:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.display-xl:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.display-lg:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.display-md:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.display-sm:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.font-heading:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *),
-.heading-font:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *) {
-  color: #25432F !important;
-}
-
-/* Remove italic style from any element inside headings */
-h1 *, h2 *, h3 *, h4 *, h5 *, h6 *,
-.h1 *, .h2 *, .h3 *, .h4 *, .h5 *, .h6 *,
-.display-xl *, .display-lg *, .display-md *, .display-sm *,
-.font-heading *, .heading-font *,
-.site-title *,
-[class*="-title"] *,
-[class*="heading"] * {
-  font-style: normal !important;
-}
-
-/* Ensure em, accent words, and highlights inside headings also use #25432F unless explicitly styled with inline color */
-h1:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *) em:not([style*="color"]),
-h2:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *) em:not([style*="color"]),
-h3:not(.text-white):not([class*="text-white"]):not(.cinematic-footer *):not([data-theme="dark"] *):not(.dark *):not([class*="coverflow"] *) em:not([style*="color"]),
-.display-xl em:not([style*="color"]), .display-lg em:not([style*="color"]), .display-md em:not([style*="color"]), .display-sm em:not([style*="color"]),
-.kerala-3d-title em:not([style*="color"]),
-.retreat-title em:not([style*="color"]), .testi-title em:not([style*="color"]), .enquiry-title em:not([style*="color"]),
-.escora-way-heading em:not([style*="color"]) {
-  color: #25432F !important;
+/* Typography Helpers */
+.font-display {
+  font-family: 'Bebas Neue', 'Oswald', 'Impact', 'Haettenschweiler', 'Arial Narrow Bold', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  line-height: 1.05;
 }
 
 .font-serif {
-  font-family: 'Fonarto', 'Playfair Display', Georgia, serif !important;
+  font-family: var(--font-serif);
 }
 
-.font-sans {
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+.font-body {
+  font-family: var(--font-body);
 }
 
-/* ============================================================
-   RESPONSIVE SPACING & CONTAINER SYSTEM (Public Portal)
-   Standardizes container width, horizontal margins, section padding,
-   and page hero clearance across desktop, tablet, and mobile.
-   ============================================================ */
-.site-container,
-.wrap,
-.v3-wrap,
-.v3dest-wrap {
+/* Section Containers */
+.section-wrapper {
   width: 100%;
-  max-width: var(--container);
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: var(--gutter);
-  padding-right: var(--gutter);
-  box-sizing: border-box;
-}
-
-/* Ensure public page .container elements use the standardized responsive gutter */
-.container {
-  padding-left: var(--gutter) !important;
-  padding-right: var(--gutter) !important;
-  box-sizing: border-box;
-}
-
-/* Standardized top breathing room for subpages under floating navbar */
-.page-hero-top {
-  padding-top: var(--page-top-pad) !important;
-  padding-bottom: var(--section-y-sm) !important;
-}
-
-/* Standardized responsive section vertical rhythm */
-.page-section {
-  padding-top: var(--section-y) !important;
-  padding-bottom: var(--section-y) !important;
-}
-
-.page-section-sm {
-  padding-top: var(--section-y-sm) !important;
-  padding-bottom: var(--section-y-sm) !important;
-}
-
-/* Standardized editorial dividers */
-.page-divider {
-  border-color: var(--line) !important;
-  margin: 0 0 var(--header-gap-y) !important;
-}
-
-/* ============================================================
-   GLOBAL PUBLIC PORTAL HEADINGS: SMOOTH SCROLL REVEAL TRANSITION
-   Bidirectional: Smoothly reveals when scrolling forward & backward
-   ============================================================ */
-.heading-reveal,
-.reveal-heading,
-.rv,
-.reveal-up {
-  opacity: 0;
-  transform: translateY(32px);
-  transition: opacity 1.1s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
-}
-
-.heading-reveal.heading-in-view,
-.heading-reveal.in,
-.heading-reveal.is-revealed,
-.reveal-heading.heading-in-view,
-.reveal-heading.in,
-.reveal-heading.is-revealed,
-.rv.in,
-.rv.heading-in-view,
-.rv.is-revealed,
-.reveal-up.is-revealed,
-.reveal-up.heading-in-view,
-.reveal-up.in {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Stagger Delays for Eyebrows, Headings, and Subtext */
-.rv.d1, .heading-reveal.d1, .reveal-up.d1 { transition-delay: 0.12s; }
-.rv.d2, .heading-reveal.d2, .reveal-up.d2 { transition-delay: 0.24s; }
-.rv.d3, .heading-reveal.d3, .reveal-up.d3 { transition-delay: 0.36s; }
-.rv.d4, .heading-reveal.d4, .reveal-up.d4 { transition-delay: 0.48s; }
-
-/* ============================================================
-   GLOBAL PUBLIC PORTAL CARDS: SMOOTH 0% TO 100% SCALE REVEAL
-   Bidirectional: Triggers smoothly when scrolling forward & backward
-   ============================================================ */
-.why-card,
-.rcard,
-.t2card,
-.process-step,
-.stat-cell,
-.explore-card:not(.coverflow-card),
-.dest-card,
-.pkg-card,
-.pkg2-card,
-.p2card,
-.v3-tile,
-.v3-retreat-card,
-.v3-way-card,
-.v3-explore-card,
-.v3-stat,
-.about-founder-card,
-.about-team-card,
-.jd-author-card,
-.jd-rcard,
-.portal-card,
-.scale-card,
-[data-scale-card] {
-  transform: scale(0) !important;
-  opacity: 0 !important;
-  transform-origin: center center;
-  transition: transform 0.68s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.52s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: transform, opacity;
-}
-
-/* Stagger delays on reveal */
-.why-card.card-in-view.d1, .why-card.in.d1,
-.rcard.card-in-view.d1, .rcard.in.d1,
-.t2card.card-in-view.d1, .t2card.in.d1,
-.process-step.card-in-view.d1, .process-step.in.d1,
-.stat-cell.card-in-view.d1, .stat-cell.in.d1,
-.portal-card.card-in-view.d1, .portal-card.in.d1 {
-  transition-delay: 0.08s;
-}
-
-.why-card.card-in-view.d2, .why-card.in.d2,
-.rcard.card-in-view.d2, .rcard.in.d2,
-.t2card.card-in-view.d2, .t2card.in.d2,
-.process-step.card-in-view.d2, .process-step.in.d2,
-.stat-cell.card-in-view.d2, .stat-cell.in.d2,
-.portal-card.card-in-view.d2, .portal-card.in.d2 {
-  transition-delay: 0.16s;
-}
-
-.why-card.card-in-view.d3, .why-card.in.d3,
-.rcard.card-in-view.d3, .rcard.in.d3,
-.t2card.card-in-view.d3, .t2card.in.d3,
-.process-step.card-in-view.d3, .process-step.in.d3,
-.stat-cell.card-in-view.d3, .stat-cell.in.d3,
-.portal-card.card-in-view.d3, .portal-card.in.d3 {
-  transition-delay: 0.24s;
-}
-
-.why-card.card-in-view.d4, .why-card.in.d4,
-.rcard.card-in-view.d4, .rcard.in.d4,
-.t2card.card-in-view.d4, .t2card.in.d4,
-.process-step.card-in-view.d4, .process-step.in.d4,
-.stat-cell.card-in-view.d4, .stat-cell.in.d4,
-.portal-card.card-in-view.d4, .portal-card.in.d4 {
-  transition-delay: 0.32s;
-}
-
-/* In-viewport: smooth 100% size */
-.why-card.card-in-view, .why-card.in,
-.rcard.card-in-view, .rcard.in,
-.t2card.card-in-view, .t2card.in,
-.process-step.card-in-view, .process-step.in,
-.stat-cell.card-in-view, .stat-cell.in,
-.explore-card.card-in-view:not(.coverflow-card), .explore-card.in:not(.coverflow-card),
-.dest-card.card-in-view, .dest-card.in,
-.pkg-card.card-in-view, .pkg-card.in,
-.pkg2-card.card-in-view, .pkg2-card.in,
-.p2card.card-in-view, .p2card.in,
-.v3-tile.card-in-view, .v3-tile.in,
-.v3-retreat-card.card-in-view, .v3-retreat-card.in,
-.v3-way-card.card-in-view, .v3-way-card.in,
-.v3-explore-card.card-in-view, .v3-explore-card.in,
-.v3-stat.card-in-view, .v3-stat.in,
-.about-founder-card.card-in-view, .about-founder-card.in,
-.about-team-card.card-in-view, .about-team-card.in,
-.jd-author-card.card-in-view, .jd-author-card.in,
-.jd-rcard.card-in-view, .jd-rcard.in,
-.portal-card.card-in-view, .portal-card.in,
-.scale-card.card-in-view, .scale-card.in,
-[data-scale-card].card-in-view, [data-scale-card].in {
-  transform: scale(1) !important;
-  opacity: 1 !important;
-}
-
-/* Interactive hover once revealed */
-.why-card.card-in-view:hover, .why-card.in:hover,
-.t2card.card-in-view:hover, .t2card.in:hover,
-.process-step.card-in-view:hover, .process-step.in:hover,
-.stat-cell.card-in-view:hover, .stat-cell.in:hover,
-.about-founder-card.card-in-view:hover, .about-founder-card.in:hover,
-.about-team-card.card-in-view:hover, .about-team-card.in:hover,
-.portal-card.card-in-view:hover, .portal-card.in:hover,
-.scale-card.card-in-view:hover, .scale-card.in:hover,
-[data-scale-card].card-in-view:hover, [data-scale-card].in:hover {
-  transform: scale(1.02) !important;
-}
-
-.rcard.card-in-view:hover, .rcard.in:hover {
-  transform: scale(1.02) translateY(-5px) translateZ(0) !important;
-}
-
-.pkg-card.card-in-view:hover, .pkg-card.in:hover,
-.pkg2-card.card-in-view:hover, .pkg2-card.in:hover,
-.p2card.card-in-view:hover, .p2card.in:hover,
-.dest-card.card-in-view:hover, .dest-card.in:hover,
-.v3-tile.card-in-view:hover, .v3-tile.in:hover,
-.v3-retreat-card.card-in-view:hover, .v3-retreat-card.in:hover,
-.v3-way-card.card-in-view:hover, .v3-way-card.in:hover,
-.v3-explore-card.card-in-view:hover, .v3-explore-card.in:hover,
-.jd-rcard.card-in-view:hover, .jd-rcard.in:hover {
-  transform: scale(1.02) translateY(-6px) translateZ(0) !important;
-}
-
-/* ============================================================
-   LENIS 60FPS SMOOTH SCROLL & PERFORMANCE OPTIMIZATIONS
-   ============================================================ */
-html {
-  scroll-snap-type: none !important;
-}
-
-html.lenis, html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-
-.lenis.lenis-smooth [data-lenis-prevent] {
-  overscroll-behavior: contain;
-}
-
-.lenis.lenis-stopped {
-  overflow: hidden;
-}
-
-.lenis.lenis-smooth iframe {
-  pointer-events: none;
-}
-
-/* GPU hardware acceleration for smooth 60fps rendering */
-.heading-reveal,
-.reveal-heading,
-.rv,
-.reveal-up,
-.why-card,
-.rcard,
-.t2card,
-.process-step,
-.stat-cell,
-.portal-card,
-.v3-tile,
-.dest-card,
-.pkg-card,
-.pkg2-card,
-.p2card,
-.v3-retreat-card,
-.v3-way-card,
-.v3-explore-card,
-.v3-stat,
-.about-founder-card,
-.about-team-card,
-.jd-author-card,
-.jd-rcard,
-.scale-card,
-[data-scale-card] {
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-}
-
-/* Ensure smooth image zoom transforms without excessive GPU memory allocation */
-.portal-card img,
-.explore-card img,
-.v3-tile img,
-.why-card img,
-.rcard img {
-  transform: translateZ(0);
-  transition: transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.portal-card:hover img,
-.explore-card:hover img,
-.v3-tile:hover img,
-.why-card:hover img,
-.rcard:hover img {
-  will-change: transform;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .why-card, .rcard, .t2card, .process-step, .stat-cell,
-  .explore-card, .dest-card, .pkg-card, .pkg2-card, .p2card,
-  .v3-tile, .v3-retreat-card, .v3-way-card, .v3-explore-card, .v3-stat,
-  .about-founder-card, .about-team-card, .jd-author-card, .jd-rcard,
-  .portal-card, .scale-card, [data-scale-card] {
-    transform: none !important;
-    opacity: 1 !important;
-    transition: none !important;
-  }
-}
-
-.ken-burns {
-  animation: kenBurns 20s infinite alternate ease-in-out;
-}
-@keyframes kenBurns {
-  0% { transform: scale(1); }
-  100% { transform: scale(1.1); }
-}
-
-
-
-/* ==========================================================================
-   UNIFIED SECTION LABEL / EYEBROW SYSTEM
-   Finalized Design: Two thin horizontal lines, one on each side of label text
-   Text & Lines: Warm Heritage Gold #B58D5D
-   ========================================================================== */
-.section-label,
-.eyebrow,
-.escora-way-eyebrow,
-.kerala-3d-eyebrow,
-.dest-360-eyebrow,
-.why-esc-eyebrow,
-.how-eyebrow,
-.retreat-eyebrow,
-.testi-eyebrow,
-.enquiry-eyebrow,
-.enquiry-panel-eyebrow,
-.v3dest-eyebrow,
-.v3-eyebrow,
-.jd-related-eyebrow,
-.dest-eyebrow,
-.dest-cta-eyebrow,
-.escora-intro-eyebrow {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 12px !important;
-  font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif) !important;
-  font-size: 12px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.22em !important;
-  text-transform: uppercase !important;
-  color: #B58D5D !important;
-  line-height: 1.2 !important;
-}
-
-/* Two thin horizontal lines, one on each side */
-.section-label::before,
-.section-label::after,
-.eyebrow::before,
-.eyebrow::after,
-.escora-way-eyebrow::before,
-.escora-way-eyebrow::after,
-.kerala-3d-eyebrow::before,
-.kerala-3d-eyebrow::after,
-.dest-360-eyebrow::before,
-.dest-360-eyebrow::after,
-.why-esc-eyebrow::before,
-.why-esc-eyebrow::after,
-.how-eyebrow::before,
-.how-eyebrow::after,
-.retreat-eyebrow::before,
-.retreat-eyebrow::after,
-.testi-eyebrow::before,
-.testi-eyebrow::after,
-.enquiry-eyebrow::before,
-.enquiry-eyebrow::after,
-.enquiry-panel-eyebrow::before,
-.enquiry-panel-eyebrow::after,
-.v3dest-eyebrow::before,
-.v3dest-eyebrow::after,
-.v3-eyebrow::before,
-.v3-eyebrow::after,
-.jd-related-eyebrow::before,
-.jd-related-eyebrow::after,
-.dest-eyebrow::before,
-.dest-eyebrow::after,
-.dest-cta-eyebrow::before,
-.dest-cta-eyebrow::after,
-.escora-intro-eyebrow::before,
-.escora-intro-eyebrow::after {
-  content: "" !important;
-  display: inline-block !important;
-  width: clamp(20px, 3.2vw, 32px) !important;
-  height: 1px !important;
-  background-color: #B58D5D !important;
-  flex-shrink: 0 !important;
-}
-
-/* Child text elements inside section labels get #B58D5D */
-.section-label *,
-.eyebrow *,
-.escora-way-eyebrow *,
-.kerala-3d-eyebrow *,
-.dest-360-eyebrow *,
-.why-esc-eyebrow *,
-.how-eyebrow *,
-.retreat-eyebrow *,
-.testi-eyebrow *,
-.enquiry-eyebrow *,
-.enquiry-panel-eyebrow *,
-.v3dest-eyebrow *,
-.v3-eyebrow *,
-.jd-related-eyebrow *,
-.dest-eyebrow *,
-.dest-cta-eyebrow *,
-.escora-intro-eyebrow * {
-  color: #B58D5D !important;
-}
-
-/* Completely remove dots and old manual single lines */
-.section-label .dot,
-.eyebrow .dot,
-.escora-way-eyebrow .dot,
-.kerala-3d-eyebrow .dot,
-.dest-360-eyebrow .dot,
-.why-esc-eyebrow .dot,
-.how-eyebrow .dot,
-.retreat-eyebrow .dot,
-.retreat-eyebrow-dot,
-.enquiry-eyebrow .dot,
-.enquiry-eyebrow-dot,
-.enquiry-panel-eyebrow .dot,
-.v3dest-eyebrow .dot,
-.v3-eyebrow .dot,
-.jd-related-eyebrow .jd-dot,
-.jd-related-eyebrow .dot,
-.dest-eyebrow-accent,
-.dest-cta-eyebrow-line,
-.testi-eyebrow-line {
-  display: none !important;
-}
-
-.section-label.text-center,
-.text-center > .section-label,
-.text-center > .eyebrow,
-.testi-eyebrow {
-  justify-content: center !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  display: flex !important;
-  width: fit-content !important;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
 @media (max-width: 768px) {
-  .section-label,
-  .eyebrow,
-  .escora-way-eyebrow,
-  .kerala-3d-eyebrow,
-  .dest-360-eyebrow,
-  .why-esc-eyebrow,
-  .how-eyebrow,
-  .retreat-eyebrow,
-  .testi-eyebrow,
-  .enquiry-eyebrow,
-  .enquiry-panel-eyebrow,
-  .v3dest-eyebrow,
-  .v3-eyebrow,
-  .jd-related-eyebrow,
-  .dest-eyebrow,
-  .dest-cta-eyebrow,
-  .escora-intro-eyebrow {
-    font-size: 10.5px !important;
-    letter-spacing: 0.18em !important;
-    gap: 9px !important;
-  }
-
-  .section-label::before,
-  .section-label::after,
-  .eyebrow::before,
-  .eyebrow::after,
-  .escora-way-eyebrow::before,
-  .escora-way-eyebrow::after,
-  .kerala-3d-eyebrow::before,
-  .kerala-3d-eyebrow::after,
-  .dest-360-eyebrow::before,
-  .dest-360-eyebrow::after,
-  .why-esc-eyebrow::before,
-  .why-esc-eyebrow::after,
-  .how-eyebrow::before,
-  .how-eyebrow::after,
-  .retreat-eyebrow::before,
-  .retreat-eyebrow::after,
-  .testi-eyebrow::before,
-  .testi-eyebrow::after,
-  .enquiry-eyebrow::before,
-  .enquiry-eyebrow::after,
-  .enquiry-panel-eyebrow::before,
-  .enquiry-panel-eyebrow::after,
-  .v3dest-eyebrow::before,
-  .v3dest-eyebrow::after,
-  .v3-eyebrow::before,
-  .v3-eyebrow::after,
-  .jd-related-eyebrow::before,
-  .jd-related-eyebrow::after,
-  .dest-eyebrow::before,
-  .dest-eyebrow::after,
-  .dest-cta-eyebrow::before,
-  .dest-cta-eyebrow::after,
-  .escora-intro-eyebrow::before,
-  .escora-intro-eyebrow::after {
-    width: 20px !important;
+  .section-wrapper {
+    padding: 0 1.25rem;
   }
 }
 
-.font-editorial {
-  font-family: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
-}
-
-/* Escora AI Assistant — Panel & Custom Scrollbar */
-.escora-ai-panel {
-  box-sizing: border-box !important;
-  border: 1px solid #CCD7D2 !important;
-  border-radius: 26px !important;
-  background-color: #F8FAF8 !important;
-}
-
-.escora-ai-messages {
-  flex: 1 1 0% !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
-  overscroll-behavior: contain !important;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-  scrollbar-color: #7A9083 transparent;
-}
-
-.escora-ai-messages::-webkit-scrollbar {
-  width: 5px;
-}
-
-.escora-ai-messages::-webkit-scrollbar-track {
-  background: transparent;
-  margin: 8px 0;
-}
-
-.escora-ai-messages::-webkit-scrollbar-thumb {
-  background-color: #7A9083;
-  border-radius: 9999px;
-}
-
-.escora-ai-messages::-webkit-scrollbar-thumb:hover {
-  background-color: #556B5F;
-}
-
-/* ============================================================
-   ESCORA — Curated Editorial Header System (Explore Kerala Style)
-   Shared across Destinations, Journeys, Journal, and About pages
-   ============================================================ */
-
-.dest-page {
-  background-color: #FAF8F5;
-  min-height: 100vh;
-  color: #172A1F;
-  position: relative;
-  overflow-x: hidden;
-}
-
-.dest-wrap {
-  max-width: 1360px;
-  margin: 0 auto;
-  padding: 0 clamp(20px, 3.5vw, 48px);
-  position: relative;
-  z-index: 2;
-}
-
-/* ── Hero Section ── */
-.dest-hero-section {
-  position: relative;
-  padding-top: clamp(98px, 8.5vw, 114px);
-  padding-bottom: clamp(10px, 1.8vw, 18px);
-  overflow: hidden;
-  background-color: #FAF8F5;
-}
-
-.dest-hero-bg {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: right 30%;
-  pointer-events: none;
-  user-select: none;
-  opacity: 0.95;
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, transparent 22%, rgba(0,0,0,0.2) 42%, rgba(0,0,0,0.75) 68%, #000 90%),
-                      linear-gradient(to bottom, #000 70%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, transparent 22%, rgba(0,0,0,0.2) 42%, rgba(0,0,0,0.75) 68%, #000 90%),
-              linear-gradient(to bottom, #000 70%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
-}
-
-.dest-hero-gradient {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, #FAF8F5 0%, #FAF8F5 26%, rgba(250, 248, 245, 0.82) 46%, rgba(250, 248, 245, 0.15) 72%, transparent 100%),
-              linear-gradient(to top, #FAF8F5 0%, rgba(250, 248, 245, 0) 24%);
-  pointer-events: none;
-}
-
-.dest-hero-content {
-  position: relative;
-  z-index: 3;
-  max-width: 680px;
-}
-
-.dest-eyebrow {
+/* Buttons */
+.btn-pill {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
-  font-family: var(--f-body, 'Plus Jakarta Sans', system-ui, sans-serif);
-  font-size: 11px;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: var(--radius-pill);
+  padding: 0.75rem 1.75rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: #8C7355;
-}
-
-.dest-eyebrow-accent {
-  width: 24px;
-  height: 1px;
-  background-color: #8C7355;
-  opacity: 0.7;
-}
-
-.dest-hero-title {
-  font-family: 'Fonarto', 'Playfair Display', Georgia, serif;
-  font-size: clamp(32px, 3.8vw, 54px);
-  font-weight: 500;
-  line-height: 1.04;
-  letter-spacing: -0.02em;
-  color: #293D1F;
-  margin: 0 0 10px 0;
-}
-
-.dest-hero-title em {
-  font-style: italic;
-  font-weight: 400;
-  color: #4E6252;
-}
-
-.dest-hero-desc {
-  font-family: 'Inter', var(--f-body, system-ui, sans-serif);
-  font-size: clamp(14px, 1.05vw, 15.5px);
-  line-height: 1.5;
-  color: #5A6B5D;
-  max-width: 52ch;
-  margin: 0;
-}
-
-/* ── Filter Chips ── */
-.dest-filters-section {
-  padding: 8px 0 16px 0;
-  position: relative;
-  z-index: 5;
-  background-color: #FAF8F5;
-}
-
-.dest-chips {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-}
-
-.dest-chip {
-  font-family: 'Inter', var(--f-body, system-ui, sans-serif);
-  font-size: 13px;
-  font-weight: 500;
-  padding: 8px 22px;
-  border-radius: 9999px;
+  text-decoration: none;
   cursor: pointer;
-  background: #FFFFFF;
-  border: 1px solid #D6DFD9;
-  color: #2C3F34;
-  transition: all 0.22s ease-out;
-  outline: none;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+  border: none;
 }
 
-.dest-chip:hover {
-  border-color: #1A3F2C;
-  color: #1A3F2C;
-  background: #FAFDFB;
-}
-
-.dest-chip.is-active {
-  background: #1A3F2C;
-  border-color: #1A3F2C;
+.btn-black {
+  background-color: #121316;
   color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(26, 63, 44, 0.16);
 }
 
+.btn-black:hover {
+  background-color: #26282E;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.btn-gold {
+  background-color: var(--color-gold);
+  color: #FFFFFF;
+}
+
+.btn-gold:hover {
+  background-color: var(--color-gold-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(180, 130, 53, 0.35);
+}
+
+.btn-outline {
+  background: transparent;
+  color: #121316;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.btn-outline:hover {
+  border-color: #121316;
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.btn-white {
+  background-color: #FFFFFF;
+  color: #121316;
+}
+
+.btn-white:hover {
+  background-color: #F3F4F6;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Square Arrow Navigation Buttons (as seen in screenshots 2, 4) */
+.nav-arrow-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.nav-arrow-btn.light {
+  background: #FFFFFF;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: #121316;
+}
+
+.nav-arrow-btn.light:hover {
+  background: #F4F4F5;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.nav-arrow-btn.dark {
+  background: #121316;
+  color: #FFFFFF;
+}
+
+.nav-arrow-btn.dark:hover {
+  background: #27272A;
+}
+
+/* Glassmorphism helpers */
+.glass-panel-dark {
+  background: var(--bg-dark-card);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-dark);
+}
+
+.glass-pill-light {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #F4F2EC;
+}
+::-webkit-scrollbar-thumb {
+  background: #C4C0B6;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A8A397;
+}
+
+/* ========================================================
+   Bi-Directional Luxury Scroll Reveal System
+   ======================================================== */
+
+.reveal-fade-up {
+  opacity: 0;
+  transform: translateY(40px);
+  will-change: transform, opacity;
+  transition: opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury);
+}
+
+.reveal-fade-down {
+  opacity: 0;
+  transform: translateY(-30px);
+  will-change: transform, opacity;
+  transition: opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury);
+}
+
+.reveal-fade-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  will-change: transform, opacity;
+  transition: opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury);
+}
+
+.reveal-fade-right {
+  opacity: 0;
+  transform: translateX(40px);
+  will-change: transform, opacity;
+  transition: opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury);
+}
+
+.reveal-scale-up {
+  opacity: 0;
+  transform: scale(0.92) translateY(32px);
+  will-change: transform, opacity;
+  transition: opacity 0.9s var(--ease-luxury), transform 0.9s var(--ease-luxury);
+}
+
+.reveal-pop {
+  opacity: 0;
+  transform: scale(0.75);
+  will-change: transform, opacity;
+  transition: opacity 0.75s var(--ease-spring), transform 0.75s var(--ease-spring);
+}
+
+/* Active In-View State (Triggers on both scroll down and scroll up) */
+.is-revealed,
+.in-view {
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) scale(1) !important;
+}
+
+/* Staggered Delays for Grid Children */
+.stagger-1 { transition-delay: 0.08s !important; }
+.stagger-2 { transition-delay: 0.16s !important; }
+.stagger-3 { transition-delay: 0.24s !important; }
+.stagger-4 { transition-delay: 0.32s !important; }
+.stagger-5 { transition-delay: 0.40s !important; }
+.stagger-6 { transition-delay: 0.48s !important; }
+
+/* Interactive Hover Utilities */
+.interactive-card {
+  transition: transform 0.4s var(--ease-luxury), box-shadow 0.4s var(--ease-luxury), border-color 0.4s ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-8px);
+}
+
+/* Contact Section Vice-Versa Reveal & Swap Animation */
+.contact-layout-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2.5rem;
+  align-items: start;
+  position: relative;
+}
+
+@media (max-width: 860px) {
+  .contact-layout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 2rem !important;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Mobile & Tablet Responsive Utilities for New Sections */
+@media (max-width: 960px) {
+  .signature-asymmetric-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .signature-asymmetric-grid > div {
+    transform: none !important;
+  }
+  .flagship-journey-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
 

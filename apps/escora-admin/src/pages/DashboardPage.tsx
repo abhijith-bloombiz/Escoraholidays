@@ -2,9 +2,9 @@ import { useGetDashboardStats, getGetDashboardStatsQueryKey } from "@workspace/a
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   MapPin,
-  Package,
+  NotebookText,
   ShoppingBag,
-  BookOpen,
+  Quote,
   CheckCircle2,
   Clock,
   IndianRupee,
@@ -219,14 +219,14 @@ export default function DashboardPage() {
           isLoading={isLoading}
         />
         <StatCard
-          title="Journeys"
-          value={stats?.totalPackages}
-          sub={`${stats?.publishedPackages ?? "—"} published`}
-          icon={Package}
+          title="Testimonials"
+          value="Active"
+          sub="Guest reviews & quotes"
+          icon={Quote}
           badgeBg="bg-[#FDF4E7]"
           iconColor="text-[#B57529]"
-          href="/packages"
-          testId="stat-card-journeys"
+          href="/testimonials"
+          testId="stat-card-testimonials"
           isLoading={isLoading}
         />
         <StatCard
@@ -241,14 +241,14 @@ export default function DashboardPage() {
           isLoading={isLoading}
         />
         <StatCard
-          title="Journal Posts"
-          value={stats?.totalJournalPosts}
-          sub={`${stats?.publishedJournalPosts ?? "—"} published`}
-          icon={BookOpen}
+          title="Itineraries"
+          value="Manage"
+          sub="Customer proposals"
+          icon={NotebookText}
           badgeBg="bg-[#EDF4FD]"
           iconColor="text-[#2B6CB0]"
-          href="/journal"
-          testId="stat-card-journal-posts"
+          href="/itineraries"
+          testId="stat-card-itineraries"
           isLoading={isLoading}
         />
       </div>
@@ -315,35 +315,35 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mt-5">
           {[
             {
-              href: "/packages",
-              label: "Add Journey",
-              desc: "Create a new package",
-              icon: Package,
+              href: "/itineraries/new",
+              label: "New Itinerary",
+              desc: "Build a bespoke quote",
+              icon: NotebookText,
               badgeBg: "bg-[#FDF4E7]",
               iconColor: "text-[#B57529]",
-              testId: "quick-action-add-journey",
+              testId: "quick-action-new-itinerary",
             },
             {
               href: "/destinations",
               label: "Add Destination",
-              desc: "Register a new location",
+              desc: "Register a sanctuary",
               icon: MapPin,
               badgeBg: "bg-[#E8F3EE]",
               iconColor: "text-[#183D2E]",
               testId: "quick-action-add-destination",
             },
             {
-              href: "/journal",
-              label: "Write Article",
-              desc: "Publish to the journal",
-              icon: BookOpen,
+              href: "/testimonials",
+              label: "Testimonials",
+              desc: "Manage guest reviews",
+              icon: Quote,
               badgeBg: "bg-[#EDF4FD]",
               iconColor: "text-[#2B6CB0]",
-              testId: "quick-action-write-article",
+              testId: "quick-action-testimonials",
             },
             {
               href: "/orders",
-              label: "View Enquiries",
+              label: "View Bookings",
               desc: "Respond to guests",
               icon: ShoppingBag,
               badgeBg: "bg-[#E8F3EE]",

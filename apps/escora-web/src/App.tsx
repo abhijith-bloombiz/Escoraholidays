@@ -1,29 +1,21 @@
-import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
+import React, { useState, useEffect } from 'react';
+import Lenis from 'lenis';
+import { Switch, Route, Router as WouterRouter } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/not-found";
-import ScrollToTop from "@/components/ScrollToTop";
-import SmoothScroll from "@/components/SmoothScroll";
-import CinematicSplashScreen from "@/components/CinematicSplashScreen";
-
-import Home from "@/pages/home";
-import DestinationDetail from "@/pages/destination-detail";
-import Journeys from "@/pages/journeys";
-import JourneyDetail from "@/pages/journey-detail";
-import Journal from "@/pages/journal";
-import JournalDetail from "@/pages/journal-detail";
-import PrivacyPolicy from "@/pages/privacy-policy";
-import Plan from "@/pages/plan";
-import TripPlanner from "@/pages/trip-planner";
-import JourneySelect from "@/pages/journey-select";
-import About from "@/pages/about";
-import Contact from "@/pages/contact";
-import CategoryDetail from "@/pages/category-detail";
-import ItineraryShare from "@/pages/itinerary-share";
-import DestinationsV3 from "@/pages/destinations-v3";
-import AiTravelAssistant from "@/components/ai/AiTravelAssistant";
-import MaintenancePage from "@/pages/maintenance";
+import Navbar from './components/Navbar';
+import Hero from './components/Hero';
+import HowItWorks from './components/HowItWorks';
+import WhyEscora from './components/WhyEscora';
+import CuratedDispatch from './components/CuratedDispatch';
+import KeralaHealing from './components/KeralaHealing';
+import Testimonials from './components/Testimonials';
+import ContactSection from './components/ContactSection';
+import Footer from './components/Footer';
+import EnquiryModal, { type EnquiryInitialData } from './components/EnquiryModal';
+import ItineraryModal from './components/ItineraryModal';
+import Toast from './components/Toast';
+import type { TravelCategoryItem } from './data/escoraData';
+import ItineraryShare from './pages/itinerary-share';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,64 +27,173 @@ const queryClient = new QueryClient({
   },
 });
 
-const isMaintenanceMode = import.meta.env.VITE_MAINTENANCE_MODE !== "false";
+export function LandingPage() {
+  const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
+  const [enquiryInitialData, setEnquiryInitialData] = useState<EnquiryInitialData>({});
+  const [selectedJourney, setSelectedJourney] = useState<TravelCategoryItem | null>(null);
+  const [toastMessage, setToastMessage] = useState<string>('');
 
-function Router() {
+  // Page-wide Lenis Smooth Scrolling Engine
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.25,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Silky exponential ease-out
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.6,
+      infinite: false,
+    });
+
+    (window as any).lenis = lenis;
+
+    // Continuous Animation Frame Loop
+    let rafId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+    rafId = requestAnimationFrame(raf);
+
+    // Buttery smooth glide for in-page anchor links (e.g., #destinations, #experiences)
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const anchor = target ? target.closest('a[href^="#"]') : null;
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      if (href && href.length > 1) {
+        const targetEl = document.querySelector<HTMLElement>(href);
+        if (targetEl) {
+          e.preventDefault();
+          lenis.scrollTo(targetEl, { offset: -65, duration: 1.35 });
+        }
+      }
+    };
+
+    document.addEventListener('click', handleAnchorClick);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      document.removeEventListener('click', handleAnchorClick);
+      lenis.destroy();
+      (window as any).lenis = null;
+    };
+  }, []);
+
+  // Pause background Lenis inertia when any modal is active
+  useEffect(() => {
+    const lenis = (window as any).lenis;
+    if (enquiryOpen || Boolean(selectedJourney)) {
+      lenis?.stop();
+    } else {
+      lenis?.start();
+    }
+  }, [enquiryOpen, selectedJourney]);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+  };
+
+  const openEnquiryWithData = (data: EnquiryInitialData = {}) => {
+    setEnquiryInitialData(data);
+    setEnquiryOpen(true);
+  };
+
+  const handleBookTour = (tour: TravelCategoryItem) => {
+    openEnquiryWithData({
+      destination: tour.dest,
+      experience: tour.title,
+      duration: tour.days
+    });
+  };
+
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/destinations" component={DestinationsV3} />
-      <Route path="/destinations/:name" component={DestinationDetail} />
-      <Route path="/journeys" component={Journeys} />
-      <Route path="/journeys/:id" component={JourneyDetail} />
-      <Route path="/journal" component={Journal} />
-      <Route path="/journal/:id" component={JournalDetail} />
-      <Route path="/about" component={About} />
-      <Route path="/contact" component={Contact} />
-      <Route path="/plan-a-journey">{() => <Redirect to="/plan" replace />}</Route>
-      <Route path="/choose-journey">{() => <Redirect to="/plan" replace />}</Route>
-      <Route path="/choose-your-journey">{() => <Redirect to="/plan" replace />}</Route>
-      <Route path="/plan" component={Plan} />
-      <Route path="/trip-planner" component={TripPlanner} />
-      <Route path="/ai-planner" component={TripPlanner} />
-      <Route path="/privacy-policy" component={PrivacyPolicy} />
-      <Route path="/collections/:category" component={CategoryDetail} />
-      <Route path="/itinerary/:token">
-        {(params) => <ItineraryShare mode="itinerary" key={params.token} />}
-      </Route>
-      <Route path="/package/:token">
-        {(params) => <ItineraryShare mode="package" key={params.token} />}
-      </Route>
-      <Route component={NotFound} />
-    </Switch>
+    <div className="escora-app" style={{ minHeight: '100vh', backgroundColor: '#F8F6F1' }}>
+      {/* Fixed / Floating Top Navbar */}
+      <Navbar onOpenEnquiry={() => openEnquiryWithData()} />
+
+      <main>
+        {/* Section 1 & 2 — Cinematic Hero, Destination Sanctuaries & Fullscreen Expansion */}
+        <Hero
+          onOpenEnquiry={(data?: Record<string, any>) => openEnquiryWithData(data)}
+          onSelectFilter={(data?: Record<string, any>) => openEnquiryWithData(data)}
+          onSelectDestination={(dest: { name: string }) => openEnquiryWithData({ destination: dest.name })}
+        />
+
+        {/* Section 2 — Why ESCORA (The Luxury Promise & 4 Trust Pillars) */}
+        <WhyEscora onOpenEnquiry={(data) => openEnquiryWithData(data)} />
+
+        {/* Section 3 — The Art of Kerala Healing (Classical Ayurveda, Yoga & Wellness Heritage) */}
+        <KeralaHealing
+          onOpenEnquiry={() => openEnquiryWithData()}
+        />
+
+        {/* Section 7 — How It Works (6-Step Bespoke Concierge Planning Process) */}
+        <HowItWorks
+          onOpenEnquiry={(data) => openEnquiryWithData(data)}
+        />
+
+        {/* Section 8 — Traveller Testimonials (What Our Travelers Say - Social Proof after How It Works) */}
+        <Testimonials />
+
+        {/* Section 9 — Curated Kerala Travel Inspiration & Dispatch (Seasonal Stories & Newsletter) */}
+        <CuratedDispatch
+          onShowToast={showToast}
+        />
+
+        {/* Section 10 — Contact & Consultation (On-Page Concierge Desk & Bespoke Travel Form) */}
+        <ContactSection
+          onShowToast={showToast}
+          onOpenEnquiry={(data) => openEnquiryWithData(data)}
+        />
+      </main>
+
+      {/* Section 11 — Large Dark Photographic Footer */}
+      <Footer
+        onShowToast={showToast}
+        onOpenEnquiry={() => openEnquiryWithData()}
+      />
+
+      {/* Interactive Modals */}
+      <EnquiryModal
+        isOpen={enquiryOpen}
+        onClose={() => setEnquiryOpen(false)}
+        initialData={enquiryInitialData}
+        onShowToast={showToast}
+      />
+
+      <ItineraryModal
+        isOpen={Boolean(selectedJourney)}
+        onClose={() => setSelectedJourney(null)}
+        journey={selectedJourney}
+        onBookThisTour={handleBookTour}
+      />
+
+      {/* Feedback Toast */}
+      <Toast
+        message={toastMessage}
+        onClose={() => setToastMessage('')}
+      />
+    </div>
   );
 }
 
-function App() {
-  if (isMaintenanceMode) {
-    return (
-      <TooltipProvider>
-        <MaintenancePage />
-        <Toaster />
-      </TooltipProvider>
-    );
-  }
-
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <CinematicSplashScreen />
-        <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <SmoothScroll>
-            <ScrollToTop />
-            <Router />
-          </SmoothScroll>
-          <AiTravelAssistant />
-        </WouterRouter>
-        <Toaster />
-      </TooltipProvider>
+      <WouterRouter>
+        <Switch>
+          <Route path="/" component={LandingPage} />
+          <Route path="/itinerary/:token">
+            {(params) => <ItineraryShare mode="itinerary" key={params.token} />}
+          </Route>
+          <Route path="/package/:token">
+            {(params) => <ItineraryShare mode="package" key={params.token} />}
+          </Route>
+          <Route component={LandingPage} />
+        </Switch>
+      </WouterRouter>
     </QueryClientProvider>
   );
 }
-
-export default App;

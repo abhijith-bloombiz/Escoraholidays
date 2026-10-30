@@ -25,16 +25,13 @@ import { useAuth } from "@/hooks/useAuth";
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/destinations", label: "Destinations", icon: MapPin },
-  { href: "/categories", label: "Travel Types", icon: Compass },
-  { href: "/packages", label: "Journeys", icon: Package },
+  { href: "/testimonials", label: "Testimonials", icon: Quote },
   { href: "/itineraries", label: "Itineraries", icon: NotebookText },
   { href: "/enquiries", label: "Inbox", icon: MessageSquare },
   { href: "/orders", label: "Bookings", icon: ShoppingBag },
   { href: "/invoices", label: "Invoices", icon: ReceiptText },
   { href: "/campaigns", label: "Campaigns", icon: Mail },
   { href: "/whatsapp", label: "WhatsApp", icon: MessageCircle },
-  { href: "/journal", label: "Journal", icon: BookOpen },
-  { href: "/testimonials", label: "Testimonials", icon: Quote },
   { href: "/media", label: "Media", icon: Image },
 ];
 
@@ -52,7 +49,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <img src={escoraWordmarkPath} alt="Escora" className="h-7 opacity-90" />
           <div className="text-[10px] font-sans font-medium text-[#687D75] tracking-widest uppercase mt-1 flex items-center gap-1.5">
             <span>Admin</span>
-            <span className="text-[9px] text-amber-600 font-normal tracking-normal">• Site in maintenance</span>
+            <span className="text-[9px] text-emerald-600 font-normal tracking-normal">• Live</span>
           </div>
         </div>
 
@@ -102,7 +99,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <img src={escoraWordmarkPath} alt="Escora" className="h-7 opacity-90" />
                 <div className="text-[10px] font-sans font-medium text-[#687D75] tracking-widest uppercase mt-1 flex items-center gap-1.5">
                   <span>Admin</span>
-                  <span className="text-[9px] text-amber-600 font-normal tracking-normal">• Site in maintenance</span>
+                  <span className="text-[9px] text-emerald-600 font-normal tracking-normal">• Live</span>
                 </div>
               </div>
               <button

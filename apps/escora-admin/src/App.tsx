@@ -1,4 +1,4 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -84,8 +84,8 @@ function ProtectedRouter() {
       <Switch>
         <Route path="/" component={DashboardPage} />
         <Route path="/destinations" component={DestinationsPage} />
-        <Route path="/categories" component={CategoriesPage} />
-        <Route path="/packages" component={PackagesPage} />
+        <Route path="/categories">{() => <Redirect to="/" replace />}</Route>
+        <Route path="/packages">{() => <Redirect to="/" replace />}</Route>
         <Route path="/itineraries/create" component={ItineraryCreatePage} />
         <Route path="/itinerary/create" component={ItineraryCreatePage} />
         <Route path="/itineraries/new" component={ItineraryBuilderPage} />
@@ -99,7 +99,7 @@ function ProtectedRouter() {
         <Route path="/invoices/:id/edit" component={InvoiceBuilderPage} />
         <Route path="/invoices" component={InvoicesPage} />
         <Route path="/orders" component={OrdersPage} />
-        <Route path="/journal" component={JournalPage} />
+        <Route path="/journal">{() => <Redirect to="/" replace />}</Route>
         <Route path="/testimonials" component={TestimonialsPage} />
         <Route path="/media" component={MediaPage} />
         <Route path="/enquiries" component={EnquiriesPage} />

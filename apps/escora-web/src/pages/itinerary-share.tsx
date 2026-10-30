@@ -14,9 +14,20 @@ import {
   formatDate,
 } from "@/lib/itinerary";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import Layout from "@/components/layout/Layout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import ItineraryPrintDocument from "@/components/ItineraryPrintDocument";
 import escoraWordmarkPath from "@assets/escora/escora-wordmark.png";
+
+function Layout({ children, hideFooter = false }: { children: React.ReactNode; hideFooter?: boolean }) {
+  return (
+    <div className="min-h-screen flex flex-col w-full bg-[#F8F6F1]">
+      <Navbar onOpenEnquiry={() => {}} />
+      <main className="flex-1 w-full pt-24">{children}</main>
+      {!hideFooter && <Footer onOpenEnquiry={() => {}} onShowToast={() => {}} />}
+    </div>
+  );
+}
 
 const PRINT_TARGET_ID = "itinerary-print-target";
 

@@ -11,6 +11,7 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "moduleResolution": "bundler",
+    "allowJs": true,
     "types": ["node", "vite/client"],
     "paths": {
       "@/*": ["./src/*"]

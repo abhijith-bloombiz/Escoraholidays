@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { MapPin, Calendar, Compass, Users, ChevronDown, ChevronLeft, ChevronRight, ArrowRight, ArrowUpRight, Sparkles } from 'lucide-react';
-import { useListDestinations } from '@workspace/api-client-react';
+import { useListDestinations, useListHeroSlides } from '@workspace/api-client-react';
 import { useLocation } from 'wouter';
 
 export const resolveDestinationSlug = (dest?: { slug?: string; name?: string; shortName?: string } | string | null): string => {
@@ -183,8 +183,22 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isDesktop, setIsDesktop] = useState(true);
 
-  // Live CMS Destinations from Admin Panel
+  // Live CMS Destinations and Hero Slides from Admin Panel
   const { data: remoteDestinations } = useListDestinations();
+  const { data: remoteHeroSlides } = useListHeroSlides();
+
+  const heroSlides = useMemo(() => {
+    if (!remoteHeroSlides || remoteHeroSlides.length === 0) return HERO_VIDEOS;
+    return remoteHeroSlides.map((s, idx) => ({
+      id: `hero-slide-${s.id}`,
+      video: s.videoUrl || HERO_VIDEOS[idx % HERO_VIDEOS.length]?.video || HERO_VIDEOS[0].video,
+      title: s.title || `Slide ${idx + 1}`,
+      subtitle: s.subtitle || '',
+      eyebrow: s.eyebrow || "GOD'S OWN COUNTRY",
+      headingLine1: s.headingLine1 || '',
+      headingLine2: s.headingLine2 || '',
+    }));
+  }, [remoteHeroSlides]);
 
   // Form states for the quick filter bar
   const [destination, setDestination] = useState('');
@@ -558,10 +572,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   useEffect(() => {
     if (!isPlaying) return;
     const interval = setInterval(() => {
-      setCurrentSlide((curr) => (curr + 1) % HERO_VIDEOS.length);
+      setCurrentSlide((curr) => (curr + 1) % (heroSlides.length || 1));
     }, 8000);
     return () => clearInterval(interval);
-  }, [isPlaying]);
+  }, [isPlaying, heroSlides.length]);
 
   // High-performance synchronized scroll listener with zero layout thrashing
   useEffect(() => {
@@ -912,7 +926,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       textShadow: '0 2px 12px rgba(0, 0, 0, 0.85)'
                     }}
                   >
-                    GOD'S OWN COUNTRY
+                    {heroSlides[currentSlide]?.eyebrow || "GOD'S OWN COUNTRY"}
                   </span>
 
                   {/* Heading Crossfade Stack with Soft Gaussian Mist Dissolve */}
@@ -925,7 +939,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       position: 'relative'
                     }}
                   >
-                    {HERO_VIDEOS.map((slide, idx) => {
+                    {heroSlides.map((slide, idx) => {
                       const isActive = idx === currentSlide;
                       return (
                         <div
@@ -1491,7 +1505,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   className="bento-center-card"
                 >
                   {/* Layer 1: Opening Hero Video Carousel (Cinematic 4K/HD Videos from public/hero) */}
-                  {HERO_VIDEOS.map((slide, idx) => {
+                  {heroSlides.map((slide, idx) => {
                     const isActive = idx === currentSlide;
                     const heroVideoOpacity = isActive
                       ? Math.max(0, (1 - destImageEase) * (1 - expandRaw * 1.5))
@@ -1525,7 +1539,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           aria-hidden="true"
                           onEnded={() => {
                             if (idx === currentSlide && isPlaying) {
-                              setCurrentSlide((curr) => (curr + 1) % HERO_VIDEOS.length);
+                              setCurrentSlide((curr) => (curr + 1) % (heroSlides.length || 1));
                             }
                           }}
                           style={{
@@ -2552,7 +2566,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 marginBottom: '1.5rem'
               }}
             >
-              {HERO_VIDEOS.map((slide, idx) => {
+              {heroSlides.map((slide, idx) => {
                 const isActive = idx === currentSlide;
                 return (
                   <video
@@ -2613,7 +2627,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     marginBottom: '0.35rem'
                   }}
                 >
-                  GOD'S OWN COUNTRY
+                  {heroSlides[currentSlide]?.eyebrow || "GOD'S OWN COUNTRY"}
                 </span>
                 <div
                   style={{
@@ -2623,7 +2637,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     position: 'relative'
                   }}
                 >
-                  {HERO_VIDEOS.map((slide, idx) => {
+                  {heroSlides.map((slide, idx) => {
                     const isActive = idx === currentSlide;
                     return (
                       <div

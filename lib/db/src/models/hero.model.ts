@@ -23,12 +23,12 @@ export type HeroSlideDoc = Document<unknown, {}, IHeroSlide> & IHeroSlide;
 const heroSlideSchema = new Schema<IHeroSlide>(
   {
     id: { type: Number, required: true, unique: true, index: true },
-    title: { type: String, required: true },
-    subtitle: { type: String, required: true },
+    title: { type: String, default: "Hero Slide" },
+    subtitle: { type: String, default: "" },
     eyebrow: { type: String, required: true, default: "GOD'S OWN COUNTRY" },
     headingLine1: { type: String, required: true },
     headingLine2: { type: String, required: true },
-    videoUrl: { type: String, required: true },
+    videoUrl: { type: String, default: "/hero/15015065_1920_1080_60fps.mp4" },
     posterUrl: { type: String, default: null },
     ctaText: { type: String, default: null },
     ctaLink: { type: String, default: null },
@@ -117,12 +117,12 @@ export const HeroConfig = HeroConfigModel;
 export const heroConfigTable = HeroConfigModel;
 
 export const insertHeroSlideSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  subtitle: z.string().min(1, "Subtitle is required"),
-  eyebrow: z.string().min(1, "Eyebrow is required"),
+  title: z.string().optional().default("Hero Slide"),
+  subtitle: z.string().optional().default(""),
+  eyebrow: z.string().optional().default("GOD'S OWN COUNTRY"),
   headingLine1: z.string().min(1, "Heading Line 1 is required"),
   headingLine2: z.string().min(1, "Heading Line 2 is required"),
-  videoUrl: z.string().min(1, "Video URL is required"),
+  videoUrl: z.string().optional().default("/hero/15015065_1920_1080_60fps.mp4"),
   posterUrl: z.string().optional().nullable(),
   ctaText: z.string().optional().nullable(),
   ctaLink: z.string().optional().nullable(),

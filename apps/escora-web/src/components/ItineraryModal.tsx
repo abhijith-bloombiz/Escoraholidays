@@ -26,12 +26,16 @@ export default function ItineraryModal({ isOpen, onClose, journey, onBookThisTou
         alignItems: 'center',
         justifyContent: 'center',
         padding: '1.5rem',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none'
       }}
       onClick={onClose}
+      className="no-scrollbar itinerary-modal-backdrop"
     >
       <div
         data-lenis-prevent
+        className="no-scrollbar itinerary-modal-card"
         style={{
           backgroundColor: '#FFFFFF',
           borderRadius: '28px',
@@ -39,6 +43,8 @@ export default function ItineraryModal({ isOpen, onClose, journey, onBookThisTou
           width: '100%',
           maxHeight: '90vh',
           overflowY: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
           position: 'relative',
           padding: 'clamp(2rem, 3.5vw, 3rem)',
           boxShadow: '0 30px 80px rgba(0, 0, 0, 0.4)',
@@ -46,6 +52,14 @@ export default function ItineraryModal({ isOpen, onClose, journey, onBookThisTou
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        <style>{`
+          .itinerary-modal-backdrop::-webkit-scrollbar,
+          .itinerary-modal-card::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+        `}</style>
         {/* Close Button */}
         <button
           onClick={onClose}

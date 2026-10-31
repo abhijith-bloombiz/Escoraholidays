@@ -66,7 +66,15 @@ router.get("/hero/slides", async (req, res, next): Promise<void> => {
 
 // POST /hero/slides — Create hero slide (Admin only)
 router.post("/hero/slides", async (req, res, next): Promise<void> => {
-  const parsed = CreateHeroSlideBody.safeParse(req.body);
+  const preparedBody = {
+    title: req.body.title || req.body.headingLine1 || "Hero Slide",
+    subtitle: req.body.subtitle || "",
+    eyebrow: req.body.eyebrow || "GOD'S OWN COUNTRY",
+    videoUrl: req.body.videoUrl || "/hero/15015065_1920_1080_60fps.mp4",
+    ...req.body,
+  };
+
+  const parsed = CreateHeroSlideBody.safeParse(preparedBody);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
     return;
@@ -74,10 +82,6 @@ router.post("/hero/slides", async (req, res, next): Promise<void> => {
 
   if (!parsed.data.headingLine1?.trim()) {
     res.status(400).json({ error: "Heading line 1 cannot be empty" });
-    return;
-  }
-  if (!parsed.data.videoUrl?.trim()) {
-    res.status(400).json({ error: "Video URL cannot be empty" });
     return;
   }
 

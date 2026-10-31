@@ -87,7 +87,7 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
                   fontWeight: 700
                 }}
               >
-                CURATED DISPATCH
+                THE ESCORA JOURNAL
               </span>
             </div>
 
@@ -102,7 +102,7 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
                 marginBottom: '1rem'
               }}
             >
-              THE ESCORA JOURNAL &amp;<br />SEASONAL INSPIRATION
+              STORIES, SEASONS<br />&amp; DISCOVERIES.
             </h2>
 
             {/* Short Quality Description */}
@@ -117,7 +117,7 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
                 fontWeight: 400
               }}
             >
-              Handpicked seasonal itineraries, private retreat openings, and quiet insider discoveries across Kerala — delivered once a month directly to your inbox.
+              Discover Kerala beyond the familiar. Explore seasonal travel inspiration, remarkable places, and thoughtful insights to help you imagine your next journey.
             </p>
 
             {/* Pill-shaped subscription field */}

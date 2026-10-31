@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MapPin, Calendar, Compass, Users, ChevronDown, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { MapPin, Calendar, Compass, Users, ChevronDown, ChevronLeft, ChevronRight, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useListDestinations } from '@workspace/api-client-react';
 
 const HERO_VIDEOS = [
@@ -160,77 +160,152 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
 
-  // 1. Center Flagship Destination from Admin Panel
-  const centerDestination = useMemo(() => {
-    if (!remoteDestinations || remoteDestinations.length === 0) {
-      return {
-        id: -1,
-        name: 'Munnar Tea Highlands',
-        shortName: 'Munnar',
-        tag: 'HIGHLANDS & ESTATES',
-        coordinates: '10.09°N 77.06°E',
-        subtitle: 'Misty summits, 150-year-old planter estates, and golden sunrise tea trails.',
-        image: '/images/dest_3_munnar.jpg'
-      };
-    }
-    const published = remoteDestinations.filter((d) => d.published);
-    const pool = published.length > 0 ? published : remoteDestinations;
-    // Prefer Munnar if present for the iconic highland transition
-    const munnar = pool.find((d) => d.name.toLowerCase().includes('munnar'));
-    const featured = munnar || pool[0];
+  // Bento 3D Stage Carousel active offset/index state
+  const [bentoSlideIndex, setBentoSlideIndex] = useState(0);
 
-    const hasHighlands = featured.name.toLowerCase().includes('highland');
-    const displayName = hasHighlands ? featured.name : `${featured.name} Highlands`;
+  // Fallback destination pool matching Escora luxury portfolio
+  const fallbackDestPool = useMemo(() => [
+    {
+      id: -1,
+      name: 'Munnar Highlands',
+      shortName: 'Munnar',
+      type: 'HIGHLANDS & ESTATES',
+      shortDesc: 'Endless emerald tea estates rolling across the Western Ghats at 1,600 m above sea level.',
+      description: 'Endless emerald tea estates rolling across the Western Ghats at 1,600 m above sea level.',
+      imageUrl: '/images/dest_3_munnar.jpg'
+    },
+    {
+      id: -2,
+      name: 'Alleppey',
+      shortName: 'Alleppey',
+      type: 'BACKWATER LAGOONS',
+      shortDesc: "The 'Venice of the East' — kettuvallam houseboats drifting through Kuttanad's below-sea-level paddy fields.",
+      description: "The 'Venice of the East' — kettuvallam houseboats drifting through Kuttanad's below-sea-level paddy fields.",
+      imageUrl: '/images/dest_alleppey.jpg'
+    },
+    {
+      id: -3,
+      name: 'Bekal',
+      shortName: 'Bekal',
+      type: 'HERITAGE SEA STRONGHOLD',
+      shortDesc: "Kerala's largest fort — a 17th-century laterite stronghold above unspoiled northern beaches.",
+      description: "Kerala's largest fort — a 17th-century laterite stronghold above unspoiled northern beaches.",
+      imageUrl: '/images/dest_bekal.jpg'
+    },
+    {
+      id: -4,
+      name: 'Fort Kochi',
+      shortName: 'Fort Kochi',
+      type: 'SPICE PORT & BIENNALE',
+      shortDesc: 'Historic spice port with colonial architecture and Chinese fishing nets.',
+      description: 'Historic spice port with colonial architecture and Chinese fishing nets.',
+      imageUrl: '/images/dest_fort_kochi.jpg'
+    },
+    {
+      id: -5,
+      name: 'Kannur',
+      shortName: 'Kannur',
+      type: 'MYSTIC THEYYAM RITUAL',
+      shortDesc: "Malabar's untouristed coast — Muzhappilangad's drive-in beach, Thalassery's forts, and the ritual fire of Theyyam.",
+      description: "Malabar's untouristed coast — Muzhappilangad's drive-in beach, Thalassery's forts, and the ritual fire of Theyyam.",
+      imageUrl: '/images/dest_kannur.jpg'
+    },
+    {
+      id: -6,
+      name: 'Varkala',
+      shortName: 'Varkala',
+      type: 'RED CLIFF SANCTUARY',
+      shortDesc: 'Dramatic red laterite cliffs meeting the Arabian Sea, yoga shalas and ocean sunsets.',
+      description: 'Dramatic red laterite cliffs meeting the Arabian Sea, yoga shalas and ocean sunsets.',
+      imageUrl: '/images/dest_5_varkala.jpg'
+    },
+    {
+      id: -7,
+      name: 'Wayanad',
+      shortName: 'Wayanad',
+      type: 'MISTY CLOUD FORESTS',
+      shortDesc: 'Prehistoric caves, rolling tea & coffee plantations, waterfalls and treehouse sanctuaries.',
+      description: 'Prehistoric caves, rolling tea & coffee plantations, waterfalls and treehouse sanctuaries.',
+      imageUrl: '/images/dest_1_wayanad.jpg'
+    },
+    {
+      id: -8,
+      name: 'Kumarakom',
+      shortName: 'Kumarakom',
+      type: 'BIRD SANCTUARY & LAGOONS',
+      shortDesc: 'Quiet mangrove canals on the eastern shore of Vembanad Lake, luxury lakeside retreats.',
+      description: 'Quiet mangrove canals on the eastern shore of Vembanad Lake, luxury lakeside retreats.',
+      imageUrl: '/images/dest_kumarakom.jpg'
+    }
+  ], []);
+
+  // Ordered full list of destinations from CMS or fallback
+  const allDestinationsList = useMemo(() => {
+    if (remoteDestinations && remoteDestinations.length > 0) {
+      const published = remoteDestinations.filter((d) => d.published);
+      const pool = published.length > 0 ? published : remoteDestinations;
+      // Ensure Munnar is first in initial rotation for signature opening
+      const munnar = pool.find((d) => d.name.toLowerCase().includes('munnar'));
+      if (munnar) {
+        return [munnar, ...pool.filter((d) => d.id !== munnar.id)];
+      }
+      return pool;
+    }
+    return fallbackDestPool;
+  }, [remoteDestinations, fallbackDestPool]);
+
+  const formatDestCard = (item: any) => {
+    if (!item) return fallbackDestPool[0];
+    const hasHighlands = (item.name || '').toLowerCase().includes('highland');
+    const isMunnar = (item.name || '').toLowerCase().includes('munnar');
+    const displayName = isMunnar && !hasHighlands ? `${item.name} Highlands` : item.name;
 
     return {
-      id: featured.id,
+      id: item.id,
       name: displayName,
-      shortName: featured.name,
-      tag: (featured.type || 'HIGHLANDS').toUpperCase(),
-      coordinates: formatDestinationCoordinates(featured, featured.name),
-      subtitle: featured.shortDesc || featured.description || 'Misty summits, 150-year-old planter estates, and golden sunrise tea trails.',
-      image: resolveDestinationImage(featured, '/images/dest_3_munnar.jpg')
+      shortName: item.shortName || item.name,
+      tag: (item.type || 'SANCTUARY').toUpperCase(),
+      coordinates: formatDestinationCoordinates(item, item.name),
+      subtitle: item.shortDesc || item.description || '',
+      image: resolveDestinationImage(item, '/images/dest_3_munnar.jpg')
     };
-  }, [remoteDestinations]);
+  };
 
-  // 2. The 4 Companion Wing Destinations from Admin Panel (excluding the center card)
+  // 1. Center Flagship Destination (rotates with bentoSlideIndex)
+  const centerDestination = useMemo(() => {
+    const len = allDestinationsList.length;
+    if (len === 0) return formatDestCard(fallbackDestPool[0]);
+    const idx = ((bentoSlideIndex % len) + len) % len;
+    return formatDestCard(allDestinationsList[idx]);
+  }, [allDestinationsList, bentoSlideIndex, fallbackDestPool]);
+
+  // 2. The 4 Companion Wing Destinations (surrounding active center destination)
   const liveCompanions = useMemo(() => {
-    if (!remoteDestinations || remoteDestinations.length === 0) {
-      return COMPANIONS;
-    }
-    const published = remoteDestinations.filter((d) => d.published);
-    const pool = published.length > 0 ? published : remoteDestinations;
-
-    // Exclude the destination chosen for the center card to ensure 0 duplicates
-    const companions = pool.filter((d) => d.id !== centerDestination.id);
-    const items = companions.length >= 4 ? companions : pool;
-
-    const fallbackSlots = [
-      COMPANIONS.topLeft,
-      COMPANIONS.bottomLeft,
-      COMPANIONS.topRight,
-      COMPANIONS.bottomRight
-    ];
-
-    const getSlot = (idx: number, fallback: typeof COMPANIONS.topLeft) => {
-      const item = items[idx];
-      if (!item) return fallback;
-      return {
-        name: item.name,
-        tag: (item.type || fallback.tag).toUpperCase(),
-        coordinates: formatDestinationCoordinates(item, item.name),
-        subtitle: item.shortDesc || item.description || fallback.subtitle,
-        image: resolveDestinationImage(item, fallback.image)
-      };
+    const len = allDestinationsList.length;
+    if (len === 0) return COMPANIONS;
+    const cIdx = ((bentoSlideIndex % len) + len) % len;
+    const getSlotDest = (offset: number) => {
+      const idx = (cIdx + offset) % len;
+      return formatDestCard(allDestinationsList[idx]);
     };
 
     return {
-      topLeft: getSlot(0, fallbackSlots[0]),
-      bottomLeft: getSlot(1, fallbackSlots[1]),
-      topRight: getSlot(2, fallbackSlots[2]),
-      bottomRight: getSlot(3, fallbackSlots[3])
+      topLeft: getSlotDest(1),
+      bottomLeft: getSlotDest(2),
+      topRight: getSlotDest(3),
+      bottomRight: getSlotDest(4)
     };
-  }, [remoteDestinations, centerDestination]);
+  }, [allDestinationsList, bentoSlideIndex]);
+
+  const handlePrevDestination = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setBentoSlideIndex((prev) => (prev - 1 + allDestinationsList.length) % allDestinationsList.length);
+  };
+
+  const handleNextDestination = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setBentoSlideIndex((prev) => (prev + 1) % allDestinationsList.length);
+  };
 
   const mobileDestinations = useMemo(() => {
     if (remoteDestinations && remoteDestinations.length > 0) {
@@ -447,13 +522,15 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     ? 2 * bentoRaw * bentoRaw
     : 1 - Math.pow(-2 * bentoRaw + 2, 2) / 2;
 
-  // Staggered slide trajectories matching the shape cards
-  const leftCard1SlideX = (1 - bentoEase) * -240;
-  const leftCard1SlideY = (1 - bentoEase) * -50;
-  const leftCard2SlideX = (1 - bentoEase) * -190;
-  const rightCard4SlideX = (1 - bentoEase) * 190;
-  const rightCard5SlideX = (1 - bentoEase) * 240;
-  const rightCard5SlideY = (1 - bentoEase) * 50;
+  // Balanced slide trajectories matching even-sized cards
+  const leftCardSlideX = (1 - bentoEase) * -240;
+  const rightCardSlideX = (1 - bentoEase) * 240;
+  const leftCard1SlideX = leftCardSlideX;
+  const leftCard1SlideY = 0;
+  const leftCard2SlideX = leftCardSlideX;
+  const rightCard4SlideX = rightCardSlideX;
+  const rightCard5SlideX = rightCardSlideX;
+  const rightCard5SlideY = 0;
   const bentoCardOpacity = bentoEase;
 
   // Center card label fade in as bento docks
@@ -498,6 +575,20 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     ? 0
     : bentoCardOpacity * Math.max(0, 1 - Math.max(0, expandRaw - 0.85) / 0.15);
 
+  // Keyboard arrow slider controls (when Stage 2 amphitheater is in active view)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (sideCardsOpacity < 0.6 || expandRaw >= 0.15 || !isDesktop) return;
+      if (e.key === 'ArrowLeft') {
+        handlePrevDestination();
+      } else if (e.key === 'ArrowRight') {
+        handleNextDestination();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [sideCardsOpacity, expandRaw, isDesktop, allDestinationsList.length]);
+
   // Stage 2 Layout & Animation Constants (Symmetrical 3-Column: Left 2 cards, Center Munnar, Right 2 cards)
   const colWidth = 'clamp(280px, 23.5vw, 360px)';
   const munnarWidth = 'clamp(360px, 30vw, 450px)';
@@ -518,16 +609,16 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     : phase3Raw > 0
       ? `calc(${munnarWidth} + (100vw - ${munnarWidth}) * ${expandEase})`
       : shrinkEase < 1
-        ? `calc(100vw - (100vw - clamp(350px, 29vw, 440px)) * ${shrinkEase})`
-        : (rearrangeEase >= 1 ? munnarWidth : `calc(clamp(350px, 29vw, 440px) * ${1 - rearrangeEase} + ${munnarWidth} * ${rearrangeEase})`);
+        ? `calc(100vw - (100vw - ${munnarWidth}) * ${shrinkEase})`
+        : munnarWidth;
 
   const centerCardHeight = phase4Raw > 0
     ? `calc(100vh - (100vh - ${expCardHeight}) * ${phase4Ease})`
     : phase3Raw > 0
       ? `calc(${munnarFeaturedHeight} + (100vh - ${munnarFeaturedHeight}) * ${expandEase})`
       : shrinkEase < 1
-        ? `calc(100vh - (100vh - clamp(620px, 80vh, 850px)) * ${shrinkEase})`
-        : (rearrangeEase >= 1 ? munnarFeaturedHeight : `calc(clamp(620px, 80vh, 850px) * ${1 - rearrangeEase} + ${munnarFeaturedHeight} * ${rearrangeEase})`);
+        ? `calc(100vh - (100vh - ${munnarFeaturedHeight}) * ${shrinkEase})`
+        : munnarFeaturedHeight;
 
   const centerCardTransform = phase4Raw > 0
     ? `translate(calc(-1.5 * (${expCardWidth} + ${expCardGap}) * ${phase4Ease}), calc(${expCardOffsetY} * ${phase4Ease}))`
@@ -949,6 +1040,40 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   perspective: '1400px'
                 }}
               >
+                {/* Arrow Slider: Left Edge / Horizontal Start, Vertical Center of Card Layout */}
+                <button
+                  type="button"
+                  onClick={handlePrevDestination}
+                  aria-label="Previous destination"
+                  className="bento-slider-arrow bento-slider-arrow-prev"
+                  style={{
+                    position: 'absolute',
+                    left: 'max(16px, calc(50% - (clamp(280px, 23.5vw, 360px) + clamp(360px, 30vw, 450px) / 2 + clamp(16px, 1.8vw, 24px) + 68px)))',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    zIndex: 35,
+                    width: 'clamp(46px, 3.4vw, 54px)',
+                    height: 'clamp(46px, 3.4vw, 54px)',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+                    color: '#121316',
+                    border: '1px solid rgba(0, 0, 0, 0.08)',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.04)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    opacity: (sideCardsOpacity > 0.35 && expandRaw < 0.15) ? Math.min(1, (sideCardsOpacity - 0.3) / 0.5) : 0,
+                    pointerEvents: (sideCardsOpacity > 0.6 && expandRaw < 0.15) ? 'auto' : 'none',
+                    transition: 'opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease'
+                  }}
+                >
+                  <ChevronLeft size={22} strokeWidth={2.4} />
+                </button>
+
                 {/* ---------------------------------------------------- */}
                 {/* COLUMN 1: LEFT COMPANIONS (3D Inward Amphitheater Wing) */}
                 {/* ---------------------------------------------------- */}
@@ -976,9 +1101,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
-                      height: rearrangeEase >= 1
-                        ? card2x2Height
-                        : (rearrangeEase <= 0 ? 'clamp(220px, 28vh, 300px)' : `calc(clamp(220px, 28vh, 300px) * ${1 - rearrangeEase} + ${card2x2Height} * ${rearrangeEase})`),
+                      height: card2x2Height,
                       position: 'relative',
                       borderRadius: '14px',
                       overflow: 'hidden',
@@ -986,7 +1109,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       border: 'none',
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
-                      transform: `translateX(${leftCard1SlideX}px) translateY(${leftCard1SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
+                      transform: `translateX(${leftCardSlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
                       transition: 'none'
                     }}
                   >
@@ -1070,12 +1193,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     onClick={() => handleCardClick(liveCompanions.bottomLeft.name)}
                     className="bento-companion-card bento-theater-card"
                     style={{
-                      width: rearrangeEase >= 1
-                        ? '100%'
-                        : (rearrangeEase <= 0 ? 'clamp(240px, 21vw, 330px)' : `calc(clamp(240px, 21vw, 330px) * ${1 - rearrangeEase} + 100% * ${rearrangeEase})`),
-                      height: rearrangeEase >= 1
-                        ? card2x2Height
-                        : (rearrangeEase <= 0 ? 'clamp(195px, 25vh, 265px)' : `calc(clamp(195px, 25vh, 265px) * ${1 - rearrangeEase} + ${card2x2Height} * ${rearrangeEase})`),
+                      width: '100%',
+                      height: card2x2Height,
                       position: 'relative',
                       borderRadius: '14px',
                       overflow: 'hidden',
@@ -1083,8 +1202,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       border: 'none',
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
-                      alignSelf: rearrangeEase >= 1 ? 'stretch' : 'flex-end',
-                      transform: `translateX(${leftCard2SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
+                      alignSelf: 'stretch',
+                      transform: `translateX(${leftCardSlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
                       transition: 'none'
                     }}
                   >
@@ -1162,18 +1281,6 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       </p>
                     </div>
                   </div>
-
-                  {/* Invisible Balance Spacer */}
-                  <div
-                    style={{
-                      height: `calc((1 - ${rearrangeEase}) * clamp(180px, 22vh, 230px))`,
-                      visibility: rearrangeEase >= 1 ? 'hidden' : 'visible',
-                      pointerEvents: 'none',
-                      overflow: 'hidden',
-                      transition: 'none'
-                    }}
-                    aria-hidden="true"
-                  />
                 </div>
 
                 {/* ---------------------------------------------------- */}
@@ -1446,29 +1553,13 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     zIndex: 2
                   }}
                 >
-                  {/* Invisible Top Balance Spacer */}
-                  <div
-                    style={{
-                      height: `calc((1 - ${rearrangeEase}) * clamp(180px, 22vh, 230px))`,
-                      visibility: rearrangeEase >= 1 ? 'hidden' : 'visible',
-                      pointerEvents: 'none',
-                      overflow: 'hidden',
-                      transition: 'none'
-                    }}
-                    aria-hidden="true"
-                  />
-
                   {/* Card 4: Kannur Ritual Fire (Top-Right) */}
                   <div
                     onClick={() => handleCardClick(liveCompanions.topRight.name)}
                     className="bento-companion-card bento-theater-card"
                     style={{
-                      width: rearrangeEase >= 1
-                        ? '100%'
-                        : (rearrangeEase <= 0 ? 'clamp(240px, 21vw, 330px)' : `calc(clamp(240px, 21vw, 330px) * ${1 - rearrangeEase} + 100% * ${rearrangeEase})`),
-                      height: rearrangeEase >= 1
-                        ? card2x2Height
-                        : (rearrangeEase <= 0 ? 'clamp(195px, 25vh, 265px)' : `calc(clamp(195px, 25vh, 265px) * ${1 - rearrangeEase} + ${card2x2Height} * ${rearrangeEase})`),
+                      width: '100%',
+                      height: card2x2Height,
                       position: 'relative',
                       borderRadius: '14px',
                       overflow: 'hidden',
@@ -1476,8 +1567,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       border: 'none',
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
-                      alignSelf: rearrangeEase >= 1 ? 'stretch' : 'flex-start',
-                      transform: `translateX(${rightCard4SlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
+                      alignSelf: 'stretch',
+                      transform: `translateX(${rightCardSlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
                       transition: 'none'
                     }}
                   >
@@ -1562,9 +1653,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
-                      height: rearrangeEase >= 1
-                        ? card2x2Height
-                        : (rearrangeEase <= 0 ? 'clamp(220px, 28vh, 300px)' : `calc(clamp(220px, 28vh, 300px) * ${1 - rearrangeEase} + ${card2x2Height} * ${rearrangeEase})`),
+                      height: card2x2Height,
                       position: 'relative',
                       borderRadius: '14px',
                       overflow: 'hidden',
@@ -1572,7 +1661,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       border: 'none',
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
-                      transform: `translateX(${rightCard5SlideX}px) translateY(${rightCard5SlideY}px) scale(${0.92 + 0.08 * bentoEase})`,
+                      transform: `translateX(${rightCardSlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
                       transition: 'none'
                     }}
                   >
@@ -1651,6 +1740,40 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     </div>
                   </div>
                 </div>
+
+                {/* Arrow Slider: Right Edge / Horizontal End, Vertical Center of Card Layout */}
+                <button
+                  type="button"
+                  onClick={handleNextDestination}
+                  aria-label="Next destination"
+                  className="bento-slider-arrow bento-slider-arrow-next"
+                  style={{
+                    position: 'absolute',
+                    right: 'max(16px, calc(50% - (clamp(280px, 23.5vw, 360px) + clamp(360px, 30vw, 450px) / 2 + clamp(16px, 1.8vw, 24px) + 68px)))',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    zIndex: 35,
+                    width: 'clamp(46px, 3.4vw, 54px)',
+                    height: 'clamp(46px, 3.4vw, 54px)',
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.94)',
+                    color: '#121316',
+                    border: '1px solid rgba(0, 0, 0, 0.08)',
+                    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.04)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    opacity: (sideCardsOpacity > 0.35 && expandRaw < 0.15) ? Math.min(1, (sideCardsOpacity - 0.3) / 0.5) : 0,
+                    pointerEvents: (sideCardsOpacity > 0.6 && expandRaw < 0.15) ? 'auto' : 'none',
+                    transition: 'opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease'
+                  }}
+                >
+                  <ChevronRight size={22} strokeWidth={2.4} />
+                </button>
 
                 {/* ---------------------------------------------------- */}
                 {/* Phase 4: Companion Experience Cards (Cards 2, 3, and 4) */}

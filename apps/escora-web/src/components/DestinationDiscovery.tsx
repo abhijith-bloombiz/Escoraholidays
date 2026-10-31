@@ -346,20 +346,53 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
         </div>
 
         {/* Armenia Travel Style Horizontal Track with Vertical 3:4 Cards */}
-        <div
-          ref={scrollContainerRef}
-          style={{
-            display: 'flex',
-            gap: '1.5rem',
-            overflowX: 'auto',
-            scrollSnapType: 'x mandatory',
-            paddingBottom: '1.5rem',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none'
-          }}
-          className="no-scrollbar"
-        >
-          {DESTINATIONS.map((dest) => (
+        <div style={{ position: 'relative', width: '100%' }}>
+          {/* Arrow Slider: Left Edge, Vertical Center */}
+          <button
+            type="button"
+            onClick={() => scrollBy(-360)}
+            disabled={!canScrollLeft}
+            aria-label="Previous destination"
+            className="bento-slider-arrow bento-slider-arrow-prev"
+            style={{
+              position: 'absolute',
+              left: '-22px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 25,
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              backgroundColor: canScrollLeft ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)',
+              color: canScrollLeft ? '#121316' : '#C0BCB5',
+              border: '1px solid rgba(0, 0, 0, 0.10)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: canScrollLeft ? 'pointer' : 'default',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <div
+            ref={scrollContainerRef}
+            style={{
+              display: 'flex',
+              gap: '1.5rem',
+              overflowX: 'auto',
+              scrollSnapType: 'x mandatory',
+              paddingBottom: '1.5rem',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
+            }}
+            className="no-scrollbar"
+          >
+            {DESTINATIONS.map((dest) => (
             <div
               key={dest.id}
               onClick={() => handleCardClick(dest)}
@@ -552,6 +585,39 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
               </div>
             </div>
           ))}
+          </div>
+
+          {/* Arrow Slider: Right Edge, Vertical Center */}
+          <button
+            type="button"
+            onClick={() => scrollBy(360)}
+            disabled={!canScrollRight}
+            aria-label="Next destination"
+            className="bento-slider-arrow bento-slider-arrow-next"
+            style={{
+              position: 'absolute',
+              right: '-22px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 25,
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              backgroundColor: canScrollRight ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)',
+              color: canScrollRight ? '#121316' : '#C0BCB5',
+              border: '1px solid rgba(0, 0, 0, 0.10)',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: canScrollRight ? 'pointer' : 'default',
+              transition: 'all 0.25s ease'
+            }}
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
 
       </div>

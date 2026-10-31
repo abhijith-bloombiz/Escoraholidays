@@ -193,6 +193,34 @@ body {
   background: #27272A;
 }
 
+/* Bento 3D Stage Carousel Arrow Buttons */
+.bento-slider-arrow {
+  user-select: none;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.25s ease,
+              border-color 0.25s ease,
+              color 0.25s ease,
+              box-shadow 0.3s ease;
+}
+
+.bento-slider-arrow:hover {
+  background-color: #121316 !important;
+  color: #FFFFFF !important;
+  border-color: #121316 !important;
+  transform: translateY(-50%) scale(1.10) !important;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25), 0 0 22px rgba(212, 175, 55, 0.35) !important;
+}
+
+.bento-slider-arrow:hover svg {
+  color: #D4AF37 !important;
+  stroke: #D4AF37 !important;
+}
+
+.bento-slider-arrow:active {
+  transform: translateY(-50%) scale(0.92) !important;
+}
+
 /* Glassmorphism helpers */
 .glass-panel-dark {
   background: var(--bg-dark-card);

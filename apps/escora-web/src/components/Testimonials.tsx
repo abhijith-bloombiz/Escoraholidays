@@ -321,6 +321,7 @@ export default function Testimonials() {
 
           {/* Right: Portrait Image (30% Card) matching height with Left Card */}
           <div
+            className="testimonial-photo-card"
             style={{
               borderRadius: '24px',
               overflow: 'hidden',
@@ -389,7 +390,7 @@ export default function Testimonials() {
           #testimonials {
             min-height: auto !important;
             height: auto !important;
-            padding: 4.5rem 0 !important;
+            padding: 2.25rem 0 1.5rem !important;
           }
           .testimonial-grid {
             grid-template-columns: 1fr !important;
@@ -399,9 +400,8 @@ export default function Testimonials() {
             min-height: auto !important;
             height: auto !important;
           }
-          .testimonial-grid > div:last-child {
-            min-height: 310px !important;
-            height: 350px !important;
+          .testimonial-photo-card {
+            display: none !important;
           }
         }
 

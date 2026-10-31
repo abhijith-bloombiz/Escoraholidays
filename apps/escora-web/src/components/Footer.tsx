@@ -69,6 +69,7 @@ export default function Footer({ onShowToast }: FooterProps) {
 
         {/* Top Vignette: Perfect seamless mist blend into preceding cream section */}
         <div
+          className="footer-top-vignette"
           style={{
             position: 'absolute',
             top: 0,
@@ -565,6 +566,12 @@ export default function Footer({ onShowToast }: FooterProps) {
           }
         }
         @media (max-width: 900px) {
+          footer {
+            padding: 1.5rem 0 3rem !important;
+          }
+          .footer-top-vignette {
+            height: 90px !important;
+          }
           .footer-top-grid {
             grid-template-columns: 1fr !important;
             gap: 2.5rem !important;

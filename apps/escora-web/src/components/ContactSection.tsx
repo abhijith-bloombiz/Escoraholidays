@@ -883,6 +883,14 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
         </div>
 
       </div>
+
+      <style>{`
+        @media (max-width: 860px) {
+          #contact {
+            padding: 2rem 0 1.5rem !important;
+          }
+        }
+      `}</style>
     </section>
   );
 }

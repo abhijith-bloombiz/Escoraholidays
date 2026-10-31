@@ -93,7 +93,7 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
 
             {/* Headline */}
             <h2
-              className="font-display"
+              className="font-display curated-dispatch-title"
               style={{
                 fontSize: 'clamp(2.4rem, 4.4vw, 3.8rem)',
                 color: '#121316',
@@ -107,6 +107,7 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
 
             {/* Short Quality Description */}
             <p
+              className="curated-dispatch-desc"
               style={{
                 fontSize: 'clamp(1rem, 1.15vw, 1.1rem)',
                 lineHeight: 1.6,
@@ -286,17 +287,26 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
         .dispatch-card:hover img {
           transform: scale(1.06) translate3d(0, 0, 0) !important;
         }
-        @media (max-width: 600px) {
+        @media (max-width: 900px) {
+          #newsletter {
+            padding: 1.5rem 0 2rem !important;
+          }
           .offers-grid {
             grid-template-columns: 1fr !important;
-            gap: 2.5rem !important;
+            gap: 1.5rem !important;
+          }
+          .curated-dispatch-title {
+            font-size: clamp(1.85rem, 6.5vw, 2.35rem) !important;
+            line-height: 1.05 !important;
+            margin-bottom: 0.75rem !important;
+          }
+          .curated-dispatch-desc {
+            font-size: 0.92rem !important;
+            line-height: 1.5 !important;
+            margin-bottom: 1.25rem !important;
           }
           .offers-collage-container {
-            height: 380px !important;
-          }
-          .offers-collage-container div {
-            width: 200px !important;
-            height: 250px !important;
+            display: none !important;
           }
         }
       `}</style>

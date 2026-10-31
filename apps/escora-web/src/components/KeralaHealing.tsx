@@ -53,6 +53,7 @@ interface HealingCard {
   title: string;
   heading: string;
   desc: string;
+  mobileDesc?: string;
   subDesc?: string;
   image: string;
   highlights: string[];
@@ -89,6 +90,7 @@ const HEALING_CARDS: HealingCard[] = [
     title: 'Nature Retreats',
     heading: 'Find Stillness in Nature.',
     desc: "Escape into the primeval stillness of Kerala’s mist-crowned Western Ghats, ancient cardamom hills, and secluded valleys. Far above the rush of modern life, the cadence of each day is shaped by mountain winds, birdsong, and highland mist. Walk solitary trails through private tea estates or rest in forest pavilions to rediscover the restorative joy of slowing down.",
+    mobileDesc: "Escape into Kerala’s mist-crowned Western Ghats. Walk solitary trails through private tea estates to rediscover the restorative joy of slowing down.",
     image: '/images/retreat_hiker_full.jpg',
     highlights: ['Doctor-Supervised', 'Custom Dosha Oils', 'Vaidya Consultation'],
     metrics: [
@@ -135,6 +137,7 @@ const HEALING_CARDS: HealingCard[] = [
     title: 'Ayurvedic Wellness',
     heading: 'Rooted in Ancient Wisdom.',
     desc: "Discover an unbroken 5,000-year Ayurvedic heritage nurtured by Kerala’s classical Ashtavaidya lineage. Your journey begins with a private 1-on-1 pulse diagnosis by a Senior Vaidya to uncover your unique biological constitution, followed by synchronized warm herbal therapies, continuous Shirodhara oil streams, and bespoke botanicals formulated to cleanse deeply and restore inner equilibrium.",
+    mobileDesc: "Rooted in 5,000 years of classical Ashtavaidya lineage. Personal pulse diagnosis and warm herbal therapies restore inner equilibrium.",
     image: '/images/retreat_ayurveda_hd.jpg',
     highlights: ['Senior Vaidya Care', 'Synchronized Abhyanga', 'Warm Shirodhara'],
     metrics: [
@@ -181,6 +184,7 @@ const HEALING_CARDS: HealingCard[] = [
     title: 'Mindful Living',
     heading: 'Reconnect with Your Inner Rhythm.',
     desc: "Make space for mindful movement, guided Vedic breathing, and restorative meditation in open-air dawn pavilions overlooking tranquil backwaters. As amber morning light touches the water, gentle breathwork awakens the body’s innate vitality. From lakefront yoga to sunset sound baths, every session is thoughtfully personalized to quiet mental chatter, release tension, and bring you into effortless harmony with the present moment.",
+    mobileDesc: "Dawn meditation and somatic Vedic breathwork in open-air lakefront pavilions to calm the mind and awaken vital energy.",
     image: '/images/retreat_mindful_hd.jpg',
     highlights: ['Dawn Meditation', 'Guided Breathwork', 'Mindful Movement'],
     metrics: [
@@ -227,6 +231,7 @@ const HEALING_CARDS: HealingCard[] = [
     title: 'Restorative Escapes',
     heading: 'Time to Simply Be.',
     desc: "Step away from the demands of everyday life and settle into private waterfront pool villas, secluded heritage estates, and quiet lakeside sanctuaries. Here, your days unfold without schedules, guided by intuitive hospitality and serene water views. Nourished by fresh organic estate dining, gentle breezes, and unhurried stillness, immerse in peaceful surroundings tailored entirely around your wellbeing.",
+    mobileDesc: "Private waterfront pool villas and unhurried days nourished by organic farm-to-table dining and serene backwater views.",
     image: '/images/retreat_restorative_hd.jpg',
     highlights: ['Waterfront Solitude', 'Private Pool Villa', 'Unhurried Days'],
     metrics: [
@@ -549,6 +554,45 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
               <span>THE ART OF HEALING</span>
             </div>
 
+            {/* Mobile-Only Retreat Selector Tabs */}
+            <div
+              className="healing-mobile-tabs"
+              style={{
+                display: 'none',
+                gap: '0.45rem',
+                overflowX: 'auto',
+                paddingBottom: '0.35rem',
+                marginBottom: '0.85rem',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none'
+              }}
+            >
+              {HEALING_CARDS.map((c, i) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => setActiveCardIndex(i)}
+                  style={{
+                    padding: '0.38rem 0.8rem',
+                    borderRadius: '999px',
+                    fontSize: '0.7rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
+                    border: activeCardIndex === i ? '1px solid #9E6F29' : '1px solid rgba(18, 19, 22, 0.12)',
+                    backgroundColor: activeCardIndex === i ? '#9E6F29' : 'rgba(255, 255, 255, 0.85)',
+                    color: activeCardIndex === i ? '#FFFFFF' : '#5C5850',
+                    whiteSpace: 'nowrap',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    flexShrink: 0
+                  }}
+                >
+                  {c.title}
+                </button>
+              ))}
+            </div>
+
             <div
               key={`left-narrative-${activeCardIndex}`}
               className="healing-dynamic-content"
@@ -558,7 +602,7 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
               }}
             >
               <h2
-                className="font-display"
+                className="font-display healing-heading-text"
                 style={{
                   fontSize: 'clamp(2.85rem, 4.6vw, 4.4rem)',
                   color: '#121316',
@@ -571,7 +615,9 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
                 {activeCard.heading}
               </h2>
 
+              {/* Desktop Full Narrative */}
               <p
+                className="desktop-desc"
                 style={{
                   fontSize: '1rem',
                   color: '#5C5850',
@@ -582,12 +628,92 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
               >
                 {activeCard.desc}
               </p>
+
+              {/* Mobile Concise Narrative */}
+              <p
+                className="mobile-desc"
+                style={{
+                  display: 'none',
+                  fontSize: '0.88rem',
+                  color: '#5C5850',
+                  lineHeight: 1.5,
+                  marginBottom: '1rem',
+                  fontWeight: 400
+                }}
+              >
+                {activeCard.mobileDesc || activeCard.desc}
+              </p>
+
+              {/* Mobile-Only Compact Preview Image Card */}
+              <div
+                className="healing-mobile-card-img"
+                style={{
+                  display: 'none',
+                  position: 'relative',
+                  width: '100%',
+                  height: '175px',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  marginBottom: '1rem',
+                  boxShadow: '0 8px 24px rgba(18, 19, 22, 0.08)'
+                }}
+              >
+                <img
+                  src={activeCard.image}
+                  alt={activeCard.title}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    display: 'block'
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: 'linear-gradient(to top, rgba(18, 19, 22, 0.6) 0%, rgba(18, 19, 22, 0) 60%)'
+                  }}
+                />
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '10px',
+                    left: '12px',
+                    right: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    color: '#FFFFFF'
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.08em',
+                      textTransform: 'uppercase'
+                    }}
+                  >
+                    {activeCard.num} · {activeCard.pill}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.66rem',
+                      color: '#E0C08B',
+                      fontWeight: 600
+                    }}
+                  >
+                    {activeCard.highlights[0]}
+                  </span>
+                </div>
+              </div>
             </div>
 
             <div>
               <button
                 onClick={() => handleConsultation(activeCard.title)}
-                className="btn-pill btn-gold"
+                className="btn-pill btn-gold healing-plan-btn"
                 style={{
                   padding: '0.8rem 1.85rem',
                   fontSize: '0.85rem',
@@ -970,27 +1096,47 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
 
           @media (max-width: 1040px) {
             .kerala-healing-section {
-              --overlap-height: 70px;
-              margin-top: -70px;
+              --overlap-height: 0px !important;
+              margin-top: 0px !important;
               min-height: auto;
-              border-top-left-radius: clamp(24px, 5vw, 36px);
-              border-top-right-radius: clamp(24px, 5vw, 36px);
-              box-shadow: 0 -16px 40px rgba(1, 29, 63, 0.08), 0 -3px 12px rgba(0, 0, 0, 0.03);
+              border-top-left-radius: 0px !important;
+              border-top-right-radius: 0px !important;
+              box-shadow: none !important;
+              padding: 2.5rem 1.25rem 3rem !important;
             }
             .trova-heritage-grid {
-              grid-template-columns: 1fr !important;
+              display: block !important;
             }
-            .healing-col-left, .healing-col-right {
+            .healing-col-left {
               position: static !important;
               height: auto !important;
             }
-            .healing-stack-card {
-              height: 480px !important;
-              border-radius: 20px !important;
-              margin-top: 24px !important;
-              margin-bottom: 0px !important;
-              opacity: 1 !important;
-              transform: none !important;
+            .healing-col-right {
+              display: none !important;
+            }
+            .healing-deck-container {
+              display: none !important;
+            }
+            .desktop-desc {
+              display: none !important;
+            }
+            .mobile-desc {
+              display: block !important;
+            }
+            .healing-mobile-tabs {
+              display: flex !important;
+            }
+            .healing-mobile-card-img {
+              display: block !important;
+            }
+            .healing-heading-text {
+              font-size: clamp(1.75rem, 6.2vw, 2.15rem) !important;
+              line-height: 1.05 !important;
+              margin-bottom: 0.65rem !important;
+            }
+            .healing-plan-btn {
+              padding: 0.7rem 1.5rem !important;
+              font-size: 0.78rem !important;
             }
             .healing-deck-spacer {
               display: none !important;

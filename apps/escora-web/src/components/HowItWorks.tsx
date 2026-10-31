@@ -227,6 +227,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
       {/* Sticky Viewport Container */}
       <div
         ref={stickyRef}
+        className="how-it-works-viewport"
         style={{
           position: isDesktop ? 'sticky' : 'relative',
           top: 0,
@@ -261,6 +262,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
 
           {/* Section Header */}
           <div
+            className="how-it-works-header"
             style={{
               maxWidth: '820px',
               margin: isDesktop ? '0 auto clamp(0.85rem, 1.8vh, 1.6rem)' : '0 auto 2.5rem',
@@ -454,6 +456,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
 
             {/* Left Narrative Panel */}
             <div
+              className="milestone-narrative-panel"
               style={{
                 padding: isDesktop ? 'clamp(1.5rem, 2.5vw, 2.4rem)' : '2rem',
                 display: 'flex',
@@ -482,7 +485,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
 
                 {/* Title */}
                 <h3
-                  className="font-display"
+                  className="font-display milestone-step-title"
                   style={{
                     fontSize: 'clamp(1.35rem, 2vw, 1.75rem)',
                     color: '#121316',
@@ -495,6 +498,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
                 </h3>
 
                 <p
+                  className="milestone-step-lead"
                   style={{
                     fontSize: 'clamp(0.88rem, 1vw, 0.95rem)',
                     fontWeight: 600,
@@ -507,6 +511,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
                 </p>
 
                 <p
+                  className="milestone-step-detail"
                   style={{
                     fontSize: 'clamp(0.82rem, 0.9vw, 0.88rem)',
                     color: '#4B5563',
@@ -519,6 +524,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
 
                 {/* Deliverable Micro-Chips */}
                 <div
+                  className="milestone-deliverables"
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
@@ -547,6 +553,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
 
               {/* Stepper Navigation Buttons */}
               <div
+                className="milestone-btn-row"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -621,6 +628,7 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
 
             {/* Right Photographic Visual Canvas */}
             <div
+              className="milestone-visual-canvas"
               style={{
                 position: 'relative',
                 minHeight: '340px',
@@ -667,12 +675,57 @@ export default function HowItWorks({ onOpenEnquiry }: HowItWorksProps) {
             }
 
             @media (max-width: 900px) {
+              .how-it-works-viewport {
+                padding: 2rem 1rem 2.25rem !important;
+              }
+              .how-it-works-header {
+                margin: 0 auto 0.75rem !important;
+              }
+              .how-it-works-header h2 {
+                font-size: clamp(1.65rem, 6vw, 2.1rem) !important;
+                line-height: 1.05 !important;
+              }
+              .milestone-scrubber-wrapper {
+                margin: 0 auto 1rem !important;
+              }
               .milestone-showcase-split {
                 grid-template-columns: 1fr !important;
                 max-height: none !important;
+                border-radius: 20px !important;
+              }
+              .milestone-visual-canvas {
+                display: none !important;
+              }
+              .milestone-narrative-panel {
+                padding: 1.2rem 1.15rem !important;
               }
               .milestone-text-label {
                 display: none !important;
+              }
+              .milestone-step-title {
+                font-size: 1.25rem !important;
+                margin-bottom: 0.35rem !important;
+                line-height: 1.15 !important;
+              }
+              .milestone-step-lead {
+                font-size: 0.84rem !important;
+                line-height: 1.35 !important;
+                margin-bottom: 0.35rem !important;
+              }
+              .milestone-step-detail {
+                font-size: 0.78rem !important;
+                line-height: 1.45 !important;
+                margin-bottom: 0.75rem !important;
+              }
+              .milestone-deliverables {
+                gap: 0.3rem !important;
+                margin-bottom: 0.75rem !important;
+              }
+              .milestone-deliverables div {
+                font-size: 0.78rem !important;
+              }
+              .milestone-btn-row {
+                padding-top: 0.75rem !important;
               }
             }
           `}</style>

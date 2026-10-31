@@ -127,6 +127,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
   return (
     <>
       <header
+        className={mobileMenuOpen ? 'mobile-drawer-open' : ''}
         style={{
           position: 'fixed',
           top: 0,
@@ -374,6 +375,12 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
           }
           @media (max-width: 899px) {
             .mobile-toggle { display: block !important; }
+            .escora-nav-logo {
+              filter: brightness(0) drop-shadow(none) !important;
+            }
+            .mobile-drawer-open .escora-nav-logo {
+              filter: brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.6)) !important;
+            }
           }
           @media (max-width: 640px) {
             .nav-contact-btn { display: none !important; }

@@ -115,7 +115,8 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
       onPointerDown={() => setIsMouseDown(true)}
       onPointerUp={() => setIsMouseDown(false)}
       style={{
-        backgroundColor: '#FAF8F5',
+        backgroundColor: '#EAEFF3',
+        backgroundImage: 'radial-gradient(ellipse 95% 75% at 50% 42%, #F5F7FA 0%, #E9EDF2 55%, #DFE4EA 100%)',
         padding: '6.5rem 0 7.5rem',
         borderTop: '1px solid rgba(0, 0, 0, 0.05)',
         position: 'relative'

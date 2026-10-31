@@ -1,10 +1,17 @@
-import { useGetDashboardStats, getGetDashboardStatsQueryKey } from "@workspace/api-client-react";
+import {
+  useGetDashboardStats,
+  getGetDashboardStatsQueryKey,
+  useListExperiences,
+  getListExperiencesQueryKey,
+  useListItineraries,
+  getListItinerariesQueryKey,
+} from "@workspace/api-client-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   MapPin,
+  Compass,
   NotebookText,
   ShoppingBag,
-  Quote,
   CheckCircle2,
   Clock,
   IndianRupee,
@@ -116,9 +123,42 @@ function StatCard({
 }
 
 export default function DashboardPage() {
-  const { data: stats, isLoading, isError, isFetching, refetch } = useGetDashboardStats({
+  const {
+    data: stats,
+    isLoading: loadingStats,
+    isError,
+    isFetching: isFetchingStats,
+    refetch: refetchStats,
+  } = useGetDashboardStats({
     query: { queryKey: getGetDashboardStatsQueryKey(), refetchInterval: 30000 },
   });
+
+  const {
+    data: experiences,
+    isLoading: loadingExperiences,
+    isFetching: isFetchingExperiences,
+    refetch: refetchExperiences,
+  } = useListExperiences(undefined, {
+    query: { queryKey: getListExperiencesQueryKey(), refetchInterval: 30000 },
+  });
+
+  const {
+    data: itineraries,
+    isLoading: loadingItineraries,
+    isFetching: isFetchingItineraries,
+    refetch: refetchItineraries,
+  } = useListItineraries(undefined, {
+    query: { queryKey: getListItinerariesQueryKey(), refetchInterval: 30000 },
+  });
+
+  const isFetching = isFetchingStats || isFetchingExperiences || isFetchingItineraries;
+
+  const handleRefresh = () => {
+    refetchStats();
+    refetchExperiences();
+    refetchItineraries();
+  };
+
   const { toast } = useToast();
   const lastOrderCount = useRef<number | null>(null);
   const lastEnquiryCount = useRef<number | null>(null);
@@ -168,7 +208,7 @@ export default function DashboardPage() {
 
         <button
           type="button"
-          onClick={() => refetch()}
+          onClick={handleRefresh}
           disabled={isFetching}
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white hover:bg-[#F5F4EC] border border-[#E5E3D8] text-xs font-medium text-[#172923] transition-colors disabled:opacity-50 shadow-xs cursor-pointer self-start sm:self-auto"
           title="Refresh dashboard data"
@@ -195,7 +235,7 @@ export default function DashboardPage() {
           </div>
           <button
             type="button"
-            onClick={() => refetch()}
+            onClick={handleRefresh}
             disabled={isFetching}
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-white hover:bg-[#FAF8F5] border border-[#F6D0C1] text-xs font-medium text-[#D96534] transition-colors self-start sm:self-auto shadow-2xs cursor-pointer"
           >
@@ -216,18 +256,18 @@ export default function DashboardPage() {
           iconColor="text-[#183D2E]"
           href="/destinations"
           testId="stat-card-destinations"
-          isLoading={isLoading}
+          isLoading={loadingStats}
         />
         <StatCard
-          title="Testimonials"
-          value="Active"
-          sub="Guest reviews & quotes"
-          icon={Quote}
+          title="Experiences"
+          value={experiences !== undefined ? experiences.length : undefined}
+          sub={experiences ? `${experiences.filter((e) => e.published).length} published` : "—"}
+          icon={Compass}
           badgeBg="bg-[#FDF4E7]"
           iconColor="text-[#B57529]"
-          href="/testimonials"
-          testId="stat-card-testimonials"
-          isLoading={isLoading}
+          href="/experiences"
+          testId="stat-card-experiences"
+          isLoading={loadingExperiences}
         />
         <StatCard
           title="Enquiries"
@@ -238,18 +278,22 @@ export default function DashboardPage() {
           iconColor="text-[#D96534]"
           href="/orders"
           testId="stat-card-enquiries"
-          isLoading={isLoading}
+          isLoading={loadingStats}
         />
         <StatCard
           title="Itineraries"
-          value="Manage"
-          sub="Customer proposals"
+          value={itineraries !== undefined ? itineraries.length : undefined}
+          sub={
+            itineraries
+              ? `${itineraries.filter((i) => i.status === "confirmed").length} confirmed · ${itineraries.filter((i) => i.status === "draft").length} drafts`
+              : "—"
+          }
           icon={NotebookText}
           badgeBg="bg-[#EDF4FD]"
           iconColor="text-[#2B6CB0]"
           href="/itineraries"
           testId="stat-card-itineraries"
-          isLoading={isLoading}
+          isLoading={loadingItineraries}
         />
       </div>
 
@@ -264,7 +308,7 @@ export default function DashboardPage() {
           iconColor="text-[#B57529]"
           href="/orders"
           testId="stat-enquiries-open"
-          isLoading={isLoading}
+          isLoading={loadingStats}
         />
         <StatCard
           title="Confirmed Bookings"
@@ -275,7 +319,7 @@ export default function DashboardPage() {
           iconColor="text-[#183D2E]"
           href="/orders"
           testId="stat-confirmed"
-          isLoading={isLoading}
+          isLoading={loadingStats}
         />
         <StatCard
           title="Total Revenue"
@@ -286,7 +330,7 @@ export default function DashboardPage() {
           iconColor="text-[#183D2E]"
           testId="stat-revenue"
           tooltip={stats?.totalRevenue !== undefined ? `Exact collected revenue: ${revenueDisplay.full}` : undefined}
-          isLoading={isLoading}
+          isLoading={loadingStats}
         />
         <StatCard
           title="Contact Inbox"
@@ -297,7 +341,7 @@ export default function DashboardPage() {
           iconColor="text-[#2B6CB0]"
           href="/enquiries"
           testId="stat-contact-inbox"
-          isLoading={isLoading}
+          isLoading={loadingStats}
         />
       </div>
 
@@ -315,9 +359,9 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 mt-5">
           {[
             {
-              href: "/itineraries/new",
+              href: "/itineraries/create",
               label: "New Itinerary",
-              desc: "Build a bespoke quote",
+              desc: "Create client proposal",
               icon: NotebookText,
               badgeBg: "bg-[#FDF4E7]",
               iconColor: "text-[#B57529]",
@@ -326,24 +370,24 @@ export default function DashboardPage() {
             {
               href: "/destinations",
               label: "Add Destination",
-              desc: "Register a sanctuary",
+              desc: "Register a new location",
               icon: MapPin,
               badgeBg: "bg-[#E8F3EE]",
               iconColor: "text-[#183D2E]",
               testId: "quick-action-add-destination",
             },
             {
-              href: "/testimonials",
-              label: "Testimonials",
-              desc: "Manage guest reviews",
-              icon: Quote,
+              href: "/experiences",
+              label: "Add Experience",
+              desc: "Curate signature activity",
+              icon: Compass,
               badgeBg: "bg-[#EDF4FD]",
               iconColor: "text-[#2B6CB0]",
-              testId: "quick-action-testimonials",
+              testId: "quick-action-add-experience",
             },
             {
               href: "/orders",
-              label: "View Bookings",
+              label: "View Enquiries",
               desc: "Respond to guests",
               icon: ShoppingBag,
               badgeBg: "bg-[#E8F3EE]",

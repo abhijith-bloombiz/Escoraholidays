@@ -73,6 +73,7 @@ export default function EnquiryModal({ isOpen, onClose, initialData = {}, onShow
   return (
     <div
       data-lenis-prevent
+      className="no-scrollbar enquiry-modal-backdrop"
       style={{
         position: 'fixed',
         inset: 0,
@@ -84,12 +85,15 @@ export default function EnquiryModal({ isOpen, onClose, initialData = {}, onShow
         alignItems: 'center',
         justifyContent: 'center',
         padding: '1.5rem',
-        overflowY: 'auto'
+        overflowY: 'auto',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none'
       }}
       onClick={onClose}
     >
       <div
         data-lenis-prevent
+        className="no-scrollbar enquiry-modal-card"
         style={{
           backgroundColor: '#FFFFFF',
           borderRadius: '28px',
@@ -97,6 +101,8 @@ export default function EnquiryModal({ isOpen, onClose, initialData = {}, onShow
           width: '100%',
           maxHeight: '90vh',
           overflowY: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
           position: 'relative',
           padding: 'clamp(2rem, 3.5vw, 3rem)',
           boxShadow: '0 30px 80px rgba(0, 0, 0, 0.4)',
@@ -104,6 +110,14 @@ export default function EnquiryModal({ isOpen, onClose, initialData = {}, onShow
         }}
         onClick={(e) => e.stopPropagation()}
       >
+        <style>{`
+          .enquiry-modal-backdrop::-webkit-scrollbar,
+          .enquiry-modal-card::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+          }
+        `}</style>
         {/* Close button */}
         <button
           onClick={onClose}

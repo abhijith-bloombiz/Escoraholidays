@@ -126,7 +126,6 @@ export function LandingPage() {
         <Hero
           onOpenEnquiry={(data?: Record<string, any>) => openEnquiryWithData(data)}
           onSelectFilter={(data?: Record<string, any>) => openEnquiryWithData(data)}
-          onSelectDestination={(dest: { name: string }) => openEnquiryWithData({ destination: dest.name })}
         />
 
         {/* Section 2 — Why ESCORA (The Luxury Promise & 4 Trust Pillars) */}

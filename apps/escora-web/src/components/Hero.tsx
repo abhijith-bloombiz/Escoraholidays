@@ -1,6 +1,39 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { MapPin, Calendar, Compass, Users, ChevronDown, ChevronLeft, ChevronRight, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { MapPin, Calendar, Compass, Users, ChevronDown, ChevronLeft, ChevronRight, ArrowRight, ArrowUpRight, Sparkles } from 'lucide-react';
 import { useListDestinations } from '@workspace/api-client-react';
+import { useLocation } from 'wouter';
+
+export const resolveDestinationSlug = (dest?: { slug?: string; name?: string; shortName?: string } | string | null): string => {
+  if (typeof dest === 'string') {
+    const s = dest.trim().toLowerCase();
+    if (s.includes('fort kochi') || s.includes('kochi')) return 'fort-kochi';
+    if (s.includes('munnar')) return 'munnar';
+    if (s.includes('alleppey') || s.includes('alappuzha')) return 'alleppey';
+    if (s.includes('wayanad')) return 'wayanad';
+    if (s.includes('thekkady') || s.includes('periyar')) return 'thekkady';
+    if (s.includes('varkala')) return 'varkala';
+    if (s.includes('bekal')) return 'bekal';
+    if (s.includes('kannur')) return 'kannur';
+    if (s.includes('kumarakom')) return 'kumarakom';
+    if (s.includes('kovalam')) return 'kovalam';
+    return s.replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'munnar';
+  }
+  if (dest?.slug && typeof dest.slug === 'string' && dest.slug.trim() !== '') {
+    return dest.slug.trim().toLowerCase();
+  }
+  const n = (dest?.shortName || dest?.name || '').toLowerCase();
+  if (n.includes('fort kochi') || n.includes('kochi')) return 'fort-kochi';
+  if (n.includes('munnar')) return 'munnar';
+  if (n.includes('alleppey') || n.includes('alappuzha')) return 'alleppey';
+  if (n.includes('wayanad')) return 'wayanad';
+  if (n.includes('thekkady') || n.includes('periyar')) return 'thekkady';
+  if (n.includes('varkala')) return 'varkala';
+  if (n.includes('bekal')) return 'bekal';
+  if (n.includes('kannur')) return 'kannur';
+  if (n.includes('kumarakom')) return 'kumarakom';
+  if (n.includes('kovalam')) return 'kovalam';
+  return n.replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'munnar';
+};
 
 const HERO_VIDEOS = [
   {
@@ -139,10 +172,11 @@ const EXP_CARDS = [
 export interface HeroProps {
   onOpenEnquiry?: (data?: Record<string, any>) => void;
   onSelectFilter?: (data?: Record<string, any>) => void;
-  onSelectDestination?: (dest: { name: string }) => void;
+  onSelectDestination?: (dest: { name: string; slug?: string }) => void;
 }
 
 export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestination }: HeroProps) {
+  const [, setLocation] = useLocation();
   const containerRef = useRef<HTMLElement | null>(null);
   const expVideoRef = useRef<HTMLVideoElement | null>(null);
   const heroVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
@@ -169,6 +203,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       id: -1,
       name: 'Munnar Highlands',
       shortName: 'Munnar',
+      slug: 'munnar',
       type: 'HIGHLANDS & ESTATES',
       shortDesc: 'Endless emerald tea estates rolling across the Western Ghats at 1,600 m above sea level.',
       description: 'Endless emerald tea estates rolling across the Western Ghats at 1,600 m above sea level.',
@@ -178,6 +213,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       id: -2,
       name: 'Alleppey',
       shortName: 'Alleppey',
+      slug: 'alleppey',
       type: 'BACKWATER LAGOONS',
       shortDesc: "The 'Venice of the East' — kettuvallam houseboats drifting through Kuttanad's below-sea-level paddy fields.",
       description: "The 'Venice of the East' — kettuvallam houseboats drifting through Kuttanad's below-sea-level paddy fields.",
@@ -187,6 +223,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       id: -3,
       name: 'Bekal',
       shortName: 'Bekal',
+      slug: 'bekal',
       type: 'HERITAGE SEA STRONGHOLD',
       shortDesc: "Kerala's largest fort — a 17th-century laterite stronghold above unspoiled northern beaches.",
       description: "Kerala's largest fort — a 17th-century laterite stronghold above unspoiled northern beaches.",
@@ -196,6 +233,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       id: -4,
       name: 'Fort Kochi',
       shortName: 'Fort Kochi',
+      slug: 'fort-kochi',
       type: 'SPICE PORT & BIENNALE',
       shortDesc: 'Historic spice port with colonial architecture and Chinese fishing nets.',
       description: 'Historic spice port with colonial architecture and Chinese fishing nets.',
@@ -205,6 +243,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       id: -5,
       name: 'Kannur',
       shortName: 'Kannur',
+      slug: 'kannur',
       type: 'MYSTIC THEYYAM RITUAL',
       shortDesc: "Malabar's untouristed coast — Muzhappilangad's drive-in beach, Thalassery's forts, and the ritual fire of Theyyam.",
       description: "Malabar's untouristed coast — Muzhappilangad's drive-in beach, Thalassery's forts, and the ritual fire of Theyyam.",
@@ -214,6 +253,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       id: -6,
       name: 'Varkala',
       shortName: 'Varkala',
+      slug: 'varkala',
       type: 'RED CLIFF SANCTUARY',
       shortDesc: 'Dramatic red laterite cliffs meeting the Arabian Sea, yoga shalas and ocean sunsets.',
       description: 'Dramatic red laterite cliffs meeting the Arabian Sea, yoga shalas and ocean sunsets.',
@@ -223,6 +263,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       id: -7,
       name: 'Wayanad',
       shortName: 'Wayanad',
+      slug: 'wayanad',
       type: 'MISTY CLOUD FORESTS',
       shortDesc: 'Prehistoric caves, rolling tea & coffee plantations, waterfalls and treehouse sanctuaries.',
       description: 'Prehistoric caves, rolling tea & coffee plantations, waterfalls and treehouse sanctuaries.',
@@ -232,6 +273,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       id: -8,
       name: 'Kumarakom',
       shortName: 'Kumarakom',
+      slug: 'kumarakom',
       type: 'BIRD SANCTUARY & LAGOONS',
       shortDesc: 'Quiet mangrove canals on the eastern shore of Vembanad Lake, luxury lakeside retreats.',
       description: 'Quiet mangrove canals on the eastern shore of Vembanad Lake, luxury lakeside retreats.',
@@ -255,55 +297,173 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   }, [remoteDestinations, fallbackDestPool]);
 
   const formatDestCard = (item: any) => {
-    if (!item) return fallbackDestPool[0];
-    const hasHighlands = (item.name || '').toLowerCase().includes('highland');
-    const isMunnar = (item.name || '').toLowerCase().includes('munnar');
-    const displayName = isMunnar && !hasHighlands ? `${item.name} Highlands` : item.name;
+    const target = item || fallbackDestPool[0];
+    const hasHighlands = (target.name || '').toLowerCase().includes('highland');
+    const isMunnar = (target.name || '').toLowerCase().includes('munnar');
+    const displayName = isMunnar && !hasHighlands ? `${target.name} Highlands` : target.name;
 
     return {
-      id: item.id,
+      id: target.id,
       name: displayName,
-      shortName: item.shortName || item.name,
-      tag: (item.type || 'SANCTUARY').toUpperCase(),
-      coordinates: formatDestinationCoordinates(item, item.name),
-      subtitle: item.shortDesc || item.description || '',
-      image: resolveDestinationImage(item, '/images/dest_3_munnar.jpg')
+      shortName: target.shortName || target.name,
+      slug: target.slug || resolveDestinationSlug(target),
+      tag: (target.type || 'SANCTUARY').toUpperCase(),
+      coordinates: formatDestinationCoordinates(target, target.name),
+      subtitle: target.shortDesc || target.description || '',
+      image: resolveDestinationImage(target, '/images/dest_3_munnar.jpg')
     };
   };
 
-  // 1. Center Flagship Destination (rotates with bentoSlideIndex)
-  const centerDestination = useMemo(() => {
-    const len = allDestinationsList.length;
-    if (len === 0) return formatDestCard(fallbackDestPool[0]);
-    const idx = ((bentoSlideIndex % len) + len) % len;
-    return formatDestCard(allDestinationsList[idx]);
-  }, [allDestinationsList, bentoSlideIndex, fallbackDestPool]);
+  // 5-Slot Interactive Layout State:
+  // Slot 0: Top-Left, Slot 1: Bottom-Left, Slot 2: Center Hero, Slot 3: Top-Right, Slot 4: Bottom-Right
+  const [customSlots, setCustomSlots] = useState<number[] | null>(null);
 
-  // 2. The 4 Companion Wing Destinations (surrounding active center destination)
-  const liveCompanions = useMemo(() => {
+  const defaultSlotAssignments = useMemo(() => {
     const len = allDestinationsList.length;
-    if (len === 0) return COMPANIONS;
+    if (len === 0) return [1, 2, 0, 3, 4];
     const cIdx = ((bentoSlideIndex % len) + len) % len;
-    const getSlotDest = (offset: number) => {
-      const idx = (cIdx + offset) % len;
-      return formatDestCard(allDestinationsList[idx]);
+    return [
+      (cIdx + 1) % len, // Slot 0: Top-Left
+      (cIdx + 2) % len, // Slot 1: Bottom-Left
+      cIdx,             // Slot 2: Center Hero
+      (cIdx + 3) % len, // Slot 3: Top-Right
+      (cIdx + 4) % len  // Slot 4: Bottom-Right
+    ];
+  }, [allDestinationsList, bentoSlideIndex]);
+
+  const activeSlots = customSlots || defaultSlotAssignments;
+
+  const slot0Dest = useMemo(() => formatDestCard(allDestinationsList[activeSlots[0]]), [allDestinationsList, activeSlots]);
+  const slot1Dest = useMemo(() => formatDestCard(allDestinationsList[activeSlots[1]]), [allDestinationsList, activeSlots]);
+  const centerDestination = useMemo(() => formatDestCard(allDestinationsList[activeSlots[2]]), [allDestinationsList, activeSlots]);
+  const slot3Dest = useMemo(() => formatDestCard(allDestinationsList[activeSlots[3]]), [allDestinationsList, activeSlots]);
+  const slot4Dest = useMemo(() => formatDestCard(allDestinationsList[activeSlots[4]]), [allDestinationsList, activeSlots]);
+
+  const liveCompanions = useMemo(() => ({
+    topLeft: slot0Dest,
+    bottomLeft: slot1Dest,
+    topRight: slot3Dest,
+    bottomRight: slot4Dest
+  }), [slot0Dest, slot1Dest, slot3Dest, slot4Dest]);
+
+  const slotDests: Record<number, ReturnType<typeof formatDestCard>> = useMemo(() => ({
+    0: slot0Dest,
+    1: slot1Dest,
+    2: centerDestination,
+    3: slot3Dest,
+    4: slot4Dest
+  }), [slot0Dest, slot1Dest, centerDestination, slot3Dest, slot4Dest]);
+
+  // DOM node references for luxury morphing animation
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const slot0Ref = useRef<HTMLDivElement | null>(null);
+  const slot1Ref = useRef<HTMLDivElement | null>(null);
+  const slot2Ref = useRef<HTMLDivElement | null>(null);
+  const slot3Ref = useRef<HTMLDivElement | null>(null);
+  const slot4Ref = useRef<HTMLDivElement | null>(null);
+
+  const isSwappingRef = useRef(false);
+
+  interface MorphCardState {
+    slotIdx: 0 | 1 | 3 | 4;
+    promotedDest: ReturnType<typeof formatDestCard>;
+    demotedDest: ReturnType<typeof formatDestCard>;
+    sidePos: { left: number; top: number; width: number; height: number };
+    centerPos: { left: number; top: number; width: number; height: number };
+    isAnimating: boolean;
+  }
+
+  const [morphState, setMorphState] = useState<MorphCardState | null>(null);
+
+  // Promote any side card to Center Hero with confirmed luxury morph transition (650ms, cubic-bezier(0.22, 1, 0.36, 1))
+  const handlePromoteSlot = (slotIdx: 0 | 1 | 3 | 4) => {
+    if (isSwappingRef.current) return;
+
+    const stageEl = stageRef.current;
+    const slotEls: Record<number, HTMLDivElement | null> = {
+      0: slot0Ref.current,
+      1: slot1Ref.current,
+      2: slot2Ref.current,
+      3: slot3Ref.current,
+      4: slot4Ref.current
     };
 
-    return {
-      topLeft: getSlotDest(1),
-      bottomLeft: getSlotDest(2),
-      topRight: getSlotDest(3),
-      bottomRight: getSlotDest(4)
+    const centerEl = slotEls[2];
+    const sideEl = slotEls[slotIdx];
+
+    if (!stageEl || !centerEl || !sideEl) {
+      setCustomSlots((prev) => {
+        const current = prev || defaultSlotAssignments;
+        const next = [...current];
+        const prevCenter = next[2];
+        next[2] = next[slotIdx];
+        next[slotIdx] = prevCenter;
+        return next;
+      });
+      return;
+    }
+
+    isSwappingRef.current = true;
+
+    const stageRect = stageEl.getBoundingClientRect();
+    const sideRect = sideEl.getBoundingClientRect();
+    const centerRect = centerEl.getBoundingClientRect();
+
+    const sidePos = {
+      left: sideRect.left - stageRect.left,
+      top: sideRect.top - stageRect.top,
+      width: sideRect.width,
+      height: sideRect.height
     };
-  }, [allDestinationsList, bentoSlideIndex]);
+
+    const centerPos = {
+      left: centerRect.left - stageRect.left,
+      top: centerRect.top - stageRect.top,
+      width: centerRect.width,
+      height: centerRect.height
+    };
+
+    const promoted = slotDests[slotIdx];
+    const demoted = slotDests[2];
+
+    setMorphState({
+      slotIdx,
+      promotedDest: promoted,
+      demotedDest: demoted,
+      sidePos,
+      centerPos,
+      isAnimating: false
+    });
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setMorphState((prev) => (prev ? { ...prev, isAnimating: true } : null));
+      });
+    });
+
+    setTimeout(() => {
+      setCustomSlots((prev) => {
+        const current = prev || defaultSlotAssignments;
+        const next = [...current];
+        const prevCenter = next[2];
+        next[2] = next[slotIdx];
+        next[slotIdx] = prevCenter;
+        return next;
+      });
+      setMorphState(null);
+      isSwappingRef.current = false;
+    }, 660);
+  };
 
   const handlePrevDestination = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    setCustomSlots(null);
     setBentoSlideIndex((prev) => (prev - 1 + allDestinationsList.length) % allDestinationsList.length);
   };
 
   const handleNextDestination = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    setCustomSlots(null);
     setBentoSlideIndex((prev) => (prev + 1) % allDestinationsList.length);
   };
 
@@ -313,16 +473,17 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       const items = published.length > 0 ? published : remoteDestinations;
       return items.map((d) => ({
         name: d.name,
+        slug: d.slug || resolveDestinationSlug(d),
         image: resolveDestinationImage(d, '/images/dest_1_wayanad.jpg'),
         tag: (d.type || 'SANCTUARY').toUpperCase(),
       }));
     }
     return [
-      { name: 'Munnar Highlands', image: '/images/dest_3_munnar.jpg', tag: 'HIGHLANDS' },
-      { name: 'Bekal Fortress', image: '/images/dest_bekal.jpg', tag: 'NORTH COAST' },
-      { name: 'Fort Kochi Heritage', image: '/images/dest_fort_kochi.jpg', tag: 'HERITAGE' },
-      { name: 'Kannur Ritual Fire', image: '/images/dest_kannur.jpg', tag: 'MYSTIC TRADITIONS' },
-      { name: 'Varkala Sea Cliffs', image: '/images/dest_5_varkala.jpg', tag: 'COASTLINE' },
+      { name: 'Munnar Highlands', slug: 'munnar', image: '/images/dest_3_munnar.jpg', tag: 'HIGHLANDS' },
+      { name: 'Bekal Fortress', slug: 'bekal', image: '/images/dest_bekal.jpg', tag: 'NORTH COAST' },
+      { name: 'Fort Kochi Heritage', slug: 'fort-kochi', image: '/images/dest_fort_kochi.jpg', tag: 'HERITAGE' },
+      { name: 'Kannur Ritual Fire', slug: 'kannur', image: '/images/dest_kannur.jpg', tag: 'MYSTIC TRADITIONS' },
+      { name: 'Varkala Sea Cliffs', slug: 'varkala', image: '/images/dest_5_varkala.jpg', tag: 'COASTLINE' },
     ];
   }, [remoteDestinations]);
 
@@ -474,9 +635,18 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     if (onOpenEnquiry) onOpenEnquiry(filterData);
   };
 
-  const handleCardClick = (destName: string) => {
-    if (onSelectDestination) onSelectDestination({ name: destName });
-    if (onOpenEnquiry) onOpenEnquiry({ destination: destName });
+  const handleCardClick = (dest: { name?: string; shortName?: string; slug?: string } | string) => {
+    const slug = resolveDestinationSlug(dest);
+    if ((window as any).lenis) {
+      (window as any).lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+    setLocation(`/destinations/${slug}`);
+    if (onSelectDestination) {
+      const name = typeof dest === 'string' ? dest : (dest.name || dest.shortName || '');
+      onSelectDestination({ name, slug });
+    }
   };
 
   const handleExpCardClick = (title: string, location: string) => {
@@ -642,7 +812,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       ref={containerRef}
       style={{
         position: 'relative',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#EAEFF3',
         height: isDesktop ? '680vh' : 'auto',
         minHeight: '100vh',
         width: '100%'
@@ -680,7 +850,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#FFFFFF',
+          backgroundColor: '#EAEFF3',
+          backgroundImage: 'radial-gradient(ellipse 95% 75% at 50% 42%, #F5F7FA 0%, #E9EDF2 55%, #DFE4EA 100%)',
           padding: isDesktop ? '0' : '5.5rem 1.25rem 4rem'
         }}
       >
@@ -1029,6 +1200,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
 
               {/* The 3 Columns Grid Row — Concept 3 3D Amphitheater */}
               <div
+                ref={stageRef}
                 className="bento-stage-grid bento-theater-stage"
                 style={{
                   width: '100%',
@@ -1095,9 +1267,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     zIndex: 2
                   }}
                 >
-                  {/* Card 1: Bekal Fortress (Top-Left) */}
+                  {/* Card 1: Top-Left (Slot 0) */}
                   <div
-                    onClick={() => handleCardClick(liveCompanions.topLeft.name)}
+                    ref={slot0Ref}
+                    onClick={() => handlePromoteSlot(0)}
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
@@ -1110,7 +1283,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
                       transform: `translateX(${leftCardSlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: 'none'
+                      transition: 'none',
+                      visibility: morphState?.slotIdx === 0 ? 'hidden' : 'visible'
                     }}
                   >
                     <img
@@ -1188,9 +1362,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     </div>
                   </div>
 
-                  {/* Card 2: Fort Kochi Spice Port (Bottom-Left) */}
+                  {/* Card 2: Bottom-Left (Slot 1) */}
                   <div
-                    onClick={() => handleCardClick(liveCompanions.bottomLeft.name)}
+                    ref={slot1Ref}
+                    onClick={() => handlePromoteSlot(1)}
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
@@ -1204,7 +1379,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       backgroundColor: '#121316',
                       alignSelf: 'stretch',
                       transform: `translateX(${leftCardSlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: 'none'
+                      transition: 'none',
+                      visibility: morphState?.slotIdx === 1 ? 'hidden' : 'visible'
                     }}
                   >
                     <img
@@ -1287,6 +1463,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 {/* COLUMN 2: CENTER SHRINKING HERO CARD (FEATURED MUNNAR -> FULLSCREEN EXPERIENCES) */}
                 {/* ---------------------------------------------------- */}
                 <div
+                  ref={slot2Ref}
                   style={{
                     position: 'relative',
                     width: centerCardWidth,
@@ -1301,11 +1478,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     alignSelf: 'center',
                     transform: centerCardTransform,
                     transition: 'none',
-                    border: 'none'
+                    border: 'none',
+                    visibility: morphState !== null ? 'hidden' : 'visible'
                   }}
                   onClick={() => {
                     if (phase1Progress > 0.4 && phase3Raw < 0.15) {
-                      handleCardClick(centerDestination.shortName || centerDestination.name);
+                      handleCardClick(centerDestination);
                     } else if (phase4Raw > 0.6) {
                       handleExpCardClick('Kayaking', 'Alleppey Waters');
                     }
@@ -1365,7 +1543,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     );
                   })}
 
-                  {/* Layer 2: Dedicated Destination Card Image (Munnar Tea Highlands - Crossfades in as hero card shrinks into bento) */}
+                  {/* Layer 2: Dedicated Destination Card Image (Crossfades in as hero card shrinks into bento) */}
                   <div
                     style={{
                       position: 'absolute',
@@ -1377,7 +1555,6 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       display: destImageEase > 0.01 ? 'block' : 'none',
                       transform: `scale(${1.06 - 0.06 * destImageEase})`,
                       zIndex: 2,
-                      transition: 'background-image 0.5s ease',
                       pointerEvents: 'none'
                     }}
                   />
@@ -1430,7 +1607,41 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     }}
                   />
 
-
+                  {/* Floating Top Badge Icon on Center Card */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '1.25rem',
+                      left: '1.25rem',
+                      right: '1.25rem',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      zIndex: 5,
+                      pointerEvents: 'none',
+                      opacity: Math.max(0, centerLabelOpacity * (1 - expandRaw * 3.5)),
+                      transition: 'opacity 0.3s ease'
+                    }}
+                  >
+                    <span
+                      style={{
+                        padding: '0.35rem 0.85rem',
+                        borderRadius: '999px',
+                        backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                        backdropFilter: 'blur(8px)',
+                        WebkitBackdropFilter: 'blur(8px)',
+                        color: '#FFFFFF',
+                        fontSize: '0.72rem',
+                        fontWeight: 600,
+                        letterSpacing: '0.04em',
+                        border: '1px solid rgba(255, 255, 255, 0.22)',
+                        display: 'inline-flex',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <span>{centerDestination.tag}</span>
+                    </span>
+                  </div>
 
                   {/* Center Card Destination Details (Fades in when docked, fades out on expansion) */}
                   <div
@@ -1482,6 +1693,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     </p>
                     <div style={{ marginTop: '0.4rem', display: 'flex', justifyContent: 'center' }}>
                       <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCardClick(centerDestination);
+                        }}
                         style={{
                           display: 'inline-flex',
                           alignItems: 'center',
@@ -1496,8 +1711,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           fontWeight: 700,
                           letterSpacing: '0.06em',
                           textTransform: 'uppercase',
-                          color: '#FFFFFF'
+                          color: '#FFFFFF',
+                          cursor: 'pointer',
+                          pointerEvents: 'auto',
+                          transition: 'background-color 0.25s ease, transform 0.25s ease'
                         }}
+                        className="hover:scale-105 active:scale-95"
                       >
                         Explore {centerDestination.shortName} <ArrowUpRight size={14} />
                       </span>
@@ -1553,9 +1772,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     zIndex: 2
                   }}
                 >
-                  {/* Card 4: Kannur Ritual Fire (Top-Right) */}
+                  {/* Card 4: Top-Right (Slot 3) */}
                   <div
-                    onClick={() => handleCardClick(liveCompanions.topRight.name)}
+                    ref={slot3Ref}
+                    onClick={() => handlePromoteSlot(3)}
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
@@ -1569,7 +1789,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       backgroundColor: '#121316',
                       alignSelf: 'stretch',
                       transform: `translateX(${rightCardSlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: 'none'
+                      transition: 'none',
+                      visibility: morphState?.slotIdx === 3 ? 'hidden' : 'visible'
                     }}
                   >
                     <img
@@ -1647,9 +1868,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     </div>
                   </div>
 
-                  {/* Card 5: Varkala Sea Cliffs (Bottom-Right) */}
+                  {/* Card 5: Bottom-Right (Slot 4) */}
                   <div
-                    onClick={() => handleCardClick(liveCompanions.bottomRight.name)}
+                    ref={slot4Ref}
+                    onClick={() => handlePromoteSlot(4)}
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
@@ -1662,7 +1884,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       boxShadow: card3dShadow,
                       backgroundColor: '#121316',
                       transform: `translateX(${rightCardSlideX}px) scale(${0.92 + 0.08 * bentoEase})`,
-                      transition: 'none'
+                      transition: 'none',
+                      visibility: morphState?.slotIdx === 4 ? 'hidden' : 'visible'
                     }}
                   >
                     <img
@@ -1774,6 +1997,354 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 >
                   <ChevronRight size={22} strokeWidth={2.4} />
                 </button>
+
+                {/* ---------------------------------------------------- */}
+                {/* Interactive Morphing Grid Transition Layer (Side Card <-> Center Hero) */}
+                {/* ---------------------------------------------------- */}
+                {morphState && (
+                  <>
+                    {/* Morph Card 1: Promoted Destination (Side Slot -> Center Hero) */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: morphState.isAnimating ? `${morphState.centerPos.left}px` : `${morphState.sidePos.left}px`,
+                        top: morphState.isAnimating ? `${morphState.centerPos.top}px` : `${morphState.sidePos.top}px`,
+                        width: morphState.isAnimating ? `${morphState.centerPos.width}px` : `${morphState.sidePos.width}px`,
+                        height: morphState.isAnimating ? `${morphState.centerPos.height}px` : `${morphState.sidePos.height}px`,
+                        transition: 'left 650ms cubic-bezier(0.22, 1, 0.36, 1), top 650ms cubic-bezier(0.22, 1, 0.36, 1), width 650ms cubic-bezier(0.22, 1, 0.36, 1), height 650ms cubic-bezier(0.22, 1, 0.36, 1)',
+                        zIndex: 60,
+                        borderRadius: '14px',
+                        overflow: 'hidden',
+                        boxShadow: card3dShadow,
+                        backgroundColor: '#0B1410',
+                        pointerEvents: 'none'
+                      }}
+                    >
+                      <img
+                        src={morphState.promotedDest.image}
+                        alt={morphState.promotedDest.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block'
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'linear-gradient(180deg, rgba(11, 20, 16, 0.15) 0%, rgba(11, 20, 16, 0.12) 35%, rgba(11, 20, 16, 0.18) 65%, rgba(11, 20, 16, 0.65) 100%)',
+                          pointerEvents: 'none'
+                        }}
+                      />
+
+                      {/* Floating Top Badge (Sparkles + Tag + FEATURED) */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '1.25rem',
+                          left: '1.25rem',
+                          right: '1.25rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          zIndex: 5,
+                          opacity: morphState.isAnimating ? 1 : 0,
+                          transform: morphState.isAnimating ? 'translateY(0px)' : 'translateY(-10px)',
+                          transition: 'opacity 450ms cubic-bezier(0.22, 1, 0.36, 1) 180ms, transform 450ms cubic-bezier(0.22, 1, 0.36, 1) 180ms',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        <span
+                          style={{
+                            padding: '0.35rem 0.85rem',
+                            borderRadius: '999px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.45)',
+                            backdropFilter: 'blur(8px)',
+                            WebkitBackdropFilter: 'blur(8px)',
+                            color: '#FFFFFF',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            letterSpacing: '0.04em',
+                            border: '1px solid rgba(255, 255, 255, 0.22)',
+                            display: 'inline-flex',
+                            alignItems: 'center'
+                          }}
+                        >
+                          <span>{morphState.promotedDest.tag}</span>
+                        </span>
+                      </div>
+
+                      {/* Promoted Center Details (Serif Title, Subtitle, and Explore CTA Button) */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          padding: '2rem 1.75rem',
+                          color: '#FFFFFF',
+                          zIndex: 4,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          textAlign: 'center',
+                          gap: '0.35rem',
+                          opacity: morphState.isAnimating ? 1 : 0,
+                          transform: morphState.isAnimating ? 'translateY(0px)' : 'translateY(16px)',
+                          transition: 'opacity 450ms cubic-bezier(0.22, 1, 0.36, 1) 180ms, transform 450ms cubic-bezier(0.22, 1, 0.36, 1) 180ms',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        <h3
+                          className="font-display"
+                          style={{
+                            fontSize: 'clamp(1.45rem, 1.8vw, 1.75rem)',
+                            margin: 0,
+                            color: '#FFFFFF',
+                            lineHeight: 1.1,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.035em'
+                          }}
+                        >
+                          {morphState.promotedDest.name}
+                        </h3>
+                        <p
+                          style={{
+                            fontSize: 'clamp(0.8rem, 0.9vw, 0.86rem)',
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            margin: '0.2rem 0 0 0',
+                            lineHeight: 1.45,
+                            maxWidth: '340px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          {morphState.promotedDest.subtitle}
+                        </p>
+                          <span
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCardClick(morphState.promotedDest);
+                            }}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.45rem',
+                              padding: '0.45rem 1.15rem',
+                              borderRadius: '999px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.16)',
+                              backdropFilter: 'blur(8px)',
+                              WebkitBackdropFilter: 'blur(8px)',
+                              border: '1px solid rgba(255, 255, 255, 0.35)',
+                              fontSize: '0.76rem',
+                              fontWeight: 700,
+                              letterSpacing: '0.06em',
+                              textTransform: 'uppercase',
+                              color: '#FFFFFF',
+                              cursor: 'pointer',
+                              pointerEvents: 'auto'
+                            }}
+                          >
+                            Explore {morphState.promotedDest.shortName} <ArrowUpRight size={14} />
+                          </span>
+                      </div>
+
+                      {/* Side Compact Details (Fades out quickly) */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          padding: '1.25rem 1.4rem',
+                          color: '#FFFFFF',
+                          textAlign: 'center',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '0.2rem',
+                          zIndex: 3,
+                          opacity: morphState.isAnimating ? 0 : 1,
+                          transform: morphState.isAnimating ? 'translateY(10px)' : 'translateY(0px)',
+                          transition: 'opacity 180ms ease, transform 180ms ease',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        <h3
+                          className="font-display"
+                          style={{
+                            fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)',
+                            margin: 0,
+                            color: '#FFFFFF',
+                            lineHeight: 1.15,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em'
+                          }}
+                        >
+                          {morphState.promotedDest.name}
+                        </h3>
+                        <p
+                          style={{
+                            fontSize: 'clamp(0.72rem, 0.8vw, 0.78rem)',
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            margin: '0.25rem 0 0 0',
+                            lineHeight: 1.42,
+                            maxWidth: '280px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          {morphState.promotedDest.subtitle}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Morph Card 2: Demoted Destination (Center Hero -> Vacated Side Slot) */}
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: morphState.isAnimating ? `${morphState.sidePos.left}px` : `${morphState.centerPos.left}px`,
+                        top: morphState.isAnimating ? `${morphState.sidePos.top}px` : `${morphState.centerPos.top}px`,
+                        width: morphState.isAnimating ? `${morphState.sidePos.width}px` : `${morphState.centerPos.width}px`,
+                        height: morphState.isAnimating ? `${morphState.sidePos.height}px` : `${morphState.centerPos.height}px`,
+                        transition: 'left 650ms cubic-bezier(0.22, 1, 0.36, 1), top 650ms cubic-bezier(0.22, 1, 0.36, 1), width 650ms cubic-bezier(0.22, 1, 0.36, 1), height 650ms cubic-bezier(0.22, 1, 0.36, 1)',
+                        zIndex: 55,
+                        borderRadius: '14px',
+                        overflow: 'hidden',
+                        boxShadow: card3dShadow,
+                        backgroundColor: '#0B1410',
+                        pointerEvents: 'none'
+                      }}
+                    >
+                      <img
+                        src={morphState.demotedDest.image}
+                        alt={morphState.demotedDest.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block'
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.28) 40%, rgba(18,19,22,0.92) 100%)',
+                          pointerEvents: 'none'
+                        }}
+                      />
+
+                      {/* Center Details Fade Out */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          padding: '2rem 1.75rem',
+                          color: '#FFFFFF',
+                          zIndex: 4,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          textAlign: 'center',
+                          gap: '0.35rem',
+                          opacity: morphState.isAnimating ? 0 : 1,
+                          transform: morphState.isAnimating ? 'translateY(14px)' : 'translateY(0px)',
+                          transition: 'opacity 200ms ease, transform 200ms ease',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        <h3
+                          className="font-display"
+                          style={{
+                            fontSize: 'clamp(1.45rem, 1.8vw, 1.75rem)',
+                            margin: 0,
+                            color: '#FFFFFF',
+                            lineHeight: 1.1,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.035em'
+                          }}
+                        >
+                          {morphState.demotedDest.name}
+                        </h3>
+                        <p
+                          style={{
+                            fontSize: 'clamp(0.8rem, 0.9vw, 0.86rem)',
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            margin: '0.2rem 0 0 0',
+                            lineHeight: 1.45,
+                            maxWidth: '340px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          {morphState.demotedDest.subtitle}
+                        </p>
+                      </div>
+
+                      {/* Side Compact Details Fade In */}
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          padding: '1.25rem 1.4rem',
+                          color: '#FFFFFF',
+                          textAlign: 'center',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '0.2rem',
+                          zIndex: 3,
+                          opacity: morphState.isAnimating ? 1 : 0,
+                          transform: morphState.isAnimating ? 'translateY(0px)' : 'translateY(-10px)',
+                          transition: 'opacity 400ms cubic-bezier(0.22, 1, 0.36, 1) 200ms, transform 400ms cubic-bezier(0.22, 1, 0.36, 1) 200ms',
+                          pointerEvents: 'none'
+                        }}
+                      >
+                        <h3
+                          className="font-display"
+                          style={{
+                            fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)',
+                            margin: 0,
+                            color: '#FFFFFF',
+                            lineHeight: 1.15,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em'
+                          }}
+                        >
+                          {morphState.demotedDest.name}
+                        </h3>
+                        <p
+                          style={{
+                            fontSize: 'clamp(0.72rem, 0.8vw, 0.78rem)',
+                            color: 'rgba(255, 255, 255, 0.85)',
+                            margin: '0.25rem 0 0 0',
+                            lineHeight: 1.42,
+                            maxWidth: '280px',
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden'
+                          }}
+                        >
+                          {morphState.demotedDest.subtitle}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
 
                 {/* ---------------------------------------------------- */}
                 {/* Phase 4: Companion Experience Cards (Cards 2, 3, and 4) */}
@@ -1937,13 +2508,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           <button
                             type="button"
                             onClick={() => {
-                              if (onOpenEnquiry) {
-                                onOpenEnquiry({
-                                  experience: 'Private Chef Twilight Cruise',
-                                  destination: 'Alleppey Waters',
-                                  interest: 'Signature Experience: Private Chef Twilight Cruise'
-                                });
+                              if ((window as any).lenis) {
+                                (window as any).lenis.scrollTo(0, { immediate: true });
+                              } else {
+                                window.scrollTo(0, 0);
                               }
+                              setLocation('/experiences');
                             }}
                             className="btn-pill btn-gold"
                             style={{
@@ -1958,7 +2528,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                               cursor: 'pointer'
                             }}
                           >
-                            Curate Private Experience <ArrowRight size={15} />
+                            EXPLORE ALL ACTIVITIES <ArrowRight size={15} />
                           </button>
                         </div>
                       </div>
@@ -2195,7 +2765,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 {mobileDestinations.map((item) => (
                   <div
                     key={item.name}
-                    onClick={() => handleCardClick(item.name)}
+                    onClick={() => handleCardClick(item)}
                     style={{
                       flex: '0 0 240px',
                       height: '320px',

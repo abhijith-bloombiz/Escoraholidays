@@ -221,9 +221,9 @@ export default function Kerala3DMapCanvas({
     const dims = { w: width, h: height };
 
     // Calibrated isometric perspective camera so entire Kerala relief and all pins fit cleanly within viewport
-    const camera = new THREE.PerspectiveCamera(38, width / height, 0.1, 100);
-    camera.position.set(0.15, -5.9, 8.85);
-    camera.lookAt(0.14, 0.15, 0);
+    const camera = new THREE.PerspectiveCamera(38.5, width / height, 0.1, 100);
+    camera.position.set(0.15, -6.15, 9.15);
+    camera.lookAt(0.14, -0.12, 0);
 
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
     const renderer = new THREE.WebGLRenderer({

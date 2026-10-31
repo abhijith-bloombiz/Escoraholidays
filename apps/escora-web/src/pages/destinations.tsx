@@ -245,38 +245,39 @@ export default function DestinationsPage() {
                       className="kerala-3d-spotlight-img card-zoom-img"
                     />
                     <div className="kerala-3d-spotlight-image-scrim" />
-                  </div>
 
-                  <div className="kerala-3d-spotlight-body">
-                    <div className="kerala-3d-spotlight-title-row">
-                      <h3 className="font-display kerala-3d-spotlight-name">
-                        {spotlightDest.name}
-                      </h3>
-                      <span className="kerala-3d-spotlight-region">
-                        {spotlightDest.region}
-                      </span>
-                    </div>
+                    {/* Text content placed over image */}
+                    <div className="kerala-3d-spotlight-overlay-content">
+                      <div className="kerala-3d-spotlight-title-row">
+                        <h3 className="font-display kerala-3d-spotlight-name">
+                          {spotlightDest.name}
+                        </h3>
+                        <span className="kerala-3d-spotlight-region">
+                          {spotlightDest.region}
+                        </span>
+                      </div>
 
-                    <p className="kerala-3d-spotlight-desc">
-                      {spotlightDest.shortDesc}
-                    </p>
+                      <p className="kerala-3d-spotlight-desc">
+                        {spotlightDest.shortDesc}
+                      </p>
 
-                    <div className="kerala-3d-spotlight-actions">
-                      <Link
-                        href={`/destinations/${spotlightDest.slug}`}
-                        className="kerala-3d-btn-primary anim-hover-pill"
-                      >
-                        <span>Explore Sanctuary Details</span>
-                        <ArrowRight size={16} className="card-arrow-hover" />
-                      </Link>
-                      <button
-                        type="button"
-                        className="kerala-3d-btn-secondary anim-hover-pill"
-                        onClick={() => handleJumpToGrid(spotlightDest.slug, spotlightDest.type)}
-                      >
-                        <MapPin size={15} color="#D4A359" />
-                        <span>Jump to Collection</span>
-                      </button>
+                      <div className="kerala-3d-spotlight-actions">
+                        <Link
+                          href={`/destinations/${spotlightDest.slug}`}
+                          className="kerala-3d-btn-primary anim-hover-pill"
+                        >
+                          <span>Explore Sanctuary Details</span>
+                          <ArrowRight size={16} className="card-arrow-hover" />
+                        </Link>
+                        <button
+                          type="button"
+                          className="kerala-3d-btn-secondary anim-hover-pill"
+                          onClick={() => handleJumpToGrid(spotlightDest.slug, spotlightDest.type)}
+                        >
+                          <MapPin size={15} color="#D4A359" />
+                          <span>Jump to Collection</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

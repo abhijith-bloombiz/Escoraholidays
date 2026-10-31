@@ -18,3 +18,5 @@ export * from "./audience-group.model";
 export * from "./email-automation.model";
 export * from "./itinerary-template.model";
 export * from "./testimonial.model";
+export * from "./experience.model";
+export * from "./hero.model";

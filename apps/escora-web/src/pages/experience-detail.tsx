@@ -17,7 +17,9 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
+import HeroGradientBackground from '../components/HeroGradientBackground';
 import { getExperienceBySlug, KERALA_EXPERIENCES, type ExperienceItem } from '../data/experiencesData';
+import { useListExperiences } from '@workspace/api-client-react';
 
 export interface ExperienceDetailPageProps {
   slug?: string;
@@ -27,7 +29,35 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
   const [, params] = useRoute('/experiences/:slug');
   const slug = propSlug || params?.slug || '';
 
-  const experience = getExperienceBySlug(slug);
+  const { data: remoteExperiences } = useListExperiences();
+
+  const allExperiences: ExperienceItem[] = React.useMemo(() => {
+    if (remoteExperiences && remoteExperiences.length > 0) {
+      return remoteExperiences.map((exp) => ({
+        slug: exp.slug,
+        title: exp.title,
+        category: exp.category as any,
+        tagline: exp.tagline || '',
+        duration: exp.duration || 'Self-Paced',
+        intensity: (exp.intensity as any) || 'Gentle & Relaxed',
+        bestTime: exp.bestTime || 'Year-Round',
+        vibe: exp.vibe || 'Curated & Unhurried',
+        heroImage: exp.heroImage || '/images/exp_houseboat.jpg',
+        gallery: Array.isArray(exp.gallery) && exp.gallery.length > 0 ? exp.gallery : (exp.heroImage ? [exp.heroImage] : ['/images/exp_houseboat.jpg']),
+        story: exp.story || '',
+        highlights: Array.isArray(exp.highlights) ? exp.highlights : [],
+        inclusions: Array.isArray(exp.inclusions) ? exp.inclusions : [],
+        destinations: Array.isArray(exp.destinations) ? exp.destinations : [],
+        conciergeTip: exp.conciergeTip || '',
+      }));
+    }
+    return KERALA_EXPERIENCES;
+  }, [remoteExperiences]);
+
+  const experience: ExperienceItem | undefined = React.useMemo(() => {
+    const match = allExperiences.find((e) => e.slug.toLowerCase() === slug.toLowerCase());
+    return match || getExperienceBySlug(slug);
+  }, [allExperiences, slug]);
 
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
@@ -61,7 +91,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
     );
   }
 
-  const otherExperiences = KERALA_EXPERIENCES.filter((e) => e.slug !== experience.slug).slice(0, 3);
+  const otherExperiences = allExperiences.filter((e) => e.slug !== experience.slug).slice(0, 3);
 
   const handleShare = () => {
     if (navigator.clipboard) {
@@ -71,7 +101,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
+    <div className="anim-page-fade-in" style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
       <Navbar onOpenEnquiry={() => setEnquiryOpen(true)} />
 
       {/* Hero Header */}
@@ -107,6 +137,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               background: 'linear-gradient(to top, rgba(13, 15, 19, 0.95) 0%, rgba(13, 15, 19, 0.4) 50%, rgba(13, 15, 19, 0.75) 100%)'
             }}
           />
+          <HeroGradientBackground hasImage opacity={0.65} />
         </div>
 
         <div className="section-wrapper" style={{ position: 'relative', zIndex: 3, width: '100%' }}>
@@ -146,6 +177,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
             <div style={{ maxWidth: '820px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                 <span
+                  className="anim-hero-badge"
                   style={{
                     backgroundColor: 'rgba(180, 130, 53, 0.95)',
                     color: '#FFFFFF',
@@ -154,13 +186,15 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                     padding: '0.35rem 1rem',
-                    borderRadius: '9999px'
+                    borderRadius: '9999px',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)'
                   }}
                 >
                   {experience.category}
                 </span>
 
                 <span
+                  className="anim-hero-badge"
                   style={{
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     backdropFilter: 'blur(8px)',
@@ -170,7 +204,8 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                     letterSpacing: '0.08em',
                     padding: '0.35rem 1rem',
                     borderRadius: '9999px',
-                    border: '1px solid rgba(255, 255, 255, 0.15)'
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)'
                   }}
                 >
                   {experience.intensity}
@@ -178,7 +213,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               </div>
 
               <h1
-                className="font-display"
+                className="font-display anim-hero-title"
                 style={{
                   fontSize: 'clamp(2.75rem, 6vw, 4.75rem)',
                   letterSpacing: '0.03em',
@@ -191,6 +226,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               </h1>
 
               <p
+                className="anim-hero-desc"
                 style={{
                   fontSize: 'clamp(1.05rem, 1.35vw, 1.25rem)',
                   color: 'rgba(255, 255, 255, 0.85)',
@@ -206,14 +242,14 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
             <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
               <Link
                 href={`/plan?experience=${encodeURIComponent(experience.title)}`}
-                className="btn-pill btn-gold"
+                className="btn-pill btn-gold anim-hover-pill"
                 style={{ padding: '0.9rem 2.2rem', fontSize: '0.92rem' }}
               >
                 Incorporate in My Journey
               </Link>
               <button
                 onClick={handleShare}
-                className="btn-pill"
+                className="btn-pill anim-hover-pill"
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.12)',
                   color: '#FFFFFF',
@@ -247,18 +283,19 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               alignItems: 'center'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
               <div
                 style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '50%',
-                  backgroundColor: '#F8F6F1',
+                  backgroundColor: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#B48235',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                 }}
               >
                 <Clock size={20} />
@@ -271,18 +308,19 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
               <div
                 style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '50%',
-                  backgroundColor: '#F8F6F1',
+                  backgroundColor: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#B48235',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                 }}
               >
                 <Calendar size={20} />
@@ -295,18 +333,19 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
               <div
                 style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '50%',
-                  backgroundColor: '#F8F6F1',
+                  backgroundColor: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#B48235',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                 }}
               >
                 <Sparkles size={20} />
@@ -319,18 +358,19 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
               <div
                 style={{
                   width: '44px',
                   height: '44px',
                   borderRadius: '50%',
-                  backgroundColor: '#F8F6F1',
+                  backgroundColor: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#B48235',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)'
                 }}
               >
                 <MapPin size={20} />
@@ -373,6 +413,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
 
               {/* Concierge Tip Box */}
               <div
+                className="luxury-interactive-card"
                 style={{
                   padding: '1.75rem',
                   backgroundColor: '#FFFFFF',
@@ -393,8 +434,9 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
 
             {/* Gallery */}
             <div>
-              <div style={{ borderRadius: '24px', overflow: 'hidden', height: '420px', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)', marginBottom: '1.25rem' }}>
+              <div className="luxury-interactive-card" style={{ borderRadius: '24px', overflow: 'hidden', height: '420px', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)', marginBottom: '1.25rem' }}>
                 <img
+                  className="card-zoom-img"
                   src={experience.gallery[activeGalleryIndex] || experience.heroImage}
                   alt={experience.title}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.5s ease' }}
@@ -407,6 +449,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                   <button
                     key={idx}
                     onClick={() => setActiveGalleryIndex(idx)}
+                    className="anim-hover-pill"
                     style={{
                       width: '84px',
                       height: '64px',
@@ -417,7 +460,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                       cursor: 'pointer',
                       flexShrink: 0,
                       opacity: activeGalleryIndex === idx ? 1 : 0.65,
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.25s ease'
                     }}
                   >
                     <img src={img} alt={`Thumbnail ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -451,6 +494,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                 {experience.highlights.map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                     <div
+                      className="anim-check-pop"
                       style={{
                         width: '26px',
                         height: '26px',
@@ -484,6 +528,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                 {experience.inclusions.map((item, idx) => (
                   <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                     <div
+                      className="anim-check-pop"
                       style={{
                         width: '26px',
                         height: '26px',
@@ -528,6 +573,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               <Link
                 key={dest.slug}
                 href={`/destinations/${dest.slug}`}
+                className="luxury-interactive-card card-arrow-hover"
                 style={{
                   textDecoration: 'none',
                   backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -574,7 +620,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link
               href={`/plan?experience=${encodeURIComponent(experience.title)}`}
-              className="btn-pill btn-gold"
+              className="btn-pill btn-gold anim-hover-pill"
               style={{ padding: '0.9rem 2.4rem', fontSize: '0.95rem' }}
             >
               Incorporate in My Itinerary
@@ -585,7 +631,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-pill btn-black"
+              className="btn-pill btn-black anim-hover-pill"
               style={{ padding: '0.9rem 2.4rem', fontSize: '0.95rem' }}
             >
               WhatsApp Concierge
@@ -606,7 +652,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                 CURATED EXPERIENCES
               </h2>
             </div>
-            <Link href="/experiences" style={{ color: '#B48235', fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Link href="/experiences" className="anim-hover-pill" style={{ color: '#B48235', fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               View All <ArrowRight size={15} />
             </Link>
           </div>
@@ -625,6 +671,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 <div
+                  className="luxury-interactive-card card-arrow-hover"
                   style={{
                     borderRadius: '20px',
                     overflow: 'hidden',
@@ -643,7 +690,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                   }}
                 >
                   <div style={{ height: '200px', overflow: 'hidden' }}>
-                    <img src={other.heroImage} alt={other.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img className="card-zoom-img" src={other.heroImage} alt={other.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div style={{ padding: '1.25rem' }}>
                     <span style={{ fontSize: '0.72rem', color: '#B48235', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>

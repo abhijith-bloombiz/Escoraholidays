@@ -5,7 +5,10 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
+import HeroGradientBackground from '../components/HeroGradientBackground';
 import { KERALA_EXPERIENCES, type ExperienceItem } from '../data/experiencesData';
+import { useListExperiences } from '@workspace/api-client-react';
+import { useScrollReveal } from '../hooks/useScrollAnimation';
 
 const EXPERIENCE_CATEGORIES = [
   'All',
@@ -22,8 +25,36 @@ export default function ExperiencesPage() {
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
 
+  const [gridSectionRef, gridVisible] = useScrollReveal<HTMLElement>({ threshold: 0.05, reEnter: true });
+  const [ctaSectionRef, ctaVisible] = useScrollReveal<HTMLElement>({ threshold: 0.15, reEnter: true });
+
+  const { data: remoteExperiences } = useListExperiences();
+
+  const allExperiences: ExperienceItem[] = useMemo(() => {
+    if (remoteExperiences && remoteExperiences.length > 0) {
+      return remoteExperiences.map((exp) => ({
+        slug: exp.slug,
+        title: exp.title,
+        category: exp.category as any,
+        tagline: exp.tagline || '',
+        duration: exp.duration || 'Self-Paced',
+        intensity: (exp.intensity as any) || 'Gentle & Relaxed',
+        bestTime: exp.bestTime || 'Year-Round',
+        vibe: exp.vibe || 'Curated & Unhurried',
+        heroImage: exp.heroImage || '/images/exp_houseboat.jpg',
+        gallery: Array.isArray(exp.gallery) && exp.gallery.length > 0 ? exp.gallery : (exp.heroImage ? [exp.heroImage] : ['/images/exp_houseboat.jpg']),
+        story: exp.story || '',
+        highlights: Array.isArray(exp.highlights) ? exp.highlights : [],
+        inclusions: Array.isArray(exp.inclusions) ? exp.inclusions : [],
+        destinations: Array.isArray(exp.destinations) ? exp.destinations : [],
+        conciergeTip: exp.conciergeTip || '',
+      }));
+    }
+    return KERALA_EXPERIENCES;
+  }, [remoteExperiences]);
+
   const filteredExperiences = useMemo(() => {
-    return KERALA_EXPERIENCES.filter((exp) => {
+    return allExperiences.filter((exp) => {
       const matchesCat = activeCategory === 'All' || exp.category === activeCategory;
       const matchesSearch =
         searchQuery.trim() === '' ||
@@ -33,10 +64,10 @@ export default function ExperiencesPage() {
         exp.destinations.some((d) => d.name.toLowerCase().includes(searchQuery.toLowerCase()));
       return matchesCat && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [allExperiences, activeCategory, searchQuery]);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
+    <div className="anim-page-fade-in" style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
       <Navbar onOpenEnquiry={() => setEnquiryOpen(true)} />
 
       {/* Hero Section */}
@@ -49,17 +80,11 @@ export default function ExperiencesPage() {
           overflow: 'hidden'
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `radial-gradient(circle at 20% 30%, rgba(180, 130, 53, 0.2) 0%, transparent 60%), radial-gradient(circle at 90% 80%, rgba(22, 46, 72, 0.35) 0%, transparent 70%)`,
-            pointerEvents: 'none'
-          }}
-        />
+        <HeroGradientBackground />
 
         <div className="section-wrapper" style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '980px' }}>
           <div
+            className="anim-hero-badge"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -73,14 +98,15 @@ export default function ExperiencesPage() {
               textTransform: 'uppercase',
               color: '#D4A359',
               fontWeight: 600,
-              marginBottom: '1.5rem'
+              marginBottom: '1.5rem',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
             }}
           >
             <Sparkles size={14} color="#D4A359" /> Signature Kerala Activities
           </div>
 
           <h1
-            className="font-display"
+            className="font-display anim-hero-title"
             style={{
               fontSize: 'clamp(2.75rem, 6vw, 4.75rem)',
               letterSpacing: '0.04em',
@@ -94,6 +120,7 @@ export default function ExperiencesPage() {
           </h1>
 
           <p
+            className="anim-hero-desc"
             style={{
               fontSize: 'clamp(1rem, 1.25vw, 1.2rem)',
               color: 'rgba(255, 255, 255, 0.72)',
@@ -107,7 +134,7 @@ export default function ExperiencesPage() {
           </p>
 
           {/* Search Bar */}
-          <div style={{ maxWidth: '560px', margin: '0 auto' }}>
+          <div className="anim-hero-search" style={{ maxWidth: '560px', margin: '0 auto' }}>
             <div
               style={{
                 display: 'flex',
@@ -118,7 +145,8 @@ export default function ExperiencesPage() {
                 border: '1px solid rgba(255, 255, 255, 0.18)',
                 borderRadius: '9999px',
                 padding: '0.45rem 0.5rem 0.45rem 1.4rem',
-                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.35)'
+                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.35)',
+                transition: 'box-shadow 0.3s ease, border-color 0.3s ease'
               }}
             >
               <Search size={18} color="#D4A359" style={{ marginRight: '0.75rem', flexShrink: 0 }} />
@@ -177,6 +205,7 @@ export default function ExperiencesPage() {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
+                  className="anim-hover-pill"
                   style={{
                     backgroundColor: active ? '#121316' : '#F3EFE8',
                     color: active ? '#FFFFFF' : '#121316',
@@ -187,7 +216,7 @@ export default function ExperiencesPage() {
                     fontWeight: active ? 700 : 500,
                     letterSpacing: '0.04em',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease'
+                    boxShadow: active ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'
                   }}
                 >
                   {cat}
@@ -199,10 +228,10 @@ export default function ExperiencesPage() {
       </section>
 
       {/* Experiences Grid */}
-      <section style={{ padding: '4.5rem 0 6rem', flexGrow: 1 }}>
+      <section ref={gridSectionRef} style={{ padding: '4.5rem 0 6rem', flexGrow: 1 }}>
         <div className="section-wrapper">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2.5rem' }}>
-            <div>
+            <div className={`reveal-fade-left ${gridVisible ? 'in-view' : ''}`}>
               <p style={{ fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#B48235', fontWeight: 700 }}>
                 {activeCategory === 'All' ? 'ALL BESPOKE EXPERIENCES' : `${activeCategory.toUpperCase()} COLLECTION`}
               </p>
@@ -210,7 +239,7 @@ export default function ExperiencesPage() {
                 {filteredExperiences.length} {filteredExperiences.length === 1 ? 'Experience' : 'Experiences'} Available
               </h2>
             </div>
-            <p style={{ fontSize: '0.88rem', color: '#6B7280' }}>
+            <p className={`reveal-fade-right ${gridVisible ? 'in-view' : ''}`} style={{ fontSize: '0.88rem', color: '#6B7280' }}>
               Every activity can be woven into your personalized Kerala itinerary
             </p>
           </div>
@@ -229,7 +258,7 @@ export default function ExperiencesPage() {
                   setSearchQuery('');
                   setActiveCategory('All');
                 }}
-                className="btn-pill btn-gold"
+                className="btn-pill btn-gold anim-hover-pill"
               >
                 Reset Filters
               </button>
@@ -242,33 +271,24 @@ export default function ExperiencesPage() {
                 gap: '2.5rem'
               }}
             >
-              {filteredExperiences.map((exp) => (
+              {filteredExperiences.map((exp, idx) => (
                 <Link
                   key={exp.slug}
                   href={`/experiences/${exp.slug}`}
                   style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}
                 >
                   <article
-                    className="portal-card"
+                    className={`portal-card luxury-interactive-card reveal-fade-up stagger-${(idx % 6) + 1} ${gridVisible ? 'in-view' : ''}`}
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '24px',
                       overflow: 'hidden',
                       border: '1px solid rgba(0, 0, 0, 0.07)',
                       boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)',
-                      transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
                       cursor: 'pointer',
                       display: 'flex',
                       flexDirection: 'column',
                       height: '100%'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-6px)';
-                      e.currentTarget.style.boxShadow = '0 20px 45px rgba(0, 0, 0, 0.12)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.04)';
                     }}
                   >
                     {/* Image Banner */}
@@ -276,11 +296,11 @@ export default function ExperiencesPage() {
                       <img
                         src={exp.heroImage}
                         alt={exp.title}
+                        className="card-zoom-img"
                         style={{
                           width: '100%',
                           height: '100%',
-                          objectFit: 'cover',
-                          transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)'
+                          objectFit: 'cover'
                         }}
                       />
                       <div
@@ -364,6 +384,7 @@ export default function ExperiencesPage() {
                         {exp.destinations.map((d) => (
                           <span
                             key={d.slug}
+                            className="anim-hover-pill"
                             style={{
                               backgroundColor: '#F3EFE8',
                               color: '#1F2937',
@@ -394,7 +415,7 @@ export default function ExperiencesPage() {
                         }}
                       >
                         <span>Discover Experience</span>
-                        <ArrowRight size={16} />
+                        <ArrowRight size={16} className="card-arrow-hover" />
                       </div>
                     </div>
                   </article>
@@ -406,9 +427,9 @@ export default function ExperiencesPage() {
       </section>
 
       {/* Plan Custom Experience CTA */}
-      <section style={{ backgroundColor: '#0D0F13', color: '#FFFFFF', padding: '6rem 2rem', textAlign: 'center' }}>
-        <div className="section-wrapper" style={{ maxWidth: '780px' }}>
-          <Sparkles size={28} color="#D4A359" style={{ margin: '0 auto 1.25rem' }} />
+      <section ref={ctaSectionRef} style={{ backgroundColor: '#0D0F13', color: '#FFFFFF', padding: '6rem 2rem', textAlign: 'center', overflow: 'hidden' }}>
+        <div className={`section-wrapper reveal-scale-up ${ctaVisible ? 'in-view' : ''}`} style={{ maxWidth: '780px' }}>
+          <Sparkles size={28} color="#D4A359" className="anim-hero-badge" style={{ margin: '0 auto 1.25rem' }} />
           <h2 className="font-display" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#FFFFFF', lineHeight: 1.1, marginBottom: '1.25rem' }}>
             HAVE A SPECIFIC EXPERIENCE IN MIND?
           </h2>
@@ -417,12 +438,12 @@ export default function ExperiencesPage() {
             or an ancient martial arts initiation — we make the impossible effortless.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/plan" className="btn-pill btn-gold" style={{ padding: '0.9rem 2.25rem', fontSize: '0.9rem' }}>
+            <Link href="/plan" className="btn-pill btn-gold anim-hover-pill" style={{ padding: '0.9rem 2.25rem', fontSize: '0.9rem' }}>
               Design a Bespoke Journey
             </Link>
             <button
               onClick={() => setEnquiryOpen(true)}
-              className="btn-pill btn-white"
+              className="btn-pill btn-white anim-hover-pill"
               style={{ padding: '0.9rem 2.25rem', fontSize: '0.9rem' }}
             >
               Inquire with Concierge

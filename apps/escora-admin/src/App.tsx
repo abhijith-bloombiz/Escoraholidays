@@ -4,7 +4,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/Layout";
 import DashboardPage from "@/pages/DashboardPage";
+import HeroPage from "@/pages/HeroPage";
 import DestinationsPage from "@/pages/DestinationsPage";
+import ExperiencesPage from "@/pages/ExperiencesPage";
 import CategoriesPage from "@/pages/CategoriesPage";
 import TestimonialsPage from "@/pages/TestimonialsPage";
 import PackagesPage from "@/pages/PackagesPage";
@@ -83,7 +85,9 @@ function ProtectedRouter() {
     <Layout>
       <Switch>
         <Route path="/" component={DashboardPage} />
+        <Route path="/hero" component={HeroPage} />
         <Route path="/destinations" component={DestinationsPage} />
+        <Route path="/experiences" component={ExperiencesPage} />
         <Route path="/categories">{() => <Redirect to="/" replace />}</Route>
         <Route path="/packages">{() => <Redirect to="/" replace />}</Route>
         <Route path="/itineraries/create" component={ItineraryCreatePage} />

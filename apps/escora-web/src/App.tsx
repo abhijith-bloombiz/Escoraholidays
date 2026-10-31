@@ -22,6 +22,8 @@ import ExperiencesPage from './pages/experiences';
 import ExperienceDetailPage from './pages/experience-detail';
 import PlanJourneyPage from './pages/plan';
 import AboutPage from './pages/about';
+import ContactPage from './pages/contact';
+import AiChatBot from './components/AiChatBot';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -201,6 +203,7 @@ export default function App() {
           </Route>
           <Route path="/plan" component={PlanJourneyPage} />
           <Route path="/about" component={AboutPage} />
+          <Route path="/contact" component={ContactPage} />
           <Route path="/itinerary/:token">
             {(params) => <ItineraryShare mode="itinerary" key={params.token} />}
           </Route>
@@ -209,6 +212,9 @@ export default function App() {
           </Route>
           <Route component={LandingPage} />
         </Switch>
+
+        {/* Floating AI Chat Bot Button on the Right Bottom Corner */}
+        <AiChatBot />
       </WouterRouter>
     </QueryClientProvider>
   );

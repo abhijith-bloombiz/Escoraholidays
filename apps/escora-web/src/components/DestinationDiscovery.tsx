@@ -24,7 +24,6 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
   const posRef = useRef<{ x: number; y: number }>({ x: 300, y: 300 });
   const cursorDotRef = useRef<HTMLDivElement | null>(null);
   const cursorRingRef = useRef<HTMLDivElement | null>(null);
-  const spotlightRef = useRef<HTMLDivElement | null>(null);
 
   // Fluid physics-based cursor interpolation via direct DOM updates
   useEffect(() => {
@@ -39,9 +38,6 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
       }
       if (cursorDotRef.current) {
         cursorDotRef.current.style.transform = `translate3d(${mouseRef.current.x}px, ${mouseRef.current.y}px, 0) translate(-50%, -50%)`;
-      }
-      if (spotlightRef.current) {
-        spotlightRef.current.style.background = `radial-gradient(600px circle at ${mouseRef.current.x}px ${mouseRef.current.y}px, rgba(212, 163, 89, 0.35) 0%, rgba(45, 106, 79, 0.18) 35%, transparent 70%)`;
       }
       animId = requestAnimationFrame(loop);
     };
@@ -119,98 +115,12 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
       onPointerDown={() => setIsMouseDown(true)}
       onPointerUp={() => setIsMouseDown(false)}
       style={{
-        background: 'linear-gradient(135deg, #FAF4EA 0%, #F5E8D2 25%, #E3EFE9 50%, #F5E5CE 75%, #FAF4EA 100%)',
-        backgroundSize: '300% 300%',
-        animation: 'keralaGradientFlow 14s ease-in-out infinite alternate',
+        backgroundColor: '#FAF8F5',
         padding: '6.5rem 0 7.5rem',
         borderTop: '1px solid rgba(0, 0, 0, 0.05)',
-        position: 'relative',
-        overflow: 'hidden'
+        position: 'relative'
       }}
     >
-      {/* Animated Ambient Gradient Orbs & Meshes */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          pointerEvents: 'none',
-          overflow: 'hidden',
-          zIndex: 0
-        }}
-      >
-        {/* Floating Orb 1: Warm Champagne Gold Glow */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-6%',
-            left: '-6%',
-            width: '680px',
-            height: '680px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(212, 163, 89, 0.45) 0%, rgba(229, 185, 118, 0.25) 40%, rgba(212, 163, 89, 0.08) 65%, transparent 80%)',
-            filter: 'blur(50px)',
-            animation: 'driftOrbGold 16s ease-in-out infinite alternate',
-            willChange: 'transform'
-          }}
-        />
-
-        {/* Floating Orb 2: Lush Kerala Emerald Aura */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '-10%',
-            right: '-6%',
-            width: '740px',
-            height: '740px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(45, 106, 79, 0.38) 0%, rgba(56, 128, 96, 0.2) 45%, rgba(45, 106, 79, 0.06) 70%, transparent 85%)',
-            filter: 'blur(55px)',
-            animation: 'driftOrbEmerald 18s ease-in-out infinite alternate',
-            willChange: 'transform'
-          }}
-        />
-
-        {/* Floating Orb 3: Central Golden Pulse */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '20%',
-            right: '25%',
-            width: '540px',
-            height: '540px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(243, 214, 158, 0.42) 0%, rgba(212, 163, 89, 0.16) 50%, transparent 75%)',
-            filter: 'blur(45px)',
-            animation: 'pulseOrbAmber 13s ease-in-out infinite alternate',
-            willChange: 'transform'
-          }}
-        />
-
-        {/* Interactive Mouse Gradient Spotlight Tracking Cursor */}
-        <div
-          ref={spotlightRef}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            pointerEvents: 'none',
-            background: 'radial-gradient(600px circle at 50% 50%, rgba(212, 163, 89, 0.35) 0%, rgba(45, 106, 79, 0.18) 35%, transparent 70%)',
-            opacity: isHovered ? 1 : 0,
-            transition: 'opacity 0.4s ease'
-          }}
-        />
-
-        {/* Luxury Micro-texture Matrix Overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: 'radial-gradient(rgba(18, 19, 22, 0.035) 1px, transparent 1px)',
-            backgroundSize: '30px 30px',
-            opacity: 0.8,
-            pointerEvents: 'none'
-          }}
-        />
-      </div>
 
       {/* Interactive Cursor Follower - Smooth Outer Ring / Card Badge */}
       <div
@@ -331,7 +241,7 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
             <h2
               className="font-display"
               style={{
-                fontSize: 'clamp(2.85rem, 4.6vw, 4.4rem)',
+                fontSize: 'clamp(2.35rem, 3.75vw, 3.5rem)',
                 color: '#121316',
                 lineHeight: 1.02,
                 letterSpacing: '0.035em',
@@ -647,28 +557,6 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
       </div>
 
       <style>{`
-        @keyframes keralaGradientFlow {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes driftOrbGold {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(80px, -60px) scale(1.15); }
-          66% { transform: translate(-50px, 70px) scale(0.9); }
-          100% { transform: translate(60px, -30px) scale(1.08); }
-        }
-        @keyframes driftOrbEmerald {
-          0% { transform: translate(0px, 0px) scale(1); }
-          33% { transform: translate(-80px, 60px) scale(0.92); }
-          66% { transform: translate(60px, -50px) scale(1.16); }
-          100% { transform: translate(-40px, 30px) scale(1.04); }
-        }
-        @keyframes pulseOrbAmber {
-          0% { transform: translate(0px, 0px) scale(1); }
-          50% { transform: translate(90px, 70px) scale(1.15); }
-          100% { transform: translate(-60px, -50px) scale(0.85); }
-        }
         @keyframes scaleInSoft {
           from { opacity: 0; transform: scale(0.65); }
           to { opacity: 1; transform: scale(1); }

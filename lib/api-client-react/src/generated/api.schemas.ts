@@ -39,6 +39,166 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface ExperienceDestination {
+  name: string;
+  slug: string;
+}
+
+export interface Experience {
+  id: number;
+  slug: string;
+  title: string;
+  category: string;
+  /** @nullable */
+  tagline?: string | null;
+  /** @nullable */
+  duration?: string | null;
+  /** @nullable */
+  intensity?: string | null;
+  /** @nullable */
+  bestTime?: string | null;
+  /** @nullable */
+  vibe?: string | null;
+  /** @nullable */
+  heroImage?: string | null;
+  gallery?: string[];
+  /** @nullable */
+  story?: string | null;
+  highlights?: string[];
+  inclusions?: string[];
+  destinations?: ExperienceDestination[];
+  /** @nullable */
+  conciergeTip?: string | null;
+  featured?: boolean;
+  published: boolean;
+  sortOrder?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExperienceInput {
+  slug: string;
+  title: string;
+  category: string;
+  tagline?: string;
+  duration?: string;
+  intensity?: string;
+  bestTime?: string;
+  vibe?: string;
+  heroImage?: string;
+  gallery?: string[];
+  story?: string;
+  highlights?: string[];
+  inclusions?: string[];
+  destinations?: ExperienceDestination[];
+  conciergeTip?: string;
+  featured?: boolean;
+  published?: boolean;
+  sortOrder?: number;
+}
+
+export interface ExperienceUpdate {
+  slug?: string;
+  title?: string;
+  category?: string;
+  tagline?: string;
+  duration?: string;
+  intensity?: string;
+  bestTime?: string;
+  vibe?: string;
+  heroImage?: string;
+  gallery?: string[];
+  story?: string;
+  highlights?: string[];
+  inclusions?: string[];
+  destinations?: ExperienceDestination[];
+  conciergeTip?: string;
+  featured?: boolean;
+  published?: boolean;
+  sortOrder?: number;
+}
+
+export interface HeroCompanionCard {
+  name?: string;
+  tag?: string;
+  coordinates?: string;
+  subtitle?: string;
+  image?: string;
+}
+
+export interface HeroCompanionsConfig {
+  topLeft?: HeroCompanionCard;
+  bottomLeft?: HeroCompanionCard;
+  topRight?: HeroCompanionCard;
+  bottomRight?: HeroCompanionCard;
+}
+
+export interface HeroConfig {
+  id?: string;
+  eyebrowBadge: string;
+  showSearchBar: boolean;
+  slideDuration: number;
+  centerDestinationOverride?: HeroCompanionCard;
+  companionOverrides?: HeroCompanionsConfig;
+  updatedAt: string;
+}
+
+export interface HeroConfigUpdate {
+  eyebrowBadge?: string;
+  showSearchBar?: boolean;
+  slideDuration?: number;
+  centerDestinationOverride?: HeroCompanionCard;
+  companionOverrides?: HeroCompanionsConfig;
+}
+
+export interface HeroSlide {
+  id: number;
+  title: string;
+  subtitle: string;
+  eyebrow: string;
+  headingLine1: string;
+  headingLine2: string;
+  videoUrl: string;
+  /** @nullable */
+  posterUrl?: string | null;
+  /** @nullable */
+  ctaText?: string | null;
+  /** @nullable */
+  ctaLink?: string | null;
+  published: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HeroSlideInput {
+  title: string;
+  subtitle: string;
+  eyebrow: string;
+  headingLine1: string;
+  headingLine2: string;
+  videoUrl: string;
+  posterUrl?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  published?: boolean;
+  sortOrder?: number;
+}
+
+export interface HeroSlideUpdate {
+  title?: string;
+  subtitle?: string;
+  eyebrow?: string;
+  headingLine1?: string;
+  headingLine2?: string;
+  videoUrl?: string;
+  posterUrl?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  published?: boolean;
+  sortOrder?: number;
+}
+
 export interface Destination {
   id: number;
   name: string;
@@ -434,9 +594,11 @@ export interface ItineraryAiDay {
   title: string;
   description?: string;
   destination?: string;
-  imageUrl?: string;
-  imageUrls?: string[];
   activities: ItineraryAiActivity[];
+  /** Matched landscape photograph URL for the day's experience */
+  imageUrl?: string;
+  /** Up to 3 side-by-side landscape photograph URLs for the day */
+  imageUrls?: string[];
 }
 
 export interface ItineraryAiStay {
@@ -1318,7 +1480,9 @@ export interface TripItineraryDay {
   eveningActivity: string;
   stayRecommendation: string;
   travelNote?: string;
+  /** Matched landscape photograph URL for the day's experience */
   imageUrl?: string;
+  /** Matched landscape photograph URLs for the day */
   imageUrls?: string[];
 }
 
@@ -1581,6 +1745,16 @@ export interface CampaignUnsubscribeInput {
 export interface CampaignAudienceEstimateInput {
   targetAudience?: CampaignTargetAudience;
 }
+
+export type ListHeroSlidesParams = {
+published?: boolean;
+};
+
+export type ListExperiencesParams = {
+category?: string;
+published?: boolean;
+featured?: boolean;
+};
 
 export type ListDestinationsParams = {
 type?: string;

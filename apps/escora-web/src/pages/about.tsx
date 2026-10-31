@@ -16,13 +16,21 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
+import HeroGradientBackground from '../components/HeroGradientBackground';
+import { useScrollReveal } from '../hooks/useScrollAnimation';
 
 export default function AboutPage() {
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
 
+  const [philosophyRef, philosophyVisible] = useScrollReveal<HTMLElement>({ threshold: 0.12, reEnter: true });
+  const [founderRef, founderVisible] = useScrollReveal<HTMLElement>({ threshold: 0.12, reEnter: true });
+  const [pillarsRef, pillarsVisible] = useScrollReveal<HTMLElement>({ threshold: 0.1, reEnter: true });
+  const [milestonesRef, milestonesVisible] = useScrollReveal<HTMLElement>({ threshold: 0.15, reEnter: true });
+  const [ctaRef, ctaVisible] = useScrollReveal<HTMLElement>({ threshold: 0.15, reEnter: true });
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
+    <div className="anim-page-fade-in" style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
       <Navbar onOpenEnquiry={() => setEnquiryOpen(true)} />
 
       {/* Hero Section */}
@@ -36,17 +44,11 @@ export default function AboutPage() {
           overflow: 'hidden'
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `radial-gradient(circle at 50% 20%, rgba(180, 130, 53, 0.18) 0%, transparent 65%), radial-gradient(circle at 10% 90%, rgba(22, 46, 72, 0.4) 0%, transparent 60%)`,
-            pointerEvents: 'none'
-          }}
-        />
+        <HeroGradientBackground />
 
         <div className="section-wrapper" style={{ maxWidth: '940px', position: 'relative', zIndex: 2 }}>
           <div
+            className="anim-hero-badge"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -60,14 +62,15 @@ export default function AboutPage() {
               textTransform: 'uppercase',
               color: '#D4A359',
               fontWeight: 600,
-              marginBottom: '1.5rem'
+              marginBottom: '1.5rem',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
             }}
           >
             <Compass size={14} color="#D4A359" /> The Escora Story &amp; Standard
           </div>
 
           <h1
-            className="font-display"
+            className="font-display anim-hero-title"
             style={{
               fontSize: 'clamp(2.8rem, 6.5vw, 5rem)',
               letterSpacing: '0.04em',
@@ -81,6 +84,7 @@ export default function AboutPage() {
           </h1>
 
           <p
+            className="anim-hero-desc"
             style={{
               fontSize: 'clamp(1.05rem, 1.35vw, 1.25rem)',
               color: 'rgba(255, 255, 255, 0.78)',
@@ -96,7 +100,7 @@ export default function AboutPage() {
       </section>
 
       {/* Philosophy Section */}
-      <section style={{ padding: '6rem 0', backgroundColor: '#FFFFFF' }}>
+      <section ref={philosophyRef} style={{ padding: '6rem 0', backgroundColor: '#FFFFFF', overflow: 'hidden' }}>
         <div className="section-wrapper">
           <div
             style={{
@@ -106,7 +110,9 @@ export default function AboutPage() {
               alignItems: 'center'
             }}
           >
-            <div>
+            <div
+              className={`reveal-fade-left ${philosophyVisible ? 'in-view' : ''}`}
+            >
               <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 OUR REASON FOR BEING
               </p>
@@ -130,10 +136,14 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div style={{ borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0, 0, 0, 0.1)', height: '480px' }}>
+            <div
+              className={`reveal-fade-right luxury-interactive-card ${philosophyVisible ? 'in-view' : ''}`}
+              style={{ borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0, 0, 0, 0.1)', height: '480px' }}
+            >
               <img
                 src="/images/dest_3_munnar.jpg"
                 alt="Munnar Tea Hills Kerala"
+                className="card-zoom-img"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             </div>
@@ -142,14 +152,15 @@ export default function AboutPage() {
       </section>
 
       {/* Founder & CEO Story */}
-      <section style={{ padding: 'clamp(3.5rem, 6vw, 4.75rem) 0', backgroundColor: '#F8F6F1', borderTop: '1px solid rgba(0, 0, 0, 0.06)' }}>
+      <section ref={founderRef} style={{ padding: 'clamp(3.5rem, 6vw, 4.75rem) 0', backgroundColor: '#F8F6F1', borderTop: '1px solid rgba(0, 0, 0, 0.06)' }}>
         <div className="section-wrapper">
-          <div className="about-founder-card">
+          <div className={`about-founder-card luxury-interactive-card reveal-scale-up ${founderVisible ? 'in-view' : ''}`}>
             {/* Founder Image */}
             <div className="about-founder-image-col">
               <img
                 src="/images/midhilaj-founder.jpg"
                 alt="Midhilaj — Founder & CEO, Escora Holidays"
+                className="card-zoom-img"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -223,9 +234,9 @@ export default function AboutPage() {
       </section>
 
       {/* The 4 Trust Pillars */}
-      <section style={{ padding: '6rem 0', backgroundColor: '#0D0F13', color: '#FFFFFF' }}>
+      <section ref={pillarsRef} style={{ padding: '6rem 0', backgroundColor: '#0D0F13', color: '#FFFFFF' }}>
         <div className="section-wrapper">
-          <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4rem' }}>
+          <div className={`reveal-fade-up ${pillarsVisible ? 'in-view' : ''}`} style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4rem' }}>
             <p style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
               THE ESCORA STANDARD
             </p>
@@ -265,9 +276,10 @@ export default function AboutPage() {
                 title: 'Slow, Unhurried Pacing',
                 desc: 'We never pack 5 tourist traps into a day. We design spacious itineraries where you have time for dawn yoga, lakeside afternoon reading, and starlit lagoon dinners.'
               }
-            ].map((pillar) => (
+            ].map((pillar, idx) => (
               <div
                 key={pillar.num}
+                className={`luxury-interactive-card reveal-fade-up stagger-${idx + 1} ${pillarsVisible ? 'in-view' : ''}`}
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.05)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -275,11 +287,12 @@ export default function AboutPage() {
                   padding: '2.25rem',
                   display: 'flex',
                   flexDirection: 'column',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  cursor: 'default'
                 }}
               >
                 <div>
-                  <span className="font-display" style={{ fontSize: '2.5rem', color: '#D4A359', display: 'block', lineHeight: 1, marginBottom: '1rem' }}>
+                  <span className="font-display" style={{ fontSize: '2.5rem', color: '#D4A359', display: 'block', lineHeight: 1, marginBottom: '1rem', transition: 'transform 0.3s ease' }}>
                     {pillar.num}
                   </span>
                   <h3 className="font-display" style={{ fontSize: '1.6rem', color: '#FFFFFF', marginBottom: '0.75rem' }}>
@@ -296,7 +309,7 @@ export default function AboutPage() {
       </section>
 
       {/* Numbers / Milestones */}
-      <section style={{ padding: '5rem 0', backgroundColor: '#FFFFFF', borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
+      <section ref={milestonesRef} style={{ padding: '5rem 0', backgroundColor: '#FFFFFF', borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
         <div className="section-wrapper">
           <div
             style={{
@@ -312,7 +325,16 @@ export default function AboutPage() {
               { number: '14', label: 'Districts of Kerala Covered' },
               { number: '98%', label: 'Returning & Recommended Guests' }
             ].map((item, idx) => (
-              <div key={idx}>
+              <div
+                key={idx}
+                className={`luxury-stat-card reveal-pop stagger-${idx + 1} ${milestonesVisible ? 'in-view' : ''}`}
+                style={{
+                  padding: '1.5rem',
+                  borderRadius: '16px',
+                  backgroundColor: 'rgba(248, 246, 241, 0.5)',
+                  border: '1px solid rgba(0, 0, 0, 0.04)'
+                }}
+              >
                 <div className="font-display" style={{ fontSize: '3.6rem', color: '#B48235', lineHeight: 1, marginBottom: '0.5rem' }}>
                   {item.number}
                 </div>
@@ -326,9 +348,9 @@ export default function AboutPage() {
       </section>
 
       {/* Call to Action Banner */}
-      <section style={{ padding: '6rem 2rem', backgroundColor: '#F8F6F1', textAlign: 'center' }}>
-        <div className="section-wrapper" style={{ maxWidth: '780px' }}>
-          <Sparkles size={28} color="#B48235" style={{ margin: '0 auto 1.25rem' }} />
+      <section ref={ctaRef} style={{ padding: '6rem 2rem', backgroundColor: '#F8F6F1', textAlign: 'center', overflow: 'hidden' }}>
+        <div className={`section-wrapper reveal-scale-up ${ctaVisible ? 'in-view' : ''}`} style={{ maxWidth: '780px' }}>
+          <Sparkles size={28} color="#B48235" className="anim-hero-badge" style={{ margin: '0 auto 1.25rem' }} />
           <h2 className="font-display" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#121316', lineHeight: 1.1, marginBottom: '1.25rem' }}>
             READY TO BEGIN YOUR KERALA STORY?
           </h2>
@@ -336,12 +358,12 @@ export default function AboutPage() {
             Tell us where you want to go and how you want to feel. We will take care of every single detail.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/plan" className="btn-pill btn-gold" style={{ padding: '0.9rem 2.4rem', fontSize: '0.95rem' }}>
+            <Link href="/plan" className="btn-pill btn-gold anim-hover-pill" style={{ padding: '0.9rem 2.4rem', fontSize: '0.95rem' }}>
               Plan a Journey
             </Link>
             <button
               onClick={() => setEnquiryOpen(true)}
-              className="btn-pill btn-black"
+              className="btn-pill btn-black anim-hover-pill"
               style={{ padding: '0.9rem 2.4rem', fontSize: '0.95rem' }}
             >
               Consult with a Travel Designer

@@ -924,7 +924,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 <h2
                   className="font-display"
                   style={{
-                    fontSize: 'clamp(2.85rem, 4.6vw, 4.4rem)',
+                    fontSize: 'clamp(2.35rem, 3.75vw, 3.5rem)',
                     color: '#121316',
                     lineHeight: 1.02,
                     letterSpacing: '0.035em',
@@ -2047,7 +2047,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 <h3
                   className="font-display"
                   style={{
-                    fontSize: 'clamp(2.2rem, 7.5vw, 2.75rem)',
+                    fontSize: 'clamp(1.85rem, 6.5vw, 2.35rem)',
                     margin: 0,
                     color: '#121316',
                     lineHeight: 1.02,

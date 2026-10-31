@@ -47,8 +47,16 @@ import type {
   EnquiryInput,
   EnquiryUpdate,
   ErrorResponse,
+  Experience,
+  ExperienceInput,
+  ExperienceUpdate,
   ExportOrdersParams,
   HealthStatus,
+  HeroConfig,
+  HeroConfigUpdate,
+  HeroSlide,
+  HeroSlideInput,
+  HeroSlideUpdate,
   Itinerary,
   ItineraryAiAssistInput,
   ItineraryAiAssistResponse,
@@ -65,6 +73,8 @@ import type {
   ListCampaignsParams,
   ListDestinationsParams,
   ListEnquiriesParams,
+  ListExperiencesParams,
+  ListHeroSlidesParams,
   ListItinerariesParams,
   ListItineraryTemplatesParams,
   ListJournalPostsParams,
@@ -925,6 +935,902 @@ export function useGetAuthMe<TData = Awaited<ReturnType<typeof getAuthMe>>, TErr
 
 
 
+
+export const getListHeroSlidesUrl = (params?: ListHeroSlidesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/hero/slides?${stringifiedParams}` : `/api/hero/slides`
+}
+
+/**
+ * @summary List all hero slides
+ */
+export const listHeroSlides = async (params?: ListHeroSlidesParams, options?: RequestInit): Promise<HeroSlide[]> => {
+
+  return customFetch<HeroSlide[]>(getListHeroSlidesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListHeroSlidesQueryKey = (params?: ListHeroSlidesParams,) => {
+    return [
+    `/api/hero/slides`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListHeroSlidesQueryOptions = <TData = Awaited<ReturnType<typeof listHeroSlides>>, TError = ErrorType<unknown>>(params?: ListHeroSlidesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listHeroSlides>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListHeroSlidesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listHeroSlides>>> = ({ signal }) => listHeroSlides(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listHeroSlides>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListHeroSlidesQueryResult = NonNullable<Awaited<ReturnType<typeof listHeroSlides>>>
+export type ListHeroSlidesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all hero slides
+ */
+
+export function useListHeroSlides<TData = Awaited<ReturnType<typeof listHeroSlides>>, TError = ErrorType<unknown>>(
+ params?: ListHeroSlidesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listHeroSlides>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListHeroSlidesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateHeroSlideUrl = () => {
+
+
+
+
+  return `/api/hero/slides`
+}
+
+/**
+ * @summary Create a hero slide
+ */
+export const createHeroSlide = async (heroSlideInput: HeroSlideInput, options?: RequestInit): Promise<HeroSlide> => {
+
+  return customFetch<HeroSlide>(getCreateHeroSlideUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      heroSlideInput,)
+  }
+);}
+
+
+
+
+export const getCreateHeroSlideMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createHeroSlide>>, TError,{data: BodyType<HeroSlideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createHeroSlide>>, TError,{data: BodyType<HeroSlideInput>}, TContext> => {
+
+const mutationKey = ['createHeroSlide'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createHeroSlide>>, {data: BodyType<HeroSlideInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createHeroSlide(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateHeroSlideMutationResult = NonNullable<Awaited<ReturnType<typeof createHeroSlide>>>
+    export type CreateHeroSlideMutationBody = BodyType<HeroSlideInput>
+    export type CreateHeroSlideMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a hero slide
+ */
+export const useCreateHeroSlide = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createHeroSlide>>, TError,{data: BodyType<HeroSlideInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createHeroSlide>>,
+        TError,
+        {data: BodyType<HeroSlideInput>},
+        TContext
+      > => {
+      return useMutation(getCreateHeroSlideMutationOptions(options));
+    }
+
+export const getGetHeroSlideUrl = (id: number,) => {
+
+
+
+
+  return `/api/hero/slides/${id}`
+}
+
+/**
+ * @summary Get hero slide by ID
+ */
+export const getHeroSlide = async (id: number, options?: RequestInit): Promise<HeroSlide> => {
+
+  return customFetch<HeroSlide>(getGetHeroSlideUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetHeroSlideQueryKey = (id: number,) => {
+    return [
+    `/api/hero/slides/${id}`
+    ] as const;
+    }
+
+
+export const getGetHeroSlideQueryOptions = <TData = Awaited<ReturnType<typeof getHeroSlide>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHeroSlide>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetHeroSlideQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHeroSlide>>> = ({ signal }) => getHeroSlide(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHeroSlide>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetHeroSlideQueryResult = NonNullable<Awaited<ReturnType<typeof getHeroSlide>>>
+export type GetHeroSlideQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get hero slide by ID
+ */
+
+export function useGetHeroSlide<TData = Awaited<ReturnType<typeof getHeroSlide>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHeroSlide>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetHeroSlideQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateHeroSlideUrl = (id: number,) => {
+
+
+
+
+  return `/api/hero/slides/${id}`
+}
+
+/**
+ * @summary Update a hero slide
+ */
+export const updateHeroSlide = async (id: number,
+    heroSlideUpdate: HeroSlideUpdate, options?: RequestInit): Promise<HeroSlide> => {
+
+  return customFetch<HeroSlide>(getUpdateHeroSlideUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      heroSlideUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateHeroSlideMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateHeroSlide>>, TError,{id: number;data: BodyType<HeroSlideUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateHeroSlide>>, TError,{id: number;data: BodyType<HeroSlideUpdate>}, TContext> => {
+
+const mutationKey = ['updateHeroSlide'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateHeroSlide>>, {id: number;data: BodyType<HeroSlideUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateHeroSlide(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateHeroSlideMutationResult = NonNullable<Awaited<ReturnType<typeof updateHeroSlide>>>
+    export type UpdateHeroSlideMutationBody = BodyType<HeroSlideUpdate>
+    export type UpdateHeroSlideMutationError = ErrorType<void>
+
+    /**
+ * @summary Update a hero slide
+ */
+export const useUpdateHeroSlide = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateHeroSlide>>, TError,{id: number;data: BodyType<HeroSlideUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateHeroSlide>>,
+        TError,
+        {id: number;data: BodyType<HeroSlideUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateHeroSlideMutationOptions(options));
+    }
+
+export const getDeleteHeroSlideUrl = (id: number,) => {
+
+
+
+
+  return `/api/hero/slides/${id}`
+}
+
+/**
+ * @summary Delete a hero slide
+ */
+export const deleteHeroSlide = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteHeroSlideUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteHeroSlideMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteHeroSlide>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteHeroSlide>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteHeroSlide'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteHeroSlide>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteHeroSlide(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteHeroSlideMutationResult = NonNullable<Awaited<ReturnType<typeof deleteHeroSlide>>>
+
+    export type DeleteHeroSlideMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete a hero slide
+ */
+export const useDeleteHeroSlide = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteHeroSlide>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteHeroSlide>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteHeroSlideMutationOptions(options));
+    }
+
+export const getGetHeroConfigUrl = () => {
+
+
+
+
+  return `/api/hero/config`
+}
+
+/**
+ * @summary Get hero global configuration
+ */
+export const getHeroConfig = async ( options?: RequestInit): Promise<HeroConfig> => {
+
+  return customFetch<HeroConfig>(getGetHeroConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetHeroConfigQueryKey = () => {
+    return [
+    `/api/hero/config`
+    ] as const;
+    }
+
+
+export const getGetHeroConfigQueryOptions = <TData = Awaited<ReturnType<typeof getHeroConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHeroConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetHeroConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getHeroConfig>>> = ({ signal }) => getHeroConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getHeroConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetHeroConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getHeroConfig>>>
+export type GetHeroConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get hero global configuration
+ */
+
+export function useGetHeroConfig<TData = Awaited<ReturnType<typeof getHeroConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getHeroConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetHeroConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateHeroConfigUrl = () => {
+
+
+
+
+  return `/api/hero/config`
+}
+
+/**
+ * @summary Update hero global configuration
+ */
+export const updateHeroConfig = async (heroConfigUpdate: HeroConfigUpdate, options?: RequestInit): Promise<HeroConfig> => {
+
+  return customFetch<HeroConfig>(getUpdateHeroConfigUrl(),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      heroConfigUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateHeroConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateHeroConfig>>, TError,{data: BodyType<HeroConfigUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateHeroConfig>>, TError,{data: BodyType<HeroConfigUpdate>}, TContext> => {
+
+const mutationKey = ['updateHeroConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateHeroConfig>>, {data: BodyType<HeroConfigUpdate>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateHeroConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateHeroConfigMutationResult = NonNullable<Awaited<ReturnType<typeof updateHeroConfig>>>
+    export type UpdateHeroConfigMutationBody = BodyType<HeroConfigUpdate>
+    export type UpdateHeroConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update hero global configuration
+ */
+export const useUpdateHeroConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateHeroConfig>>, TError,{data: BodyType<HeroConfigUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateHeroConfig>>,
+        TError,
+        {data: BodyType<HeroConfigUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateHeroConfigMutationOptions(options));
+    }
+
+export const getListExperiencesUrl = (params?: ListExperiencesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/experiences?${stringifiedParams}` : `/api/experiences`
+}
+
+/**
+ * @summary List all experiences
+ */
+export const listExperiences = async (params?: ListExperiencesParams, options?: RequestInit): Promise<Experience[]> => {
+
+  return customFetch<Experience[]>(getListExperiencesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListExperiencesQueryKey = (params?: ListExperiencesParams,) => {
+    return [
+    `/api/experiences`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListExperiencesQueryOptions = <TData = Awaited<ReturnType<typeof listExperiences>>, TError = ErrorType<unknown>>(params?: ListExperiencesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listExperiences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListExperiencesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listExperiences>>> = ({ signal }) => listExperiences(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listExperiences>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListExperiencesQueryResult = NonNullable<Awaited<ReturnType<typeof listExperiences>>>
+export type ListExperiencesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all experiences
+ */
+
+export function useListExperiences<TData = Awaited<ReturnType<typeof listExperiences>>, TError = ErrorType<unknown>>(
+ params?: ListExperiencesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listExperiences>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListExperiencesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateExperienceUrl = () => {
+
+
+
+
+  return `/api/experiences`
+}
+
+/**
+ * @summary Create an experience
+ */
+export const createExperience = async (experienceInput: ExperienceInput, options?: RequestInit): Promise<Experience> => {
+
+  return customFetch<Experience>(getCreateExperienceUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      experienceInput,)
+  }
+);}
+
+
+
+
+export const getCreateExperienceMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createExperience>>, TError,{data: BodyType<ExperienceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createExperience>>, TError,{data: BodyType<ExperienceInput>}, TContext> => {
+
+const mutationKey = ['createExperience'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createExperience>>, {data: BodyType<ExperienceInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createExperience(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateExperienceMutationResult = NonNullable<Awaited<ReturnType<typeof createExperience>>>
+    export type CreateExperienceMutationBody = BodyType<ExperienceInput>
+    export type CreateExperienceMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create an experience
+ */
+export const useCreateExperience = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createExperience>>, TError,{data: BodyType<ExperienceInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createExperience>>,
+        TError,
+        {data: BodyType<ExperienceInput>},
+        TContext
+      > => {
+      return useMutation(getCreateExperienceMutationOptions(options));
+    }
+
+export const getGetExperienceUrl = (id: string,) => {
+
+
+
+
+  return `/api/experiences/${id}`
+}
+
+/**
+ * @summary Get experience by ID or slug
+ */
+export const getExperience = async (id: string, options?: RequestInit): Promise<Experience> => {
+
+  return customFetch<Experience>(getGetExperienceUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExperienceQueryKey = (id: string,) => {
+    return [
+    `/api/experiences/${id}`
+    ] as const;
+    }
+
+
+export const getGetExperienceQueryOptions = <TData = Awaited<ReturnType<typeof getExperience>>, TError = ErrorType<void>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExperience>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExperienceQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExperience>>> = ({ signal }) => getExperience(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExperience>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExperienceQueryResult = NonNullable<Awaited<ReturnType<typeof getExperience>>>
+export type GetExperienceQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get experience by ID or slug
+ */
+
+export function useGetExperience<TData = Awaited<ReturnType<typeof getExperience>>, TError = ErrorType<void>>(
+ id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExperience>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExperienceQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateExperienceUrl = (id: number,) => {
+
+
+
+
+  return `/api/experiences/${id}`
+}
+
+/**
+ * @summary Update an experience
+ */
+export const updateExperience = async (id: number,
+    experienceUpdate: ExperienceUpdate, options?: RequestInit): Promise<Experience> => {
+
+  return customFetch<Experience>(getUpdateExperienceUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      experienceUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdateExperienceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateExperience>>, TError,{id: number;data: BodyType<ExperienceUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateExperience>>, TError,{id: number;data: BodyType<ExperienceUpdate>}, TContext> => {
+
+const mutationKey = ['updateExperience'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateExperience>>, {id: number;data: BodyType<ExperienceUpdate>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateExperience(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateExperienceMutationResult = NonNullable<Awaited<ReturnType<typeof updateExperience>>>
+    export type UpdateExperienceMutationBody = BodyType<ExperienceUpdate>
+    export type UpdateExperienceMutationError = ErrorType<void>
+
+    /**
+ * @summary Update an experience
+ */
+export const useUpdateExperience = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateExperience>>, TError,{id: number;data: BodyType<ExperienceUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateExperience>>,
+        TError,
+        {id: number;data: BodyType<ExperienceUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdateExperienceMutationOptions(options));
+    }
+
+export const getDeleteExperienceUrl = (id: number,) => {
+
+
+
+
+  return `/api/experiences/${id}`
+}
+
+/**
+ * @summary Delete an experience
+ */
+export const deleteExperience = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteExperienceUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteExperienceMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteExperience>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteExperience>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteExperience'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteExperience>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteExperience(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteExperienceMutationResult = NonNullable<Awaited<ReturnType<typeof deleteExperience>>>
+
+    export type DeleteExperienceMutationError = ErrorType<void>
+
+    /**
+ * @summary Delete an experience
+ */
+export const useDeleteExperience = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteExperience>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteExperience>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteExperienceMutationOptions(options));
+    }
 
 export const getListDestinationsUrl = (params?: ListDestinationsParams,) => {
   const normalizedParams = new URLSearchParams();

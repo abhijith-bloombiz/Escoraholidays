@@ -12,7 +12,9 @@ export interface ItineraryAiDay {
   title: string;
   description?: string;
   destination?: string;
-  imageUrl?: string;
-  imageUrls?: string[];
   activities: ItineraryAiActivity[];
+  /** Matched landscape photograph URL for the day's experience */
+  imageUrl?: string;
+  /** Up to 3 side-by-side landscape photograph URLs for the day */
+  imageUrls?: string[];
 }

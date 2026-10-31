@@ -16,6 +16,7 @@ import {
   MessageCircle,
   Compass,
   Quote,
+  Film,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -24,7 +25,9 @@ import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/hero", label: "Hero Banner", icon: Film },
   { href: "/destinations", label: "Destinations", icon: MapPin },
+  { href: "/experiences", label: "Experiences", icon: Compass },
   { href: "/testimonials", label: "Testimonials", icon: Quote },
   { href: "/itineraries", label: "Itineraries", icon: NotebookText },
   { href: "/enquiries", label: "Inbox", icon: MessageSquare },

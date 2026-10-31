@@ -160,6 +160,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
             <img
               src="/images/escora-logo.png"
               alt="ESCORA"
+              className="escora-nav-logo"
               style={{
                 height: scrolled ? '42px' : '48px',
                 width: 'auto',
@@ -182,6 +183,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
             className="desktop-nav"
           >
             {[
+              { label: 'Home', href: '/' },
               { label: 'Destinations', href: '/destinations' },
               { label: 'Experiences', href: '/experiences' },
               { label: 'About', href: '/about' }
@@ -314,7 +316,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
 
             <Link
               href="/plan"
-              className="btn-pill btn-gold"
+              className="btn-pill btn-gold nav-plan-btn"
               style={{
                 fontSize: '0.82rem',
                 padding: '0.62rem 1.4rem',
@@ -326,19 +328,24 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
               Plan a Journey
             </Link>
 
-            <button
-              onClick={onOpenEnquiry}
-              className="btn-pill btn-white"
+            <Link
+              href="/contact"
+              onClick={() => setIsVisible(true)}
+              className="btn-pill btn-white nav-contact-btn"
               style={{
                 fontSize: '0.82rem',
                 padding: '0.62rem 1.3rem',
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
-                fontWeight: 700
+                fontWeight: 700,
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}
             >
               Contact
-            </button>
+            </Link>
 
             {/* Mobile Menu Toggle Button */}
             <button
@@ -368,6 +375,23 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
           @media (max-width: 899px) {
             .mobile-toggle { display: block !important; }
           }
+          @media (max-width: 640px) {
+            .nav-contact-btn { display: none !important; }
+            .nav-plan-btn {
+              padding: 0.52rem 0.95rem !important;
+              font-size: 0.74rem !important;
+            }
+          }
+          @media (max-width: 420px) {
+            .escora-nav-logo {
+              height: 36px !important;
+              max-width: 150px !important;
+            }
+            .nav-plan-btn {
+              padding: 0.45rem 0.8rem !important;
+              font-size: 0.7rem !important;
+            }
+          }
         `}</style>
       </header>
 
@@ -387,9 +411,11 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
           }}
         >
           {[
+            { label: 'Home', href: '/' },
             { label: 'Destinations', href: '/destinations' },
             { label: 'Experiences', href: '/experiences' },
-            { label: 'About Escora', href: '/about' }
+            { label: 'About Escora', href: '/about' },
+            { label: 'Contact', href: '/contact' }
           ].map((item) => (
             <Link
               key={item.label}

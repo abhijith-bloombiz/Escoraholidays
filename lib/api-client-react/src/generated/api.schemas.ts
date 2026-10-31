@@ -118,6 +118,87 @@ export interface ExperienceUpdate {
   sortOrder?: number;
 }
 
+export interface HeroCompanionCard {
+  name?: string;
+  tag?: string;
+  coordinates?: string;
+  subtitle?: string;
+  image?: string;
+}
+
+export interface HeroCompanionsConfig {
+  topLeft?: HeroCompanionCard;
+  bottomLeft?: HeroCompanionCard;
+  topRight?: HeroCompanionCard;
+  bottomRight?: HeroCompanionCard;
+}
+
+export interface HeroConfig {
+  id?: string;
+  eyebrowBadge: string;
+  showSearchBar: boolean;
+  slideDuration: number;
+  centerDestinationOverride?: HeroCompanionCard;
+  companionOverrides?: HeroCompanionsConfig;
+  updatedAt: string;
+}
+
+export interface HeroConfigUpdate {
+  eyebrowBadge?: string;
+  showSearchBar?: boolean;
+  slideDuration?: number;
+  centerDestinationOverride?: HeroCompanionCard;
+  companionOverrides?: HeroCompanionsConfig;
+}
+
+export interface HeroSlide {
+  id: number;
+  title: string;
+  subtitle: string;
+  eyebrow: string;
+  headingLine1: string;
+  headingLine2: string;
+  videoUrl: string;
+  /** @nullable */
+  posterUrl?: string | null;
+  /** @nullable */
+  ctaText?: string | null;
+  /** @nullable */
+  ctaLink?: string | null;
+  published: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface HeroSlideInput {
+  title: string;
+  subtitle: string;
+  eyebrow: string;
+  headingLine1: string;
+  headingLine2: string;
+  videoUrl: string;
+  posterUrl?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  published?: boolean;
+  sortOrder?: number;
+}
+
+export interface HeroSlideUpdate {
+  title?: string;
+  subtitle?: string;
+  eyebrow?: string;
+  headingLine1?: string;
+  headingLine2?: string;
+  videoUrl?: string;
+  posterUrl?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  published?: boolean;
+  sortOrder?: number;
+}
+
 export interface Destination {
   id: number;
   name: string;
@@ -1664,6 +1745,10 @@ export interface CampaignUnsubscribeInput {
 export interface CampaignAudienceEstimateInput {
   targetAudience?: CampaignTargetAudience;
 }
+
+export type ListHeroSlidesParams = {
+published?: boolean;
+};
 
 export type ListExperiencesParams = {
 category?: string;

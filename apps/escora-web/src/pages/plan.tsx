@@ -33,6 +33,7 @@ import {
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Toast from '../components/Toast';
+import HeroGradientBackground from '../components/HeroGradientBackground';
 
 // ---------------------------------------------------------------------------
 // Bespoke Data Structures
@@ -484,6 +485,7 @@ export default function PlanJourneyPage() {
 
   return (
     <div
+      className="anim-page-fade-in"
       style={{
         minHeight: '100vh',
         backgroundColor: '#FAF8F5',
@@ -505,6 +507,7 @@ export default function PlanJourneyPage() {
         }}
       >
         {/* Subtle Ambient Vignette Texture */}
+        <HeroGradientBackground opacity={0.7} />
         <div
           style={{
             position: 'absolute',
@@ -561,6 +564,7 @@ export default function PlanJourneyPage() {
               <button
                 type="button"
                 onClick={() => setPlannerMode('concierge')}
+                className="anim-hover-pill"
                 style={{
                   padding: '0.55rem 1.25rem',
                   borderRadius: '999px',
@@ -584,6 +588,7 @@ export default function PlanJourneyPage() {
               <button
                 type="button"
                 onClick={() => setPlannerMode('ai')}
+                className="anim-hover-pill"
                 style={{
                   padding: '0.55rem 1.25rem',
                   borderRadius: '999px',
@@ -609,7 +614,7 @@ export default function PlanJourneyPage() {
           {/* Title & Introduction */}
           <div style={{ maxWidth: '840px' }}>
             <h1
-              className="font-display"
+              className="font-display anim-hero-title"
               style={{
                 fontSize: 'clamp(2.4rem, 4.8vw, 4.1rem)',
                 lineHeight: 1.05,
@@ -627,6 +632,7 @@ export default function PlanJourneyPage() {
             </h1>
 
             <p
+              className="anim-hero-desc"
               style={{
                 fontSize: 'clamp(0.98rem, 1.15vw, 1.12rem)',
                 color: 'rgba(255, 255, 255, 0.78)',
@@ -751,6 +757,7 @@ export default function PlanJourneyPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
               {/* AI Controls Studio Card */}
               <div
+                className="luxury-interactive-card"
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderRadius: '20px',
@@ -790,7 +797,7 @@ export default function PlanJourneyPage() {
                   <button
                     type="button"
                     onClick={() => setPlannerMode('concierge')}
-                    className="btn-pill"
+                    className="btn-pill anim-hover-pill"
                     style={{
                       backgroundColor: '#FAF8F5',
                       color: '#121316',
@@ -822,6 +829,7 @@ export default function PlanJourneyPage() {
                           key={days}
                           type="button"
                           onClick={() => setAiDurationDays(days)}
+                          className="anim-hover-pill"
                           style={{
                             flex: 1,
                             padding: '0.65rem 0.5rem',
@@ -907,6 +915,7 @@ export default function PlanJourneyPage() {
                           key={dest.id}
                           type="button"
                           onClick={() => toggleDestination(dest.name)}
+                          className="anim-hover-pill"
                           style={{
                             padding: '0.45rem 1rem',
                             borderRadius: '999px',
@@ -957,7 +966,7 @@ export default function PlanJourneyPage() {
                     type="button"
                     onClick={handleGenerateAiPlan}
                     disabled={isGeneratingAi}
-                    className="btn-pill"
+                    className="btn-pill anim-hover-pill"
                     style={{
                       backgroundColor: '#9E6F29',
                       color: '#FFFFFF',
@@ -990,6 +999,7 @@ export default function PlanJourneyPage() {
               {/* AI Generated Itinerary Showcase */}
               {generatedAiPlan && (
                 <div
+                  className="anim-step-slide"
                   style={{
                     backgroundColor: '#FFFFFF',
                     borderRadius: '24px',
@@ -1094,6 +1104,7 @@ export default function PlanJourneyPage() {
                     {generatedAiPlan.days.map((day) => (
                       <div
                         key={day.day}
+                        className="luxury-interactive-card"
                         style={{
                           backgroundColor: '#FAF8F5',
                           borderRadius: '18px',
@@ -1452,6 +1463,7 @@ export default function PlanJourneyPage() {
                 {/* STEP 1: TRAVEL STYLE & ESSENCE */}
                 {currentStep === 1 && (
                   <div
+                    className="anim-step-slide"
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '20px',
@@ -1476,6 +1488,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="button"
                         onClick={() => setPlannerMode('ai')}
+                        className="anim-hover-pill"
                         style={{
                           background: 'none',
                           border: 'none',
@@ -1525,6 +1538,7 @@ export default function PlanJourneyPage() {
                           <div
                             key={style.id}
                             onClick={() => setSelectedStyle(style.id)}
+                            className="luxury-interactive-card"
                             style={{
                               border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
                               backgroundColor: isSelected ? '#FAF6EE' : '#FFFFFF',
@@ -1539,6 +1553,7 @@ export default function PlanJourneyPage() {
                           >
                             <div style={{ height: '140px', position: 'relative', overflow: 'hidden' }}>
                               <img
+                                className="card-zoom-img"
                                 src={style.image}
                                 alt={style.title}
                                 style={{
@@ -1576,6 +1591,7 @@ export default function PlanJourneyPage() {
                               </span>
 
                               <div
+                                className={isSelected ? 'anim-check-pop' : ''}
                                 style={{
                                   position: 'absolute',
                                   top: '0.75rem',
@@ -1621,7 +1637,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="button"
                         onClick={() => handleNextStep(2)}
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
                           backgroundColor: '#121316',
                           color: '#FFFFFF',
@@ -1644,6 +1660,7 @@ export default function PlanJourneyPage() {
                 {/* STEP 2: DESTINATIONS & REGIONS */}
                 {currentStep === 2 && (
                   <div
+                    className="anim-step-slide"
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '20px',
@@ -1697,6 +1714,7 @@ export default function PlanJourneyPage() {
                           <div
                             key={dest.id}
                             onClick={() => toggleDestination(dest.name)}
+                            className="luxury-interactive-card"
                             style={{
                               border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
                               borderRadius: '16px',
@@ -1709,6 +1727,7 @@ export default function PlanJourneyPage() {
                           >
                             <div style={{ height: '120px', position: 'relative' }}>
                               <img
+                                className="card-zoom-img"
                                 src={dest.image}
                                 alt={dest.name}
                                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
@@ -1721,6 +1740,7 @@ export default function PlanJourneyPage() {
                                 }}
                               />
                               <div
+                                className={isSelected ? 'anim-check-pop' : ''}
                                 style={{
                                   position: 'absolute',
                                   top: '0.6rem',
@@ -1783,7 +1803,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="button"
                         onClick={() => handlePrevStep(1)}
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
                           backgroundColor: '#F3EFE8',
                           color: '#121316',
@@ -1797,7 +1817,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="button"
                         onClick={() => handleNextStep(3)}
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
                           backgroundColor: '#121316',
                           color: '#FFFFFF',
@@ -1820,6 +1840,7 @@ export default function PlanJourneyPage() {
                 {/* STEP 3: DATES, DURATION & BUDGET */}
                 {currentStep === 3 && (
                   <div
+                    className="anim-step-slide"
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '20px',
@@ -1888,6 +1909,7 @@ export default function PlanJourneyPage() {
                             <div
                               key={opt.id}
                               onClick={() => setDuration(opt.label)}
+                              className="luxury-interactive-card"
                               style={{
                                 border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
                                 backgroundColor: isSelected ? '#FAF6EE' : '#FFFFFF',
@@ -1944,6 +1966,7 @@ export default function PlanJourneyPage() {
                               key={season}
                               type="button"
                               onClick={() => setTravelMonth(season)}
+                              className="anim-hover-pill"
                               style={{
                                 padding: '0.55rem 1.15rem',
                                 borderRadius: '999px',
@@ -2008,6 +2031,7 @@ export default function PlanJourneyPage() {
                             <div
                               key={b.id}
                               onClick={() => setBudget(b.label)}
+                              className="luxury-interactive-card"
                               style={{
                                 border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
                                 backgroundColor: isSelected ? '#FAF6EE' : '#FFFFFF',
@@ -2044,7 +2068,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="button"
                         onClick={() => handlePrevStep(2)}
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
                           backgroundColor: '#F3EFE8',
                           color: '#121316',
@@ -2058,7 +2082,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="button"
                         onClick={() => handleNextStep(4)}
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
                           backgroundColor: '#121316',
                           color: '#FFFFFF',
@@ -2081,6 +2105,7 @@ export default function PlanJourneyPage() {
                 {/* STEP 4: TRAVELLERS & STAYS */}
                 {currentStep === 4 && (
                   <div
+                    className="anim-step-slide"
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '20px',
@@ -2152,6 +2177,7 @@ export default function PlanJourneyPage() {
                           <button
                             type="button"
                             onClick={() => setAdults(Math.max(1, adults - 1))}
+                            className="anim-hover-pill"
                             style={{
                               width: '36px',
                               height: '36px',
@@ -2168,6 +2194,7 @@ export default function PlanJourneyPage() {
                           <button
                             type="button"
                             onClick={() => setAdults(adults + 1)}
+                            className="anim-hover-pill"
                             style={{
                               width: '36px',
                               height: '36px',
@@ -2207,6 +2234,7 @@ export default function PlanJourneyPage() {
                           <button
                             type="button"
                             onClick={() => setChildren(Math.max(0, children - 1))}
+                            className="anim-hover-pill"
                             style={{
                               width: '36px',
                               height: '36px',
@@ -2223,6 +2251,7 @@ export default function PlanJourneyPage() {
                           <button
                             type="button"
                             onClick={() => setChildren(children + 1)}
+                            className="anim-hover-pill"
                             style={{
                               width: '36px',
                               height: '36px',
@@ -2263,6 +2292,7 @@ export default function PlanJourneyPage() {
                               key={stay}
                               type="button"
                               onClick={() => toggleStay(stay)}
+                              className="anim-hover-pill"
                               style={{
                                 padding: '0.65rem 1.25rem',
                                 borderRadius: '999px',
@@ -2331,7 +2361,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="button"
                         onClick={() => handlePrevStep(3)}
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
                           backgroundColor: '#F3EFE8',
                           color: '#121316',
@@ -2345,7 +2375,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="button"
                         onClick={() => handleNextStep(5)}
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
                           backgroundColor: '#121316',
                           color: '#FFFFFF',
@@ -2368,6 +2398,7 @@ export default function PlanJourneyPage() {
                 {/* STEP 5: CONTACT & CONCIERGE TRANSMISSION */}
                 {currentStep === 5 && (
                   <div
+                    className="anim-step-slide"
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '20px',
@@ -2556,6 +2587,7 @@ export default function PlanJourneyPage() {
                               key={item.id}
                               type="button"
                               onClick={() => setPreferredContact(item.id as any)}
+                              className="anim-hover-pill"
                               style={{
                                 padding: '0.6rem 1.15rem',
                                 borderRadius: '10px',
@@ -2579,6 +2611,7 @@ export default function PlanJourneyPage() {
 
                     {/* Trust Seal */}
                     <div
+                      className="luxury-interactive-card"
                       style={{
                         padding: '1rem 1.25rem',
                         backgroundColor: '#FAF8F5',
@@ -2609,7 +2642,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="button"
                         onClick={() => handlePrevStep(4)}
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
                           backgroundColor: '#F3EFE8',
                           color: '#121316',
@@ -2623,7 +2656,7 @@ export default function PlanJourneyPage() {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
                           backgroundColor: '#9E6F29',
                           color: '#FFFFFF',
@@ -2654,6 +2687,7 @@ export default function PlanJourneyPage() {
                   href="https://wa.me/918157003344?text=Hello%20Escora%20Concierge%2C%20I%20am%20planning%20my%20Kerala%20holiday%20and%20would%20love%20some%20guidance."
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="anim-hover-pill"
                   style={{
                     fontSize: '0.84rem',
                     color: '#2D6A4F',

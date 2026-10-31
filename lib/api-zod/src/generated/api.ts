@@ -261,6 +261,263 @@ export const GetAuthMeResponse = zod.object({
 
 
 /**
+ * @summary List all hero slides
+ */
+export const ListHeroSlidesQueryParams = zod.object({
+  "published": zod.coerce.boolean().optional()
+})
+
+export const ListHeroSlidesResponseItem = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "eyebrow": zod.string(),
+  "headingLine1": zod.string(),
+  "headingLine2": zod.string(),
+  "videoUrl": zod.string(),
+  "posterUrl": zod.string().nullish(),
+  "ctaText": zod.string().nullish(),
+  "ctaLink": zod.string().nullish(),
+  "published": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+export const ListHeroSlidesResponse = zod.array(ListHeroSlidesResponseItem)
+
+
+/**
+ * @summary Create a hero slide
+ */
+export const CreateHeroSlideBody = zod.object({
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "eyebrow": zod.string(),
+  "headingLine1": zod.string(),
+  "headingLine2": zod.string(),
+  "videoUrl": zod.string(),
+  "posterUrl": zod.string().optional(),
+  "ctaText": zod.string().optional(),
+  "ctaLink": zod.string().optional(),
+  "published": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+
+/**
+ * @summary Get hero slide by ID
+ */
+export const GetHeroSlideParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetHeroSlideResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "eyebrow": zod.string(),
+  "headingLine1": zod.string(),
+  "headingLine2": zod.string(),
+  "videoUrl": zod.string(),
+  "posterUrl": zod.string().nullish(),
+  "ctaText": zod.string().nullish(),
+  "ctaLink": zod.string().nullish(),
+  "published": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update a hero slide
+ */
+export const UpdateHeroSlideParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateHeroSlideBody = zod.object({
+  "title": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "eyebrow": zod.string().optional(),
+  "headingLine1": zod.string().optional(),
+  "headingLine2": zod.string().optional(),
+  "videoUrl": zod.string().optional(),
+  "posterUrl": zod.string().optional(),
+  "ctaText": zod.string().optional(),
+  "ctaLink": zod.string().optional(),
+  "published": zod.boolean().optional(),
+  "sortOrder": zod.number().optional()
+})
+
+export const UpdateHeroSlideResponse = zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "subtitle": zod.string(),
+  "eyebrow": zod.string(),
+  "headingLine1": zod.string(),
+  "headingLine2": zod.string(),
+  "videoUrl": zod.string(),
+  "posterUrl": zod.string().nullish(),
+  "ctaText": zod.string().nullish(),
+  "ctaLink": zod.string().nullish(),
+  "published": zod.boolean(),
+  "sortOrder": zod.number(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Delete a hero slide
+ */
+export const DeleteHeroSlideParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Get hero global configuration
+ */
+export const GetHeroConfigResponse = zod.object({
+  "id": zod.string().optional(),
+  "eyebrowBadge": zod.string(),
+  "showSearchBar": zod.boolean(),
+  "slideDuration": zod.number(),
+  "centerDestinationOverride": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "companionOverrides": zod.object({
+  "topLeft": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "bottomLeft": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "topRight": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "bottomRight": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional()
+}).optional(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update hero global configuration
+ */
+export const UpdateHeroConfigBody = zod.object({
+  "eyebrowBadge": zod.string().optional(),
+  "showSearchBar": zod.boolean().optional(),
+  "slideDuration": zod.number().optional(),
+  "centerDestinationOverride": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "companionOverrides": zod.object({
+  "topLeft": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "bottomLeft": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "topRight": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "bottomRight": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional()
+}).optional()
+})
+
+export const UpdateHeroConfigResponse = zod.object({
+  "id": zod.string().optional(),
+  "eyebrowBadge": zod.string(),
+  "showSearchBar": zod.boolean(),
+  "slideDuration": zod.number(),
+  "centerDestinationOverride": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "companionOverrides": zod.object({
+  "topLeft": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "bottomLeft": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "topRight": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional(),
+  "bottomRight": zod.object({
+  "name": zod.string().optional(),
+  "tag": zod.string().optional(),
+  "coordinates": zod.string().optional(),
+  "subtitle": zod.string().optional(),
+  "image": zod.string().optional()
+}).optional()
+}).optional(),
+  "updatedAt": zod.string()
+})
+
+
+/**
  * @summary List all experiences
  */
 export const ListExperiencesQueryParams = zod.object({

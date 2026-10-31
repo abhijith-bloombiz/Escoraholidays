@@ -317,6 +317,7 @@ export default function AiChatBot() {
       {isOpen && (
         <div
           data-lenis-prevent
+          className="ai-chatbot-dialog"
           style={{
             position: 'fixed',
             bottom: '92px',
@@ -741,6 +742,15 @@ export default function AiChatBot() {
         }
         .ai-chatbot-messages::-webkit-scrollbar-thumb:hover {
           background-color: rgba(24, 54, 40, 0.45);
+        }
+        @media (max-width: 480px) {
+          .ai-chatbot-dialog {
+            right: 12px !important;
+            left: 12px !important;
+            bottom: 84px !important;
+            width: auto !important;
+            height: min(580px, calc(100vh - 100px)) !important;
+          }
         }
       `}</style>
     </>

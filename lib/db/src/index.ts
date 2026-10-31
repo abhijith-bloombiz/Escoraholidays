@@ -6,6 +6,8 @@ export * from "./models";
 export * from "./connection";
 export * from "./seeds/itinerary-templates-data";
 export * from "./seeds/seed-templates";
+export * from "./seeds/seed-experiences";
+export * from "./seeds/seed-hero";
 
 // Auto-connect when imported if URI is provided, but allow offline mode without crashing
 if (process.env.MONGODB_URI || process.env.DATABASE_URL) {

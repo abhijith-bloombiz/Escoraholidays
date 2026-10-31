@@ -2,6 +2,8 @@ import { Router, type IRouter } from "express";
 import healthRouter from "./health";
 import authRouter from "./auth";
 import destinationsRouter from "./destinations";
+import experiencesRouter from "./experiences";
+import heroRouter from "./hero";
 import packagesRouter from "./packages";
 import ordersRouter from "./orders";
 import journalRouter from "./journal";
@@ -45,6 +47,20 @@ router.get("/destinations/:id", destinationsRouter);
 router.post("/destinations", requireAuth, destinationsRouter);
 router.patch("/destinations/:id", requireAuth, destinationsRouter);
 router.delete("/destinations/:id", requireAuth, destinationsRouter);
+
+router.get("/experiences", experiencesRouter);
+router.get("/experiences/:id", experiencesRouter);
+router.post("/experiences", requireAuth, experiencesRouter);
+router.patch("/experiences/:id", requireAuth, experiencesRouter);
+router.delete("/experiences/:id", requireAuth, experiencesRouter);
+
+router.get("/hero/slides", heroRouter);
+router.get("/hero/slides/:id", heroRouter);
+router.post("/hero/slides", requireAuth, heroRouter);
+router.patch("/hero/slides/:id", requireAuth, heroRouter);
+router.delete("/hero/slides/:id", requireAuth, heroRouter);
+router.get("/hero/config", heroRouter);
+router.patch("/hero/config", requireAuth, heroRouter);
 
 router.get("/packages", packagesRouter);
 router.get("/packages/:id", packagesRouter);

@@ -5,9 +5,11 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
+import HeroGradientBackground from '../components/HeroGradientBackground';
 import Kerala3DMapCanvas, { DISTRICT_DETAILS } from '../components/Kerala3DMapCanvas';
 import '../components/Kerala3DMapSection.css';
 import { KERALA_DESTINATIONS, type DestinationDetail } from '../data/destinationsData';
+import { useScrollReveal } from '../hooks/useScrollAnimation';
 
 const CATEGORIES = ['All', 'Highlands', 'Backwaters', 'Coastal', 'Forest & Wildlife', 'Heritage'] as const;
 
@@ -18,6 +20,9 @@ export default function DestinationsPage() {
   const [toastMessage, setToastMessage] = useState<string>('');
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>('Idukki');
   const [activeDestSlug, setActiveDestSlug] = useState<string>('munnar');
+
+  const [mapSectionRef, mapVisible] = useScrollReveal<HTMLElement>({ threshold: 0.1, reEnter: true });
+  const [gridSectionRef, gridVisible] = useScrollReveal<HTMLElement>({ threshold: 0.05, reEnter: true });
 
   const spotlightDest = useMemo(() => {
     return KERALA_DESTINATIONS.find((d) => d.slug === activeDestSlug) || KERALA_DESTINATIONS[0];
@@ -77,7 +82,7 @@ export default function DestinationsPage() {
   }, [activeCategory, searchQuery]);
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
+    <div className="anim-page-fade-in" style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
       <Navbar onOpenEnquiry={() => setEnquiryOpen(true)} />
 
       {/* Hero Section */}
@@ -90,17 +95,11 @@ export default function DestinationsPage() {
           overflow: 'hidden'
         }}
       >
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `radial-gradient(circle at 80% 20%, rgba(180, 130, 53, 0.15) 0%, transparent 60%), radial-gradient(circle at 10% 80%, rgba(22, 46, 72, 0.4) 0%, transparent 70%)`,
-            pointerEvents: 'none'
-          }}
-        />
+        <HeroGradientBackground />
 
         <div className="section-wrapper" style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: '980px' }}>
           <div
+            className="anim-hero-badge"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -114,14 +113,15 @@ export default function DestinationsPage() {
               textTransform: 'uppercase',
               color: '#D4A359',
               fontWeight: 600,
-              marginBottom: '1.5rem'
+              marginBottom: '1.5rem',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
             }}
           >
             <Compass size={14} color="#D4A359" /> Curated Kerala Geography
           </div>
 
           <h1
-            className="font-display"
+            className="font-display anim-hero-title"
             style={{
               fontSize: 'clamp(2.75rem, 6vw, 4.75rem)',
               letterSpacing: '0.04em',
@@ -135,6 +135,7 @@ export default function DestinationsPage() {
           </h1>
 
           <p
+            className="anim-hero-desc"
             style={{
               fontSize: 'clamp(1rem, 1.25vw, 1.2rem)',
               color: 'rgba(255, 255, 255, 0.72)',
@@ -149,6 +150,7 @@ export default function DestinationsPage() {
 
           {/* Search Bar */}
           <div
+            className="anim-hero-search"
             style={{
               maxWidth: '560px',
               margin: '0 auto',
@@ -165,7 +167,8 @@ export default function DestinationsPage() {
                 border: '1px solid rgba(255, 255, 255, 0.18)',
                 borderRadius: '9999px',
                 padding: '0.45rem 0.5rem 0.45rem 1.4rem',
-                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.35)'
+                boxShadow: '0 12px 36px rgba(0, 0, 0, 0.35)',
+                transition: 'box-shadow 0.3s ease, border-color 0.3s ease'
               }}
             >
               <Search size={18} color="#D4A359" style={{ marginRight: '0.75rem', flexShrink: 0 }} />
@@ -205,10 +208,10 @@ export default function DestinationsPage() {
       </section>
 
       {/* ── Regional Geography & Terroirs Showcase ── */}
-      <section className="kerala-3d-map-section">
+      <section ref={mapSectionRef} className={`kerala-3d-map-section reveal-fade-up ${mapVisible ? 'in-view' : ''}`}>
         <div className="section-wrapper">
           <div className="kerala-3d-map-header">
-            <div className="kerala-3d-map-eyebrow">
+            <div className="kerala-3d-map-eyebrow anim-hero-badge">
               <Compass size={14} color="#9E6F29" /> Regional Geography &amp; Terroirs
             </div>
             <h2 className="font-display kerala-3d-map-title">
@@ -234,12 +237,12 @@ export default function DestinationsPage() {
             {/* Curated Spotlight Card */}
             <div className="kerala-3d-spotlight-box">
               {spotlightDest && (
-                <div className="kerala-3d-spotlight-card">
+                <div className="kerala-3d-spotlight-card luxury-interactive-card">
                   <div className="kerala-3d-spotlight-image-wrap">
                     <img
                       src={spotlightDest.imageUrl}
                       alt={spotlightDest.name}
-                      className="kerala-3d-spotlight-img"
+                      className="kerala-3d-spotlight-img card-zoom-img"
                     />
                     <div className="kerala-3d-spotlight-image-scrim" />
                   </div>
@@ -261,14 +264,14 @@ export default function DestinationsPage() {
                     <div className="kerala-3d-spotlight-actions">
                       <Link
                         href={`/destinations/${spotlightDest.slug}`}
-                        className="kerala-3d-btn-primary"
+                        className="kerala-3d-btn-primary anim-hover-pill"
                       >
                         <span>Explore Sanctuary Details</span>
-                        <ArrowRight size={16} />
+                        <ArrowRight size={16} className="card-arrow-hover" />
                       </Link>
                       <button
                         type="button"
-                        className="kerala-3d-btn-secondary"
+                        className="kerala-3d-btn-secondary anim-hover-pill"
                         onClick={() => handleJumpToGrid(spotlightDest.slug, spotlightDest.type)}
                       >
                         <MapPin size={15} color="#D4A359" />
@@ -303,6 +306,7 @@ export default function DestinationsPage() {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
+                  className="anim-hover-pill"
                   style={{
                     backgroundColor: active ? '#121316' : '#F3EFE8',
                     color: active ? '#FFFFFF' : '#121316',
@@ -313,7 +317,7 @@ export default function DestinationsPage() {
                     fontWeight: active ? 700 : 500,
                     letterSpacing: '0.04em',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease'
+                    boxShadow: active ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none'
                   }}
                 >
                   {cat}
@@ -325,10 +329,10 @@ export default function DestinationsPage() {
       </section>
 
       {/* Destinations Grid */}
-      <section style={{ padding: '4.5rem 0 6rem', flexGrow: 1 }}>
+      <section ref={gridSectionRef} style={{ padding: '4.5rem 0 6rem', flexGrow: 1 }}>
         <div className="section-wrapper">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2.5rem' }}>
-            <div>
+            <div className={`reveal-fade-left ${gridVisible ? 'in-view' : ''}`}>
               <p style={{ fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#B48235', fontWeight: 700 }}>
                 {activeCategory === 'All' ? 'ALL REGIONAL SANCTUARIES' : `${activeCategory.toUpperCase()} COLLECTION`}
               </p>
@@ -336,7 +340,7 @@ export default function DestinationsPage() {
                 {filteredDestinations.length} {filteredDestinations.length === 1 ? 'Destination' : 'Destinations'} Curated
               </h2>
             </div>
-            <p style={{ fontSize: '0.88rem', color: '#6B7280' }}>
+            <p className={`reveal-fade-right ${gridVisible ? 'in-view' : ''}`} style={{ fontSize: '0.88rem', color: '#6B7280' }}>
               Click any destination for in-depth itineraries, seasonal guides &amp; luxury stays
             </p>
           </div>
@@ -355,7 +359,7 @@ export default function DestinationsPage() {
                   setSearchQuery('');
                   setActiveCategory('All');
                 }}
-                className="btn-pill btn-gold"
+                className="btn-pill btn-gold anim-hover-pill"
               >
                 Reset Filters
               </button>
@@ -368,7 +372,7 @@ export default function DestinationsPage() {
                 gap: '2.25rem'
               }}
             >
-              {filteredDestinations.map((dest) => (
+              {filteredDestinations.map((dest, idx) => (
                 <Link
                   key={dest.slug}
                   href={`/destinations/${dest.slug}`}
@@ -376,26 +380,17 @@ export default function DestinationsPage() {
                 >
                   <article
                     id={`destination-${dest.slug}`}
-                    className="portal-card"
+                    className={`portal-card luxury-interactive-card reveal-fade-up stagger-${(idx % 6) + 1} ${gridVisible ? 'in-view' : ''}`}
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '24px',
                       overflow: 'hidden',
                       border: '1px solid rgba(0, 0, 0, 0.07)',
                       boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)',
-                      transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
                       cursor: 'pointer',
                       display: 'flex',
                       flexDirection: 'column',
                       height: '100%'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-6px)';
-                      e.currentTarget.style.boxShadow = '0 20px 45px rgba(0, 0, 0, 0.12)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.04)';
                     }}
                   >
                     {/* Image Container */}
@@ -403,11 +398,11 @@ export default function DestinationsPage() {
                       <img
                         src={dest.imageUrl}
                         alt={`${dest.name}, Kerala`}
+                        className="card-zoom-img"
                         style={{
                           width: '100%',
                           height: '100%',
-                          objectFit: 'cover',
-                          transition: 'transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)'
+                          objectFit: 'cover'
                         }}
                       />
                       <div
@@ -522,7 +517,7 @@ export default function DestinationsPage() {
                         }}
                       >
                         <span>Explore Sanctuary</span>
-                        <ArrowRight size={16} />
+                        <ArrowRight size={16} className="card-arrow-hover" />
                       </div>
                     </div>
                   </article>
@@ -544,7 +539,7 @@ export default function DestinationsPage() {
         }}
       >
         <div className="section-wrapper" style={{ textAlign: 'center', maxWidth: '780px', position: 'relative', zIndex: 2 }}>
-          <Sparkles size={28} color="#D4A359" style={{ margin: '0 auto 1.25rem' }} />
+          <Sparkles size={28} color="#D4A359" className="anim-hero-badge" style={{ margin: '0 auto 1.25rem' }} />
           <p style={{ color: '#D4A359', fontSize: '0.82rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.75rem' }}>
             BESPOKE ITINERARIES
           </p>
@@ -556,7 +551,7 @@ export default function DestinationsPage() {
             Tell our concierge team your dreams and let us compose your custom Kerala route.
           </p>
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/plan" className="btn-pill btn-gold" style={{ padding: '0.9rem 2.25rem', fontSize: '0.9rem' }}>
+            <Link href="/plan" className="btn-pill btn-gold anim-hover-pill" style={{ padding: '0.9rem 2.25rem', fontSize: '0.9rem' }}>
               Plan a Custom Journey
             </Link>
             <button

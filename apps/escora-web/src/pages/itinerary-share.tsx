@@ -17,6 +17,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ItineraryPrintDocument from "@/components/ItineraryPrintDocument";
+import HeroGradientBackground from "@/components/HeroGradientBackground";
 import escoraWordmarkPath from "@assets/escora/escora-wordmark.png";
 
 function Layout({ children, hideFooter = false }: { children: React.ReactNode; hideFooter?: boolean }) {
@@ -106,7 +107,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
         @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap");
         .itinerary-share-page .font-serif { font-family: 'Fonarto', 'Melodrama', 'Playfair Display', Georgia, serif; }
       `}</style>
-      <div className="bg-bg cursor-auto itinerary-share-page">
+      <div className="bg-bg cursor-auto itinerary-share-page anim-page-fade-in">
       {/* Hidden A4 dossier used only for Download PDF — the visible page below is the web view. */}
       <div id={PRINT_TARGET_ID} className="hidden print:block">
         <ItineraryPrintDocument
@@ -150,17 +151,22 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
       </div>
 
       <div className="bg-bg">
-        {itinerary.coverImageUrl && !/unsplash\.com\/photos\//i.test(itinerary.coverImageUrl) && (
-          <div className="relative h-72 md:h-96 w-full overflow-hidden mt-24 md:mt-28">
+        {itinerary.coverImageUrl && !/unsplash\.com\/photos\//i.test(itinerary.coverImageUrl) ? (
+          <div className="relative h-72 md:h-96 w-full overflow-hidden mt-24 md:mt-28 luxury-interactive-card">
             <img
               src={itinerary.coverImageUrl}
               alt={itinerary.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover card-zoom-img"
               onError={(e) => {
                 (e.currentTarget.parentElement as HTMLElement)?.style.setProperty("display", "none");
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/30 to-transparent" />
+            <HeroGradientBackground hasImage opacity={0.5} />
+          </div>
+        ) : (
+          <div className="relative h-48 md:h-64 w-full overflow-hidden mt-24 md:mt-28 bg-[#0D0F13]">
+            <HeroGradientBackground opacity={0.8} />
           </div>
         )}
 
@@ -175,17 +181,17 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
         >
           <section>
             <div className="flex flex-wrap items-start justify-between gap-6 mb-4">
-              <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase">Prepared for {itinerary.customerName}</p>
+              <p className="font-mono text-gold text-xs tracking-[0.3em] uppercase anim-hero-badge">Prepared for {itinerary.customerName}</p>
               <button
                 onClick={handleDownload}
                 disabled={preparingDownload}
-                className="print:hidden font-mono text-xs uppercase tracking-widest border border-gold text-gold px-5 py-2.5 hover:bg-gold hover:text-bg transition-colors flex-shrink-0 disabled:opacity-50"
+                className="print:hidden font-mono text-xs uppercase tracking-widest border border-gold text-gold px-5 py-2.5 hover:bg-gold hover:text-bg transition-colors flex-shrink-0 disabled:opacity-50 anim-hover-pill"
               >
                 {preparingDownload ? "Preparing…" : "Download PDF"}
               </button>
             </div>
-            <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl text-ink leading-[1.1] mb-6 font-semibold">{itinerary.title}</h1>
-            <div className="bg-bg-2 border border-gold/30 p-5 flex flex-wrap items-center gap-x-8 gap-y-3 font-mono text-xs uppercase tracking-widest text-ink-soft">
+            <h1 className="font-serif text-3xl sm:text-4xl md:text-6xl text-ink leading-[1.1] mb-6 font-semibold anim-hero-title">{itinerary.title}</h1>
+            <div className="bg-bg-2 border border-gold/30 p-5 flex flex-wrap items-center gap-x-8 gap-y-3 font-mono text-xs uppercase tracking-widest text-ink-soft luxury-stat-card">
               {itinerary.destination && (
                 <span className="inline-flex items-center gap-2">
                   <span className="w-1.5 h-1.5 rounded-full bg-gold" />
@@ -197,7 +203,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                 <span className="text-ink-mute">{tripNights} {tripNights === 1 ? "night" : "nights"}</span>
               )}
             </div>
-            {itinerary.summary && <p className="font-sans text-ink-soft leading-relaxed text-lg mt-8">{itinerary.summary}</p>}
+            {itinerary.summary && <p className="font-sans text-ink-soft leading-relaxed text-lg mt-8 anim-hero-desc">{itinerary.summary}</p>}
           </section>
 
           {days.length > 0 && (
@@ -218,7 +224,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                   <AccordionItem
                     key={i}
                     value={`day-${i}`}
-                    className="bg-bg-2 border border-gold/30 border-b-gold/30 p-5 sm:p-6 md:p-7 print:break-inside-avoid"
+                    className="bg-bg-2 border border-gold/30 border-b-gold/30 p-5 sm:p-6 md:p-7 print:break-inside-avoid luxury-interactive-card"
                   >
                     <AccordionTrigger className="py-0 hover:no-underline items-start [&>svg]:mt-2 [&>svg]:text-gold [&>svg]:w-[18px] [&>svg]:h-[18px] print:[&>svg]:hidden print:cursor-default">
                       <div className="text-left">
@@ -237,12 +243,12 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                           : []).filter(Boolean);
                         if (dayImgs.length === 0) return null;
                         if (dayImgs.length === 1) {
-                          return <img src={dayImgs[0]} alt={day.title} className="w-full h-56 object-cover rounded-md mb-4 shadow-2xs" />;
+                          return <img src={dayImgs[0]} alt={day.title} className="w-full h-56 object-cover rounded-md mb-4 shadow-2xs card-zoom-img" />;
                         }
                         return (
                           <div className={`grid ${dayImgs.length === 2 ? "grid-cols-2" : "grid-cols-3"} gap-2 h-44 sm:h-52 mb-4 rounded-md overflow-hidden`}>
                             {dayImgs.slice(0, 3).map((img, i) => (
-                              <img key={i} src={img} alt={`${day.title} ${i + 1}`} className="w-full h-full object-cover rounded-sm shadow-2xs" />
+                              <img key={i} src={img} alt={`${day.title} ${i + 1}`} className="w-full h-full object-cover rounded-sm shadow-2xs card-zoom-img" />
                             ))}
                           </div>
                         );
@@ -274,7 +280,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
               <h2 className="font-serif text-3xl text-ink mb-11 border-b border-line pb-5 font-semibold">Where You'll Rest</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {stays.map((stay, i) => (
-                  <div key={i} className="bg-bg-2 border border-gold/30 p-5 sm:p-7 break-inside-avoid">
+                  <div key={i} className="bg-bg-2 border border-gold/30 p-5 sm:p-7 break-inside-avoid luxury-interactive-card">
                     {stay.location && <span className="font-mono text-gold text-[10px] uppercase tracking-widest block mb-2.5">{stay.location}</span>}
                     <h3 className="font-serif text-xl text-ink mb-1.5 font-semibold">{stay.name}</h3>
                     {stay.roomType && <p className="font-sans text-ink-soft text-sm">{stay.roomType}</p>}
@@ -302,7 +308,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
           {(inclusions.length > 0 || exclusions.length > 0) && (
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {inclusions.length > 0 && (
-                <div className="bg-bg-2 border border-gold/30 p-5 sm:p-7">
+                <div className="bg-bg-2 border border-gold/30 p-5 sm:p-7 luxury-interactive-card">
                   <h3 className="font-serif text-2xl text-ink mb-6 font-semibold">Inclusions</h3>
                   <div className="space-y-3.5">
                     {inclusions.map((inc, i) => (
@@ -315,7 +321,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                 </div>
               )}
               {exclusions.length > 0 && (
-                <div className="bg-bg-2 border border-line p-5 sm:p-7">
+                <div className="bg-bg-2 border border-line p-5 sm:p-7 luxury-interactive-card">
                   <h3 className="font-serif text-2xl text-ink mb-6 font-semibold">Exclusions</h3>
                   <div className="space-y-3.5">
                     {exclusions.map((exc, i) => (
@@ -331,7 +337,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
           )}
 
           {weAlsoProvide.length > 0 && (
-            <section className="bg-bg-2 border border-gold/30 p-5 sm:p-7">
+            <section className="bg-bg-2 border border-gold/30 p-5 sm:p-7 luxury-interactive-card">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-serif text-2xl text-ink font-semibold">We Also Provide</h3>
                 <span className="font-mono text-[10px] text-gold uppercase tracking-wider border border-gold/40 px-2 py-0.5 rounded">
@@ -360,7 +366,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
               <>
                 <section>
                   <h2 className="font-serif text-3xl text-ink mb-8 border-b border-line pb-5 font-semibold">Pricing</h2>
-                  <div className="bg-bg-2 border border-gold/30 break-inside-avoid">
+                  <div className="bg-bg-2 border border-gold/30 break-inside-avoid luxury-interactive-card">
                     <div className="divide-y divide-line/60 px-4 sm:px-7">
                       {pricing.items.map((item, i) => (
                         <div key={i} className="flex items-center justify-between py-4">
@@ -390,7 +396,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                   {pricing.notes && <p className="text-xs text-ink-mute mt-3.5">{pricing.notes}</p>}
                 </section>
 
-                <section className="print:hidden bg-bg-2 border border-gold/30 p-5 sm:p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                <section className="print:hidden bg-bg-2 border border-gold/30 p-5 sm:p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 luxury-interactive-card">
                   <div>
                     <p className="font-mono text-gold text-xs tracking-[0.25em] uppercase mb-2">Reserve This Journey</p>
                     <p className="font-sans text-ink-soft text-sm max-w-md">
@@ -406,7 +412,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                       href={`https://wa.me/918157003344?text=${encodeURIComponent(`Hi Escora, I'd like to proceed with payment for "${itinerary.title}" (Ref: ${itinerary.shareToken.slice(0, 8).toUpperCase()}).`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center bg-gold text-bg font-mono text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold-bright transition-colors"
+                      className="inline-flex items-center justify-center bg-gold text-bg font-mono text-xs uppercase tracking-widest px-6 py-3 hover:bg-gold-bright transition-colors anim-hover-pill"
                     >
                       Proceed to Payment
                     </a>

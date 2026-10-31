@@ -241,7 +241,7 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
             <h2
               className="font-display"
               style={{
-                fontSize: 'clamp(2.85rem, 4.6vw, 4.4rem)',
+                fontSize: 'clamp(2.35rem, 3.75vw, 3.5rem)',
                 color: '#121316',
                 lineHeight: 1.02,
                 letterSpacing: '0.035em',

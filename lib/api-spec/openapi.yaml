@@ -289,6 +289,128 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthMeResponse"
 
+  # ── Hero Section CMS ──────────────────────────────────────────
+  /hero/slides:
+    get:
+      operationId: listHeroSlides
+      summary: List all hero slides
+      parameters:
+        - in: query
+          name: published
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HeroSlide"
+    post:
+      operationId: createHeroSlide
+      summary: Create a hero slide
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HeroSlideInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeroSlide"
+
+  /hero/slides/{id}:
+    get:
+      operationId: getHeroSlide
+      summary: Get hero slide by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeroSlide"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateHeroSlide
+      summary: Update a hero slide
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HeroSlideUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeroSlide"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteHeroSlide
+      summary: Delete a hero slide
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /hero/config:
+    get:
+      operationId: getHeroConfig
+      summary: Get hero global configuration
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeroConfig"
+    patch:
+      operationId: updateHeroConfig
+      summary: Update hero global configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HeroConfigUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeroConfig"
+
   # ── Experiences ───────────────────────────────────────────────
   /experiences:
     get:
@@ -2280,6 +2402,152 @@ components:
           type: string
         featured:
           type: boolean
+        published:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    # ── Hero Section CMS ──────────────────────────────────────────
+    HeroCompanionCard:
+      type: object
+      properties:
+        name:
+          type: string
+        tag:
+          type: string
+        coordinates:
+          type: string
+        subtitle:
+          type: string
+        image:
+          type: string
+
+    HeroCompanionsConfig:
+      type: object
+      properties:
+        topLeft:
+          $ref: "#/components/schemas/HeroCompanionCard"
+        bottomLeft:
+          $ref: "#/components/schemas/HeroCompanionCard"
+        topRight:
+          $ref: "#/components/schemas/HeroCompanionCard"
+        bottomRight:
+          $ref: "#/components/schemas/HeroCompanionCard"
+
+    HeroConfig:
+      type: object
+      required: [eyebrowBadge, showSearchBar, slideDuration, updatedAt]
+      properties:
+        id:
+          type: string
+        eyebrowBadge:
+          type: string
+        showSearchBar:
+          type: boolean
+        slideDuration:
+          type: integer
+        centerDestinationOverride:
+          $ref: "#/components/schemas/HeroCompanionCard"
+        companionOverrides:
+          $ref: "#/components/schemas/HeroCompanionsConfig"
+        updatedAt:
+          type: string
+
+    HeroConfigUpdate:
+      type: object
+      properties:
+        eyebrowBadge:
+          type: string
+        showSearchBar:
+          type: boolean
+        slideDuration:
+          type: integer
+        centerDestinationOverride:
+          $ref: "#/components/schemas/HeroCompanionCard"
+        companionOverrides:
+          $ref: "#/components/schemas/HeroCompanionsConfig"
+
+    HeroSlide:
+      type: object
+      required: [id, title, subtitle, eyebrow, headingLine1, headingLine2, videoUrl, published, sortOrder, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        subtitle:
+          type: string
+        eyebrow:
+          type: string
+        headingLine1:
+          type: string
+        headingLine2:
+          type: string
+        videoUrl:
+          type: string
+        posterUrl:
+          type: ["string", "null"]
+        ctaText:
+          type: ["string", "null"]
+        ctaLink:
+          type: ["string", "null"]
+        published:
+          type: boolean
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    HeroSlideInput:
+      type: object
+      required: [title, subtitle, eyebrow, headingLine1, headingLine2, videoUrl]
+      properties:
+        title:
+          type: string
+        subtitle:
+          type: string
+        eyebrow:
+          type: string
+        headingLine1:
+          type: string
+        headingLine2:
+          type: string
+        videoUrl:
+          type: string
+        posterUrl:
+          type: string
+        ctaText:
+          type: string
+        ctaLink:
+          type: string
+        published:
+          type: boolean
+        sortOrder:
+          type: integer
+
+    HeroSlideUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+        subtitle:
+          type: string
+        eyebrow:
+          type: string
+        headingLine1:
+          type: string
+        headingLine2:
+          type: string
+        videoUrl:
+          type: string
+        posterUrl:
+          type: string
+        ctaText:
+          type: string
+        ctaLink:
+          type: string
         published:
           type: boolean
         sortOrder:

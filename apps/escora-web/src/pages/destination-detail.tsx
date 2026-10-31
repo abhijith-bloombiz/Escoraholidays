@@ -20,6 +20,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
+import HeroGradientBackground from '../components/HeroGradientBackground';
 import { getDestinationBySlug, KERALA_DESTINATIONS, type DestinationDetail } from '../data/destinationsData';
 
 export interface DestinationDetailPageProps {
@@ -75,7 +76,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
+    <div className="anim-page-fade-in" style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
       <Navbar onOpenEnquiry={() => setEnquiryOpen(true)} />
 
       {/* Hero Header */}
@@ -112,6 +113,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               background: 'linear-gradient(to top, rgba(13, 15, 19, 0.95) 0%, rgba(13, 15, 19, 0.45) 50%, rgba(13, 15, 19, 0.75) 100%)'
             }}
           />
+          <HeroGradientBackground hasImage opacity={0.65} />
         </div>
 
         <div className="section-wrapper" style={{ position: 'relative', zIndex: 3, width: '100%' }}>
@@ -151,6 +153,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
             <div style={{ maxWidth: '820px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
                 <span
+                  className="anim-hero-badge"
                   style={{
                     backgroundColor: 'rgba(180, 130, 53, 0.95)',
                     color: '#FFFFFF',
@@ -159,13 +162,15 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                     letterSpacing: '0.08em',
                     textTransform: 'uppercase',
                     padding: '0.35rem 1rem',
-                    borderRadius: '9999px'
+                    borderRadius: '9999px',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)'
                   }}
                 >
                   {destination.type}
                 </span>
 
                 <span
+                  className="anim-hero-badge"
                   style={{
                     backgroundColor: 'rgba(255, 255, 255, 0.1)',
                     backdropFilter: 'blur(8px)',
@@ -178,7 +183,8 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                     border: '1px solid rgba(255, 255, 255, 0.15)',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '0.4rem'
+                    gap: '0.4rem',
+                    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)'
                   }}
                 >
                   <MapPin size={12} color="#D4A359" /> {destination.coordinates}
@@ -186,7 +192,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               </div>
 
               <h1
-                className="font-display"
+                className="font-display anim-hero-title"
                 style={{
                   fontSize: 'clamp(3rem, 7vw, 5.5rem)',
                   letterSpacing: '0.04em',
@@ -199,6 +205,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               </h1>
 
               <p
+                className="anim-hero-desc"
                 style={{
                   fontSize: 'clamp(1.05rem, 1.35vw, 1.25rem)',
                   color: 'rgba(255, 255, 255, 0.82)',
@@ -214,14 +221,14 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
             <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
               <Link
                 href={`/plan?destination=${encodeURIComponent(destination.name)}`}
-                className="btn-pill btn-gold"
+                className="btn-pill btn-gold anim-hover-pill"
                 style={{ padding: '0.9rem 2.2rem', fontSize: '0.92rem' }}
               >
                 Plan a Journey to {destination.name}
               </Link>
               <button
                 onClick={handleShare}
-                className="btn-pill"
+                className="btn-pill anim-hover-pill"
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.12)',
                   color: '#FFFFFF',
@@ -255,7 +262,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               alignItems: 'center'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
               <div
                 style={{
                   width: '44px',
@@ -279,7 +286,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
               <div
                 style={{
                   width: '44px',
@@ -305,7 +312,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
               <div
                 style={{
                   width: '44px',
@@ -329,7 +336,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
               <div
                 style={{
                   width: '44px',
@@ -385,6 +392,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
 
               {/* How to Reach Card */}
               <div
+                className="luxury-interactive-card"
                 style={{
                   marginTop: '2.5rem',
                   padding: '1.75rem',
@@ -403,11 +411,12 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
 
             {/* Right: Gallery & Photography */}
             <div>
-              <div style={{ borderRadius: '24px', overflow: 'hidden', height: '420px', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)', marginBottom: '1.25rem' }}>
+              <div className="luxury-interactive-card" style={{ borderRadius: '24px', overflow: 'hidden', height: '420px', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)', marginBottom: '1.25rem' }}>
                 <img
                   src={destination.gallery[activeGalleryIndex] || destination.imageUrl}
                   alt={`${destination.name} View`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'all 0.5s ease' }}
+                  className="card-zoom-img"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
               </div>
 
@@ -417,6 +426,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                   <button
                     key={idx}
                     onClick={() => setActiveGalleryIndex(idx)}
+                    className="anim-hover-pill"
                     style={{
                       width: '84px',
                       height: '64px',
@@ -427,7 +437,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                       cursor: 'pointer',
                       flexShrink: 0,
                       opacity: activeGalleryIndex === idx ? 1 : 0.65,
-                      transition: 'all 0.2s ease'
+                      boxShadow: activeGalleryIndex === idx ? '0 0 0 2px rgba(180, 130, 53, 0.4)' : 'none'
                     }}
                   >
                     <img src={img} alt={`Thumbnail ${idx + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -464,6 +474,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
             {destination.highlights.map((item, idx) => (
               <div
                 key={idx}
+                className="luxury-interactive-card"
                 style={{
                   backgroundColor: '#F8F6F1',
                   padding: '1.75rem',
@@ -475,6 +486,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                 }}
               >
                 <div
+                  className="anim-check-pop"
                   style={{
                     width: '32px',
                     height: '32px',
@@ -486,7 +498,8 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                     justifyContent: 'center',
                     fontWeight: 700,
                     fontSize: '0.85rem',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    boxShadow: '0 4px 12px rgba(180, 130, 53, 0.3)'
                   }}
                 >
                   {idx + 1}
@@ -505,6 +518,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
             <div style={{ maxWidth: '880px', margin: '0 auto' }}>
               <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
                 <span
+                  className="anim-hero-badge"
                   style={{
                     backgroundColor: 'rgba(180, 130, 53, 0.12)',
                     color: '#B48235',
@@ -532,6 +546,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                 {destination.sampleItinerary.days.map((day) => (
                   <div
                     key={day.day}
+                    className="luxury-interactive-card"
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '20px',
@@ -591,6 +606,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               {destination.curatedStays.map((stay, idx) => (
                 <div
                   key={idx}
+                  className="luxury-interactive-card"
                   style={{
                     backgroundColor: 'rgba(255, 255, 255, 0.05)',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -631,7 +647,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
         }}
       >
         <div className="section-wrapper" style={{ maxWidth: '780px' }}>
-          <Sparkles size={28} color="#B48235" style={{ margin: '0 auto 1.25rem' }} />
+          <Sparkles size={28} color="#B48235" className="anim-hero-badge" style={{ margin: '0 auto 1.25rem' }} />
           <h2 className="font-display" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#121316', lineHeight: 1.1, marginBottom: '1.25rem' }}>
             READY TO COMPOSE YOUR {destination.name.toUpperCase()} JOURNEY?
           </h2>
@@ -642,7 +658,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
           <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link
               href={`/plan?destination=${encodeURIComponent(destination.name)}`}
-              className="btn-pill btn-gold"
+              className="btn-pill btn-gold anim-hover-pill"
               style={{ padding: '0.9rem 2.4rem', fontSize: '0.95rem' }}
             >
               Start Planning This Journey
@@ -653,7 +669,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-pill btn-black"
+              className="btn-pill btn-black anim-hover-pill"
               style={{ padding: '0.9rem 2.4rem', fontSize: '0.95rem' }}
             >
               WhatsApp Concierge
@@ -674,7 +690,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                 MORE OF KERALA
               </h2>
             </div>
-            <Link href="/destinations" style={{ color: '#B48235', fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <Link href="/destinations" className="anim-hover-pill" style={{ color: '#B48235', fontWeight: 700, fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               View All <ArrowRight size={15} />
             </Link>
           </div>
@@ -693,25 +709,17 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 <div
+                  className="luxury-interactive-card"
                   style={{
                     borderRadius: '20px',
                     overflow: 'hidden',
                     backgroundColor: '#F8F6F1',
                     border: '1px solid rgba(0, 0, 0, 0.06)',
-                    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.04)',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.08)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.04)';
+                    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.04)'
                   }}
                 >
                   <div style={{ height: '200px', overflow: 'hidden' }}>
-                    <img src={other.imageUrl} alt={other.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={other.imageUrl} alt={other.name} className="card-zoom-img" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   </div>
                   <div style={{ padding: '1.25rem' }}>
                     <span style={{ fontSize: '0.72rem', color: '#B48235', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>

@@ -35,7 +35,7 @@ export default function Footer({ onShowToast }: FooterProps) {
         marginTop: '-4px',
         borderTop: 'none',
         background: 'linear-gradient(to bottom, #F8F6F1 0%, #F8F6F1 8%, #162E48 24%, #0D0F13 44%, #0D0F13 100%)',
-        padding: '7rem 0 3.5rem',
+        padding: '4.5rem 0 3.5rem',
         overflow: 'hidden',
         color: '#FFFFFF'
       }}

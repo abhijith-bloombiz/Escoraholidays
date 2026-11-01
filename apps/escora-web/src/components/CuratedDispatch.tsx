@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LIMITED_OFFERS_IMAGES } from '../data/escoraData';
 import { CheckCircle2 } from 'lucide-react';
 import { useScrollReveal } from '../hooks/useScrollAnimation';
@@ -11,6 +11,75 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
   const [email, setEmail] = useState<string>('');
   const [subscribed, setSubscribed] = useState<boolean>(false);
   const [sectionRef, isVisible] = useScrollReveal<HTMLElement>({ threshold: 0.12, reEnter: true });
+
+  const card1Ref = useRef<HTMLDivElement>(null);
+  const card2Ref = useRef<HTMLDivElement>(null);
+  const card3Ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    let rafId: number | null = null;
+
+    const updateParallax = () => {
+      const section = sectionRef.current;
+      if (!section) return;
+
+      const rect = section.getBoundingClientRect();
+      const windowH = window.innerHeight;
+
+      // Only update when section is near or inside the viewport
+      if (rect.bottom < -120 || rect.top > windowH + 120) return;
+
+      const sectionCenter = rect.top + rect.height * 0.5;
+      const viewportCenter = windowH * 0.5;
+      const distFromCenter = sectionCenter - viewportCenter;
+
+      // Multi-layer depth parallax scroll offsets
+      const y1 = distFromCenter * 0.08;
+      const y2 = distFromCenter * -0.06;
+      const y3 = distFromCenter * 0.15;
+
+      if (card1Ref.current) {
+        card1Ref.current.style.transform = `translate3d(0, ${y1.toFixed(2)}px, 0)`;
+      }
+      if (card2Ref.current) {
+        card2Ref.current.style.transform = `translate3d(0, ${y2.toFixed(2)}px, 0)`;
+      }
+      if (card3Ref.current) {
+        card3Ref.current.style.transform = `translate3d(0, ${y3.toFixed(2)}px, 0)`;
+      }
+    };
+
+    const handleScroll = () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        updateParallax();
+        rafId = null;
+      });
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll, { passive: true });
+
+    const lenis = (window as any).lenis;
+    if (lenis && typeof lenis.on === 'function') {
+      lenis.on('scroll', handleScroll);
+    }
+
+    updateParallax();
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', handleScroll);
+      const activeLenis = (window as any).lenis;
+      if (activeLenis && typeof activeLenis.off === 'function') {
+        activeLenis.off('scroll', handleScroll);
+      }
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [sectionRef]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -40,7 +109,8 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
       ref={sectionRef}
       style={{
         backgroundColor: '#F8F6F1',
-        padding: '5rem 0',
+        padding: '3.5rem 0 4.5rem',
+        borderTop: '1px solid rgba(0, 0, 0, 0.05)',
         overflow: 'hidden',
         position: 'relative'
       }}
@@ -187,77 +257,107 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
           >
             {/* Card 1: Tilted Left (Back Left) - Vertically Centered */}
             <div
-              className="dispatch-card"
+              ref={card1Ref}
+              className="dispatch-parallax-wrap"
               style={{
                 position: 'absolute',
                 left: '4%',
                 top: '50%',
                 width: '275px',
                 height: '345px',
-                borderRadius: '24px',
-                overflow: 'hidden',
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? 'translateY(-54%) rotate(-12deg) scale(1)' : 'translateY(-54%) rotate(0deg) scale(0.85) translateX(-25px)',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.16)',
-                transition: 'transform 0.9s var(--ease-luxury) 0.15s, opacity 0.8s var(--ease-luxury) 0.15s, box-shadow 0.4s ease',
-                zIndex: 1
+                zIndex: 1,
+                willChange: 'transform'
               }}
             >
-              <img
-                src={LIMITED_OFFERS_IMAGES.tiltedLeft}
-                alt="Munnar emerald tea highlands, Kerala"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <div
+                className="dispatch-card"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '24px',
+                  overflow: 'hidden',
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? 'translateY(-54%) rotate(-12deg) scale(1)' : 'translateY(-54%) rotate(0deg) scale(0.85) translateX(-25px)',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.16)',
+                  transition: 'transform 0.9s var(--ease-luxury) 0.15s, opacity 0.8s var(--ease-luxury) 0.15s, box-shadow 0.4s ease'
+                }}
+              >
+                <img
+                  src={LIMITED_OFFERS_IMAGES.tiltedLeft}
+                  alt="Munnar emerald tea highlands, Kerala"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
             </div>
 
             {/* Card 2: Tilted Right (Back Right) - Vertically Centered */}
             <div
-              className="dispatch-card"
+              ref={card2Ref}
+              className="dispatch-parallax-wrap"
               style={{
                 position: 'absolute',
                 right: '4%',
                 top: '50%',
                 width: '255px',
                 height: '320px',
-                borderRadius: '24px',
-                overflow: 'hidden',
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? 'translateY(-58%) rotate(18deg) scale(1)' : 'translateY(-58%) rotate(0deg) scale(0.85) translateX(25px)',
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.16)',
-                transition: 'transform 0.9s var(--ease-luxury) 0.28s, opacity 0.8s var(--ease-luxury) 0.28s, box-shadow 0.4s ease',
-                zIndex: 2
+                zIndex: 2,
+                willChange: 'transform'
               }}
             >
-              <img
-                src={LIMITED_OFFERS_IMAGES.tiltedRight}
-                alt="Varkala coastal red cliffs, Kerala"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <div
+                className="dispatch-card"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '24px',
+                  overflow: 'hidden',
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? 'translateY(-58%) rotate(18deg) scale(1)' : 'translateY(-58%) rotate(0deg) scale(0.85) translateX(25px)',
+                  boxShadow: '0 20px 40px rgba(0, 0, 0, 0.16)',
+                  transition: 'transform 0.9s var(--ease-luxury) 0.28s, opacity 0.8s var(--ease-luxury) 0.28s, box-shadow 0.4s ease'
+                }}
+              >
+                <img
+                  src={LIMITED_OFFERS_IMAGES.tiltedRight}
+                  alt="Varkala coastal red cliffs, Kerala"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
             </div>
 
             {/* Card 3: Upright in Front (Center-Right) - Vertically Centered */}
             <div
-              className="dispatch-card"
+              ref={card3Ref}
+              className="dispatch-parallax-wrap"
               style={{
                 position: 'absolute',
                 right: '16%',
                 top: '50%',
                 width: '265px',
                 height: '340px',
-                borderRadius: '24px',
-                overflow: 'hidden',
-                opacity: isVisible ? 1 : 0,
-                transform: isVisible ? 'translateY(-44%) rotate(0deg) scale(1)' : 'translateY(-44%) rotate(0deg) scale(0.85) translateY(35px)',
-                boxShadow: '0 24px 50px rgba(0, 0, 0, 0.22)',
-                transition: 'transform 0.9s var(--ease-luxury) 0.4s, opacity 0.8s var(--ease-luxury) 0.4s, box-shadow 0.4s ease',
-                zIndex: 4
+                zIndex: 4,
+                willChange: 'transform'
               }}
             >
-              <img
-                src={LIMITED_OFFERS_IMAGES.centerFront}
-                alt="Luxury private Alleppey houseboat, Kerala"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-              />
+              <div
+                className="dispatch-card"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '24px',
+                  overflow: 'hidden',
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? 'translateY(-44%) rotate(0deg) scale(1)' : 'translateY(-44%) rotate(0deg) scale(0.85) translateY(35px)',
+                  boxShadow: '0 24px 50px rgba(0, 0, 0, 0.22)',
+                  transition: 'transform 0.9s var(--ease-luxury) 0.4s, opacity 0.8s var(--ease-luxury) 0.4s, box-shadow 0.4s ease'
+                }}
+              >
+                <img
+                  src={LIMITED_OFFERS_IMAGES.centerFront}
+                  alt="Luxury private Alleppey houseboat, Kerala"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              </div>
             </div>
 
           </div>
@@ -266,6 +366,12 @@ export default function CuratedDispatch({ onShowToast }: CuratedDispatchProps) {
       </div>
 
       <style>{`
+        .dispatch-parallax-wrap {
+          will-change: transform;
+        }
+        .dispatch-parallax-wrap:hover {
+          z-index: 15 !important;
+        }
         .dispatch-card {
           isolation: isolate;
           -webkit-mask-image: -webkit-radial-gradient(white, black);

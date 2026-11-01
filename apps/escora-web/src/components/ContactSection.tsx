@@ -285,7 +285,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
       ref={sectionRef}
       style={{
         backgroundColor: '#F8F6F1',
-        padding: '5rem 0 6.5rem',
+        padding: '5rem 0 3.5rem',
         borderTop: '1px solid rgba(0, 0, 0, 0.05)',
         position: 'relative',
         overflow: 'hidden'

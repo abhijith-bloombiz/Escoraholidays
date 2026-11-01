@@ -98,14 +98,12 @@ export default function Testimonials() {
       ref={sectionRef}
       style={{
         backgroundColor: '#F8F6F1',
-        minHeight: '100vh',
         borderTop: '1px solid rgba(0, 0, 0, 0.05)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
         alignItems: 'center',
-        padding: 'clamp(2rem, 3.5vh, 3rem) 0',
+        padding: '4.5rem 0 3.5rem',
         boxSizing: 'border-box'
       }}
     >

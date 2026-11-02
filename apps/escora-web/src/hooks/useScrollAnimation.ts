@@ -124,14 +124,23 @@ export function usePageScrollReveal(containerRef?: RefObject<HTMLElement | null>
             entry.target.classList.add('is-revealed');
           } else {
             // Scrolled out of view (either above or below) -> reset for bi-directional re-animation
-            entry.target.classList.remove('in-view');
-            entry.target.classList.remove('is-revealed');
+            const rect = entry.boundingClientRect;
+            const windowH = window.innerHeight || document.documentElement.clientHeight;
+            // Only reset if element has genuinely exited through top (rect.bottom < 0)
+            // or through bottom (rect.top > windowH).
+            // Crucial: do not remove in-view while the card is still spanning the top edge
+            // of the viewport (rect.top <= 0 && rect.bottom >= 0), which would trigger
+            // infinite translateY oscillation and card flutter!
+            if (rect.bottom < 0 || rect.top > windowH) {
+              entry.target.classList.remove('in-view');
+              entry.target.classList.remove('is-revealed');
+            }
           }
         });
       },
       {
-        threshold: 0.08,
-        rootMargin: '0px 0px -40px 0px', // Waits until element is 40px inside viewport
+        threshold: 0.04,
+        rootMargin: '0px 0px -20px 0px',
       }
     );
 

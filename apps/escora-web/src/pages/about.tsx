@@ -255,14 +255,14 @@ export default function AboutPage() {
             {/* The 4 Trust Pillars */}
       <section ref={pillarsRef} style={{ padding: 'clamp(5rem, 8vw, 6.5rem) 0', backgroundColor: '#0D0F13', color: '#FFFFFF' }}>
         <div className="section-wrapper">
-          <div className="reveal-fade-up" style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4rem' }}>
-            <p style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
+          <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4rem' }}>
+            <p className="reveal-fade-up" style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
               THE ESCORA STANDARD
             </p>
-            <h2 className="font-display" style={{ fontSize: 'clamp(2.2rem, 3.8vw, 2.9rem)', color: '#FFFFFF', lineHeight: 1.1 }}>
+            <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: 'clamp(2.2rem, 3.8vw, 2.9rem)', color: '#FFFFFF', lineHeight: 1.1 }}>
               OUR FOUR PILLARS OF LUXURY TRUST
             </h2>
-            <p style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '1rem', marginTop: '0.5rem' }}>
+            <p className="reveal-fade-up stagger-2" style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '1rem', marginTop: '0.5rem' }}>
               Every journey we compose is held to these non-negotiable benchmarks of hospitality excellence.
             </p>
           </div>

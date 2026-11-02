@@ -769,7 +769,7 @@ export default function PlanJourneyPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
               {/* AI Controls Studio Card */}
               <div
-                className="luxury-interactive-card"
+                className="luxury-interactive-card reveal-card"
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderRadius: '20px',
@@ -1520,7 +1520,7 @@ export default function PlanJourneyPage() {
                     </div>
 
                     <h2
-                      className="font-display"
+                      className="font-display reveal-fade-up stagger-1"
                       style={{
                         fontSize: 'clamp(1.9rem, 2.8vw, 2.5rem)',
                         color: '#121316',
@@ -1532,7 +1532,7 @@ export default function PlanJourneyPage() {
                       What is the Spirit of Your Journey?
                     </h2>
 
-                    <p style={{ color: '#6B7280', fontSize: '0.96rem', margin: '0 0 2rem', lineHeight: 1.55 }}>
+                    <p className="reveal-fade-up stagger-2" style={{ color: '#6B7280', fontSize: '0.96rem', margin: '0 0 2rem', lineHeight: 1.55 }}>
                       Select the primary rhythm that reflects how you wish to experience Kerala.
                     </p>
 
@@ -1544,13 +1544,13 @@ export default function PlanJourneyPage() {
                         gap: '1.25rem'
                       }}
                     >
-                      {TRAVEL_STYLES.map((style) => {
+                      {TRAVEL_STYLES.map((style, idx) => {
                         const isSelected = selectedStyle === style.id;
                         return (
                           <div
                             key={style.id}
                             onClick={() => setSelectedStyle(style.id)}
-                            className="luxury-interactive-card"
+                            className={`luxury-interactive-card reveal-card stagger-${(idx % 6) + 1}`}
                             style={{
                               border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
                               backgroundColor: isSelected ? '#FAF6EE' : '#FFFFFF',

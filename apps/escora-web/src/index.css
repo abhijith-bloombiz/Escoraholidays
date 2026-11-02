@@ -554,6 +554,27 @@ video::-webkit-media-controls-start-playback-button {
   -webkit-backface-visibility: hidden;
 }
 
+/* When a luxury-interactive-card ALSO uses reveal-card, harmonize the reveal animation and hover lift */
+.luxury-interactive-card.reveal-card {
+  opacity: 0;
+  transform: translateY(42px) scale(0.98);
+  will-change: transform, opacity, box-shadow;
+  transition: opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury), box-shadow 0.45s var(--ease-luxury), border-color 0.45s ease !important;
+}
+
+.luxury-interactive-card.reveal-card:not(.in-view):not(.is-revealed) {
+  opacity: 0 !important;
+  transform: translateY(42px) scale(0.98) !important;
+  pointer-events: none;
+}
+
+.luxury-interactive-card.reveal-card.in-view,
+.luxury-interactive-card.reveal-card.is-revealed {
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) scale(1) !important;
+  pointer-events: auto;
+}
+
 /* Hit-testing buffer prevents mouse cursor boundary flutter and card shaking */
 .luxury-interactive-card::after {
   content: "";
@@ -567,9 +588,12 @@ video::-webkit-media-controls-start-playback-button {
 }
 
 .luxury-interactive-card:hover,
-.in-view.luxury-interactive-card:hover {
-  transform: translate3d(0, -4px, 0) !important;
+.in-view.luxury-interactive-card:hover,
+.luxury-interactive-card.reveal-card.in-view:hover,
+.luxury-interactive-card.reveal-card.is-revealed:hover {
+  transform: translate3d(0, -6px, 0) scale(1.01) !important;
   box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(212, 163, 89, 0.38) !important;
+  transition: transform 0.35s var(--ease-luxury), box-shadow 0.35s var(--ease-luxury), border-color 0.35s ease !important;
 }
 
 .luxury-interactive-card:hover .card-zoom-img {
@@ -597,12 +621,36 @@ video::-webkit-media-controls-start-playback-button {
   transition: transform 0.3s var(--ease-spring), box-shadow 0.3s ease, background-color 0.25s ease, border-color 0.25s ease;
 }
 
-.anim-hover-pill:hover {
-  transform: translateY(-2px) scale(1.03);
+.anim-hover-pill.reveal-pop {
+  opacity: 0;
+  transform: scale(0.88);
+  will-change: transform, opacity;
+  transition: opacity 0.65s var(--ease-spring), transform 0.65s var(--ease-spring), box-shadow 0.3s ease, background-color 0.25s ease, border-color 0.25s ease !important;
 }
 
-.anim-hover-pill:active {
-  transform: scale(0.97);
+.anim-hover-pill.reveal-pop:not(.in-view):not(.is-revealed) {
+  opacity: 0 !important;
+  transform: scale(0.88) !important;
+  pointer-events: none;
+}
+
+.anim-hover-pill.reveal-pop.in-view,
+.anim-hover-pill.reveal-pop.is-revealed {
+  opacity: 1 !important;
+  transform: scale(1) !important;
+  pointer-events: auto;
+}
+
+.anim-hover-pill:hover,
+.anim-hover-pill.reveal-pop.in-view:hover,
+.anim-hover-pill.reveal-pop.is-revealed:hover {
+  transform: translateY(-2px) scale(1.03) !important;
+}
+
+.anim-hover-pill:active,
+.anim-hover-pill.reveal-pop.in-view:active,
+.anim-hover-pill.reveal-pop.is-revealed:active {
+  transform: scale(0.97) !important;
 }
 
 /* Stat Counter Pop Card */

@@ -346,12 +346,12 @@ export default function ContactPage() {
                 boxShadow: '0 20px 50px rgba(0, 0, 0, 0.06)'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#B48235', fontSize: '0.82rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
+              <div className="reveal-fade-up" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#B48235', fontSize: '0.82rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 <Sparkles size={16} /> Direct Inquiry Dossier
               </div>
 
               <h2
-                className="font-display"
+                className="font-display reveal-fade-up stagger-1"
                 style={{
                   fontSize: 'clamp(2rem, 3vw, 2.5rem)',
                   color: '#121316',
@@ -362,7 +362,7 @@ export default function ContactPage() {
                 CRAFT YOUR BESPOKE RETREAT
               </h2>
 
-              <p style={{ color: '#4B5563', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+              <p className="reveal-fade-up stagger-2" style={{ color: '#4B5563', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
                 Share your journey dates, desires, and travel party. We will shape an exclusive, personalized Kerala itinerary with pricing and handpicked estates.
               </p>
 
@@ -732,7 +732,7 @@ export default function ContactPage() {
 
               {/* Direct Concierge WhatsApp Banner */}
               <div
-                className="luxury-interactive-card"
+                className="luxury-interactive-card reveal-card stagger-2"
                 style={{
                   backgroundColor: '#0D0F13',
                   color: '#FFFFFF',
@@ -851,10 +851,10 @@ export default function ContactPage() {
       >
         <div className="section-wrapper" style={{ maxWidth: '960px' }}>
           <div className="reveal-fade-up" style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
+            <div className="reveal-fade-up" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
               <HelpCircle size={15} /> Travel Planning Clarity
             </div>
-            <h2 className="font-display" style={{ fontSize: 'clamp(2.2rem, 3.5vw, 3rem)', color: '#121316' }}>
+            <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: 'clamp(2.2rem, 3.5vw, 3rem)', color: '#121316' }}>
               FREQUENTLY ASKED QUESTIONS
             </h2>
           </div>

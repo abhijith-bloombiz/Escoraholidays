@@ -280,7 +280,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
 
           {stays.length > 0 && (
             <section>
-              <h2 className="font-serif text-3xl text-ink mb-11 border-b border-line pb-5 font-semibold">Where You'll Rest</h2>
+              <h2 className="font-serif text-3xl text-ink mb-11 border-b border-line pb-5 font-semibold reveal-fade-up">Where You'll Rest</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {stays.map((stay, i) => (
                   <div key={i} className={`bg-bg-2 border border-gold/30 p-5 sm:p-7 break-inside-avoid luxury-interactive-card reveal-card stagger-${(i % 3) + 1}`}>
@@ -311,7 +311,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
           {(inclusions.length > 0 || exclusions.length > 0) && (
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {inclusions.length > 0 && (
-                <div className="bg-bg-2 border border-gold/30 p-5 sm:p-7 luxury-interactive-card">
+                <div className="bg-bg-2 border border-gold/30 p-5 sm:p-7 luxury-interactive-card reveal-card stagger-1">
                   <h3 className="font-serif text-2xl text-ink mb-6 font-semibold">Inclusions</h3>
                   <div className="space-y-3.5">
                     {inclusions.map((inc, i) => (
@@ -324,7 +324,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                 </div>
               )}
               {exclusions.length > 0 && (
-                <div className="bg-bg-2 border border-line p-5 sm:p-7 luxury-interactive-card">
+                <div className="bg-bg-2 border border-line p-5 sm:p-7 luxury-interactive-card reveal-card stagger-2">
                   <h3 className="font-serif text-2xl text-ink mb-6 font-semibold">Exclusions</h3>
                   <div className="space-y-3.5">
                     {exclusions.map((exc, i) => (
@@ -340,7 +340,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
           )}
 
           {weAlsoProvide.length > 0 && (
-            <section className="bg-bg-2 border border-gold/30 p-5 sm:p-7 luxury-interactive-card">
+            <section className="bg-bg-2 border border-gold/30 p-5 sm:p-7 luxury-interactive-card reveal-card stagger-3">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="font-serif text-2xl text-ink font-semibold">We Also Provide</h3>
                 <span className="font-mono text-[10px] text-gold uppercase tracking-wider border border-gold/40 px-2 py-0.5 rounded">

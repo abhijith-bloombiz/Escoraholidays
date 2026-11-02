@@ -12,10 +12,10 @@ export interface HeroSlideInput {
   headingLine1: string;
   headingLine2: string;
   videoUrl: string;
-  duration?: number;
   posterUrl?: string;
   ctaText?: string;
   ctaLink?: string;
+  duration?: number;
   published?: boolean;
   sortOrder?: number;
 }

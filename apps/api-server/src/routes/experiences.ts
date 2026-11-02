@@ -26,6 +26,11 @@ function serializeExperience<T extends { createdAt: Date; updatedAt: Date }>(row
         slug: String(d?.slug || ""),
       }))
     : [];
+  obj.isHomeSpotlight = Boolean(obj.isHomeSpotlight);
+  obj.spotlightSlot = obj.spotlightSlot ?? null;
+  obj.spotlightVideoUrl = obj.spotlightVideoUrl ?? null;
+  obj.spotlightTitle = obj.spotlightTitle ?? null;
+  obj.spotlightDescription = obj.spotlightDescription ?? null;
   return obj;
 }
 
@@ -105,6 +110,17 @@ router.post("/experiences", async (req, res, next): Promise<void> => {
     return;
   }
 
+  // Validate maximum 4 spotlights
+  if (parsed.data.isHomeSpotlight) {
+    const currentSpotlightCount = await ExperienceModel.countDocuments({ isHomeSpotlight: true });
+    if (currentSpotlightCount >= 4) {
+      res.status(400).json({
+        error: "Only 4 experiences can be featured in the homepage spotlight at a time. Please remove spotlight from another experience first."
+      });
+      return;
+    }
+  }
+
   try {
     const id = await getNextSequence("experiences");
     const created = await ExperienceModel.create({
@@ -118,6 +134,11 @@ router.post("/experiences", async (req, res, next): Promise<void> => {
       featured: parsed.data.featured !== undefined ? parsed.data.featured : true,
       published: parsed.data.published !== undefined ? parsed.data.published : true,
       sortOrder: parsed.data.sortOrder !== undefined ? parsed.data.sortOrder : 0,
+      isHomeSpotlight: Boolean(parsed.data.isHomeSpotlight),
+      spotlightSlot: parsed.data.spotlightSlot ?? null,
+      spotlightVideoUrl: parsed.data.spotlightVideoUrl ?? null,
+      spotlightTitle: parsed.data.spotlightTitle ?? null,
+      spotlightDescription: parsed.data.spotlightDescription ?? null,
     });
 
     res.status(201).json(GetExperienceResponse.parse(serializeExperience(created.toObject())));
@@ -191,6 +212,19 @@ router.patch("/experiences/:id", async (req, res, next): Promise<void> => {
   }
 
   const updateData: Record<string, any> = { ...parsed.data, updatedAt: new Date() };
+
+  if (parsed.data.isHomeSpotlight === true) {
+    const currentSpotlightCount = await ExperienceModel.countDocuments({
+      isHomeSpotlight: true,
+      id: { $ne: params.data.id },
+    });
+    if (currentSpotlightCount >= 4) {
+      res.status(400).json({
+        error: "Only 4 experiences can be featured in the homepage spotlight at a time. Please remove spotlight from another experience first."
+      });
+      return;
+    }
+  }
 
   if (parsed.data.slug !== undefined) {
     updateData.slug = slugify(parsed.data.slug);

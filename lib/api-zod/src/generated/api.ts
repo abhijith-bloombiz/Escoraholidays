@@ -275,10 +275,10 @@ export const ListHeroSlidesResponseItem = zod.object({
   "headingLine1": zod.string(),
   "headingLine2": zod.string(),
   "videoUrl": zod.string(),
-  "duration": zod.number().nullish(),
   "posterUrl": zod.string().nullish(),
   "ctaText": zod.string().nullish(),
   "ctaLink": zod.string().nullish(),
+  "duration": zod.number().optional(),
   "published": zod.boolean(),
   "sortOrder": zod.number(),
   "createdAt": zod.string(),
@@ -297,10 +297,10 @@ export const CreateHeroSlideBody = zod.object({
   "headingLine1": zod.string(),
   "headingLine2": zod.string(),
   "videoUrl": zod.string(),
-  "duration": zod.number().optional(),
   "posterUrl": zod.string().optional(),
   "ctaText": zod.string().optional(),
   "ctaLink": zod.string().optional(),
+  "duration": zod.number().optional(),
   "published": zod.boolean().optional(),
   "sortOrder": zod.number().optional()
 })
@@ -321,10 +321,10 @@ export const GetHeroSlideResponse = zod.object({
   "headingLine1": zod.string(),
   "headingLine2": zod.string(),
   "videoUrl": zod.string(),
-  "duration": zod.number().nullish(),
   "posterUrl": zod.string().nullish(),
   "ctaText": zod.string().nullish(),
   "ctaLink": zod.string().nullish(),
+  "duration": zod.number().optional(),
   "published": zod.boolean(),
   "sortOrder": zod.number(),
   "createdAt": zod.string(),
@@ -346,8 +346,8 @@ export const UpdateHeroSlideBody = zod.object({
   "headingLine1": zod.string().optional(),
   "headingLine2": zod.string().optional(),
   "videoUrl": zod.string().optional(),
-  "duration": zod.number().optional(),
   "posterUrl": zod.string().optional(),
+  "duration": zod.number().optional(),
   "ctaText": zod.string().optional(),
   "ctaLink": zod.string().optional(),
   "published": zod.boolean().optional(),
@@ -362,10 +362,10 @@ export const UpdateHeroSlideResponse = zod.object({
   "headingLine1": zod.string(),
   "headingLine2": zod.string(),
   "videoUrl": zod.string(),
-  "duration": zod.number().nullish(),
   "posterUrl": zod.string().nullish(),
   "ctaText": zod.string().nullish(),
   "ctaLink": zod.string().nullish(),
+  "duration": zod.number().optional(),
   "published": zod.boolean(),
   "sortOrder": zod.number(),
   "createdAt": zod.string(),
@@ -554,6 +554,11 @@ export const ListExperiencesResponseItem = zod.object({
   "featured": zod.boolean().optional(),
   "published": zod.boolean(),
   "sortOrder": zod.number().optional(),
+  "isHomeSpotlight": zod.boolean().optional(),
+  "spotlightSlot": zod.number().nullish(),
+  "spotlightVideoUrl": zod.string().nullish(),
+  "spotlightTitle": zod.string().nullish(),
+  "spotlightDescription": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -584,7 +589,12 @@ export const CreateExperienceBody = zod.object({
   "conciergeTip": zod.string().optional(),
   "featured": zod.boolean().optional(),
   "published": zod.boolean().optional(),
-  "sortOrder": zod.number().optional()
+  "sortOrder": zod.number().optional(),
+  "isHomeSpotlight": zod.boolean().optional(),
+  "spotlightSlot": zod.number().nullish(),
+  "spotlightVideoUrl": zod.string().nullish(),
+  "spotlightTitle": zod.string().nullish(),
+  "spotlightDescription": zod.string().nullish()
 })
 
 
@@ -618,6 +628,11 @@ export const GetExperienceResponse = zod.object({
   "featured": zod.boolean().optional(),
   "published": zod.boolean(),
   "sortOrder": zod.number().optional(),
+  "isHomeSpotlight": zod.boolean().optional(),
+  "spotlightSlot": zod.number().nullish(),
+  "spotlightVideoUrl": zod.string().nullish(),
+  "spotlightTitle": zod.string().nullish(),
+  "spotlightDescription": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -651,7 +666,12 @@ export const UpdateExperienceBody = zod.object({
   "conciergeTip": zod.string().optional(),
   "featured": zod.boolean().optional(),
   "published": zod.boolean().optional(),
-  "sortOrder": zod.number().optional()
+  "sortOrder": zod.number().optional(),
+  "isHomeSpotlight": zod.boolean().optional(),
+  "spotlightSlot": zod.number().nullish(),
+  "spotlightVideoUrl": zod.string().nullish(),
+  "spotlightTitle": zod.string().nullish(),
+  "spotlightDescription": zod.string().nullish()
 })
 
 export const UpdateExperienceResponse = zod.object({
@@ -677,6 +697,11 @@ export const UpdateExperienceResponse = zod.object({
   "featured": zod.boolean().optional(),
   "published": zod.boolean(),
   "sortOrder": zod.number().optional(),
+  "isHomeSpotlight": zod.boolean().optional(),
+  "spotlightSlot": zod.number().nullish(),
+  "spotlightVideoUrl": zod.string().nullish(),
+  "spotlightTitle": zod.string().nullish(),
+  "spotlightDescription": zod.string().nullish(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
 })
@@ -695,8 +720,7 @@ export const DeleteExperienceParams = zod.object({
  */
 export const ListDestinationsQueryParams = zod.object({
   "type": zod.coerce.string().optional(),
-  "published": zod.coerce.boolean().optional(),
-  "featured": zod.coerce.boolean().optional()
+  "published": zod.coerce.boolean().optional()
 })
 
 export const ListDestinationsResponseItem = zod.object({
@@ -717,7 +741,7 @@ export const ListDestinationsResponseItem = zod.object({
   "nightsMax": zod.number().nullish(),
   "highlights": zod.string().nullish(),
   "howToReach": zod.string().nullish(),
-  "featured": zod.boolean().nullish(),
+  "featured": zod.boolean().optional(),
   "published": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -775,7 +799,7 @@ export const GetDestinationResponse = zod.object({
   "nightsMax": zod.number().nullish(),
   "highlights": zod.string().nullish(),
   "howToReach": zod.string().nullish(),
-  "featured": zod.boolean().nullish(),
+  "featured": zod.boolean().optional(),
   "published": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -828,7 +852,7 @@ export const UpdateDestinationResponse = zod.object({
   "nightsMax": zod.number().nullish(),
   "highlights": zod.string().nullish(),
   "howToReach": zod.string().nullish(),
-  "featured": zod.boolean().nullish(),
+  "featured": zod.boolean().optional(),
   "published": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()

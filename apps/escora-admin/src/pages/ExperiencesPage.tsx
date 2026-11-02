@@ -199,7 +199,7 @@ export default function ExperiencesPage() {
 
   // Filtered Experiences
   const filteredExperiences = useMemo(() => {
-    return experiences.filter((exp) => {
+    const list = (experiences as Experience[]).filter((exp: Experience) => {
       const q = search.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -221,6 +221,11 @@ export default function ExperiencesPage() {
 
       return matchesSearch && matchesCat && matchesStatus && matchesSpotlight;
     });
+
+    if (spotlightFilter === "spotlight") {
+      return [...list].sort((a, b) => (a.spotlightSlot || 99) - (b.spotlightSlot || 99));
+    }
+    return list;
   }, [experiences, search, categoryFilter, statusFilter, spotlightFilter]);
 
   function handleOpenCreate() {
@@ -312,6 +317,7 @@ export default function ExperiencesPage() {
       setFormData((p) => ({
         ...p,
         isHomeSpotlight: false,
+        spotlightSlot: null,
       }));
     }
   }
@@ -383,6 +389,26 @@ export default function ExperiencesPage() {
       toast({
         title: "Error",
         description: err.message || "Failed to update publication status",
+        variant: "destructive",
+      });
+    }
+  }
+
+  async function handleQuickSlotChange(exp: Experience, newSlot: number) {
+    try {
+      await updateMutation.mutateAsync({
+        id: exp.id,
+        data: { spotlightSlot: newSlot, isHomeSpotlight: true },
+      });
+      invalidateCache();
+      toast({
+        title: "Spotlight Order Updated",
+        description: `"${exp.title}" moved to Slot #${newSlot}. Any conflicting slot has been swapped automatically.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error updating order",
+        description: err?.message || "Failed to update spotlight slot.",
         variant: "destructive",
       });
     }
@@ -679,7 +705,7 @@ export default function ExperiencesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredExperiences.map((exp) => (
+              filteredExperiences.map((exp: Experience) => (
                 <TableRow
                   key={exp.id}
                   className="hover:bg-muted/30 cursor-pointer transition-colors"
@@ -751,7 +777,7 @@ export default function ExperiencesPage() {
                   <TableCell>
                     <div className="flex flex-wrap gap-1 max-w-[180px]">
                       {exp.destinations && exp.destinations.length > 0 ? (
-                        exp.destinations.slice(0, 2).map((d, idx) => (
+                        exp.destinations.slice(0, 2).map((d: any, idx: number) => (
                           <span
                             key={idx}
                             className="inline-flex items-center gap-0.5 text-[10px] bg-muted/80 text-foreground px-1.5 py-0.5 rounded border border-border"
@@ -769,16 +795,24 @@ export default function ExperiencesPage() {
                     </div>
                   </TableCell>
 
-                  {/* Hero Spotlight Symbol */}
+                  {/* Hero Spotlight Symbol & Quick Order */}
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     {exp.isHomeSpotlight ? (
-                      <span
-                        title={`Homepage Spotlight Slot #${exp.spotlightSlot || 1} - Direct Redirection to /experiences/${exp.slug}`}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/15 to-amber-600/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-semibold shadow-xs"
+                      <Select
+                        value={String(exp.spotlightSlot || 1)}
+                        onValueChange={(val) => handleQuickSlotChange(exp, Number(val))}
                       >
-                        <Sparkles size={11} className="fill-amber-500 text-amber-600" />
-                        <span>Slot #{exp.spotlightSlot || 1}</span>
-                      </span>
+                        <SelectTrigger className="inline-flex h-7 w-[105px] items-center justify-center gap-1 px-2 rounded-full bg-gradient-to-r from-amber-500/15 to-amber-600/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-semibold shadow-xs hover:bg-amber-500/25 transition-all">
+                          <Sparkles size={11} className="fill-amber-500 text-amber-600 shrink-0" />
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent onClick={(e) => e.stopPropagation()}>
+                          <SelectItem value="1">✨ Slot #1</SelectItem>
+                          <SelectItem value="2">✨ Slot #2</SelectItem>
+                          <SelectItem value="3">✨ Slot #3</SelectItem>
+                          <SelectItem value="4">✨ Slot #4</SelectItem>
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <span className="text-muted-foreground/30 text-xs">—</span>
                     )}
@@ -1283,7 +1317,7 @@ export default function ExperiencesPage() {
                         {/* Slot Selection & Homepage Title */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1.5">
-                            <Label className="text-xs font-medium">Spotlight Slot Position *</Label>
+                            <Label className="text-xs font-medium">Spotlight Slot Position (Order 1–4) *</Label>
                             <Select
                               value={String(formData.spotlightSlot || 1)}
                               onValueChange={(val) => setFormData((p) => ({ ...p, spotlightSlot: Number(val) }))}
@@ -1292,12 +1326,22 @@ export default function ExperiencesPage() {
                                 <SelectValue placeholder="Select Slot (1 - 4)" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="1">Slot 1 (Center Expanding Card)</SelectItem>
-                                <SelectItem value="2">Slot 2 (Companion Card 2)</SelectItem>
-                                <SelectItem value="3">Slot 3 (Companion Card 3)</SelectItem>
-                                <SelectItem value="4">Slot 4 (Companion Card 4)</SelectItem>
+                                {[1, 2, 3, 4].map((slotNum) => {
+                                  const occupant = experiences.find(
+                                    (e) => e.isHomeSpotlight && e.spotlightSlot === slotNum && e.id !== editingExperience?.id
+                                  );
+                                  return (
+                                    <SelectItem key={slotNum} value={String(slotNum)}>
+                                      Slot {slotNum} {slotNum === 1 ? "(Center Main)" : `(Card ${slotNum})`}
+                                      {occupant ? ` — [Occupied: ${occupant.title.slice(0, 22)}...]` : " — [Vacant]"}
+                                    </SelectItem>
+                                  );
+                                })}
                               </SelectContent>
                             </Select>
+                            <p className="text-[10px] text-muted-foreground">
+                              Occupied slots will automatically swap positions on save to prevent duplicate orders.
+                            </p>
                           </div>
 
                           <div className="space-y-1.5">

@@ -10,6 +10,7 @@ import {
   UpdateExperienceResponse,
   DeleteExperienceParams,
 } from "@workspace/api-zod";
+import { assignSpotlightSlot, normalizeSpotlightSlots } from "./home-experiences";
 
 const router: IRouter = Router();
 
@@ -115,7 +116,7 @@ router.post("/experiences", async (req, res, next): Promise<void> => {
     const currentSpotlightCount = await ExperienceModel.countDocuments({ isHomeSpotlight: true });
     if (currentSpotlightCount >= 4) {
       res.status(400).json({
-        error: "Only 4 experiences can be featured in the homepage spotlight at a time. Please remove spotlight from another experience first."
+        error: "Only 4 experiences can be active in the homepage spotlight at a time. Please disable spotlight on another experience first."
       });
       return;
     }
@@ -141,7 +142,14 @@ router.post("/experiences", async (req, res, next): Promise<void> => {
       spotlightDescription: parsed.data.spotlightDescription ?? null,
     });
 
-    res.status(201).json(GetExperienceResponse.parse(serializeExperience(created.toObject())));
+    if (parsed.data.isHomeSpotlight && parsed.data.spotlightSlot) {
+      await assignSpotlightSlot(id, parsed.data.spotlightSlot);
+    } else if (parsed.data.isHomeSpotlight) {
+      await normalizeSpotlightSlots();
+    }
+
+    const finalCreated = await ExperienceModel.findOne({ id }).lean();
+    res.status(201).json(GetExperienceResponse.parse(serializeExperience(finalCreated || created.toObject())));
   } catch (err: any) {
     if (err.name === "ValidationError" || err.name === "CastError") {
       res.status(400).json({ error: err.message });
@@ -220,10 +228,26 @@ router.patch("/experiences/:id", async (req, res, next): Promise<void> => {
     });
     if (currentSpotlightCount >= 4) {
       res.status(400).json({
-        error: "Only 4 experiences can be featured in the homepage spotlight at a time. Please remove spotlight from another experience first."
+        error: "Only 4 experiences can be active in the homepage spotlight at a time. Please disable spotlight on another experience first."
       });
       return;
     }
+
+    if (parsed.data.spotlightSlot !== undefined && parsed.data.spotlightSlot !== null) {
+      await assignSpotlightSlot(params.data.id, parsed.data.spotlightSlot);
+      updateData.spotlightSlot = parsed.data.spotlightSlot;
+    }
+  } else if (parsed.data.isHomeSpotlight === false) {
+    updateData.spotlightSlot = null;
+    await ExperienceModel.updateOne(
+      { id: params.data.id },
+      { $set: { isHomeSpotlight: false, spotlightSlot: null } }
+    );
+    await normalizeSpotlightSlots();
+  } else if (parsed.data.spotlightSlot !== undefined && parsed.data.spotlightSlot !== null) {
+    await assignSpotlightSlot(params.data.id, parsed.data.spotlightSlot);
+    updateData.spotlightSlot = parsed.data.spotlightSlot;
+    updateData.isHomeSpotlight = true;
   }
 
   if (parsed.data.slug !== undefined) {
@@ -249,7 +273,10 @@ router.patch("/experiences/:id", async (req, res, next): Promise<void> => {
       res.status(404).json({ error: "Experience not found" });
       return;
     }
-    res.json(UpdateExperienceResponse.parse(serializeExperience(updated)));
+
+    await normalizeSpotlightSlots();
+    const finalDoc = await ExperienceModel.findOne({ id: params.data.id }).lean();
+    res.json(UpdateExperienceResponse.parse(serializeExperience(finalDoc || updated)));
   } catch (err: any) {
     if (err.name === "ValidationError" || err.name === "CastError") {
       res.status(400).json({ error: err.message });
@@ -272,6 +299,9 @@ router.delete("/experiences/:id", async (req, res, next): Promise<void> => {
     if (!deleted) {
       res.status(404).json({ error: "Experience not found" });
       return;
+    }
+    if (deleted.isHomeSpotlight) {
+      await normalizeSpotlightSlots();
     }
     res.sendStatus(204);
   } catch (err) {

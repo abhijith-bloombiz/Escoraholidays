@@ -36,7 +36,7 @@ const DEFAULT_SPOTLIGHTS = [
 
 async function ensureDefaultSpotlights() {
   const count = await ExperienceModel.countDocuments({ isHomeSpotlight: true });
-  if (count < 4) {
+  if (count === 0) {
     for (const item of DEFAULT_SPOTLIGHTS) {
       await ExperienceModel.updateOne(
         { slug: item.slug },
@@ -54,10 +54,142 @@ async function ensureDefaultSpotlights() {
   }
 }
 
+/**
+ * Normalizes spotlight slots so that active spotlight experiences (up to 4)
+ * have strictly unique slots 1, 2, 3, 4 without duplicates, gaps, or collisions.
+ */
+export async function normalizeSpotlightSlots() {
+  const spotlights = await ExperienceModel.find({ isHomeSpotlight: true })
+    .sort({ spotlightSlot: 1, sortOrder: 1, updatedAt: -1 })
+    .lean();
+
+  if (spotlights.length === 0) return;
+
+  const usedSlots = new Set<number>();
+  let hasDuplicatesOrInvalid = false;
+
+  for (const exp of spotlights) {
+    const slot = exp.spotlightSlot;
+    if (!slot || slot < 1 || slot > 4 || usedSlots.has(slot)) {
+      hasDuplicatesOrInvalid = true;
+      break;
+    }
+    usedSlots.add(slot);
+  }
+
+  // Also fix if there are more than 4 items flagged as spotlight
+  if (hasDuplicatesOrInvalid || spotlights.length > 4) {
+    const active = spotlights.slice(0, 4);
+    const excess = spotlights.slice(4);
+
+    // Turn off excess spotlights beyond the 4 limit
+    for (const exp of excess) {
+      await ExperienceModel.updateOne(
+        { id: exp.id },
+        { $set: { isHomeSpotlight: false, spotlightSlot: null } }
+      );
+    }
+
+    // Assign unique slots 1..4 without collisions
+    const assignedSlots = new Set<number>();
+    const toReassign: any[] = [];
+
+    for (const exp of active) {
+      if (
+        exp.spotlightSlot &&
+        exp.spotlightSlot >= 1 &&
+        exp.spotlightSlot <= 4 &&
+        !assignedSlots.has(exp.spotlightSlot)
+      ) {
+        assignedSlots.add(exp.spotlightSlot);
+      } else {
+        toReassign.push(exp);
+      }
+    }
+
+    const availableSlots: number[] = [];
+    for (let s = 1; s <= 4; s++) {
+      if (!assignedSlots.has(s)) {
+        availableSlots.push(s);
+      }
+    }
+
+    for (let i = 0; i < toReassign.length; i++) {
+      const newSlot = availableSlots[i] ?? (i + 1);
+      await ExperienceModel.updateOne(
+        { id: toReassign[i].id },
+        { $set: { spotlightSlot: newSlot } }
+      );
+    }
+  }
+}
+
+/**
+ * Assigns an experience to a spotlight slot (1..4).
+ * If another experience already occupies that slot, it swaps slots or reallocates
+ * to ensure no duplicate slot orders ever occur.
+ */
+export async function assignSpotlightSlot(experienceId: number, targetSlot: number) {
+  const slot = Math.max(1, Math.min(4, Math.round(targetSlot)));
+
+  // Current experience
+  const currentExp = await ExperienceModel.findOne({ id: experienceId }).lean();
+  const oldSlot = currentExp?.spotlightSlot;
+
+  // Find conflicting experience already occupying this slot
+  const conflictingExp = await ExperienceModel.findOne({
+    id: { $ne: experienceId },
+    isHomeSpotlight: true,
+    spotlightSlot: slot,
+  }).lean();
+
+  if (conflictingExp) {
+    // If currentExp already had a valid slot, swap positions!
+    if (oldSlot && oldSlot >= 1 && oldSlot <= 4 && oldSlot !== slot) {
+      await ExperienceModel.updateOne(
+        { id: conflictingExp.id },
+        { $set: { spotlightSlot: oldSlot } }
+      );
+    } else {
+      // Find the first available slot among 1, 2, 3, 4
+      const otherSpotlights = await ExperienceModel.find({
+        id: { $nin: [experienceId, conflictingExp.id] },
+        isHomeSpotlight: true,
+      }).lean();
+
+      const occupied = new Set(otherSpotlights.map((e) => e.spotlightSlot));
+      occupied.add(slot);
+
+      let availableSlot = 1;
+      for (let s = 1; s <= 4; s++) {
+        if (!occupied.has(s)) {
+          availableSlot = s;
+          break;
+        }
+      }
+
+      await ExperienceModel.updateOne(
+        { id: conflictingExp.id },
+        { $set: { spotlightSlot: availableSlot } }
+      );
+    }
+  }
+
+  // Set the target slot on current experience
+  await ExperienceModel.updateOne(
+    { id: experienceId },
+    { $set: { isHomeSpotlight: true, spotlightSlot: slot } }
+  );
+
+  // Normalize all spotlight slots to guarantee uniqueness
+  await normalizeSpotlightSlots();
+}
+
 // GET /home-experiences — Returns the 4 spotlight experiences sorted by spotlightSlot
 router.get("/home-experiences", async (req, res, next): Promise<void> => {
   try {
     await ensureDefaultSpotlights();
+    await normalizeSpotlightSlots();
 
     const experiences = await ExperienceModel.find({ isHomeSpotlight: true })
       .sort({ spotlightSlot: 1, sortOrder: 1 })

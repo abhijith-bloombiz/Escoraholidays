@@ -215,7 +215,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const { data: remoteHomeCards } = useListHomeExperiences();
 
   const homeCard1 = useMemo(() => {
-    const card = remoteHomeCards?.find((c) => c.slot === 1);
+    const card = remoteHomeCards?.find((c) => c.slot === 1) || remoteHomeCards?.[0];
     return {
       title: card?.title || 'Kayaking',
       desc: card?.desc || 'Glide through silent lagoons and tranquil backwaters on a private kayak.',
@@ -270,7 +270,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
 
     return [2, 3, 4].map((slotNum, idx) => {
       const def = defaults[idx];
-      const found = remoteHomeCards.find((c) => c.slot === slotNum);
+      const found = remoteHomeCards.find((c) => c.slot === slotNum) || remoteHomeCards[idx + 1];
       if (!found) return def;
       return {
         id: `exp-card-${slotNum}`,

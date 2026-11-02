@@ -308,30 +308,39 @@ export default function PlanJourneyPage() {
   const [selectedStyle, setSelectedStyle] = useState<string>('romantic');
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>(['Munnar', 'Alleppey']);
   const [duration, setDuration] = useState<string>('7–10 Nights');
-  const [exactDays, setExactDays] = useState<number | null>(null);
+  const [exactDays, setExactDays] = useState<string>('');
 
   const handleSelectDurationPreset = (label: string) => {
     setDuration(label);
-    setExactDays(null);
+    setExactDays('');
   };
 
   const handleExactDaysChange = (val: string) => {
-    const num = parseInt(val, 10);
-    if (!isNaN(num) && num > 0) {
-      const sanitized = Math.min(60, num);
-      setExactDays(sanitized);
-      setDuration(`${sanitized} Days (${sanitized > 1 ? `${sanitized - 1} Nights` : 'Day Trip'})`);
-    } else if (val === '') {
-      setExactDays(null);
+    const cleaned = val.replace(/\D/g, '');
+    setExactDays(cleaned);
+    if (cleaned === '') {
       setDuration('7–10 Nights');
+    } else {
+      const num = parseInt(cleaned, 10);
+      if (!isNaN(num) && num > 0) {
+        const sanitized = Math.min(90, num);
+        setDuration(`${sanitized} Days (${sanitized > 1 ? `${sanitized - 1} Nights` : 'Day Trip'})`);
+      }
     }
   };
 
-  const handleExactDaysStep = (delta: number) => {
-    const current = exactDays || 7;
-    const nextVal = Math.max(1, Math.min(60, current + delta));
-    setExactDays(nextVal);
-    setDuration(`${nextVal} Days (${nextVal > 1 ? `${nextVal - 1} Nights` : 'Day Trip'})`);
+  const handleExactDaysBlur = () => {
+    if (exactDays !== '') {
+      const num = parseInt(exactDays, 10);
+      if (isNaN(num) || num < 1) {
+        setExactDays('');
+        setDuration('7–10 Nights');
+      } else {
+        const sanitized = Math.min(90, num);
+        setExactDays(String(sanitized));
+        setDuration(`${sanitized} Days (${sanitized > 1 ? `${sanitized - 1} Nights` : 'Day Trip'})`);
+      }
+    }
   };
   const [travelMonth, setTravelMonth] = useState<string>('October – December (Golden Season)');
   const [budget, setBudget] = useState<string>('₹2L – ₹5 Lakhs');
@@ -2158,85 +2167,52 @@ export default function PlanJourneyPage() {
                           </div>
                         </div>
 
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-                          <button
-                            type="button"
-                            onClick={() => handleExactDaysStep(-1)}
-                            aria-label="Decrease days"
-                            style={{
-                              width: '34px',
-                              height: '34px',
-                              borderRadius: '10px',
-                              border: '1px solid rgba(0, 0, 0, 0.12)',
-                              backgroundColor: '#FFFFFF',
-                              color: '#121316',
-                              fontSize: '1.1rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'all 0.15s ease'
-                            }}
-                            className="anim-hover-pill"
-                          >
-                            –
-                          </button>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
                           <div
                             style={{
-                              display: 'flex',
+                              display: 'inline-flex',
                               alignItems: 'center',
                               backgroundColor: '#FFFFFF',
-                              border: exactDays ? '1.5px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.12)',
-                              borderRadius: '10px',
-                              padding: '0.25rem 0.75rem'
+                              border: exactDays ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.15)',
+                              borderRadius: '12px',
+                              padding: '0.45rem 0.85rem',
+                              boxShadow: exactDays ? '0 0 0 3px rgba(158, 111, 41, 0.12)' : 'none',
+                              transition: 'all 0.2s ease'
                             }}
                           >
                             <input
-                              type="number"
-                              min={1}
-                              max={60}
-                              value={exactDays ?? ''}
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={exactDays}
                               onChange={(e) => handleExactDaysChange(e.target.value)}
+                              onBlur={handleExactDaysBlur}
                               placeholder="e.g. 8"
                               style={{
-                                width: '48px',
+                                width: '60px',
                                 textAlign: 'center',
                                 border: 'none',
                                 background: 'transparent',
-                                fontSize: '0.98rem',
+                                fontSize: '1rem',
                                 fontWeight: 700,
                                 color: '#121316',
-                                outline: 'none'
+                                outline: 'none',
+                                padding: 0
                               }}
                             />
-                            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#9E6F29', marginLeft: '0.25rem' }}>
+                            <span
+                              style={{
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                color: exactDays ? '#9E6F29' : '#6B7280',
+                                marginLeft: '0.35rem',
+                                userSelect: 'none'
+                              }}
+                            >
                               Days
                             </span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleExactDaysStep(1)}
-                            aria-label="Increase days"
-                            style={{
-                              width: '34px',
-                              height: '34px',
-                              borderRadius: '10px',
-                              border: '1px solid rgba(0, 0, 0, 0.12)',
-                              backgroundColor: '#FFFFFF',
-                              color: '#121316',
-                              fontSize: '1.1rem',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              transition: 'all 0.15s ease'
-                            }}
-                            className="anim-hover-pill"
-                          >
-                            +
-                          </button>
+
                           {exactDays && (
                             <button
                               type="button"
@@ -2245,11 +2221,11 @@ export default function PlanJourneyPage() {
                                 background: 'none',
                                 border: 'none',
                                 color: '#9E6F29',
-                                fontSize: '0.78rem',
+                                fontSize: '0.82rem',
                                 fontWeight: 600,
                                 cursor: 'pointer',
                                 textDecoration: 'underline',
-                                marginLeft: '0.4rem'
+                                padding: '0.2rem 0.4rem'
                               }}
                             >
                               Reset to ranges

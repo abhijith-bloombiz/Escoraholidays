@@ -342,6 +342,14 @@ export default function PlanJourneyPage() {
       }
     }
   };
+
+  const handleExactDaysStep = (delta: number) => {
+    const current = exactDays ? parseInt(exactDays, 10) : 7;
+    const base = isNaN(current) || current < 1 ? 7 : current;
+    const nextVal = Math.max(1, Math.min(90, base + delta));
+    setExactDays(String(nextVal));
+    setDuration(`${nextVal} Days (${nextVal > 1 ? `${nextVal - 1} Nights` : 'Day Trip'})`);
+  };
   const [travelMonth, setTravelMonth] = useState<string>('October – December (Golden Season)');
   const [budget, setBudget] = useState<string>('₹2L – ₹5 Lakhs');
   const [adults, setAdults] = useState<number>(2);
@@ -2167,7 +2175,32 @@ export default function PlanJourneyPage() {
                           </div>
                         </div>
 
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleExactDaysStep(-1)}
+                            aria-label="Decrease days"
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '10px',
+                              border: '1px solid rgba(0, 0, 0, 0.12)',
+                              backgroundColor: '#FFFFFF',
+                              color: '#121316',
+                              fontSize: '1.2rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s ease',
+                              userSelect: 'none'
+                            }}
+                            className="anim-hover-pill"
+                          >
+                            –
+                          </button>
+
                           <div
                             style={{
                               display: 'inline-flex',
@@ -2189,7 +2222,7 @@ export default function PlanJourneyPage() {
                               onBlur={handleExactDaysBlur}
                               placeholder="e.g. 8"
                               style={{
-                                width: '60px',
+                                width: '56px',
                                 textAlign: 'center',
                                 border: 'none',
                                 background: 'transparent',
@@ -2213,24 +2246,30 @@ export default function PlanJourneyPage() {
                             </span>
                           </div>
 
-                          {exactDays && (
-                            <button
-                              type="button"
-                              onClick={() => handleSelectDurationPreset('7–10 Nights')}
-                              style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#9E6F29',
-                                fontSize: '0.82rem',
-                                fontWeight: 600,
-                                cursor: 'pointer',
-                                textDecoration: 'underline',
-                                padding: '0.2rem 0.4rem'
-                              }}
-                            >
-                              Reset to ranges
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleExactDaysStep(1)}
+                            aria-label="Increase days"
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '10px',
+                              border: '1px solid rgba(0, 0, 0, 0.12)',
+                              backgroundColor: '#FFFFFF',
+                              color: '#121316',
+                              fontSize: '1.2rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s ease',
+                              userSelect: 'none'
+                            }}
+                            className="anim-hover-pill"
+                          >
+                            +
+                          </button>
                         </div>
                       </div>
                     </div>

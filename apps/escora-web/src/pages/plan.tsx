@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'wouter';
 import {
   Compass,
@@ -16,6 +16,7 @@ import {
   Mail,
   Clock,
   MessageSquare,
+  ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
   Award,
@@ -281,6 +282,14 @@ export default function PlanJourneyPage() {
   usePageScrollReveal();
 
   const [location] = useLocation();
+
+  const spiritTrackRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollSpiritTrack = (offset: number) => {
+    if (spiritTrackRef.current) {
+      spiritTrackRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
 
   // Mode Selection: 'concierge' (Human Atelier) vs 'ai' (AI Trip Planner)
   const [plannerMode, setPlannerMode] = useState<'concierge' | 'ai'>('concierge');
@@ -1532,16 +1541,73 @@ export default function PlanJourneyPage() {
                       What is the Spirit of Your Journey?
                     </h2>
 
-                    <p style={{ color: '#6B7280', fontSize: '0.96rem', margin: '0 0 2rem', lineHeight: 1.55 }}>
-                      Select the primary rhythm that reflects how you wish to experience Kerala.
-                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                      <p style={{ color: '#6B7280', fontSize: '0.96rem', margin: 0, lineHeight: 1.55 }}>
+                        Select the primary rhythm that reflects how you wish to experience Kerala.
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => scrollSpiritTrack(-320)}
+                          aria-label="Previous options"
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
+                            backgroundColor: '#FFFFFF',
+                            color: '#121316',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                          }}
+                          className="anim-hover-pill"
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => scrollSpiritTrack(320)}
+                          aria-label="Next options"
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
+                            backgroundColor: '#FFFFFF',
+                            color: '#121316',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                          }}
+                          className="anim-hover-pill"
+                        >
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+                    </div>
 
                     <div
-                      className="step1-spirit-grid"
+                      ref={spiritTrackRef}
+                      className="step1-spirit-track"
                       style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                        gap: '1.25rem'
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'nowrap',
+                        gap: '1.25rem',
+                        overflowX: 'auto',
+                        scrollSnapType: 'x mandatory',
+                        paddingBottom: '1rem',
+                        paddingTop: '0.25rem',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#9E6F29 rgba(0, 0, 0, 0.06)',
+                        WebkitOverflowScrolling: 'touch',
                       }}
                     >
                       {TRAVEL_STYLES.map((style) => {
@@ -1552,6 +1618,10 @@ export default function PlanJourneyPage() {
                             onClick={() => setSelectedStyle(style.id)}
                             className="luxury-interactive-card"
                             style={{
+                              flex: '0 0 280px',
+                              minWidth: '280px',
+                              maxWidth: '280px',
+                              scrollSnapAlign: 'start',
                               border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
                               backgroundColor: isSelected ? '#FAF6EE' : '#FFFFFF',
                               borderRadius: '16px',
@@ -2736,11 +2806,32 @@ export default function PlanJourneyPage() {
           margin: 0 auto !important;
         }
 
-        /* Step 1: 4 columns across horizontal desktop viewport */
+        /* Step 1: Single Horizontal Line Track */
+        .step1-spirit-track {
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
+          overflow-x: auto !important;
+          scroll-snap-type: x mandatory !important;
+          -webkit-overflow-scrolling: touch !important;
+          gap: 1.25rem !important;
+        }
+        .step1-spirit-track::-webkit-scrollbar {
+          height: 6px;
+        }
+        .step1-spirit-track::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.04);
+          border-radius: 999px;
+        }
+        .step1-spirit-track::-webkit-scrollbar-thumb {
+          background: #C4A468;
+          border-radius: 999px;
+        }
+        .step1-spirit-track::-webkit-scrollbar-thumb:hover {
+          background: #9E6F29;
+        }
+
         @media (min-width: 1024px) {
-          .step1-spirit-grid {
-            grid-template-columns: repeat(4, 1fr) !important;
-          }
           .step2-destinations-grid {
             grid-template-columns: repeat(5, 1fr) !important;
           }
@@ -2756,9 +2847,6 @@ export default function PlanJourneyPage() {
         }
 
         @media (max-width: 1023px) and (min-width: 641px) {
-          .step1-spirit-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
           .step2-destinations-grid {
             grid-template-columns: repeat(3, 1fr) !important;
           }
@@ -2774,9 +2862,6 @@ export default function PlanJourneyPage() {
         }
 
         @media (max-width: 640px) {
-          .step1-spirit-grid {
-            grid-template-columns: 1fr !important;
-          }
           .step2-destinations-grid {
             grid-template-columns: repeat(2, 1fr) !important;
           }

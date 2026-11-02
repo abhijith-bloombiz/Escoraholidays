@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import {
   useListExperiences,
   useCreateExperience,
@@ -61,7 +61,6 @@ import {
   Sparkles,
   ExternalLink,
   ChevronRight,
-  Star,
   CheckCircle2,
   Calendar,
   Layers,
@@ -73,6 +72,10 @@ import {
   Coffee,
   Waves,
   Feather,
+  Video,
+  Upload,
+  Play,
+  Loader2,
 } from "lucide-react";
 
 export const PRESET_CATEGORIES = [
@@ -130,6 +133,11 @@ interface ExperienceFormData {
   featured: boolean;
   published: boolean;
   sortOrder: number;
+  isHomeSpotlight: boolean;
+  spotlightSlot: number | null;
+  spotlightVideoUrl: string;
+  spotlightTitle: string;
+  spotlightDescription: string;
 }
 
 const DEFAULT_FORM: ExperienceFormData = {
@@ -151,6 +159,11 @@ const DEFAULT_FORM: ExperienceFormData = {
   featured: true,
   published: true,
   sortOrder: 0,
+  isHomeSpotlight: false,
+  spotlightSlot: null,
+  spotlightVideoUrl: "",
+  spotlightTitle: "",
+  spotlightDescription: "",
 };
 
 export default function ExperiencesPage() {
@@ -160,7 +173,7 @@ export default function ExperiencesPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [featuredFilter, setFeaturedFilter] = useState("all");
+  const [spotlightFilter, setSpotlightFilter] = useState("all");
 
   const [openModal, setOpenModal] = useState(false);
   const [editingExperience, setEditingExperience] = useState<Experience | null>(null);
@@ -168,6 +181,8 @@ export default function ExperiencesPage() {
   const [activeTab, setActiveTab] = useState<"overview" | "logistics" | "media" | "highlights" | "settings">("overview");
   const [newGalleryUrl, setNewGalleryUrl] = useState("");
   const [slugLocked, setSlugLocked] = useState(false);
+  const [uploadingSpotlightVideo, setUploadingSpotlightVideo] = useState(false);
+  const spotlightVideoInputRef = useRef<HTMLInputElement>(null);
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [experienceToDelete, setExperienceToDelete] = useState<Experience | null>(null);
@@ -184,7 +199,7 @@ export default function ExperiencesPage() {
 
   // Filtered Experiences
   const filteredExperiences = useMemo(() => {
-    return experiences.filter((exp) => {
+    const list = (experiences as Experience[]).filter((exp: Experience) => {
       const q = search.toLowerCase().trim();
       const matchesSearch =
         !q ||
@@ -199,20 +214,30 @@ export default function ExperiencesPage() {
         statusFilter === "all" ||
         (statusFilter === "published" && exp.published) ||
         (statusFilter === "draft" && !exp.published);
-      const matchesFeatured =
-        featuredFilter === "all" ||
-        (featuredFilter === "featured" && exp.featured) ||
-        (featuredFilter === "standard" && !exp.featured);
+      const matchesSpotlight =
+        spotlightFilter === "all" ||
+        (spotlightFilter === "spotlight" && exp.isHomeSpotlight) ||
+        (spotlightFilter === "standard" && !exp.isHomeSpotlight);
 
-      return matchesSearch && matchesCat && matchesStatus && matchesFeatured;
+      return matchesSearch && matchesCat && matchesStatus && matchesSpotlight;
     });
-  }, [experiences, search, categoryFilter, statusFilter, featuredFilter]);
+
+    if (spotlightFilter === "spotlight") {
+      return [...list].sort((a, b) => (a.spotlightSlot || 99) - (b.spotlightSlot || 99));
+    }
+    return list;
+  }, [experiences, search, categoryFilter, statusFilter, spotlightFilter]);
 
   function handleOpenCreate() {
     setEditingExperience(null);
     setFormData({
       ...DEFAULT_FORM,
       sortOrder: experiences.length + 1,
+      isHomeSpotlight: false,
+      spotlightSlot: null,
+      spotlightVideoUrl: "",
+      spotlightTitle: "",
+      spotlightDescription: "",
     });
     setSlugLocked(false);
     setActiveTab("overview");
@@ -240,6 +265,11 @@ export default function ExperiencesPage() {
       featured: exp.featured ?? true,
       published: exp.published ?? true,
       sortOrder: exp.sortOrder ?? 0,
+      isHomeSpotlight: Boolean(exp.isHomeSpotlight),
+      spotlightSlot: exp.spotlightSlot ?? null,
+      spotlightVideoUrl: exp.spotlightVideoUrl ?? "",
+      spotlightTitle: exp.spotlightTitle ?? "",
+      spotlightDescription: exp.spotlightDescription ?? "",
     });
     setSlugLocked(true);
     setActiveTab("overview");
@@ -252,6 +282,95 @@ export default function ExperiencesPage() {
       title: val,
       slug: slugLocked || editingExperience ? prev.slug : slugify(val),
     }));
+  }
+
+  function handleToggleSpotlight(checked: boolean) {
+    if (checked) {
+      const otherSpotlights = experiences.filter(
+        (e) => e.isHomeSpotlight && e.id !== editingExperience?.id
+      );
+      if (otherSpotlights.length >= 4) {
+        toast({
+          title: "Spotlight Limit Reached (Max 4)",
+          description:
+            "Only 4 experiences can be active in the homepage spotlight at a time. Please disable spotlight on another experience first.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const usedSlots = new Set(otherSpotlights.map((e) => e.spotlightSlot));
+      let nextSlot = formData.spotlightSlot;
+      if (!nextSlot || usedSlots.has(nextSlot)) {
+        nextSlot = [1, 2, 3, 4].find((s) => !usedSlots.has(s)) || 1;
+      }
+
+      setFormData((p) => ({
+        ...p,
+        isHomeSpotlight: true,
+        spotlightSlot: nextSlot,
+        spotlightTitle: p.spotlightTitle || p.title,
+        spotlightDescription: p.spotlightDescription || p.tagline,
+        spotlightVideoUrl: p.spotlightVideoUrl || "/Experience-section/12881094-hd_1920_1080_30fps.mp4",
+      }));
+    } else {
+      setFormData((p) => ({
+        ...p,
+        isHomeSpotlight: false,
+        spotlightSlot: null,
+      }));
+    }
+  }
+
+  async function handleSpotlightVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("video/") && !file.name.match(/\.(mp4|webm|mov|ogg)$/i)) {
+      toast({
+        title: "Invalid File Type",
+        description: "Please upload an MP4, WebM, or MOV video file.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setUploadingSpotlightVideo(true);
+    try {
+      const resp = await fetch("/api/media/upload", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "content-type": file.type || "application/octet-stream",
+          "x-filename": encodeURIComponent(file.name),
+        },
+        body: file,
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || `Upload failed with status ${resp.status}`);
+      }
+
+      const resData = await resp.json();
+      setFormData((prev) => ({
+        ...prev,
+        spotlightVideoUrl: resData.url,
+      }));
+      toast({
+        title: "Video Uploaded",
+        description: `"${file.name}" uploaded successfully.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Video Upload Failed",
+        description: err.message || "Failed to upload video to server.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingSpotlightVideo(false);
+      if (spotlightVideoInputRef.current) spotlightVideoInputRef.current.value = "";
+    }
   }
 
   async function handleTogglePublish(exp: Experience, e: React.MouseEvent) {
@@ -275,6 +394,26 @@ export default function ExperiencesPage() {
     }
   }
 
+  async function handleQuickSlotChange(exp: Experience, newSlot: number) {
+    try {
+      await updateMutation.mutateAsync({
+        id: exp.id,
+        data: { spotlightSlot: newSlot, isHomeSpotlight: true },
+      });
+      invalidateCache();
+      toast({
+        title: "Spotlight Order Updated",
+        description: `"${exp.title}" moved to Slot #${newSlot}. Any conflicting slot has been swapped automatically.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: "Error updating order",
+        description: err?.message || "Failed to update spotlight slot.",
+        variant: "destructive",
+      });
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!formData.title.trim()) {
@@ -288,6 +427,21 @@ export default function ExperiencesPage() {
     if (!formData.category.trim()) {
       toast({ title: "Validation Error", description: "Category is required", variant: "destructive" });
       return;
+    }
+
+    if (formData.isHomeSpotlight) {
+      const otherSpotlights = experiences.filter(
+        (e) => e.isHomeSpotlight && e.id !== editingExperience?.id
+      );
+      if (otherSpotlights.length >= 4) {
+        toast({
+          title: "Spotlight Limit Reached (Max 4)",
+          description:
+            "Only 4 experiences can be active in the homepage spotlight. Please disable spotlight on another experience first.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     const payload: ExperienceInput = {
@@ -306,9 +460,14 @@ export default function ExperiencesPage() {
       inclusions: formData.inclusions.filter((i) => i.trim() !== ""),
       destinations: formData.destinations,
       conciergeTip: formData.conciergeTip.trim() || undefined,
-      featured: formData.featured,
+      featured: true,
       published: formData.published,
       sortOrder: Number(formData.sortOrder) || 0,
+      isHomeSpotlight: formData.isHomeSpotlight,
+      spotlightSlot: formData.isHomeSpotlight ? (Number(formData.spotlightSlot) || 1) : null,
+      spotlightVideoUrl: formData.isHomeSpotlight ? (formData.spotlightVideoUrl.trim() || undefined) : undefined,
+      spotlightTitle: formData.isHomeSpotlight ? (formData.spotlightTitle.trim() || undefined) : undefined,
+      spotlightDescription: formData.isHomeSpotlight ? (formData.spotlightDescription.trim() || undefined) : undefined,
     };
 
     try {
@@ -392,7 +551,18 @@ export default function ExperiencesPage() {
             asChild
             className="text-xs gap-1.5 border-border hover:bg-muted"
           >
-            <a href="http://localhost:5173/experiences" target="_blank" rel="noreferrer">
+            <a href="http://localhost:3000/#experiences" target="_blank" rel="noreferrer">
+              <ExternalLink size={13} /> View On Homepage
+            </a>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="text-xs gap-1.5 border-border hover:bg-muted"
+          >
+            <a href="http://localhost:3000/experiences" target="_blank" rel="noreferrer">
               <ExternalLink size={13} /> View Live Page
             </a>
           </Button>
@@ -455,14 +625,14 @@ export default function ExperiencesPage() {
           </SelectContent>
         </Select>
 
-        {/* Featured Filter */}
-        <Select value={featuredFilter} onValueChange={setFeaturedFilter}>
+        {/* Spotlight Filter */}
+        <Select value={spotlightFilter} onValueChange={setSpotlightFilter}>
           <SelectTrigger className="text-xs h-9">
             <SelectValue placeholder="All Experiences" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Items</SelectItem>
-            <SelectItem value="featured">Homepage Featured</SelectItem>
+            <SelectItem value="all">All Items ({experiences.length})</SelectItem>
+            <SelectItem value="spotlight">Hero Spotlight ({experiences.filter((e) => e.isHomeSpotlight).length}/4)</SelectItem>
             <SelectItem value="standard">Standard Catalog</SelectItem>
           </SelectContent>
         </Select>
@@ -478,7 +648,7 @@ export default function ExperiencesPage() {
               <TableHead>Category</TableHead>
               <TableHead>Duration & Vibe</TableHead>
               <TableHead>Destinations</TableHead>
-              <TableHead className="text-center">Featured</TableHead>
+              <TableHead className="text-center w-[130px]">Hero Spotlight</TableHead>
               <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-right w-[110px]">Actions</TableHead>
             </TableRow>
@@ -492,7 +662,7 @@ export default function ExperiencesPage() {
                   <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-28 mb-1" /><Skeleton className="h-3 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-8 mx-auto" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-20 mx-auto rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-16 mx-auto rounded-full" /></TableCell>
                   <TableCell><Skeleton className="h-8 w-16 ml-auto" /></TableCell>
                 </TableRow>
@@ -516,7 +686,7 @@ export default function ExperiencesPage() {
                           setSearch("");
                           setCategoryFilter("all");
                           setStatusFilter("all");
-                          setFeaturedFilter("all");
+                          setSpotlightFilter("all");
                         }}
                         className="text-xs mt-2"
                       >
@@ -535,7 +705,7 @@ export default function ExperiencesPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredExperiences.map((exp) => (
+              filteredExperiences.map((exp: Experience) => (
                 <TableRow
                   key={exp.id}
                   className="hover:bg-muted/30 cursor-pointer transition-colors"
@@ -562,10 +732,15 @@ export default function ExperiencesPage() {
                   {/* Title & Tagline */}
                   <TableCell>
                     <div className="space-y-0.5">
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="font-medium text-sm text-foreground hover:text-[#B48235] transition-colors">
                           {exp.title}
                         </span>
+                        {exp.isHomeSpotlight && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold">
+                            Slot {exp.spotlightSlot || 1}
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-muted-foreground line-clamp-1">
                         {exp.tagline || `/experiences/${exp.slug}`}
@@ -601,7 +776,7 @@ export default function ExperiencesPage() {
                   <TableCell>
                     <div className="flex flex-wrap gap-1 max-w-[180px]">
                       {exp.destinations && exp.destinations.length > 0 ? (
-                        exp.destinations.slice(0, 2).map((d, idx) => (
+                        exp.destinations.slice(0, 2).map((d: any, idx: number) => (
                           <span
                             key={idx}
                             className="inline-flex items-center gap-0.5 text-[10px] bg-muted/80 text-foreground px-1.5 py-0.5 rounded border border-border"
@@ -619,19 +794,29 @@ export default function ExperiencesPage() {
                     </div>
                   </TableCell>
 
-                  {/* Featured Star */}
+                  {/* Hero Spotlight Quick Order */}
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
-                    {exp.featured ? (
-                      <span
-                        title="Featured on Homepage"
-                        className="inline-flex items-center justify-center p-1 rounded-full bg-amber-50 text-amber-600 border border-amber-200"
+                    {exp.isHomeSpotlight ? (
+                      <Select
+                        value={String(exp.spotlightSlot || 1)}
+                        onValueChange={(val) => handleQuickSlotChange(exp, Number(val))}
                       >
-                        <Star size={13} className="fill-amber-500" />
-                      </span>
+                        <SelectTrigger className="inline-flex h-7 w-[88px] items-center justify-center px-2 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-semibold shadow-xs hover:bg-amber-500/25 transition-all">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent onClick={(e) => e.stopPropagation()}>
+                          <SelectItem value="1">Slot 1</SelectItem>
+                          <SelectItem value="2">Slot 2</SelectItem>
+                          <SelectItem value="3">Slot 3</SelectItem>
+                          <SelectItem value="4">Slot 4</SelectItem>
+                        </SelectContent>
+                      </Select>
                     ) : (
                       <span className="text-muted-foreground/30 text-xs">—</span>
                     )}
                   </TableCell>
+
+
 
                   {/* Status Toggle */}
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
@@ -1102,18 +1287,164 @@ export default function ExperiencesPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-card">
-                    <div className="space-y-0.5">
-                      <Label className="text-xs font-medium">Homepage Signature Feature</Label>
-                      <p className="text-[11px] text-muted-foreground">
-                        Feature this card on the main landing page Signature Experiences showcase.
-                      </p>
+                  {/* Homepage Spotlight (Hero Section 4 Cards) Toggle & Custom Fields */}
+                  <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-1.5">
+                          <Sparkles size={14} className="text-amber-600 fill-amber-500" />
+                          <Label className="text-xs font-semibold text-foreground">
+                            Feature in Homepage Spotlight (Hero Section)
+                          </Label>
+                          <span className="text-[10px] bg-amber-500/20 text-amber-800 dark:text-amber-300 px-1.5 py-0.5 rounded font-mono font-bold">
+                            Max 4 Slots
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          Feature this experience in the 4 interactive video cards on the homepage. When clicked on the homepage, visitors are redirected to <code className="text-xs font-mono text-amber-700 dark:text-amber-400">/experiences/{formData.slug || "slug"}</code>.
+                        </p>
+                      </div>
+                      <Switch
+                        checked={formData.isHomeSpotlight}
+                        onCheckedChange={handleToggleSpotlight}
+                      />
                     </div>
-                    <Switch
-                      checked={formData.featured}
-                      onCheckedChange={(checked) => setFormData((p) => ({ ...p, featured: checked }))}
-                    />
+
+                    {formData.isHomeSpotlight && (
+                      <div className="pt-3 border-t border-amber-500/20 space-y-4">
+                        {/* Slot Selection & Homepage Title */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium">Spotlight Slot Position (Order 1–4) *</Label>
+                            <Select
+                              value={String(formData.spotlightSlot || 1)}
+                              onValueChange={(val) => setFormData((p) => ({ ...p, spotlightSlot: Number(val) }))}
+                            >
+                              <SelectTrigger className="text-xs h-9 bg-background">
+                                <SelectValue placeholder="Select Slot (1 - 4)" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {[1, 2, 3, 4].map((slotNum) => {
+                                  const occupant = experiences.find(
+                                    (e) => e.isHomeSpotlight && e.spotlightSlot === slotNum && e.id !== editingExperience?.id
+                                  );
+                                  return (
+                                    <SelectItem key={slotNum} value={String(slotNum)}>
+                                      Slot {slotNum} {slotNum === 1 ? "(Center Main)" : `(Card ${slotNum})`}
+                                      {occupant ? ` — [Occupied: ${occupant.title.slice(0, 22)}...]` : " — [Vacant]"}
+                                    </SelectItem>
+                                  );
+                                })}
+                              </SelectContent>
+                            </Select>
+                            <p className="text-[10px] text-muted-foreground">
+                              Occupied slots will automatically swap positions on save to prevent duplicate orders.
+                            </p>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium">Homepage Card Title</Label>
+                            <Input
+                              value={formData.spotlightTitle}
+                              onChange={(e) => setFormData((p) => ({ ...p, spotlightTitle: e.target.value }))}
+                              placeholder={formData.title || "e.g. Kayaking"}
+                              className="text-xs bg-background"
+                            />
+                            <p className="text-[10px] text-muted-foreground">
+                              Leave empty to default to Experience Title.
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Homepage Description */}
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-medium">Homepage Card Description (1–2 Sentences)</Label>
+                          <Textarea
+                            value={formData.spotlightDescription}
+                            onChange={(e) => setFormData((p) => ({ ...p, spotlightDescription: e.target.value }))}
+                            placeholder={formData.tagline || "e.g. Glide through silent lagoons and tranquil backwaters on a private kayak."}
+                            rows={2}
+                            className="text-xs bg-background"
+                          />
+                          <p className="text-[10px] text-muted-foreground">
+                            Short evocative description shown on the front of the homepage card.
+                          </p>
+                        </div>
+
+                        {/* Spotlight Ambient Video Upload & URL */}
+                        <div className="space-y-2">
+                          <Label className="text-xs font-medium flex items-center gap-1.5">
+                            <Video size={13} className="text-amber-600" />
+                            Spotlight Ambient Video (.mp4 / .webm) *
+                          </Label>
+
+                          <div className="flex gap-2">
+                            <Input
+                              value={formData.spotlightVideoUrl}
+                              onChange={(e) => setFormData((p) => ({ ...p, spotlightVideoUrl: e.target.value }))}
+                              placeholder="e.g. /Experience-section/12881094-hd_1920_1080_30fps.mp4"
+                              className="text-xs font-mono bg-background"
+                            />
+                            <input
+                              ref={spotlightVideoInputRef}
+                              type="file"
+                              accept="video/mp4,video/webm,video/quicktime"
+                              onChange={handleSpotlightVideoUpload}
+                              className="hidden"
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              disabled={uploadingSpotlightVideo}
+                              onClick={() => spotlightVideoInputRef.current?.click()}
+                              className="text-xs gap-1.5 shrink-0 border-amber-500/30 hover:bg-amber-500/10"
+                            >
+                              {uploadingSpotlightVideo ? (
+                                <>
+                                  <Loader2 size={13} className="animate-spin" /> Uploading...
+                                </>
+                              ) : (
+                                <>
+                                  <Upload size={13} /> Upload Video
+                                </>
+                              )}
+                            </Button>
+                          </div>
+
+                          {formData.spotlightVideoUrl && (
+                            <div className="relative rounded-lg overflow-hidden border border-border bg-black max-w-sm mt-2 aspect-video flex items-center justify-center">
+                              <video
+                                key={formData.spotlightVideoUrl}
+                                src={formData.spotlightVideoUrl}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute top-1.5 right-1.5 bg-black/70 text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <Play size={9} /> Live Preview
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Redirection Notice */}
+                        <div className="p-2.5 rounded-lg bg-background/80 border border-border text-xs text-muted-foreground flex items-center gap-2">
+                          <ExternalLink size={13} className="text-amber-600 shrink-0" />
+                          <span>
+                            When clicked on homepage, visitors will be redirected to:{" "}
+                            <strong className="text-foreground font-mono">
+                              /experiences/{formData.slug || "slug"}
+                            </strong>
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+
 
                   <div className="p-4 rounded-xl border border-border bg-card space-y-2">
                     <Label className="text-xs font-medium">Display Sort Order</Label>

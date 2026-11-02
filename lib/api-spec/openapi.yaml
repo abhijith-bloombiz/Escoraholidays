@@ -2305,6 +2305,16 @@ components:
           type: boolean
         sortOrder:
           type: integer
+        isHomeSpotlight:
+          type: boolean
+        spotlightSlot:
+          type: ["integer", "null"]
+        spotlightVideoUrl:
+          type: ["string", "null"]
+        spotlightTitle:
+          type: ["string", "null"]
+        spotlightDescription:
+          type: ["string", "null"]
         createdAt:
           type: string
         updatedAt:
@@ -2358,6 +2368,16 @@ components:
           type: boolean
         sortOrder:
           type: integer
+        isHomeSpotlight:
+          type: boolean
+        spotlightSlot:
+          type: ["integer", "null"]
+        spotlightVideoUrl:
+          type: ["string", "null"]
+        spotlightTitle:
+          type: ["string", "null"]
+        spotlightDescription:
+          type: ["string", "null"]
 
     ExperienceUpdate:
       type: object
@@ -2406,6 +2426,16 @@ components:
           type: boolean
         sortOrder:
           type: integer
+        isHomeSpotlight:
+          type: boolean
+        spotlightSlot:
+          type: ["integer", "null"]
+        spotlightVideoUrl:
+          type: ["string", "null"]
+        spotlightTitle:
+          type: ["string", "null"]
+        spotlightDescription:
+          type: ["string", "null"]
 
     # ── Hero Section CMS ──────────────────────────────────────────
     HeroCompanionCard:
@@ -2491,6 +2521,8 @@ components:
           type: ["string", "null"]
         ctaLink:
           type: ["string", "null"]
+        duration:
+          type: integer
         published:
           type: boolean
         sortOrder:
@@ -2522,6 +2554,8 @@ components:
           type: string
         ctaLink:
           type: string
+        duration:
+          type: integer
         published:
           type: boolean
         sortOrder:
@@ -2544,6 +2578,8 @@ components:
           type: string
         posterUrl:
           type: string
+        duration:
+          type: integer
         ctaText:
           type: string
         ctaLink:

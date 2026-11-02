@@ -13,13 +13,13 @@ export interface HeroSlide {
   headingLine1: string;
   headingLine2: string;
   videoUrl: string;
-  duration?: number | null;
   /** @nullable */
   posterUrl?: string | null;
   /** @nullable */
   ctaText?: string | null;
   /** @nullable */
   ctaLink?: string | null;
+  duration?: number;
   published: boolean;
   sortOrder: number;
   createdAt: string;

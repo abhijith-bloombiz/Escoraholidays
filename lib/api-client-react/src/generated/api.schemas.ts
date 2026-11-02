@@ -72,6 +72,15 @@ export interface Experience {
   featured?: boolean;
   published: boolean;
   sortOrder?: number;
+  isHomeSpotlight?: boolean;
+  /** @nullable */
+  spotlightSlot?: number | null;
+  /** @nullable */
+  spotlightVideoUrl?: string | null;
+  /** @nullable */
+  spotlightTitle?: string | null;
+  /** @nullable */
+  spotlightDescription?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -95,6 +104,15 @@ export interface ExperienceInput {
   featured?: boolean;
   published?: boolean;
   sortOrder?: number;
+  isHomeSpotlight?: boolean;
+  /** @nullable */
+  spotlightSlot?: number | null;
+  /** @nullable */
+  spotlightVideoUrl?: string | null;
+  /** @nullable */
+  spotlightTitle?: string | null;
+  /** @nullable */
+  spotlightDescription?: string | null;
 }
 
 export interface ExperienceUpdate {
@@ -116,6 +134,15 @@ export interface ExperienceUpdate {
   featured?: boolean;
   published?: boolean;
   sortOrder?: number;
+  isHomeSpotlight?: boolean;
+  /** @nullable */
+  spotlightSlot?: number | null;
+  /** @nullable */
+  spotlightVideoUrl?: string | null;
+  /** @nullable */
+  spotlightTitle?: string | null;
+  /** @nullable */
+  spotlightDescription?: string | null;
 }
 
 export interface HeroCompanionCard {
@@ -159,13 +186,13 @@ export interface HeroSlide {
   headingLine1: string;
   headingLine2: string;
   videoUrl: string;
-  duration?: number | null;
   /** @nullable */
   posterUrl?: string | null;
   /** @nullable */
   ctaText?: string | null;
   /** @nullable */
   ctaLink?: string | null;
+  duration?: number;
   published: boolean;
   sortOrder: number;
   createdAt: string;
@@ -179,10 +206,10 @@ export interface HeroSlideInput {
   headingLine1: string;
   headingLine2: string;
   videoUrl: string;
-  duration?: number;
   posterUrl?: string;
   ctaText?: string;
   ctaLink?: string;
+  duration?: number;
   published?: boolean;
   sortOrder?: number;
 }
@@ -194,8 +221,8 @@ export interface HeroSlideUpdate {
   headingLine1?: string;
   headingLine2?: string;
   videoUrl?: string;
-  duration?: number;
   posterUrl?: string;
+  duration?: number;
   ctaText?: string;
   ctaLink?: string;
   published?: boolean;
@@ -232,8 +259,7 @@ export interface Destination {
   highlights?: string | null;
   /** @nullable */
   howToReach?: string | null;
-  /** @nullable */
-  featured?: boolean | null;
+  featured?: boolean;
   published: boolean;
   createdAt: string;
   updatedAt: string;

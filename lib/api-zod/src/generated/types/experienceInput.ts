@@ -25,4 +25,13 @@ export interface ExperienceInput {
   featured?: boolean;
   published?: boolean;
   sortOrder?: number;
+  isHomeSpotlight?: boolean;
+  /** @nullable */
+  spotlightSlot?: number | null;
+  /** @nullable */
+  spotlightVideoUrl?: string | null;
+  /** @nullable */
+  spotlightTitle?: string | null;
+  /** @nullable */
+  spotlightDescription?: string | null;
 }

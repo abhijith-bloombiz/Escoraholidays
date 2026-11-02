@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { MapPin, Calendar, Compass, Users, ChevronDown, ChevronLeft, ChevronRight, ArrowRight, ArrowUpRight, Sparkles } from 'lucide-react';
 import { useListDestinations, useListHeroSlides } from '@workspace/api-client-react';
+import { useListHomeExperiences } from '../hooks/useHomeExperiences';
 import { useLocation } from 'wouter';
 
 export const resolveDestinationSlug = (dest?: { slug?: string; name?: string; shortName?: string } | string | null): string => {
@@ -209,6 +210,82 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       ctaLink: s.ctaLink || '/plan',
     }));
   }, [remoteHeroSlides]);
+
+  // Live CMS Experience Cards for Phase 4 (Center card = slot 1, companions = slots 2, 3, 4)
+  const { data: remoteHomeCards } = useListHomeExperiences();
+
+  const homeCard1 = useMemo(() => {
+    const card = remoteHomeCards?.find((c) => c.slot === 1) || remoteHomeCards?.[0];
+    return {
+      title: card?.title || 'Kayaking',
+      desc: card?.desc || 'Glide through silent lagoons and tranquil backwaters on a private kayak.',
+      location: card?.location || 'Alleppey Waters',
+      videoUrl: card?.videoUrl || '/Experience-section/12881094-hd_1920_1080_30fps.mp4',
+      posterUrl: card?.posterUrl || '/images/exp_houseboat.jpg',
+      slug: (card as any)?.slug || card?.experienceSlug || 'private-houseboat-charter',
+    };
+  }, [remoteHomeCards]);
+
+  const companionCards = useMemo(() => {
+    const defaults = [
+      {
+        id: 'exp-card-2',
+        slot: 2,
+        tag: 'Estate Seclusion',
+        duration: 'Dawn // 3 Hours',
+        title: 'Dawn Tea Cupping with a Planter',
+        location: 'Munnar Highlands',
+        desc: 'Single-origin tastings & high-range trails in a 150-year-old colonial bungalow.',
+        image: '/images/exp_tea_bungalow.jpg',
+        videoUrl: '/hero/15015065_1920_1080_60fps.mp4',
+        slug: 'tea-planter-bungalow',
+      },
+      {
+        id: 'exp-card-3',
+        slot: 3,
+        tag: 'Wilderness Reserve',
+        duration: 'Full Day',
+        title: 'Periyar Bamboo River Rafting',
+        location: 'Periyar Reserve',
+        desc: 'Silent misty waters with indigenous tribal trackers and wild elephant herds.',
+        image: '/images/dest_4_rafting.jpg',
+        videoUrl: '/hero/9154179-uhd_3840_2160_25fps.mp4',
+        slug: 'periyar-bamboo-rafting',
+      },
+      {
+        id: 'exp-card-4',
+        slot: 4,
+        tag: 'Living Arts',
+        duration: 'Masterclass',
+        title: 'Kathakali Greenroom & Sacred Arts',
+        location: 'Thrissur Cultural Quarters',
+        desc: 'Front-row sacred makeup transformation & royal Travancore culinary feasts.',
+        image: '/images/exp_kathakali.jpg',
+        videoUrl: '/hero/15015065_1920_1080_60fps.mp4',
+        slug: 'theyyam-sacred-fire',
+      }
+    ];
+
+    if (!remoteHomeCards || remoteHomeCards.length === 0) return defaults;
+
+    return [2, 3, 4].map((slotNum, idx) => {
+      const def = defaults[idx];
+      const found = remoteHomeCards.find((c) => c.slot === slotNum) || remoteHomeCards[idx + 1];
+      if (!found) return def;
+      return {
+        id: `exp-card-${slotNum}`,
+        slot: slotNum,
+        tag: found.tag || def.tag,
+        duration: found.duration || def.duration,
+        title: found.title || def.title,
+        location: found.location || def.location,
+        desc: found.desc || def.desc,
+        image: found.posterUrl || def.image,
+        videoUrl: found.videoUrl || def.videoUrl,
+        slug: (found as any).slug || found.experienceSlug || def.slug,
+      };
+    });
+  }, [remoteHomeCards]);
 
   // Form states for the quick filter bar
   const [destination, setDestination] = useState('');
@@ -683,7 +760,16 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     }
   };
 
-  const handleExpCardClick = (title: string, location: string) => {
+  const handleExpCardClick = (title: string, location: string, slug?: string) => {
+    if (slug) {
+      if ((window as any).lenis) {
+        (window as any).lenis.scrollTo(0, { immediate: true });
+      } else {
+        window.scrollTo(0, 0);
+      }
+      setLocation(`/experiences/${slug}`);
+      return;
+    }
     if (onOpenEnquiry) {
       onOpenEnquiry({
         experience: title,
@@ -1540,7 +1626,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     if (phase1Progress > 0.4 && phase3Raw < 0.15) {
                       handleCardClick(centerDestination);
                     } else if (phase4Raw > 0.6) {
-                      handleExpCardClick('Kayaking', 'Alleppey Waters');
+                      handleExpCardClick(homeCard1.title, homeCard1.location, homeCard1.slug);
                     }
                   }}
                   className="bento-center-card"
@@ -1625,6 +1711,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   >
                     <video
                       ref={expVideoRef}
+                      key={homeCard1.videoUrl}
                       autoPlay
                       loop
                       muted
@@ -1644,7 +1731,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         pointerEvents: 'none'
                       }}
                     >
-                      <source src="/Experience-section/12881094-hd_1920_1080_30fps.mp4" type="video/mp4" />
+                      <source src={homeCard1.videoUrl} type="video/mp4" />
                     </video>
                   </div>
 
@@ -1794,10 +1881,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       }}
                     >
                       <h3 className="font-display" style={{ fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)', color: '#FFFFFF', margin: '0 0 0.35rem 0', lineHeight: 1.2 }}>
-                        Kayaking
+                        {homeCard1.title}
                       </h3>
                       <p style={{ fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.82)', margin: 0, lineHeight: 1.45, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        Glide through silent lagoons and tranquil backwaters on a private kayak.
+                        {homeCard1.desc}
                       </p>
                     </div>
                   )}
@@ -2413,12 +2500,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       justifyContent: 'center'
                     }}
                   >
-                    {EXP_CARDS.map((card, idx) => {
+                    {companionCards.map((card, idx) => {
                       const slotMultiplier = -0.5 + idx;
                       return (
                         <div
                           key={card.id}
-                          onClick={() => handleExpCardClick(card.title, card.location)}
+                          onClick={() => handleExpCardClick(card.title, card.location, card.slug)}
                           style={{
                             position: 'absolute',
                             width: expCardWidth,
@@ -2436,11 +2523,30 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           }}
                           className="exp-showcase-card"
                         >
-                          <img
-                            src={card.image}
-                            alt={card.title}
-                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                          />
+                          {card.videoUrl ? (
+                            <video
+                              key={card.videoUrl}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              poster={card.image}
+                              disableRemotePlayback
+                              controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+                              data-video-popout="false"
+                              tabIndex={-1}
+                              aria-hidden="true"
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
+                            >
+                              <source src={card.videoUrl} type="video/mp4" />
+                            </video>
+                          ) : (
+                            <img
+                              src={card.image}
+                              alt={card.title}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            />
+                          )}
                           <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 45%, rgba(11,20,16,0.92) 100%)', pointerEvents: 'none' }} />
                           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '1.6rem 1.4rem', color: '#FFFFFF', zIndex: 2, textAlign: 'center', pointerEvents: 'none' }}>
                             <h3 className="font-display" style={{ fontSize: 'clamp(1.18rem, 1.35vw, 1.35rem)', color: '#FFFFFF', margin: '0 0 0.35rem 0', lineHeight: 1.2 }}>
@@ -2903,16 +3009,20 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     overflow: 'hidden',
                     backgroundColor: '#0B1410',
                     border: 'none',
-                    boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)'
+                    boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)',
+                    cursor: 'pointer'
                   }}
+                  onClick={() => handleExpCardClick(homeCard1.title, homeCard1.location, homeCard1.slug)}
                 >
                   <div style={{ height: '220px', position: 'relative', overflow: 'hidden' }}>
                     <video
+                      key={homeCard1.videoUrl}
                       autoPlay
                       loop
                       muted
                       playsInline
                       preload="auto"
+                      poster={homeCard1.posterUrl}
                       disablePictureInPicture
                       disableRemotePlayback
                       controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
@@ -2921,23 +3031,23 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       aria-hidden="true"
                       style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
                     >
-                      <source src="/Experience-section/12881094-hd_1920_1080_30fps.mp4" type="video/mp4" />
+                      <source src={homeCard1.videoUrl} type="video/mp4" />
                     </video>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(11,20,16,0.95) 100%)' }} />
                   </div>
                   <div style={{ padding: '1.35rem', color: '#FFFFFF', marginTop: '-35px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-                    <h4 className="font-display" style={{ fontSize: '1.25rem', margin: '0 0 0.35rem 0', color: '#FFFFFF' }}>Kayaking</h4>
+                    <h4 className="font-display" style={{ fontSize: '1.25rem', margin: '0 0 0.35rem 0', color: '#FFFFFF' }}>{homeCard1.title}</h4>
                     <p style={{ fontSize: '0.82rem', color: 'rgba(255, 255, 255, 0.82)', lineHeight: 1.45, margin: 0 }}>
-                      Glide through silent lagoons and tranquil backwaters on a private kayak.
+                      {homeCard1.desc}
                     </p>
                   </div>
                 </div>
 
                 {/* Cards 2, 3, 4 */}
-                {EXP_CARDS.map((card) => (
+                {companionCards.map((card) => (
                   <div
                     key={card.id}
-                    onClick={() => handleExpCardClick(card.title, card.location)}
+                    onClick={() => handleExpCardClick(card.title, card.location, card.slug)}
                     style={{
                       position: 'relative',
                       borderRadius: '8px',
@@ -2949,7 +3059,26 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     }}
                   >
                     <div style={{ height: '200px', position: 'relative', overflow: 'hidden' }}>
-                      <img src={card.image} alt={card.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      {card.videoUrl ? (
+                        <video
+                          key={card.videoUrl}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          poster={card.image}
+                          disableRemotePlayback
+                          controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+                          data-video-popout="false"
+                          tabIndex={-1}
+                          aria-hidden="true"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
+                        >
+                          <source src={card.videoUrl} type="video/mp4" />
+                        </video>
+                      ) : (
+                        <img src={card.image} alt={card.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                      )}
                       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(11,20,16,0.95) 100%)' }} />
                     </div>
                     <div style={{ padding: '1.35rem', color: '#FFFFFF', marginTop: '-35px', position: 'relative', zIndex: 2, textAlign: 'center' }}>

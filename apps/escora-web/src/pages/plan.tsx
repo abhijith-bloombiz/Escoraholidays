@@ -9,7 +9,6 @@ import {
   Sparkles,
   ArrowRight,
   ArrowLeft,
-  ShieldCheck,
   Send,
   CheckCircle2,
   Phone,
@@ -3127,25 +3126,6 @@ export default function PlanJourneyPage() {
                     </div>
 
                     {/* Trust Seal */}
-                    <div
-                      className="luxury-interactive-card"
-                      style={{
-                        padding: '1rem 1.25rem',
-                        backgroundColor: '#FAF8F5',
-                        borderRadius: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        marginBottom: '2rem',
-                        border: '1px solid rgba(0, 0, 0, 0.05)'
-                      }}
-                    >
-                      <ShieldCheck size={20} color="#2D6A4F" />
-                      <span style={{ fontSize: '0.8rem', color: '#5A626A', lineHeight: 1.4 }}>
-                        <strong>Absolute Discretion Assured.</strong> We never share guest details. Your private data is utilized purely for handcrafting this bespoke Escora proposal.
-                      </span>
-                    </div>
-
                     {/* Step Actions */}
                     <div
                       style={{

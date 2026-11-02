@@ -252,6 +252,19 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
             >
               Where Every Landscape Tells a Story
             </h2>
+            <p
+              style={{
+                fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                fontSize: 'clamp(0.9rem, 1.05vw, 1.05rem)',
+                lineHeight: 1.5,
+                color: '#4B5563',
+                maxWidth: '640px',
+                margin: '0.75rem 0 0',
+                fontWeight: 400
+              }}
+            >
+              Handpicked sanctuaries across God’s Own Country—from private backwater lagoons to highland tea estates, crafted for seamless luxury exploration.
+            </p>
           </div>
 
           {/* Right Navigation Arrows (Armenia Travel Rounded Square Controls) */}
@@ -407,32 +420,17 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
                 scrollSnapAlign: 'start',
                 backgroundColor: '#121316',
                 boxShadow: '0 8px 30px rgba(0, 0, 0, 0.08)',
-                transition: 'transform 0.4s var(--ease-luxury), box-shadow 0.4s var(--ease-luxury)'
-              }}
-              onPointerEnter={(e) => {
-                setIsCardHovered(true);
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0 16px 40px rgba(0, 0, 0, 0.14)';
-                const img = e.currentTarget.querySelector('img');
-                if (img) img.style.transform = 'scale(1.08)';
-              }}
-              onPointerLeave={(e) => {
-                setIsCardHovered(false);
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.08)';
-                const img = e.currentTarget.querySelector('img');
-                if (img) img.style.transform = 'scale(1)';
+                transition: 'box-shadow 0.4s var(--ease-luxury)',
+                isolation: 'isolate'
               }}
               onMouseEnter={(e) => {
                 setIsCardHovered(true);
-                e.currentTarget.style.transform = 'translateY(-6px)';
-                e.currentTarget.style.boxShadow = '0 16px 40px rgba(0, 0, 0, 0.14)';
+                e.currentTarget.style.boxShadow = '0 20px 48px rgba(0, 0, 0, 0.24)';
                 const img = e.currentTarget.querySelector('img');
-                if (img) img.style.transform = 'scale(1.08)';
+                if (img) img.style.transform = 'scale(1.07)';
               }}
               onMouseLeave={(e) => {
                 setIsCardHovered(false);
-                e.currentTarget.style.transform = 'translateY(0)';
                 e.currentTarget.style.boxShadow = '0 8px 30px rgba(0, 0, 0, 0.08)';
                 const img = e.currentTarget.querySelector('img');
                 if (img) img.style.transform = 'scale(1)';
@@ -447,7 +445,11 @@ export default function DestinationDiscovery({ onOpenEnquiry, onSelectDestinatio
                   height: '100%',
                   objectFit: 'cover',
                   display: 'block',
-                  transition: 'transform 0.85s cubic-bezier(0.16, 1, 0.3, 1)'
+                  transition: 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)',
+                  pointerEvents: 'none',
+                  willChange: 'transform',
+                  backfaceVisibility: 'hidden',
+                  WebkitBackfaceVisibility: 'hidden'
                 }}
               />
 

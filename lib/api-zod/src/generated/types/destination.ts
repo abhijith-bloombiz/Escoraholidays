@@ -35,6 +35,8 @@ export interface Destination {
   highlights?: string | null;
   /** @nullable */
   howToReach?: string | null;
+  /** @nullable */
+  featured?: boolean | null;
   published: boolean;
   createdAt: string;
   updatedAt: string;

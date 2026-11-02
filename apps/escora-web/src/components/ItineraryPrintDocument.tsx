@@ -238,25 +238,32 @@ function ImageWithFallback({
   const initial = src || fallback || "";
   const [currentSrc, setCurrentSrc] = useState<string>(initial);
   const [hasError, setHasError] = useState(false);
-  const [useCors, setUseCors] = useState(true);
 
   useEffect(() => {
-    // If the provided src is an Unsplash webpage link (not an image), use fallback directly
-    if (src && /unsplash\.com\/photos\//i.test(src)) {
-      if (fallback) {
-        setCurrentSrc(fallback);
-        setHasError(false);
-      } else {
-        setHasError(true);
-      }
-      return;
+    let cleanSrc = src ? src.trim() : "";
+    // Auto-convert Unsplash webpage links to direct high-res image URLs
+    const unsplashMatch = cleanSrc.match(/unsplash\.com\/photos\/([a-zA-Z0-9_\-]+)/i);
+    if (unsplashMatch && !cleanSrc.includes("images.unsplash.com")) {
+      cleanSrc = `https://images.unsplash.com/photo-${unsplashMatch[1]}?auto=format&fit=crop&w=1600&q=80`;
     }
-    setCurrentSrc(src || fallback || "");
+
+    setCurrentSrc(cleanSrc || fallback || "");
     setHasError(false);
-    setUseCors(true);
   }, [src, fallback]);
 
   if (hasError || !currentSrc) {
+    if (fallback && currentSrc !== fallback) {
+      return (
+        <img
+          src={fallback}
+          alt={alt}
+          className={className}
+          style={style}
+          loading="eager"
+          referrerPolicy="no-referrer"
+        />
+      );
+    }
     return null;
   }
 
@@ -267,13 +274,8 @@ function ImageWithFallback({
       className={className}
       style={style}
       loading="eager"
-      crossOrigin={useCors ? "anonymous" : undefined}
+      referrerPolicy="no-referrer"
       onError={() => {
-        // If image failed with CORS crossOrigin="anonymous", retry once without CORS
-        if (useCors) {
-          setUseCors(false);
-          return;
-        }
         if (fallback && currentSrc !== fallback) {
           setCurrentSrc(fallback);
         } else {

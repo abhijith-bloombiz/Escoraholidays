@@ -22,16 +22,69 @@ import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
 import HeroGradientBackground from '../components/HeroGradientBackground';
 import { getDestinationBySlug, KERALA_DESTINATIONS, type DestinationDetail } from '../data/destinationsData';
+import { usePageScrollReveal } from '../hooks/useScrollAnimation';
+import { useListDestinations } from '@workspace/api-client-react';
 
 export interface DestinationDetailPageProps {
   slug?: string;
 }
 
 export default function DestinationDetailPage({ slug: propSlug }: DestinationDetailPageProps) {
+  usePageScrollReveal();
+
   const [, params] = useRoute('/destinations/:slug');
   const slug = propSlug || params?.slug || '';
 
-  const destination = getDestinationBySlug(slug);
+  const { data: remoteDestinations } = useListDestinations();
+
+  const destination = React.useMemo(() => {
+    if (remoteDestinations && remoteDestinations.length > 0) {
+      const cmsMatch = remoteDestinations.find(
+        (d) => d.slug.toLowerCase() === slug.toLowerCase()
+      );
+      if (cmsMatch) {
+        const existing = getDestinationBySlug(slug);
+        const parsedHighlights = (() => {
+          if (!cmsMatch.highlights) return existing?.highlights || [];
+          try {
+            const arr = JSON.parse(cmsMatch.highlights);
+            return Array.isArray(arr) ? arr : [cmsMatch.highlights];
+          } catch {
+            return cmsMatch.highlights.split('\n').filter(Boolean);
+          }
+        })();
+
+        const coordsStr =
+          typeof cmsMatch.latitude === 'number' && typeof cmsMatch.longitude === 'number'
+            ? `${cmsMatch.latitude.toFixed(4)}°N ${cmsMatch.longitude.toFixed(4)}°E`
+            : existing?.coordinates || '10.0889°N 77.0595°E';
+
+        return {
+          slug: cmsMatch.slug,
+          name: cmsMatch.name,
+          region: cmsMatch.region,
+          type: (cmsMatch.type as any) || existing?.type || 'Highlands',
+          shortDesc: cmsMatch.shortDesc || existing?.shortDesc || cmsMatch.description || '',
+          description: cmsMatch.description || existing?.description || cmsMatch.shortDesc || '',
+          coordinates: coordsStr,
+          elevation: cmsMatch.elevation || existing?.elevation,
+          bestSeason: cmsMatch.bestSeason || existing?.bestSeason || 'Year-round',
+          nightsMin: typeof cmsMatch.nightsMin === 'number' ? cmsMatch.nightsMin : (existing?.nightsMin ?? 2),
+          nightsMax: typeof cmsMatch.nightsMax === 'number' ? cmsMatch.nightsMax : (existing?.nightsMax ?? 4),
+          imageUrl: cmsMatch.imageUrl || existing?.imageUrl || '/images/dest_3_munnar.jpg',
+          gallery: existing?.gallery || (cmsMatch.imageUrl ? [cmsMatch.imageUrl] : ['/images/dest_3_munnar.jpg']),
+          highlights: parsedHighlights.length > 0 ? parsedHighlights : (existing?.highlights || []),
+          howToReach:
+            cmsMatch.howToReach ||
+            existing?.howToReach ||
+            'Accessible via scenic road transfers and nearby Kerala rail/airport hubs.',
+          sampleItinerary: existing?.sampleItinerary,
+          curatedStays: existing?.curatedStays,
+        };
+      }
+    }
+    return getDestinationBySlug(slug);
+  }, [remoteDestinations, slug]);
 
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
@@ -39,7 +92,12 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
 
   // Scroll to top when slug changes
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const lenis = (window as any).lenis;
+    if (lenis && typeof lenis.scrollTo === 'function') {
+      lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
     setActiveGalleryIndex(0);
   }, [slug]);
 
@@ -262,7 +320,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               alignItems: 'center'
             }}
           >
-            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
+            <div className="luxury-stat-card reveal-card stagger-1" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
               <div
                 style={{
                   width: '44px',
@@ -286,7 +344,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               </div>
             </div>
 
-            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
+            <div className="luxury-stat-card reveal-card stagger-2" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
               <div
                 style={{
                   width: '44px',
@@ -312,7 +370,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               </div>
             </div>
 
-            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
+            <div className="luxury-stat-card reveal-card stagger-3" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
               <div
                 style={{
                   width: '44px',
@@ -336,7 +394,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               </div>
             </div>
 
-            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
+            <div className="luxury-stat-card reveal-card stagger-4" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1rem', borderRadius: '16px' }}>
               <div
                 style={{
                   width: '44px',
@@ -375,7 +433,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
             }}
           >
             {/* Left: In-depth Story */}
-            <div>
+            <div className="reveal-fade-left">
               <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 THE ESSENCE
               </p>
@@ -392,7 +450,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
 
               {/* How to Reach Card */}
               <div
-                className="luxury-interactive-card"
+                className="luxury-interactive-card reveal-card stagger-2"
                 style={{
                   marginTop: '2.5rem',
                   padding: '1.75rem',
@@ -410,7 +468,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
             </div>
 
             {/* Right: Gallery & Photography */}
-            <div>
+            <div className="reveal-fade-right">
               <div className="luxury-interactive-card" style={{ borderRadius: '24px', overflow: 'hidden', height: '420px', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)', marginBottom: '1.25rem' }}>
                 <img
                   src={destination.gallery[activeGalleryIndex] || destination.imageUrl}
@@ -452,7 +510,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
       {/* Highlights & Things to Experience */}
       <section style={{ backgroundColor: '#FFFFFF', padding: '5rem 0', borderTop: '1px solid rgba(0, 0, 0, 0.06)', borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
         <div className="section-wrapper">
-          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 3.5rem' }}>
+          <div className="reveal-fade-up" style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 3.5rem' }}>
             <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
               UNFORGETTABLE MOMENTS
             </p>
@@ -474,7 +532,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
             {destination.highlights.map((item, idx) => (
               <div
                 key={idx}
-                className="luxury-interactive-card"
+                className={`luxury-interactive-card reveal-card stagger-${(idx % 4) + 1}`}
                 style={{
                   backgroundColor: '#F8F6F1',
                   padding: '1.75rem',
@@ -516,7 +574,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
         <section style={{ padding: '5.5rem 0' }}>
           <div className="section-wrapper">
             <div style={{ maxWidth: '880px', margin: '0 auto' }}>
-              <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+              <div className="reveal-fade-up" style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
                 <span
                   className="anim-hero-badge"
                   style={{
@@ -546,7 +604,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
                 {destination.sampleItinerary.days.map((day) => (
                   <div
                     key={day.day}
-                    className="luxury-interactive-card"
+                    className={`luxury-interactive-card reveal-card stagger-${(day.day % 4) + 1}`}
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '20px',
@@ -584,7 +642,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
       {destination.curatedStays && destination.curatedStays.length > 0 && (
         <section style={{ backgroundColor: '#0D0F13', color: '#FFFFFF', padding: '5.5rem 0' }}>
           <div className="section-wrapper">
-            <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 3.5rem' }}>
+            <div className="reveal-fade-up" style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 3.5rem' }}>
               <p style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 ACCOMMODATION EXCELLENCE
               </p>
@@ -606,7 +664,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               {destination.curatedStays.map((stay, idx) => (
                 <div
                   key={idx}
-                  className="luxury-interactive-card"
+                  className={`luxury-interactive-card reveal-card stagger-${(idx % 3) + 1}`}
                   style={{
                     backgroundColor: 'rgba(255, 255, 255, 0.05)',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -647,15 +705,15 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
         }}
       >
         <div className="section-wrapper" style={{ maxWidth: '780px' }}>
-          <Sparkles size={28} color="#B48235" className="anim-hero-badge" style={{ margin: '0 auto 1.25rem' }} />
-          <h2 className="font-display" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#121316', lineHeight: 1.1, marginBottom: '1.25rem' }}>
+          <Sparkles size={28} color="#B48235" className="reveal-pop" style={{ margin: '0 auto 1.25rem' }} />
+          <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#121316', lineHeight: 1.1, marginBottom: '1.25rem' }}>
             READY TO COMPOSE YOUR {destination.name.toUpperCase()} JOURNEY?
           </h2>
-          <p style={{ color: '#4B5563', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
+          <p className="reveal-fade-up stagger-2" style={{ color: '#4B5563', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
             Whether you desire a serene 3-day escape or an expansive multi-destination journey across Kerala,
             our personal concierge team will build your custom itinerary from scratch.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="reveal-scale-up stagger-3" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link
               href={`/plan?destination=${encodeURIComponent(destination.name)}`}
               className="btn-pill btn-gold anim-hover-pill"
@@ -702,14 +760,14 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               gap: '2rem'
             }}
           >
-            {otherDestinations.map((other) => (
+            {otherDestinations.map((other, idx) => (
               <Link
                 key={other.slug}
                 href={`/destinations/${other.slug}`}
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 <div
-                  className="luxury-interactive-card"
+                  className={`luxury-interactive-card reveal-card stagger-${idx + 1}`}
                   style={{
                     borderRadius: '20px',
                     overflow: 'hidden',

@@ -6,14 +6,22 @@ import Footer from '../components/Footer';
 import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
 import HeroGradientBackground from '../components/HeroGradientBackground';
-import Kerala3DMapCanvas, { DISTRICT_DETAILS } from '../components/Kerala3DMapCanvas';
+import { DISTRICT_DETAILS } from '../data/districtDetails';
 import '../components/Kerala3DMapSection.css';
 import { KERALA_DESTINATIONS, type DestinationDetail } from '../data/destinationsData';
-import { useScrollReveal } from '../hooks/useScrollAnimation';
+import { useScrollReveal, usePageScrollReveal } from '../hooks/useScrollAnimation';
+import { useListDestinations } from '@workspace/api-client-react';
+import { resolveDistrictName } from '../components/Kerala3DMapCanvas';
+
+const Kerala3DMapCanvas = React.lazy(() => import('../components/Kerala3DMapCanvas'));
 
 const CATEGORIES = ['All', 'Highlands', 'Backwaters', 'Coastal', 'Forest & Wildlife', 'Heritage'] as const;
 
 export default function DestinationsPage() {
+  usePageScrollReveal();
+
+  const { data: remoteDestinations } = useListDestinations();
+
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
@@ -21,24 +29,94 @@ export default function DestinationsPage() {
   const [selectedDistrict, setSelectedDistrict] = useState<string | null>('Idukki');
   const [activeDestSlug, setActiveDestSlug] = useState<string>('munnar');
 
-  const [mapSectionRef, mapVisible] = useScrollReveal<HTMLElement>({ threshold: 0.1, reEnter: true });
-  const [gridSectionRef, gridVisible] = useScrollReveal<HTMLElement>({ threshold: 0.05, reEnter: true });
+  const [mapSectionRef, mapVisible] = useScrollReveal<HTMLElement>({ threshold: 0.05, reEnter: false });
+  const [gridSectionRef, gridVisible] = useScrollReveal<HTMLElement>({ threshold: 0.05, reEnter: false });
+
+  // Merge CMS destinations dynamically with static seeds
+  const allDestinations = useMemo<DestinationDetail[]>(() => {
+    if (!remoteDestinations || remoteDestinations.length === 0) {
+      return KERALA_DESTINATIONS;
+    }
+
+    const cmsList: DestinationDetail[] = remoteDestinations.map((d) => {
+      const existing = KERALA_DESTINATIONS.find(
+        (k) =>
+          k.slug.toLowerCase() === d.slug.toLowerCase() ||
+          k.name.toLowerCase() === d.name.toLowerCase()
+      );
+
+      const parsedHighlights = (() => {
+        if (!d.highlights) return existing?.highlights || [];
+        try {
+          const arr = JSON.parse(d.highlights);
+          return Array.isArray(arr) ? arr : [d.highlights];
+        } catch {
+          return d.highlights.split('\n').filter(Boolean);
+        }
+      })();
+
+      const coordsStr =
+        typeof d.latitude === 'number' && typeof d.longitude === 'number'
+          ? `${d.latitude.toFixed(4)}°N ${d.longitude.toFixed(4)}°E`
+          : existing?.coordinates || '10.0889°N 77.0595°E';
+
+      return {
+        slug: d.slug,
+        name: d.name,
+        region: d.region,
+        type: (d.type as any) || existing?.type || 'Highlands',
+        shortDesc: d.shortDesc || existing?.shortDesc || d.description || '',
+        description: d.description || existing?.description || d.shortDesc || '',
+        coordinates: coordsStr,
+        elevation: d.elevation || existing?.elevation,
+        bestSeason: d.bestSeason || existing?.bestSeason || 'Year-round',
+        nightsMin: typeof d.nightsMin === 'number' ? d.nightsMin : (existing?.nightsMin ?? 2),
+        nightsMax: typeof d.nightsMax === 'number' ? d.nightsMax : (existing?.nightsMax ?? 4),
+        imageUrl: d.imageUrl || existing?.imageUrl || '/images/dest_3_munnar.jpg',
+        gallery: existing?.gallery || (d.imageUrl ? [d.imageUrl] : ['/images/dest_3_munnar.jpg']),
+        highlights: parsedHighlights.length > 0 ? parsedHighlights : (existing?.highlights || []),
+        howToReach:
+          d.howToReach ||
+          existing?.howToReach ||
+          'Accessible via scenic road transfers and nearby Kerala rail/airport hubs.',
+        featured: Boolean(d.featured),
+        latitude: typeof d.latitude === 'number' ? d.latitude : undefined,
+        longitude: typeof d.longitude === 'number' ? d.longitude : undefined,
+        sampleItinerary: existing?.sampleItinerary,
+        curatedStays: existing?.curatedStays,
+      };
+    });
+
+    const cmsSlugs = new Set(cmsList.map((c) => c.slug.toLowerCase()));
+    const extraStatic = KERALA_DESTINATIONS.filter((k) => !cmsSlugs.has(k.slug.toLowerCase()));
+    return [...cmsList, ...extraStatic];
+  }, [remoteDestinations]);
 
   const spotlightDest = useMemo(() => {
-    return KERALA_DESTINATIONS.find((d) => d.slug === activeDestSlug) || KERALA_DESTINATIONS[0];
-  }, [activeDestSlug]);
+    return (
+      allDestinations.find((d) => d.slug.toLowerCase() === activeDestSlug.toLowerCase()) ||
+      allDestinations[0]
+    );
+  }, [allDestinations, activeDestSlug]);
 
   const handleSelectDistrict = (districtName: string, associatedDestId?: string) => {
     setSelectedDistrict(districtName);
     if (associatedDestId) {
-      const match = KERALA_DESTINATIONS.find(
+      const match = allDestinations.find(
         (d) =>
           d.slug.toLowerCase() === associatedDestId.toLowerCase() ||
           d.slug.toLowerCase().includes(associatedDestId.toLowerCase())
       );
       if (match) {
         setActiveDestSlug(match.slug);
+        return;
       }
+    }
+    const districtMatch = allDestinations.find((d) =>
+      d.region.toLowerCase().includes(districtName.toLowerCase())
+    );
+    if (districtMatch) {
+      setActiveDestSlug(districtMatch.slug);
     }
   };
 
@@ -49,6 +127,8 @@ export default function DestinationsPage() {
     );
     if (districtEntry) {
       setSelectedDistrict(districtEntry[0]);
+    } else {
+      setSelectedDistrict(resolveDistrictName(dest.region));
     }
   };
 
@@ -59,7 +139,12 @@ export default function DestinationsPage() {
     setTimeout(() => {
       const el = document.getElementById(`destination-${slug}`);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const lenis = (window as any).lenis;
+        if (lenis && typeof lenis.scrollTo === 'function') {
+          lenis.scrollTo(el, { offset: -90, duration: 1.1 });
+        } else {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         el.style.transition = 'box-shadow 0.4s ease';
         el.style.boxShadow = '0 0 0 4px #D4A359, 0 20px 45px rgba(212, 163, 89, 0.35)';
         setTimeout(() => {
@@ -70,8 +155,9 @@ export default function DestinationsPage() {
   };
 
   const filteredDestinations = useMemo(() => {
-    return KERALA_DESTINATIONS.filter((dest) => {
-      const matchesCategory = activeCategory === 'All' || dest.type === activeCategory;
+    return allDestinations.filter((dest) => {
+      const matchesCategory =
+        activeCategory === 'All' || dest.type.toLowerCase() === activeCategory.toLowerCase();
       const matchesSearch =
         searchQuery.trim() === '' ||
         dest.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -79,7 +165,7 @@ export default function DestinationsPage() {
         dest.shortDesc.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [activeCategory, searchQuery]);
+  }, [allDestinations, activeCategory, searchQuery]);
 
   return (
     <div className="anim-page-fade-in" style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
@@ -208,7 +294,7 @@ export default function DestinationsPage() {
       </section>
 
       {/* ── Regional Geography & Terroirs Showcase ── */}
-      <section ref={mapSectionRef} className={`kerala-3d-map-section reveal-fade-up ${mapVisible ? 'in-view' : ''}`}>
+      <section ref={mapSectionRef} className="kerala-3d-map-section reveal-fade-up">
         <div className="section-wrapper">
           <div className="kerala-3d-map-header">
             <div className="kerala-3d-map-eyebrow anim-hero-badge">
@@ -226,18 +312,40 @@ export default function DestinationsPage() {
             {/* Kerala Map Canvas */}
             <div className="kerala-3d-canvas-box">
               <div className="kerala-3d-map-wrap">
-                <Kerala3DMapCanvas
-                  selectedDistrict={selectedDistrict}
-                  activeDestId={activeDestSlug}
-                  onSelectDistrict={handleSelectDistrict}
-                />
+                <React.Suspense
+                  fallback={
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        minHeight: '350px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#0D0F13',
+                        borderRadius: '20px'
+                      }}
+                    >
+                      <div style={{ color: '#D4A359', fontSize: '0.82rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                        Loading Interactive Terroirs...
+                      </div>
+                    </div>
+                  }
+                >
+                  <Kerala3DMapCanvas
+                    selectedDistrict={selectedDistrict}
+                    activeDestId={activeDestSlug}
+                    onSelectDistrict={handleSelectDistrict}
+                    destinations={allDestinations}
+                  />
+                </React.Suspense>
               </div>
             </div>
 
             {/* Curated Spotlight Card */}
             <div className="kerala-3d-spotlight-box">
               {spotlightDest && (
-                <div className="kerala-3d-spotlight-card luxury-interactive-card">
+                <div className="kerala-3d-spotlight-card">
                   <div className="kerala-3d-spotlight-image-wrap">
                     <img
                       src={spotlightDest.imageUrl}
@@ -290,9 +398,8 @@ export default function DestinationsPage() {
       {/* Filter Chips Bar */}
       <section
         style={{
-          position: 'sticky',
-          top: '70px',
-          zIndex: 40,
+          position: 'relative',
+          zIndex: 10,
           backgroundColor: '#FFFFFF',
           borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
           padding: '1rem 0',
@@ -301,13 +408,13 @@ export default function DestinationsPage() {
       >
         <div className="section-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <div style={{ display: 'flex', gap: '0.75rem', minWidth: 'max-content', padding: '0.2rem 0' }}>
-            {CATEGORIES.map((cat) => {
+            {CATEGORIES.map((cat, idx) => {
               const active = activeCategory === cat;
               return (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className="anim-hover-pill"
+                  className={`anim-hover-pill reveal-pop stagger-${(idx % 6) + 1}`}
                   style={{
                     backgroundColor: active ? '#121316' : '#F3EFE8',
                     color: active ? '#FFFFFF' : '#121316',
@@ -333,7 +440,7 @@ export default function DestinationsPage() {
       <section ref={gridSectionRef} style={{ padding: '4.5rem 0 6rem', flexGrow: 1 }}>
         <div className="section-wrapper">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2.5rem' }}>
-            <div className={`reveal-fade-left ${gridVisible ? 'in-view' : ''}`}>
+            <div className="reveal-fade-left">
               <p style={{ fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#B48235', fontWeight: 700 }}>
                 {activeCategory === 'All' ? 'ALL REGIONAL SANCTUARIES' : `${activeCategory.toUpperCase()} COLLECTION`}
               </p>
@@ -341,7 +448,7 @@ export default function DestinationsPage() {
                 {filteredDestinations.length} {filteredDestinations.length === 1 ? 'Destination' : 'Destinations'} Curated
               </h2>
             </div>
-            <p className={`reveal-fade-right ${gridVisible ? 'in-view' : ''}`} style={{ fontSize: '0.88rem', color: '#6B7280' }}>
+            <p className="reveal-fade-right" style={{ fontSize: '0.88rem', color: '#6B7280' }}>
               Click any destination for in-depth itineraries, seasonal guides &amp; luxury stays
             </p>
           </div>
@@ -381,7 +488,7 @@ export default function DestinationsPage() {
                 >
                   <article
                     id={`destination-${dest.slug}`}
-                    className={`portal-card luxury-interactive-card reveal-fade-up stagger-${(idx % 6) + 1} ${gridVisible ? 'in-view' : ''}`}
+                    className={`portal-card luxury-interactive-card reveal-card stagger-${(idx % 6) + 1}`}
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '24px',
@@ -540,24 +647,24 @@ export default function DestinationsPage() {
         }}
       >
         <div className="section-wrapper" style={{ textAlign: 'center', maxWidth: '780px', position: 'relative', zIndex: 2 }}>
-          <Sparkles size={28} color="#D4A359" className="anim-hero-badge" style={{ margin: '0 auto 1.25rem' }} />
-          <p style={{ color: '#D4A359', fontSize: '0.82rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.75rem' }}>
+          <Sparkles size={28} color="#D4A359" className="reveal-pop" style={{ margin: '0 auto 1.25rem' }} />
+          <p className="reveal-fade-up stagger-1" style={{ color: '#D4A359', fontSize: '0.82rem', letterSpacing: '0.2em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.75rem' }}>
             BESPOKE ITINERARIES
           </p>
-          <h2 className="font-display" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', letterSpacing: '0.04em', lineHeight: 1.1, marginBottom: '1.25rem' }}>
+          <h2 className="font-display reveal-fade-up stagger-2" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', letterSpacing: '0.04em', lineHeight: 1.1, marginBottom: '1.25rem' }}>
             CAN’T DECIDE ON A SINGLE SANCTUARY?
           </h2>
-          <p style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
+          <p className="reveal-fade-up stagger-3" style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
             Most guests combine misty Munnar hills, silent Alleppey waterways, and sacred Malabar shores into one seamless private journey.
             Tell our concierge team your dreams and let us compose your custom Kerala route.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="reveal-scale-up stagger-4" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/plan" className="btn-pill btn-gold anim-hover-pill" style={{ padding: '0.9rem 2.25rem', fontSize: '0.9rem' }}>
               Plan a Custom Journey
             </Link>
             <button
               onClick={() => setEnquiryOpen(true)}
-              className="btn-pill btn-white"
+              className="btn-pill btn-white anim-hover-pill"
               style={{ padding: '0.9rem 2.25rem', fontSize: '0.9rem' }}
             >
               Consult a Travel Designer

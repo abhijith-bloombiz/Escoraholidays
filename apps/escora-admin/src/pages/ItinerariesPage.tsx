@@ -704,13 +704,6 @@ export default function ItinerariesPage() {
                             <DropdownMenuItem onClick={() => copyLink(it, "itinerary")}>
                               <Copy className="h-3.5 w-3.5 mr-2" /> Copy Client Itinerary Link
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => copyLink(it, "package")}>
-                              <Copy className="h-3.5 w-3.5 mr-2" /> Copy Package Link
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => openPreview(it, "itinerary")}>
-                              <ExternalLink className="h-3.5 w-3.5 mr-2" /> Open Client View
-                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => navigate(`/preview-itinerary?id=${it.id}`)}>
                               <FileText className="h-3.5 w-3.5 mr-2 text-primary" /> View PDF Dossier
                             </DropdownMenuItem>
@@ -798,13 +791,6 @@ export default function ItinerariesPage() {
                   <DropdownMenuItem onClick={() => copyLink(viewing, "itinerary")}>
                     <Copy className="h-3.5 w-3.5 mr-2" /> Copy Client Link
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => copyLink(viewing, "package")}>
-                    <Copy className="h-3.5 w-3.5 mr-2" /> Copy Package Link
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => openPreview(viewing, "itinerary")}>
-                    <ExternalLink className="h-3.5 w-3.5 mr-2" /> Open in New Tab
-                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -886,41 +872,60 @@ export default function ItinerariesPage() {
 
       {/* Draft Link Warning Dialog */}
       <AlertDialog open={draftAlertItinerary !== null} onOpenChange={(open) => !open && setDraftAlertItinerary(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="font-serif text-lg flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              This Proposal is in Draft Status
-            </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2 text-sm">
-              <p>
-                The itinerary <strong className="text-foreground">&ldquo;{draftAlertItinerary?.itinerary.title}&rdquo;</strong> is currently marked as{" "}
-                <strong>Draft</strong>.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Public share links return a <strong>404 error</strong> to clients while in Draft status. To allow the client to view this proposal online, change the status to <strong>Shared</strong>.
-              </p>
+        <AlertDialogContent className="max-w-md p-6 bg-white dark:bg-[#121B16] border border-border shadow-2xl rounded-2xl">
+          <AlertDialogHeader className="space-y-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              </div>
+              <div className="text-left">
+                <AlertDialogTitle className="font-serif text-lg font-bold text-foreground leading-tight">
+                  Proposal is in Draft Status
+                </AlertDialogTitle>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Publishing status required for client viewing
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-muted/40 border border-border/70 rounded-lg p-3 text-left">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground block mb-0.5">
+                Selected Itinerary
+              </span>
+              <span className="text-sm font-semibold text-foreground block truncate">
+                {draftAlertItinerary?.itinerary.title}
+              </span>
+            </div>
+
+            <AlertDialogDescription className="text-xs text-muted-foreground leading-relaxed text-left">
+              Public share links return a <strong className="text-foreground">404 error</strong> to clients while marked as Draft. To allow your client to view this proposal online, update the status to <strong className="text-emerald-700 dark:text-emerald-400 font-semibold">Shared</strong>.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-col-reverse sm:flex-row sm:justify-end gap-2 sm:space-x-0">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+
+          <AlertDialogFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-3 border-t border-border/50">
+            <AlertDialogCancel className="h-9 text-xs">Cancel</AlertDialogCancel>
             <Button
+              type="button"
               variant="outline"
+              size="sm"
+              className="h-9 text-xs"
               onClick={() =>
                 draftAlertItinerary &&
                 proceedWithDraftCopy(draftAlertItinerary.itinerary, draftAlertItinerary.mode, false)
               }
             >
-              Copy Link Anyway (Keep Draft)
+              Copy Draft Link Anyway
             </Button>
             <Button
+              type="button"
+              size="sm"
               onClick={() =>
                 draftAlertItinerary &&
                 proceedWithDraftCopy(draftAlertItinerary.itinerary, draftAlertItinerary.mode, true)
               }
-              className="bg-primary text-primary-foreground"
+              className="h-9 text-xs bg-[#183D2E] hover:bg-[#122E23] text-white shadow-xs font-semibold px-4"
             >
-              Update to &apos;Shared&apos; &amp; Copy Link
+              Update to &lsquo;Shared&rsquo; &amp; Copy
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

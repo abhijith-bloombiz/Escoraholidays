@@ -34,6 +34,7 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import Toast from '../components/Toast';
 import HeroGradientBackground from '../components/HeroGradientBackground';
+import { usePageScrollReveal } from '../hooks/useScrollAnimation';
 
 // ---------------------------------------------------------------------------
 // Bespoke Data Structures
@@ -277,6 +278,8 @@ function buildSyntheticAiPlan(params: {
 // ---------------------------------------------------------------------------
 
 export default function PlanJourneyPage() {
+  usePageScrollReveal();
+
   const [location] = useLocation();
 
   // Mode Selection: 'concierge' (Human Atelier) vs 'ai' (AI Trip Planner)
@@ -320,10 +323,19 @@ export default function PlanJourneyPage() {
   const [isGeneratingAi, setIsGeneratingAi] = useState<boolean>(false);
   const [generatedAiPlan, setGeneratedAiPlan] = useState<GeneratedItinerary | null>(null);
 
+  const scrollSmoothTo = (top: number, immediate = false) => {
+    const lenis = (window as any).lenis;
+    if (lenis && typeof lenis.scrollTo === 'function') {
+      lenis.scrollTo(top, { immediate, duration: 0.9 });
+    } else {
+      window.scrollTo(immediate ? { top } : { top, behavior: 'smooth' });
+    }
+  };
+
   // Prepopulate from URL parameters if arriving with query
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollSmoothTo(0, true);
       const urlParams = new URLSearchParams(window.location.search);
       const modeParam = urlParams.get('mode');
       const destParam = urlParams.get('destination');
@@ -361,13 +373,13 @@ export default function PlanJourneyPage() {
   const handleNextStep = (targetStep: number) => {
     setErrorText('');
     setCurrentStep(targetStep);
-    window.scrollTo({ top: 320, behavior: 'smooth' });
+    scrollSmoothTo(320);
   };
 
   const handlePrevStep = (targetStep: number) => {
     setErrorText('');
     setCurrentStep(targetStep);
-    window.scrollTo({ top: 320, behavior: 'smooth' });
+    scrollSmoothTo(320);
   };
 
   // Submit Concierge Request
@@ -400,12 +412,12 @@ export default function PlanJourneyPage() {
       });
 
       setIsSubmitted(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollSmoothTo(0);
     } catch (err) {
       console.warn('Network note:', err);
       // Fallback: still show the confirmation screen
       setIsSubmitted(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollSmoothTo(0);
     } finally {
       setIsSubmitting(false);
     }
@@ -1223,7 +1235,7 @@ export default function PlanJourneyPage() {
                           setPlannerMode('concierge');
                           setSpecialNotes(`[From AI Planner] Interested in ${generatedAiPlan.title} (${generatedAiPlan.durationDays} Days). Route: ${generatedAiPlan.route.join(' -> ')}`);
                           setCurrentStep(5);
-                          window.scrollTo({ top: 320, behavior: 'smooth' });
+                          scrollSmoothTo(320);
                         }}
                         className="btn-pill"
                         style={{

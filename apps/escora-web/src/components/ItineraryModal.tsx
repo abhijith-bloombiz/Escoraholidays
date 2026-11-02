@@ -10,6 +10,15 @@ export interface ItineraryModalProps {
 }
 
 export default function ItineraryModal({ isOpen, onClose, journey, onBookThisTour }: ItineraryModalProps) {
+  React.useEffect(() => {
+    if (!isOpen || !journey) return;
+    const lenis = (window as any).lenis;
+    lenis?.stop();
+    return () => {
+      lenis?.start();
+    };
+  }, [isOpen, journey]);
+
   if (!isOpen || !journey) return null;
 
   return (

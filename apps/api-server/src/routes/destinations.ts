@@ -31,6 +31,9 @@ router.get("/destinations", async (req, res, next): Promise<void> => {
   if (query.data.published !== undefined) {
     filter.published = query.data.published;
   }
+  if (query.data.featured !== undefined) {
+    filter.featured = query.data.featured;
+  }
 
   try {
     const destinations = await DestinationModel.find(filter).sort({ name: 1 }).lean();

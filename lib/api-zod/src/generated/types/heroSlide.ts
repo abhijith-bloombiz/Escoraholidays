@@ -13,6 +13,7 @@ export interface HeroSlide {
   headingLine1: string;
   headingLine2: string;
   videoUrl: string;
+  duration?: number | null;
   /** @nullable */
   posterUrl?: string | null;
   /** @nullable */

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { Menu, X, Instagram, Facebook } from 'lucide-react';
 
 function WhatsAppIcon({ size = 18 }: { size?: number }) {
@@ -21,9 +21,43 @@ export interface NavbarProps {
 }
 
 export default function Navbar({ onOpenEnquiry }: NavbarProps) {
+  const [location, setLocation] = useLocation();
   const [scrolled, setScrolled] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+
+  const handleNavClick = (href: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    setIsVisible(true);
+    setMobileMenuOpen(false);
+
+    if (location === href) {
+      // Already on this page -> scroll to top smoothly
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const lenis = (window as any).lenis;
+      if (lenis && typeof lenis.scrollTo === 'function') {
+        lenis.scrollTo(0, { immediate: false, duration: 0.8 });
+      }
+    } else {
+      // Immediate instantaneous redirect
+      setLocation(href);
+      window.scrollTo(0, 0);
+      const lenis = (window as any).lenis;
+      if (lenis && typeof lenis.scrollTo === 'function') {
+        lenis.scrollTo(0, { immediate: true });
+      }
+    }
+  };
+
+  // Synchronize navbar visibility and scroll state on route transition
+  useEffect(() => {
+    setIsVisible(true);
+    setMobileMenuOpen(false);
+    const y = typeof window !== 'undefined' ? window.scrollY : 0;
+    setScrolled(y > 50);
+  }, [location]);
 
   useEffect(() => {
     let lastScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
@@ -70,6 +104,9 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
         lastScrollY = currentY;
       }
     };
+
+    // Immediately evaluate scroll state on mount
+    onScrollUpdate(lastScrollY, null);
 
     // Lenis smooth scroll listener
     let unbindLenis: (() => void) | null = null;
@@ -150,11 +187,12 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
           {/* Logo */}
           <Link
             href="/"
-            onClick={() => setIsVisible(true)}
+            onClick={(e) => handleNavClick('/', e)}
             style={{
               display: 'flex',
               alignItems: 'center',
-              textDecoration: 'none'
+              textDecoration: 'none',
+              cursor: 'pointer'
             }}
             aria-label="ESCORA Home"
           >
@@ -188,34 +226,44 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
               { label: 'Destinations', href: '/destinations' },
               { label: 'Experiences', href: '/experiences' },
               { label: 'About', href: '/about' }
-            ].map((item) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                onClick={() => setIsVisible(true)}
-                style={{
-                  color: '#FFFFFF',
-                  fontSize: '0.88rem',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  letterSpacing: '0.06em',
-                  transition: 'all 0.2s ease',
-                  textTransform: 'uppercase',
-                  textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.95)',
-                  padding: '0.25rem 0.15rem'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#D4A359';
-                  e.currentTarget.style.textShadow = '0 0 12px rgba(212, 163, 89, 0.6), 0 2px 8px rgba(0, 0, 0, 0.8)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#FFFFFF';
-                  e.currentTarget.style.textShadow = '0 2px 8px rgba(0, 0, 0, 0.8), 0 1px 3px rgba(0, 0, 0, 0.95)';
-                }}
-              >
-                {item.label}
-              </Link>
-            ))}
+            ].map((item) => {
+              const isCurrent = item.href !== '/' && (location === item.href || location.startsWith(item.href));
+              const goldColor = '#D4A359';
+              // Subtle, soft blending shadow: provides gentle definition with zero dark halo or smudge
+              const activeShadow = '0 1px 3px rgba(0, 0, 0, 0.35)';
+              const defaultShadow = '0 1px 3px rgba(0, 0, 0, 0.35)';
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={(e) => handleNavClick(item.href, e)}
+                  style={{
+                    color: isCurrent ? goldColor : '#FFFFFF',
+                    fontSize: '0.88rem',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                    letterSpacing: '0.06em',
+                    transition: 'all 0.25s ease',
+                    textTransform: 'uppercase',
+                    textShadow: isCurrent ? activeShadow : defaultShadow,
+                    padding: '0.25rem 0.15rem',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = goldColor;
+                    e.currentTarget.style.textShadow = activeShadow;
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isCurrent) {
+                      e.currentTarget.style.color = '#FFFFFF';
+                      e.currentTarget.style.textShadow = defaultShadow;
+                    }
+                  }}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
 
           {/* Right Action Button */}
@@ -245,7 +293,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
                   padding: '0.25rem'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#D4A359';
+                  e.currentTarget.style.color = '#E4405F';
                   e.currentTarget.style.opacity = '1';
                   e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
@@ -273,7 +321,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
                   padding: '0.25rem'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#D4A359';
+                  e.currentTarget.style.color = '#1877F2';
                   e.currentTarget.style.opacity = '1';
                   e.currentTarget.style.transform = 'translateY(-2px)';
                 }}
@@ -317,13 +365,15 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
 
             <Link
               href="/plan"
+              onClick={(e) => handleNavClick('/plan', e)}
               className="btn-pill btn-gold nav-plan-btn"
               style={{
                 fontSize: '0.82rem',
                 padding: '0.62rem 1.4rem',
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
-                fontWeight: 700
+                fontWeight: 700,
+                cursor: 'pointer'
               }}
             >
               Plan a Journey
@@ -331,7 +381,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
 
             <Link
               href="/contact"
-              onClick={() => setIsVisible(true)}
+              onClick={(e) => handleNavClick('/contact', e)}
               className="btn-pill btn-white nav-contact-btn"
               style={{
                 fontSize: '0.82rem',
@@ -342,7 +392,8 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
                 textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                cursor: 'pointer'
               }}
             >
               Contact
@@ -376,7 +427,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
           @media (max-width: 899px) {
             .mobile-toggle { display: block !important; }
             .escora-nav-logo {
-              filter: brightness(0) drop-shadow(none) !important;
+              filter: brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.6)) !important;
             }
             .mobile-drawer-open .escora-nav-logo {
               filter: brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.6)) !important;
@@ -423,40 +474,86 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
             { label: 'Experiences', href: '/experiences' },
             { label: 'About Escora', href: '/about' },
             { label: 'Contact', href: '/contact' }
-          ].map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="font-display"
-              style={{
-                color: '#FFFFFF',
-                fontSize: '1.75rem',
-                textDecoration: 'none',
-                letterSpacing: '0.05em'
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
+          ].map((item) => {
+            const isCurrent = item.href !== '/' && (location === item.href || location.startsWith(item.href));
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={(e) => handleNavClick(item.href, e)}
+                className="font-display"
+                style={{
+                  color: isCurrent ? '#D4A359' : '#FFFFFF',
+                  fontSize: '1.75rem',
+                  textDecoration: 'none',
+                  letterSpacing: '0.05em',
+                  cursor: 'pointer'
+                }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
 
           <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', paddingTop: '1.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.75rem', paddingBottom: '0.5rem' }}>
-              <a href="https://www.instagram.com/escora_holidays" target="_blank" rel="noopener noreferrer" style={{ color: '#FFFFFF', opacity: 0.85 }} aria-label="Instagram">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem', paddingBottom: '0.5rem' }}>
+              <a
+                href="https://www.instagram.com/escora_holidays"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#FFFFFF', opacity: 0.85, transition: 'color 0.2s ease, transform 0.2s ease' }}
+                aria-label="Instagram"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#E4405F';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#FFFFFF';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
                 <Instagram size={20} />
               </a>
-              <a href="https://www.facebook.com/people/Escora-holidays" target="_blank" rel="noopener noreferrer" style={{ color: '#FFFFFF', opacity: 0.85 }} aria-label="Facebook">
+              <a
+                href="https://www.facebook.com/people/Escora-holidays"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#FFFFFF', opacity: 0.85, transition: 'color 0.2s ease, transform 0.2s ease' }}
+                aria-label="Facebook"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#1877F2';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#FFFFFF';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
                 <Facebook size={20} />
               </a>
-              <a href="https://wa.me/918157003344" target="_blank" rel="noopener noreferrer" style={{ color: '#25D366' }} aria-label="WhatsApp">
+              <a
+                href="https://wa.me/918157003344"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: '#FFFFFF', opacity: 0.85, transition: 'color 0.2s ease, transform 0.2s ease' }}
+                aria-label="WhatsApp"
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = '#25D366';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = '#FFFFFF';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
                 <WhatsAppIcon size={20} />
               </a>
             </div>
             <Link
               href="/plan"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={(e) => handleNavClick('/plan', e)}
               className="btn-pill btn-gold"
-              style={{ width: '100%', padding: '0.9rem', textAlign: 'center', fontSize: '0.95rem' }}
+              style={{ width: '100%', padding: '0.9rem', textAlign: 'center', fontSize: '0.95rem', cursor: 'pointer' }}
             >
               Plan a Journey
             </Link>

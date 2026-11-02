@@ -115,9 +115,10 @@ export default function MediaPage() {
       try {
         const resp = await fetch("/api/media/upload", {
           method: "POST",
+          credentials: "include",
           headers: {
             "content-type": file.type || "application/octet-stream",
-            "x-filename": file.name,
+            "x-filename": encodeURIComponent(file.name),
           },
           body: file,
         });

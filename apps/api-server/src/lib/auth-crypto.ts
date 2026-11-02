@@ -86,8 +86,8 @@ export function detectImageMimeType(buffer: Buffer): { mimeType: string; extensi
     return null;
   }
 
-  // JPEG: FF D8 FF
-  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+  // JPEG / JFIF: FF D8
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) {
     return { mimeType: "image/jpeg", extension: ".jpg" };
   }
 
@@ -131,6 +131,14 @@ export function detectImageMimeType(buffer: Buffer): { mimeType: string; extensi
   // AVIF: bytes 4-11 contain "ftypavif" or "ftypavis"
   if (buffer.length >= 12 && buffer.subarray(4, 12).toString("ascii").startsWith("ftypavi")) {
     return { mimeType: "image/avif", extension: ".avif" };
+  }
+
+  // HEIC / HEIF (Apple iPhone & Android cameras): bytes 4-8 'ftyp', then brand 'heic', 'heix', 'heim', 'heis', 'hevc', 'mif1', 'msf1'
+  if (buffer.length >= 12 && buffer.subarray(4, 8).toString("ascii") === "ftyp") {
+    const brand = buffer.subarray(8, 12).toString("ascii").toLowerCase();
+    if (["heic", "heix", "heim", "heis", "hevc", "mif1", "msf1"].includes(brand)) {
+      return { mimeType: "image/heic", extension: ".heic" };
+    }
   }
 
   // SVG: XML/SVG tag structure without active script or event injection

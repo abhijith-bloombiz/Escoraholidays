@@ -275,6 +275,7 @@ export const ListHeroSlidesResponseItem = zod.object({
   "headingLine1": zod.string(),
   "headingLine2": zod.string(),
   "videoUrl": zod.string(),
+  "duration": zod.number().nullish(),
   "posterUrl": zod.string().nullish(),
   "ctaText": zod.string().nullish(),
   "ctaLink": zod.string().nullish(),
@@ -296,6 +297,7 @@ export const CreateHeroSlideBody = zod.object({
   "headingLine1": zod.string(),
   "headingLine2": zod.string(),
   "videoUrl": zod.string(),
+  "duration": zod.number().optional(),
   "posterUrl": zod.string().optional(),
   "ctaText": zod.string().optional(),
   "ctaLink": zod.string().optional(),
@@ -319,6 +321,7 @@ export const GetHeroSlideResponse = zod.object({
   "headingLine1": zod.string(),
   "headingLine2": zod.string(),
   "videoUrl": zod.string(),
+  "duration": zod.number().nullish(),
   "posterUrl": zod.string().nullish(),
   "ctaText": zod.string().nullish(),
   "ctaLink": zod.string().nullish(),
@@ -343,6 +346,7 @@ export const UpdateHeroSlideBody = zod.object({
   "headingLine1": zod.string().optional(),
   "headingLine2": zod.string().optional(),
   "videoUrl": zod.string().optional(),
+  "duration": zod.number().optional(),
   "posterUrl": zod.string().optional(),
   "ctaText": zod.string().optional(),
   "ctaLink": zod.string().optional(),
@@ -358,6 +362,7 @@ export const UpdateHeroSlideResponse = zod.object({
   "headingLine1": zod.string(),
   "headingLine2": zod.string(),
   "videoUrl": zod.string(),
+  "duration": zod.number().nullish(),
   "posterUrl": zod.string().nullish(),
   "ctaText": zod.string().nullish(),
   "ctaLink": zod.string().nullish(),
@@ -690,7 +695,8 @@ export const DeleteExperienceParams = zod.object({
  */
 export const ListDestinationsQueryParams = zod.object({
   "type": zod.coerce.string().optional(),
-  "published": zod.coerce.boolean().optional()
+  "published": zod.coerce.boolean().optional(),
+  "featured": zod.coerce.boolean().optional()
 })
 
 export const ListDestinationsResponseItem = zod.object({
@@ -711,6 +717,7 @@ export const ListDestinationsResponseItem = zod.object({
   "nightsMax": zod.number().nullish(),
   "highlights": zod.string().nullish(),
   "howToReach": zod.string().nullish(),
+  "featured": zod.boolean().nullish(),
   "published": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -738,6 +745,7 @@ export const CreateDestinationBody = zod.object({
   "nightsMax": zod.number().optional(),
   "highlights": zod.string().optional(),
   "howToReach": zod.string().optional(),
+  "featured": zod.boolean().optional(),
   "published": zod.boolean().optional()
 })
 
@@ -767,6 +775,7 @@ export const GetDestinationResponse = zod.object({
   "nightsMax": zod.number().nullish(),
   "highlights": zod.string().nullish(),
   "howToReach": zod.string().nullish(),
+  "featured": zod.boolean().nullish(),
   "published": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -797,6 +806,7 @@ export const UpdateDestinationBody = zod.object({
   "nightsMax": zod.number().optional(),
   "highlights": zod.string().optional(),
   "howToReach": zod.string().optional(),
+  "featured": zod.boolean().optional(),
   "published": zod.boolean().optional()
 })
 
@@ -818,6 +828,7 @@ export const UpdateDestinationResponse = zod.object({
   "nightsMax": zod.number().nullish(),
   "highlights": zod.string().nullish(),
   "howToReach": zod.string().nullish(),
+  "featured": zod.boolean().nullish(),
   "published": zod.boolean(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()

@@ -151,10 +151,19 @@ export default function SignatureExperiences({ onOpenEnquiry }: SignatureExperie
               border: '1px solid rgba(255, 255, 255, 0.1)',
               position: 'relative',
               transform: 'rotate(-2deg)',
-              transition: 'transform 0.4s ease'
+              transition: 'box-shadow 0.4s ease',
+              willChange: 'box-shadow'
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'rotate(-2deg) scale(1)'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 28px 60px rgba(0, 0, 0, 0.55)';
+              const video = e.currentTarget.querySelector('video');
+              if (video) video.style.transform = 'scale(1.04)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 20px 45px rgba(0, 0, 0, 0.4)';
+              const video = e.currentTarget.querySelector('video');
+              if (video) video.style.transform = 'scale(1)';
+            }}
           >
             <video
               autoPlay
@@ -168,7 +177,15 @@ export default function SignatureExperiences({ onOpenEnquiry }: SignatureExperie
               data-video-popout="false"
               tabIndex={-1}
               aria-hidden="true"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                pointerEvents: 'none',
+                transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+                willChange: 'transform'
+              }}
             >
               <source src="/Experience-section/12881094-hd_1920_1080_30fps.mp4" type="video/mp4" />
             </video>
@@ -335,15 +352,32 @@ export default function SignatureExperiences({ onOpenEnquiry }: SignatureExperie
               border: '1px solid rgba(255, 255, 255, 0.1)',
               position: 'relative',
               transform: 'rotate(2deg)',
-              transition: 'transform 0.4s ease'
+              transition: 'box-shadow 0.4s ease',
+              willChange: 'box-shadow'
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.transform = 'rotate(2deg) scale(1)'; }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 28px 60px rgba(0, 0, 0, 0.55)';
+              const img = e.currentTarget.querySelector('img');
+              if (img) img.style.transform = 'scale(1.05)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 20px 45px rgba(0, 0, 0, 0.4)';
+              const img = e.currentTarget.querySelector('img');
+              if (img) img.style.transform = 'scale(1)';
+            }}
           >
             <img
               src="/images/exp_kathakali.jpg"
               alt="Sacred Kathakali Master"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                pointerEvents: 'none',
+                transition: 'transform 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
+                willChange: 'transform'
+              }}
             />
             <div
               style={{

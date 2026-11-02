@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Lenis from 'lenis';
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -40,54 +40,6 @@ export function LandingPage() {
   const [enquiryInitialData, setEnquiryInitialData] = useState<EnquiryInitialData>({});
   const [selectedJourney, setSelectedJourney] = useState<TravelCategoryItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string>('');
-
-  // Page-wide Lenis Smooth Scrolling Engine
-  useEffect(() => {
-    const lenis = new Lenis({
-      duration: 1.25,
-      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Silky exponential ease-out
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
-      smoothWheel: true,
-      wheelMultiplier: 0.95,
-      touchMultiplier: 1.6,
-      infinite: false,
-    });
-
-    (window as any).lenis = lenis;
-
-    // Continuous Animation Frame Loop
-    let rafId: number;
-    function raf(time: number) {
-      lenis.raf(time);
-      rafId = requestAnimationFrame(raf);
-    }
-    rafId = requestAnimationFrame(raf);
-
-    // Buttery smooth glide for in-page anchor links (e.g., #destinations, #experiences)
-    const handleAnchorClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement | null;
-      const anchor = target ? target.closest('a[href^="#"]') : null;
-      if (!anchor) return;
-      const href = anchor.getAttribute('href');
-      if (href && href.length > 1) {
-        const targetEl = document.querySelector<HTMLElement>(href);
-        if (targetEl) {
-          e.preventDefault();
-          lenis.scrollTo(targetEl, { offset: -65, duration: 1.35 });
-        }
-      }
-    };
-
-    document.addEventListener('click', handleAnchorClick);
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      document.removeEventListener('click', handleAnchorClick);
-      lenis.destroy();
-      (window as any).lenis = null;
-    };
-  }, []);
 
   // Pause background Lenis inertia when any modal is active
   useEffect(() => {
@@ -186,10 +138,78 @@ export function LandingPage() {
   );
 }
 
+function ScrollToTop() {
+  const [location] = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const lenis = (window as any).lenis;
+    if (lenis && typeof lenis.scrollTo === 'function') {
+      lenis.scrollTo(0, { immediate: true });
+      requestAnimationFrame(() => {
+        lenis.resize();
+      });
+      setTimeout(() => {
+        lenis.resize();
+      }, 150);
+    }
+  }, [location]);
+
+  return null;
+}
+
 export default function App() {
+  // Global Lenis Smooth Scrolling Engine across all pages
+  useEffect(() => {
+    const lenis = new Lenis({
+      duration: 1.25,
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Silky exponential ease-out
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.6,
+      infinite: false,
+    });
+
+    (window as any).lenis = lenis;
+
+    let rafId: number;
+    function raf(time: number) {
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+    rafId = requestAnimationFrame(raf);
+
+    // Buttery smooth glide for in-page anchor links (e.g., #destinations, #experiences)
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const anchor = target ? target.closest('a[href^="#"]') : null;
+      if (!anchor) return;
+      const href = anchor.getAttribute('href');
+      if (href && href.length > 1) {
+        const targetEl = document.querySelector<HTMLElement>(href);
+        if (targetEl) {
+          e.preventDefault();
+          lenis.scrollTo(targetEl, { offset: -65, duration: 1.35 });
+        }
+      }
+    };
+
+    document.addEventListener('click', handleAnchorClick);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      document.removeEventListener('click', handleAnchorClick);
+      lenis.destroy();
+      (window as any).lenis = null;
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <WouterRouter>
+        <ScrollToTop />
         <Switch>
           <Route path="/" component={LandingPage} />
           <Route path="/destinations" component={DestinationsPage} />

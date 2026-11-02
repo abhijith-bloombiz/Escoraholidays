@@ -23,7 +23,7 @@ import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
 import HeroGradientBackground from '../components/HeroGradientBackground';
 import { ESCORA_INFO } from '../data/escoraData';
-import { useScrollReveal } from '../hooks/useScrollAnimation';
+import { useScrollReveal, usePageScrollReveal } from '../hooks/useScrollAnimation';
 
 const DURATION_CHOICES = ["4–6 Days", "7–10 Days", "11–14 Days", "15+ Days"];
 
@@ -56,6 +56,8 @@ const FAQS = [
 ];
 
 export default function ContactPage() {
+  usePageScrollReveal();
+
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
 
@@ -204,7 +206,7 @@ export default function ContactPage() {
           >
             <a
               href="tel:+918157003344"
-              className="luxury-interactive-card"
+              className="luxury-interactive-card reveal-card stagger-1"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.04)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -242,7 +244,7 @@ export default function ContactPage() {
               href="https://wa.me/918157003344?text=Hello%20Escora%20Holidays%2C%20I%20would%20like%20to%20inquire%20about%20a%20bespoke%20Kerala%20holiday."
               target="_blank"
               rel="noopener noreferrer"
-              className="luxury-interactive-card"
+              className="luxury-interactive-card reveal-card stagger-2"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.04)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -278,7 +280,7 @@ export default function ContactPage() {
 
             <a
               href="mailto:hello@escoraholidays.com"
-              className="luxury-interactive-card"
+              className="luxury-interactive-card reveal-card stagger-3"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.04)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -313,7 +315,7 @@ export default function ContactPage() {
             </a>
 
             <div
-              className="luxury-interactive-card"
+              className="luxury-interactive-card reveal-card stagger-4"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.04)',
                 border: '1px solid rgba(255, 255, 255, 0.12)',
@@ -368,7 +370,7 @@ export default function ContactPage() {
           >
             {/* Left Column: Interactive Contact Form */}
             <div
-              className={`reveal-fade-left ${formVisible ? 'in-view' : ''}`}
+              className="reveal-card"
               style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: '24px',
@@ -718,7 +720,7 @@ export default function ContactPage() {
 
             {/* Right Column: Atelier Details, Direct Channels & Guarantee */}
             <div
-              className={`reveal-fade-right ${formVisible ? 'in-view' : ''}`}
+              className="reveal-fade-right"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -727,7 +729,7 @@ export default function ContactPage() {
             >
               {/* Private Atelier Office Card */}
               <div
-                className="luxury-interactive-card"
+                className="luxury-interactive-card reveal-card stagger-1"
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderRadius: '24px',
@@ -823,6 +825,7 @@ export default function ContactPage() {
 
               {/* The Escora Distinction Pillars */}
               <div
+                className="reveal-card stagger-2"
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderRadius: '24px',
@@ -880,7 +883,7 @@ export default function ContactPage() {
         }}
       >
         <div className="section-wrapper" style={{ maxWidth: '960px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
+          <div className="reveal-fade-up" style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
               <HelpCircle size={15} /> Travel Planning Clarity
             </div>
@@ -890,20 +893,16 @@ export default function ContactPage() {
           </div>
 
           <div
-            className={`reveal-fade-up ${faqVisible ? 'in-view' : ''}`}
             style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: '1.25rem',
-              opacity: faqVisible ? 1 : 0.95,
-              transform: faqVisible ? 'translateY(0)' : 'none',
-              transition: 'opacity 0.5s ease, transform 0.5s ease'
+              gap: '1.25rem'
             }}
           >
             {FAQS.map((faq, idx) => (
               <div
                 key={idx}
-                className="luxury-interactive-card"
+                className={`luxury-interactive-card reveal-card stagger-${(idx % 4) + 1}`}
                 style={{
                   backgroundColor: '#F8F6F1',
                   borderRadius: '16px',

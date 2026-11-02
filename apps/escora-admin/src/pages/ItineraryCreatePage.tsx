@@ -628,6 +628,16 @@ export default function ItineraryCreatePage() {
                   title: previewTemplate.title,
                   customerName: previewTemplate.customerName || "Preview Guest",
                   destination: previewTemplate.destination,
+                  coverImageUrl: previewTemplate.coverImageUrl,
+                  summary: previewTemplate.summary || previewTemplate.description,
+                  startDate: previewTemplate.startDate,
+                  endDate: previewTemplate.endDate,
+                  referenceNumber: previewTemplate.referenceNumber,
+                  curatorName: previewTemplate.curatorName,
+                  curatorPhone: previewTemplate.curatorPhone,
+                  emergencyContacts: previewTemplate.emergencyContacts,
+                  tripIncludes: previewTemplate.tripIncludes,
+                  transportation: previewTemplate.transportation,
                   days: Array.isArray(previewTemplate.days)
                     ? previewTemplate.days
                     : parseDays(previewTemplate.days),

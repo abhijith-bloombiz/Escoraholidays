@@ -19,6 +19,7 @@ export interface IDestination {
   nightsMax?: number | null;
   highlights?: string | null;
   howToReach?: string | null;
+  featured?: boolean;
   published: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -45,6 +46,7 @@ const destinationSchema = new Schema<IDestination>(
     nightsMax: { type: Number, default: null, min: 0 },
     highlights: { type: String, default: null },
     howToReach: { type: String, default: null },
+    featured: { type: Boolean, required: true, default: false, index: true },
     published: { type: Boolean, required: true, default: false, index: true },
     createdAt: { type: Date, required: true, default: Date.now },
     updatedAt: { type: Date, required: true, default: Date.now },
@@ -79,6 +81,7 @@ export const insertDestinationSchema = z.object({
   nightsMax: z.number().optional().nullable(),
   highlights: z.string().optional().nullable(),
   howToReach: z.string().optional().nullable(),
+  featured: z.boolean().optional().default(false),
   published: z.boolean().optional().default(false),
 });
 

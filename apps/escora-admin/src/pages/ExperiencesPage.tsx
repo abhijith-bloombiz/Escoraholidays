@@ -737,9 +737,8 @@ export default function ExperiencesPage() {
                           {exp.title}
                         </span>
                         {exp.isHomeSpotlight && (
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold">
-                            <Sparkles size={9} className="fill-amber-500 text-amber-500" />
-                            Card #{exp.spotlightSlot || 1}
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-[10px] font-semibold">
+                            Slot {exp.spotlightSlot || 1}
                           </span>
                         )}
                       </div>
@@ -795,22 +794,21 @@ export default function ExperiencesPage() {
                     </div>
                   </TableCell>
 
-                  {/* Hero Spotlight Symbol & Quick Order */}
+                  {/* Hero Spotlight Quick Order */}
                   <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     {exp.isHomeSpotlight ? (
                       <Select
                         value={String(exp.spotlightSlot || 1)}
                         onValueChange={(val) => handleQuickSlotChange(exp, Number(val))}
                       >
-                        <SelectTrigger className="inline-flex h-7 w-[105px] items-center justify-center gap-1 px-2 rounded-full bg-gradient-to-r from-amber-500/15 to-amber-600/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-semibold shadow-xs hover:bg-amber-500/25 transition-all">
-                          <Sparkles size={11} className="fill-amber-500 text-amber-600 shrink-0" />
+                        <SelectTrigger className="inline-flex h-7 w-[88px] items-center justify-center px-2 rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-semibold shadow-xs hover:bg-amber-500/25 transition-all">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent onClick={(e) => e.stopPropagation()}>
-                          <SelectItem value="1">✨ Slot #1</SelectItem>
-                          <SelectItem value="2">✨ Slot #2</SelectItem>
-                          <SelectItem value="3">✨ Slot #3</SelectItem>
-                          <SelectItem value="4">✨ Slot #4</SelectItem>
+                          <SelectItem value="1">Slot 1</SelectItem>
+                          <SelectItem value="2">Slot 2</SelectItem>
+                          <SelectItem value="3">Slot 3</SelectItem>
+                          <SelectItem value="4">Slot 4</SelectItem>
                         </SelectContent>
                       </Select>
                     ) : (

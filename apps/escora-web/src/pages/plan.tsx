@@ -157,10 +157,10 @@ const STAY_PREFERENCES = [
 ];
 
 const VEHICLE_OPTIONS = [
-  'Standard (Sedan)',
-  'Premium (Innova Crysta)',
-  'Luxury (Innova Hycross / SUV)',
-  'Tempo Traveller (Group Van)'
+  'Standard',
+  'Premium',
+  'Luxury',
+  'Tempo Traveller'
 ];
 
 // ---------------------------------------------------------------------------
@@ -367,7 +367,7 @@ export default function PlanJourneyPage() {
     'Hill Station Resorts',
     'Private Handcrafted Houseboat'
   ]);
-  const [vehicleType, setVehicleType] = useState<string>('Premium (Innova Crysta)');
+  const [vehicleType, setVehicleType] = useState<string>('Premium');
 
   // Guest Details
   const [guestName, setGuestName] = useState<string>('');
@@ -1577,7 +1577,7 @@ export default function PlanJourneyPage() {
                   </div>
                   <div>
                     <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Chauffeured Vehicle</span>
-                    <strong style={{ color: '#121316' }}>{vehicleType || 'Standard (Sedan)'}</strong>
+                    <strong style={{ color: '#121316' }}>{vehicleType || 'Standard'}</strong>
                   </div>
                   <div style={{ gridColumn: '1 / -1', paddingTop: '0.5rem', borderTop: '1px dashed rgba(0, 0, 0, 0.08)' }}>
                     <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Direct Confirmation Contact</span>

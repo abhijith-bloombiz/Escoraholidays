@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'wouter';
-import { ArrowRight, CheckCircle2, Phone, Mail, MapPin, Instagram, Facebook, Linkedin, Youtube } from 'lucide-react';
-import { ESCORA_INFO } from '../data/escoraData';
+import { ArrowRight, CheckCircle2, Phone, Mail, MapPin, Instagram, Facebook, Linkedin, Building2, ShieldCheck, CreditCard } from 'lucide-react';
+import { ESCORA_INFO, ESCORA_BANK_DETAILS } from '../data/escoraData';
 import { useScrollReveal } from '../hooks/useScrollAnimation';
 
 function WhatsAppIcon({ size = 18 }: { size?: number }) {
@@ -132,8 +132,8 @@ export default function Footer({ onShowToast }: FooterProps) {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'minmax(280px, 1.2fr) 2fr',
-              gap: '4rem',
+              gridTemplateColumns: 'minmax(520px, 1.75fr) minmax(300px, 1.25fr)',
+              gap: '3.5rem',
               marginBottom: '3.5rem'
             }}
             className="footer-top-grid"
@@ -224,18 +224,47 @@ export default function Footer({ onShowToast }: FooterProps) {
                 </button>
               </form>
 
-              {/* Contact direct lines */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem', color: 'rgba(255, 255, 255, 0.7)' }}>
-                <a href="tel:+918157003344" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Phone size={13} color="#B48235" /> +91 8157 003 344
-                </a>
-                <a href="mailto:hello@escoraholidays.com" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Mail size={13} color="#B48235" /> hello@escoraholidays.com
-                </a>
-                <span style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', lineHeight: 1.4 }}>
-                  <MapPin size={13} color="#B48235" style={{ flexShrink: 0, marginTop: '2px' }} />
-                  1st Floor, Landmark Maple Business Tower, Kozhikode, Kerala 673014
-                </span>
+              {/* Contact & Bank Wire direct lines (Side-by-side, line by line, no box) */}
+              <div
+                className="footer-contact-bank-row"
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '2.5rem',
+                  fontSize: '0.8rem',
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  marginTop: '0.25rem'
+                }}
+              >
+                {/* Left: Contact direct lines */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  <a href="tel:+918157003344" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}>
+                    <Phone size={13} color="#B48235" /> <span style={{ letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums' }}>+91 8157 003 344</span>
+                  </a>
+                  <a href="mailto:admin@escoraholidays.com" style={{ color: 'inherit', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                    <Mail size={13} color="#B48235" /> admin@escoraholidays.com
+                  </a>
+                  <span style={{ display: 'flex', alignItems: 'flex-start', gap: '0.45rem', lineHeight: 1.4, maxWidth: '280px' }}>
+                    <MapPin size={13} color="#B48235" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    1st Floor, Landmark Maple Business Tower, Kozhikode, Kerala 673014
+                  </span>
+                </div>
+
+                {/* Opposite side: Bank wire direct lines */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}>
+                    <ShieldCheck size={13} color="#B48235" /> {ESCORA_BANK_DETAILS.accountName}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}>
+                    <CreditCard size={13} color="#B48235" /> <span style={{ fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em' }}>{ESCORA_BANK_DETAILS.accountNumber}</span>
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}>
+                    <CheckCircle2 size={13} color="#B48235" /> IFSC Code: {ESCORA_BANK_DETAILS.ifscCode}
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', whiteSpace: 'nowrap' }}>
+                    <Building2 size={13} color="#B48235" /> Branch Name: {ESCORA_BANK_DETAILS.branch}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -396,7 +425,7 @@ export default function Footer({ onShowToast }: FooterProps) {
 
           </div>
 
-          {/* Bottom Bar: Copyright & Socials */}
+                    {/* Bottom Bar: Copyright & Socials */}
           <div
             style={{
               paddingTop: '2rem',
@@ -414,7 +443,7 @@ export default function Footer({ onShowToast }: FooterProps) {
               Copyright & design by @ESCORA Holidays - 2026. All rights reserved.
             </div>
 
-            {/* Official Social Links (Instagram, Facebook, LinkedIn, YouTube, WhatsApp) */}
+            {/* Official Social Links (Instagram, Facebook, LinkedIn, WhatsApp) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
               <a
                 href="https://www.instagram.com/escora_holidays"
@@ -487,30 +516,6 @@ export default function Footer({ onShowToast }: FooterProps) {
                 }}
               >
                 <Linkedin size={18} />
-              </a>
-              <a
-                href="https://www.youtube.com/@escoraholidays"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                style={{
-                  color: 'rgba(255, 255, 255, 0.65)',
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'color 0.2s ease, transform 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#FF0000';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.color = 'rgba(255, 255, 255, 0.65)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                <Youtube size={18} />
               </a>
               <a
                 href="https://wa.me/918157003344"
@@ -613,6 +618,10 @@ export default function Footer({ onShowToast }: FooterProps) {
           .footer-top-grid {
             grid-template-columns: 1fr !important;
             gap: 2.5rem !important;
+          }
+          .footer-contact-bank-row {
+            flex-direction: column !important;
+            gap: 1.5rem !important;
           }
           .footer-links-grid {
             grid-template-columns: repeat(2, 1fr) !important;

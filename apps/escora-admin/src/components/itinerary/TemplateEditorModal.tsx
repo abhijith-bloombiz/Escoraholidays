@@ -616,7 +616,7 @@ export default function TemplateEditorModal({
                     <Input
                       value={emergencyContacts}
                       onChange={(e) => setEmergencyContacts(e.target.value)}
-                      placeholder="+91 9400280420 | +91 8157003344"
+                      placeholder="+91 9400 280 420 | +91 8157 003 344"
                     />
                   </div>
                 </div>

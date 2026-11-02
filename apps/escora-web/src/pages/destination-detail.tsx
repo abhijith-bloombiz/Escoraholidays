@@ -642,14 +642,14 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
       {destination.curatedStays && destination.curatedStays.length > 0 && (
         <section style={{ backgroundColor: '#0D0F13', color: '#FFFFFF', padding: '5.5rem 0' }}>
           <div className="section-wrapper">
-            <div className="reveal-fade-up" style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 3.5rem' }}>
-              <p style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
+            <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 3.5rem' }}>
+              <p className="reveal-fade-up" style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 ACCOMMODATION EXCELLENCE
               </p>
-              <h2 className="font-display" style={{ fontSize: '2.6rem', color: '#FFFFFF', lineHeight: 1.1 }}>
+              <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.6rem', color: '#FFFFFF', lineHeight: 1.1 }}>
                 HANDPICKED LUXURY SANCTUARIES
               </h2>
-              <p style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '0.95rem', marginTop: '0.5rem' }}>
+              <p className="reveal-fade-up stagger-2" style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '0.95rem', marginTop: '0.5rem' }}>
                 We inspect every property in person to guarantee exceptional privacy, heritage integrity, and service.
               </p>
             </div>
@@ -744,7 +744,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
               <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
                 KEEP EXPLORING
               </p>
-              <h2 className="font-display" style={{ fontSize: '2.2rem', color: '#121316', marginTop: '0.25rem' }}>
+              <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.2rem', color: '#121316', marginTop: '0.25rem' }}>
                 MORE OF KERALA
               </h2>
             </div>

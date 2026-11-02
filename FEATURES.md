@@ -835,7 +835,7 @@ Static page with the privacy policy content.
 
 Emails are sent via the Resend REST API using `fetch()` — no npm package required. All email functions silently skip (log a warning) if `RESEND_API_KEY` is not set, so the application works without email configuration.
 
-All emails are sent from `hello@escoraholidays.com`.
+All emails are sent from `admin@escoraholidays.com`.
 
 ### Triggered Emails
 

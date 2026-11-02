@@ -577,7 +577,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
               rel="noopener noreferrer"
               style={{ color: '#D4AF37', fontSize: '0.88rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem', justifyContent: 'center' }}
             >
-              WhatsApp / Concierge: +91 8157 003 344
+              WhatsApp / Concierge: <span style={{ fontWeight: 700, letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums' }}>+91 8157 003 344</span>
             </a>
           </div>
         </div>

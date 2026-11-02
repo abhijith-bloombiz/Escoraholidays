@@ -282,7 +282,7 @@ function getStandaloneMaintenanceHtml(): string {
       <span style="color:#C89B3C;">&rarr;</span>
     </a>
     <div class="contact">
-      For urgent inquiries: <a href="mailto:hello@escoraholidays.com">hello@escoraholidays.com</a>
+      For urgent inquiries: <a href="mailto:admin@escoraholidays.com">admin@escoraholidays.com</a>
     </div>
   </main>
   <footer>

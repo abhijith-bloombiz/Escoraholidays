@@ -92,7 +92,7 @@ export const ESCORA_INFO: EscoraInfo = {
   tagline: "Where Every Journey Feels Like Home",
   eyebrow: "God's Own Country",
   phone: "+91 8157 003 344",
-  email: "hello@escoraholidays.com",
+  email: "admin@escoraholidays.com",
   address: "1st Floor, Landmark Maple Business Tower, Kozhikode, Kerala 673014",
   socials: [
     { label: "INSTAGRAM", url: "https://www.instagram.com/escora_holidays" },
@@ -100,6 +100,24 @@ export const ESCORA_INFO: EscoraInfo = {
     { label: "LINKEDIN", url: "https://www.linkedin.com/company/escora-holidays/about/" },
     { label: "YOUTUBE", url: "https://www.youtube.com/@escoraholidays" }
   ]
+};
+
+export interface EscoraBankDetails {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  ifscCode: string;
+  branch: string;
+  upiId: string;
+}
+
+export const ESCORA_BANK_DETAILS: EscoraBankDetails = {
+  bankName: "HDFC Bank Ltd.",
+  accountName: "ESCORA HOLIDAYS LLP",
+  accountNumber: "99999496933336",
+  ifscCode: "HDFC0010365",
+  branch: "Mankavu",
+  upiId: "escoraholidays@okhdfcbank"
 };
 
 // Section 3: Destination Discovery (5 Iconic Regional Landscapes of Kerala)
@@ -489,4 +507,145 @@ export const PLANNING_STEPS: PlanningStepItem[] = [
   { step: "04", title: "Refine together", desc: "Fine-tune dates, inclusions, dietary requirements, and pacing until it feels just right." },
   { step: "05", title: "Travel with concierge support", desc: "Seamless on-ground 24/7 concierge assistance throughout your entire stay in God's Own Country." },
   { step: "06", title: "Post-trip support", desc: "Thoughtful follow-up and continued care as you return with cherished memories." }
+];
+
+// Section: Premium Partners
+export interface PremiumPartnerPhase {
+  phase: string;
+  title: string;
+  description: string;
+}
+
+export interface PremiumPartnerHighlight {
+  title: string;
+  description: string;
+}
+
+export interface PremiumPartner {
+  id: string;
+  name: string;
+  sanctuaryType: string;
+  badge: string;
+  location: string;
+  address: string;
+  pincode: string;
+  tagline: string;
+  description: string;
+  facilityType: string;
+  frameworkName: string;
+  frameworkDescription: string;
+  journeyPhases: PremiumPartnerPhase[];
+  highlights: PremiumPartnerHighlight[];
+  image: string;
+  logo: string;
+  websiteUrl: string;
+  featured: boolean;
+}
+
+export const PREMIUM_PARTNERS: PremiumPartner[] = [
+  {
+    id: "tulah-clinical-wellness",
+    name: "Tulah Clinical Wellness",
+    sanctuaryType: "Clinical Wellness Sanctuary",
+    badge: "Official Premium Partner",
+    location: "Kakkanchery, Chelambra, Kerala",
+    address: "Kakkanchery, Chelambra, Kerala 673634, India",
+    pincode: "673634",
+    tagline: "Where Ancient Healing Practices Blend with Innovative Clinical Therapies",
+    description:
+      "Tulah Clinical Wellness Sanctuary is a clinical wellness sanctuary located in Kakkanchery, Chelambra, Kerala 673634, India, designed to blend ancient healing practices with innovative clinical therapies. It operates as a doctor-led multidisciplinary facility offering personalized journeys structured around Diagnose, Assess, Heal, and Sustain phases, utilizing proprietary frameworks like the Tulah Life Index™ for precise physiological insights.",
+    facilityType: "Doctor-Led Multidisciplinary Facility",
+    frameworkName: "Tulah Life Index™",
+    frameworkDescription:
+      "Proprietary framework for precise physiological insights, tracking cellular, metabolic, and biometric markers to tailor personalized healing journeys.",
+    journeyPhases: [
+      {
+        phase: "01",
+        title: "Diagnose",
+        description: "In-depth physiological, cellular, and biomarker baseline assessment."
+      },
+      {
+        phase: "02",
+        title: "Assess",
+        description: "Multidisciplinary doctor consultation, holistic evaluation, and bio-mapping."
+      },
+      {
+        phase: "03",
+        title: "Heal",
+        description: "Targeted clinical treatments, regenerative therapies, Ayurveda, and precision nutrition."
+      },
+      {
+        phase: "04",
+        title: "Sustain",
+        description: "Long-term metabolic vitality protocols, sustainable habits, and ongoing guidance."
+      }
+    ],
+    highlights: [
+      {
+        title: "Doctor-Led Care",
+        description: "Multidisciplinary team of clinicians, specialists, and Ayurvedic physicians."
+      },
+      {
+        title: "Tulah Life Index™",
+        description: "Proprietary diagnostic framework delivering precise physiological insights."
+      },
+      {
+        title: "The Sonorium",
+        description: "World's largest sound-healing dome & celestial acoustic resonance chamber."
+      },
+      {
+        title: "30-Acre Eco Sanctuary",
+        description: "LEED & WELL-certified design with radiant cooling in the Malabar hills."
+      }
+    ],
+    image: "/images/tulah-sanctuary.png",
+    logo: "/images/tulah-logo-light.png",
+    websiteUrl: "https://tulah.life",
+    featured: true
+  }
+];
+
+
+export interface AccreditationItem {
+  id: string;
+  name: string;
+  label: string;
+  sublabel?: string;
+  logo: string;
+  alt: string;
+}
+
+export const CERTIFICATES_ACCREDITATIONS: AccreditationItem[] = [
+  {
+    id: 'kerala-tourism',
+    name: 'Kerala Tourism',
+    label: 'Kerala Tourism',
+    sublabel: "God's Own Country",
+    logo: '/images/accreditations/kerala-tourism.jpg',
+    alt: "Kerala Tourism - God's Own Country"
+  },
+  {
+    id: 'iata',
+    name: 'IATA',
+    label: 'IATA Accredited',
+    sublabel: 'International Air Transport Association',
+    logo: '/images/accreditations/iata.jpg',
+    alt: 'IATA - International Air Transport Association'
+  },
+  {
+    id: 'nidhi',
+    name: 'NIDHI+',
+    label: 'NIDHI+ Ministry of Tourism',
+    sublabel: 'National Integrated Database of Hospitality Industry',
+    logo: '/images/accreditations/nidhi.png',
+    alt: 'NIDHI+ National Integrated Database of Hospitality Industry'
+  },
+  {
+    id: 'attoi',
+    name: 'ATTOI',
+    label: 'ATTOI Member',
+    sublabel: 'Association of Tourism Trade Organisations',
+    logo: '/images/accreditations/attoi.jpg',
+    alt: 'ATTOI - Association of Tourism Trade Organisations, India'
+  }
 ];

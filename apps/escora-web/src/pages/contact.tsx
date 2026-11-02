@@ -198,7 +198,7 @@ export default function ContactPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: '1rem',
               maxWidth: '920px',
               margin: '0 auto'
@@ -236,7 +236,7 @@ export default function ContactPage() {
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '0.72rem', color: '#D4A359', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Direct Voice</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, marginTop: '2px' }}>+91 8157 003 344</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, marginTop: '2px', letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>+91 8157 003 344</div>
               </div>
             </a>
 
@@ -279,7 +279,7 @@ export default function ContactPage() {
             </a>
 
             <a
-              href="mailto:hello@escoraholidays.com"
+              href="mailto:admin@escoraholidays.com"
               className="luxury-interactive-card reveal-card stagger-3"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.04)',
@@ -310,42 +310,9 @@ export default function ContactPage() {
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '0.72rem', color: '#D4A359', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Official Email</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, marginTop: '2px', wordBreak: 'break-all' }}>hello@escoraholidays.com</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, marginTop: '2px', wordBreak: 'break-all' }}>admin@escoraholidays.com</div>
               </div>
             </a>
-
-            <div
-              className="luxury-interactive-card reveal-card stagger-4"
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                borderRadius: '16px',
-                padding: '1.1rem 1.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.85rem',
-                color: '#FFFFFF'
-              }}
-            >
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '12px',
-                  backgroundColor: 'rgba(212, 163, 89, 0.18)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}
-              >
-                <Clock size={19} color="#D4A359" />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '0.72rem', color: '#D4A359', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Response Time</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, marginTop: '2px' }}>&lt; 2–4 Hours</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

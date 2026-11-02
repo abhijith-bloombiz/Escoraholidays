@@ -37,7 +37,7 @@ function templateToPrintData(t: ItineraryTemplate): ItineraryPrintData {
     referenceNumber: t.referenceNumber || "L100021/Q1020",
     curatorName: t.curatorName || "Midhilaj Chelakkal",
     curatorPhone: t.curatorPhone || "+91 9745585813",
-    emergencyContacts: t.emergencyContacts || "+91 9400280420 | +91 8157003344",
+    emergencyContacts: t.emergencyContacts || "+91 9400 280 420 | +91 8157 003 344",
     createdDate: t.createdDate || "01-10-2026",
     adults: t.adults ?? 1,
     children: t.children ?? 0,

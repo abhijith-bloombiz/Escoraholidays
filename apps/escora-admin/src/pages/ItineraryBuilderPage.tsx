@@ -2087,7 +2087,7 @@ export default function ItineraryBuilderPage() {
                       userHasEditedRef.current = true;
                       setValue("emergencyContacts", e.target.value, { shouldDirty: true });
                     }}
-                    placeholder="+91 9400280420 | +91 8157003344"
+                    placeholder="+91 9400 280 420 | +91 8157 003 344"
                   />
                   <p className="text-[10.5px] text-muted-foreground">
                     24/7 hotline numbers printed in the top proposal card.

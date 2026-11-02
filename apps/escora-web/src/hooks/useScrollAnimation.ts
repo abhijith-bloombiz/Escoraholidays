@@ -74,7 +74,7 @@ export function useScrollReveal<T extends HTMLElement = HTMLElement>({
         // Never reset when the element has scrolled past through the top of the viewport (rect.top <= 0),
         // which completely eliminates the infinite translateY oscillation / card shaking when only the bottom 2% is visible!
         const rect = entry.boundingClientRect;
-        if (rect.top > 0) {
+        if (rect.top > 0 || rect.bottom < -20) {
           setIsVisible(false);
         }
       }

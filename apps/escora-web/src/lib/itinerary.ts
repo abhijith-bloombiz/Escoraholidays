@@ -153,7 +153,7 @@ export const DEFAULT_AGENCY_CONTACT = {
   instagram: "escora_holidays",
   facebook: "Escora Holidays",
   website: "http://www.escoraholidays.com",
-  emergencyContacts: "+91 9400280420 | +91 8157003344",
+  emergencyContacts: "+91 9400 280 420 | +91 8157 003 344",
   curatorName: "Midhilaj Chelakkal",
   curatorPhone: "+91 9745585813",
 };

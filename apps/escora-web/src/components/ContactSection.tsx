@@ -424,9 +424,7 @@ export default function ContactSection({ onShowToast }: ContactSectionProps) {
                   <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#B48235', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
                     Direct Telephone
                   </div>
-                  <div style={{ fontSize: '1rem', fontWeight: 600, color: '#121316', marginTop: '0.15rem' }}>
-                    {ESCORA_INFO.phone}
-                  </div>
+                  <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#121316', marginTop: '0.15rem', letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{ESCORA_INFO.phone}</div>
                 </div>
               </a>
 

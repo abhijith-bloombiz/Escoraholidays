@@ -21,7 +21,7 @@ wellness retreats, and curated travel experiences for individual and group
 travellers visiting Kerala.
 
 Our registered address is Fort Kochi, Kerala 682001, India.
-You can reach our data team at hello@escoraholidays.com.
+You can reach our data team at admin@escoraholidays.com.
 
 
 SECTION 2 — INFORMATION WE COLLECT
@@ -145,7 +145,7 @@ the right to:
   Grievance     Raise a complaint with our designated Grievance Officer
                 (see Section 10).
 
-To exercise any of these rights, write to hello@escoraholidays.com.
+To exercise any of these rights, write to admin@escoraholidays.com.
 We will respond within 30 days.
 
 
@@ -156,7 +156,7 @@ your personal data from unauthorised access, disclosure, or loss. These include
 encrypted data transmission (TLS), access controls, and regular security reviews.
 
 No method of transmission over the internet is completely secure. If you believe
-your data has been compromised, please notify us immediately at hello@escoraholidays.com.
+your data has been compromised, please notify us immediately at admin@escoraholidays.com.
 
 
 SECTION 10 — GRIEVANCE OFFICER
@@ -165,7 +165,7 @@ In accordance with the Information Technology Act, 2000 and applicable rules:
 
   Name     Midhilaj
   Role     CEO, Escora
-  Email    hello@escoraholidays.com
+  Email    admin@escoraholidays.com
   Phone    +91 8157 003 344
   Address  Fort Kochi, Kerala 682001, India
   Hours    Monday – Saturday, 09:00 – 18:00 IST

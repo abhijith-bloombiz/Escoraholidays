@@ -20,3 +20,4 @@ export * from "./itinerary-template.model";
 export * from "./testimonial.model";
 export * from "./experience.model";
 export * from "./hero.model";
+export * from "./home-experience.model";

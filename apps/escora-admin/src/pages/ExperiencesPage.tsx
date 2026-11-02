@@ -50,6 +50,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import ImageUploadField from "@/components/ImageUploadField";
+import HomeExperiencesManager from "@/components/experiences/HomeExperiencesManager";
 import {
   Plus,
   Pencil,
@@ -73,6 +74,7 @@ import {
   Coffee,
   Waves,
   Feather,
+  Video,
 } from "lucide-react";
 
 export const PRESET_CATEGORIES = [
@@ -158,6 +160,7 @@ export default function ExperiencesPage() {
   const qc = useQueryClient();
 
   const [search, setSearch] = useState("");
+  const [mainSection, setMainSection] = useState<"catalog" | "home_cards">("catalog");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [featuredFilter, setFeaturedFilter] = useState("all");
@@ -386,47 +389,97 @@ export default function ExperiencesPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-            className="text-xs gap-1.5 border-border hover:bg-muted"
-          >
-            <a href="http://localhost:5173/experiences" target="_blank" rel="noreferrer">
-              <ExternalLink size={13} /> View Live Page
-            </a>
-          </Button>
+          {mainSection === "catalog" ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="text-xs gap-1.5 border-border hover:bg-muted"
+              >
+                <a href="http://localhost:5173/experiences" target="_blank" rel="noreferrer">
+                  <ExternalLink size={13} /> View Live Page
+                </a>
+              </Button>
 
-          <Button
-            onClick={handleOpenCreate}
-            size="sm"
-            className="bg-[#183D2E] hover:bg-[#122E23] text-white font-medium text-xs gap-1.5 shadow-sm"
-          >
-            <Plus size={15} /> Add Experience
-          </Button>
+              <Button
+                onClick={handleOpenCreate}
+                size="sm"
+                className="bg-[#183D2E] hover:bg-[#122E23] text-white font-medium text-xs gap-1.5 shadow-sm"
+              >
+                <Plus size={15} /> Add Experience
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              asChild
+              className="text-xs gap-1.5 border-border hover:bg-muted"
+            >
+              <a href="http://localhost:3000/#experiences" target="_blank" rel="noreferrer">
+                <ExternalLink size={13} /> View On Homepage
+              </a>
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-card p-3 rounded-xl border border-border shadow-xs">
-        {/* Search */}
-        <div className="relative">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by title, tagline, destination..."
-            className="pl-9 text-xs h-9"
-          />
-          {search && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X size={13} />
-            </button>
-          )}
-        </div>
+      {/* Main Section Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-border/80 pb-px">
+        <button
+          type="button"
+          onClick={() => setMainSection("catalog")}
+          className={`pb-3 px-4 text-xs font-semibold flex items-center gap-2 border-b-2 transition-all ${
+            mainSection === "catalog"
+              ? "border-[#183D2E] text-[#183D2E] dark:border-white dark:text-white"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Compass className="w-4 h-4" />
+          All Experiences Catalog ({experiences.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setMainSection("home_cards")}
+          className={`pb-3 px-4 text-xs font-semibold flex items-center gap-2 border-b-2 transition-all ${
+            mainSection === "home_cards"
+              ? "border-[#183D2E] text-[#183D2E] dark:border-white dark:text-white"
+              : "border-transparent text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Video className="w-4 h-4 text-[#D4AF37]" />
+          Homepage Spotlight (4 Video Cards)
+          <span className="bg-[#183D2E]/10 text-[#183D2E] dark:bg-white/10 dark:text-white text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full">
+            4 Slots
+          </span>
+        </button>
+      </div>
+
+      {mainSection === "home_cards" ? (
+        <HomeExperiencesManager />
+      ) : (
+        <>
+          {/* Filter and Search Bar */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 bg-card p-3 rounded-xl border border-border shadow-xs">
+            {/* Search */}
+            <div className="relative">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by title, tagline, destination..."
+                className="pl-9 text-xs h-9"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
 
         {/* Category Filter */}
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -680,6 +733,8 @@ export default function ExperiencesPage() {
           </TableBody>
         </Table>
       </div>
+      </>
+      )}
 
       {/* Create / Edit Dialog */}
       <Dialog open={openModal} onOpenChange={setOpenModal}>

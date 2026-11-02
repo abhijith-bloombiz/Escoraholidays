@@ -3,6 +3,7 @@ import healthRouter from "./health";
 import authRouter from "./auth";
 import destinationsRouter from "./destinations";
 import experiencesRouter from "./experiences";
+import homeExperiencesRouter from "./home-experiences";
 import heroRouter from "./hero";
 import packagesRouter from "./packages";
 import ordersRouter from "./orders";
@@ -53,6 +54,11 @@ router.get("/experiences/:id", experiencesRouter);
 router.post("/experiences", requireAuth, experiencesRouter);
 router.patch("/experiences/:id", requireAuth, experiencesRouter);
 router.delete("/experiences/:id", requireAuth, experiencesRouter);
+
+router.get("/home-experiences", homeExperiencesRouter);
+router.get("/home-experiences/:slot", homeExperiencesRouter);
+router.put("/home-experiences/:slot", requireAuth, homeExperiencesRouter);
+router.patch("/home-experiences/:slot", requireAuth, homeExperiencesRouter);
 
 router.get("/hero/slides", heroRouter);
 router.get("/hero/slides/:id", heroRouter);

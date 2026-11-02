@@ -1431,9 +1431,9 @@ export default function PlanJourneyPage() {
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
-                          backgroundColor: '#25D366',
+                          backgroundColor: '#15803D',
                           color: '#FFFFFF',
                           padding: '0.85rem 1.8rem',
                           fontSize: '0.86rem',
@@ -1617,9 +1617,9 @@ export default function PlanJourneyPage() {
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-pill"
+                  className="btn-pill anim-hover-pill"
                   style={{
-                    backgroundColor: '#25D366',
+                    backgroundColor: '#15803D',
                     color: '#FFFFFF',
                     padding: '0.9rem 2.2rem',
                     fontSize: '0.88rem',
@@ -1917,7 +1917,7 @@ export default function PlanJourneyPage() {
                         onMouseEnter={(e) => (e.currentTarget.style.color = '#9E6F29')}
                         onMouseLeave={(e) => (e.currentTarget.style.color = '#6B7280')}
                       >
-                        Skip this step & continue →
+                        Skip →
                       </button>
 
                       <button

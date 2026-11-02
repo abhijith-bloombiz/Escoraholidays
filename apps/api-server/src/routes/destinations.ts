@@ -31,8 +31,8 @@ router.get("/destinations", async (req, res, next): Promise<void> => {
   if (query.data.published !== undefined) {
     filter.published = query.data.published;
   }
-  if (query.data.featured !== undefined) {
-    filter.featured = query.data.featured;
+  if ((query.data as any).featured !== undefined) {
+    filter.featured = (query.data as any).featured;
   }
 
   try {

@@ -26,6 +26,9 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
 
+  // Hero section on landing page gets special spacious translucent styling; all other sections use the standard sleek compact bar
+  const isHeroNavbar = location === '/' && !scrolled;
+
   const handleNavClick = (href: string, e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -164,7 +167,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
   return (
     <>
       <header
-        className={mobileMenuOpen ? 'mobile-drawer-open' : ''}
+        className={`${mobileMenuOpen ? 'mobile-drawer-open' : ''} ${isHeroNavbar ? 'is-hero-nav' : 'is-standard-nav'}`.trim()}
         style={{
           position: 'fixed',
           top: 0,
@@ -173,13 +176,16 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
           zIndex: 100,
           transform: isVisible || mobileMenuOpen ? 'translateY(0)' : 'translateY(-100%)',
           transition: 'transform 0.38s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, padding 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease',
-          backgroundColor: scrolled ? 'rgba(13, 15, 19, 0.94)' : 'transparent',
-          backdropFilter: scrolled ? 'blur(16px)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(16px)' : 'none',
+          backgroundColor: isHeroNavbar ? 'transparent' : 'rgba(13, 15, 19, 0.94)',
+          backgroundImage: isHeroNavbar
+            ? 'linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.15) 60%, transparent 100%)'
+            : 'none',
+          backdropFilter: isHeroNavbar ? 'none' : 'blur(16px)',
+          WebkitBackdropFilter: isHeroNavbar ? 'none' : 'blur(16px)',
           border: 'none',
-          borderBottom: scrolled ? '1px solid rgba(255, 255, 255, 0.08)' : 'none',
-          padding: scrolled ? '0.85rem 0' : '1.35rem 0',
-          boxShadow: scrolled && isVisible ? '0 10px 30px rgba(0, 0, 0, 0.28)' : 'none',
+          borderBottom: isHeroNavbar ? 'none' : '1px solid rgba(255, 255, 255, 0.08)',
+          padding: isHeroNavbar ? '1.2rem 0' : '0.72rem 0',
+          boxShadow: !isHeroNavbar && isVisible ? '0 8px 24px rgba(0, 0, 0, 0.28)' : 'none',
           willChange: 'transform'
         }}
       >
@@ -201,13 +207,13 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
               alt="ESCORA"
               className="escora-nav-logo"
               style={{
-                height: scrolled ? '42px' : '48px',
+                height: isHeroNavbar ? '44px' : '36px',
                 width: 'auto',
-                maxWidth: '220px',
+                maxWidth: isHeroNavbar ? '200px' : '165px',
                 objectFit: 'contain',
                 display: 'block',
-                filter: 'brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.6))',
-                transition: 'height 0.3s ease'
+                filter: 'brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35))',
+                transition: 'height 0.3s ease, max-width 0.3s ease, filter 0.3s ease'
               }}
             />
           </Link>
@@ -239,7 +245,7 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
                   onClick={(e) => handleNavClick(item.href, e)}
                   style={{
                     color: isCurrent ? goldColor : '#FFFFFF',
-                    fontSize: '0.88rem',
+                    fontSize: isHeroNavbar ? '0.88rem' : '0.82rem',
                     fontWeight: 600,
                     textDecoration: 'none',
                     letterSpacing: '0.06em',
@@ -368,8 +374,8 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
               onClick={(e) => handleNavClick('/plan', e)}
               className="btn-pill btn-gold nav-plan-btn"
               style={{
-                fontSize: '0.82rem',
-                padding: '0.62rem 1.4rem',
+                fontSize: isHeroNavbar ? '0.82rem' : '0.79rem',
+                padding: isHeroNavbar ? '0.62rem 1.4rem' : '0.54rem 1.25rem',
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
                 fontWeight: 700,
@@ -384,8 +390,8 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
               onClick={(e) => handleNavClick('/contact', e)}
               className="btn-pill btn-white nav-contact-btn"
               style={{
-                fontSize: '0.82rem',
-                padding: '0.62rem 1.3rem',
+                fontSize: isHeroNavbar ? '0.82rem' : '0.79rem',
+                padding: isHeroNavbar ? '0.62rem 1.3rem' : '0.54rem 1.15rem',
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
                 fontWeight: 700,
@@ -427,27 +433,35 @@ export default function Navbar({ onOpenEnquiry }: NavbarProps) {
           @media (max-width: 899px) {
             .mobile-toggle { display: block !important; }
             .escora-nav-logo {
-              filter: brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.6)) !important;
+              filter: brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35)) !important;
             }
             .mobile-drawer-open .escora-nav-logo {
-              filter: brightness(0) invert(1) drop-shadow(0 2px 10px rgba(0, 0, 0, 0.6)) !important;
+              filter: brightness(0) invert(1) drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35)) !important;
             }
           }
           @media (max-width: 640px) {
             .nav-contact-btn { display: none !important; }
-            .nav-plan-btn {
+            .is-hero-nav .nav-plan-btn {
               padding: 0.52rem 0.95rem !important;
               font-size: 0.74rem !important;
             }
+            .is-standard-nav .nav-plan-btn {
+              padding: 0.42rem 0.8rem !important;
+              font-size: 0.7rem !important;
+            }
           }
           @media (max-width: 420px) {
-            .escora-nav-logo {
-              height: 36px !important;
-              max-width: 150px !important;
+            .is-hero-nav .escora-nav-logo {
+              height: 33px !important;
+              max-width: 140px !important;
+            }
+            .is-standard-nav .escora-nav-logo {
+              height: 31px !important;
+              max-width: 135px !important;
             }
             .nav-plan-btn {
-              padding: 0.45rem 0.8rem !important;
-              font-size: 0.7rem !important;
+              padding: 0.44rem 0.82rem !important;
+              font-size: 0.71rem !important;
             }
           }
         `}</style>

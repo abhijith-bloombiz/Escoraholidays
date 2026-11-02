@@ -28,7 +28,8 @@ export default function EnquiryModal({ isOpen, onClose, initialData = {}, onShow
     duration: initialData.duration || '8-10 Days',
     travellers: initialData.travellers || '2 Travellers',
     travelMonth: 'Upcoming Months (Nov - Mar)',
-    specialRequests: ''
+    specialRequests: '',
+    marketingConsent: true
   });
 
   const [submitted, setSubmitted] = useState<boolean>(false);
@@ -66,7 +67,8 @@ export default function EnquiryModal({ isOpen, onClose, initialData = {}, onShow
           destinations: formData.destination,
           travelStyle: formData.experienceType,
           travelDate: formData.travelMonth,
-          specialRequests: `Duration: ${formData.duration}. Travellers: ${formData.travellers}. ${formData.specialRequests || ''}`.trim(),
+          specialRequests: `Duration: ${formData.duration}. Travellers: ${formData.travellers}. Marketing Consent: ${formData.marketingConsent ? 'Granted' : 'Declined'}. ${formData.specialRequests || ''}`.trim(),
+          marketingConsent: formData.marketingConsent,
           source: 'website_modal'
         })
       });
@@ -415,6 +417,37 @@ export default function EnquiryModal({ isOpen, onClose, initialData = {}, onShow
                 <Clock size={13} color="#B48235" />
                 <span>Our Kerala travel curator will respond with a bespoke proposal within 24 hours. No obligation.</span>
               </div>
+
+              {/* Marketing Consent */}
+              <label
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.65rem',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  marginTop: '0.75rem',
+                  marginBottom: '0.25rem'
+                }}
+              >
+                <input
+                  type="checkbox"
+                  name="marketingConsent"
+                  checked={formData.marketingConsent}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, marketingConsent: e.target.checked }))}
+                  style={{
+                    width: '18px',
+                    height: '18px',
+                    marginTop: '2px',
+                    accentColor: '#9E6F29',
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
+                />
+                <span style={{ fontSize: '0.8rem', color: '#4B5563', lineHeight: 1.45 }}>
+                  I consent to receive curated travel inspiration, exclusive offers, and Kerala updates from Escora Holidays via WhatsApp & email.
+                </span>
+              </label>
 
               {/* Submit Button */}
               <button

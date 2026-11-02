@@ -72,7 +72,8 @@ export default function ContactPage() {
     duration: '7–10 Days',
     interest: 'Backwaters & Houseboat',
     guests: '2 Adults',
-    notes: ''
+    notes: '',
+    marketingConsent: true
   });
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -101,7 +102,8 @@ export default function ContactPage() {
           phone: formData.phone,
           travelStyle: formData.interest,
           travelDate: formData.travelMonth,
-          specialRequests: `Duration: ${formData.duration} | Guests: ${formData.guests} | Notes: ${formData.notes || ''}`.trim(),
+          marketingConsent: formData.marketingConsent,
+          specialRequests: `Duration: ${formData.duration} | Guests: ${formData.guests} | Marketing Consent: ${formData.marketingConsent ? 'Granted' : 'Declined'} | Notes: ${formData.notes || ''}`.trim(),
           source: 'contact_page'
         })
       });
@@ -123,7 +125,8 @@ export default function ContactPage() {
       duration: '7–10 Days',
       interest: 'Backwaters & Houseboat',
       guests: '2 Adults',
-      notes: ''
+      notes: '',
+      marketingConsent: true
     });
     setSubmitted(false);
   };
@@ -652,6 +655,36 @@ export default function ContactPage() {
                       }}
                     />
                   </div>
+
+                  {/* Marketing Consent */}
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.65rem',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      marginTop: '0.25rem'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      name="marketingConsent"
+                      checked={formData.marketingConsent}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, marketingConsent: e.target.checked }))}
+                      style={{
+                        width: '18px',
+                        height: '18px',
+                        marginTop: '2px',
+                        accentColor: '#9E6F29',
+                        cursor: 'pointer',
+                        flexShrink: 0
+                      }}
+                    />
+                    <span style={{ fontSize: '0.82rem', color: '#4B5563', lineHeight: 1.45 }}>
+                      I consent to receive curated travel inspiration, exclusive offers, and Kerala updates from Escora Holidays via WhatsApp & email.
+                    </span>
+                  </label>
 
                   {/* Submit Button */}
                   <button

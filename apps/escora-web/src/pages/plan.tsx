@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'wouter';
 import {
   Compass,
@@ -9,13 +9,13 @@ import {
   Sparkles,
   ArrowRight,
   ArrowLeft,
-  ShieldCheck,
   Send,
   CheckCircle2,
   Phone,
   Mail,
   Clock,
   MessageSquare,
+  ChevronLeft,
   ChevronRight,
   SlidersHorizontal,
   Award,
@@ -129,11 +129,11 @@ const DURATION_OPTIONS = [
 ];
 
 const BUDGET_OPTIONS = [
-  { id: 'comfort', label: 'Under ₹1 Lakh', sub: 'Per Guest', desc: 'Premium boutique homestays and select resorts.' },
-  { id: 'premium', label: '₹1L – ₹2 Lakhs', sub: 'Per Guest', desc: 'Luxury heritage estates, private houseboats, and curated transfers.' },
-  { id: 'luxury', label: '₹2L – ₹5 Lakhs', sub: 'Per Guest', desc: '5-star private pool villas, fine dining, and expert local guides.' },
-  { id: 'signature-luxury', label: '₹5L – ₹10 Lakhs', sub: 'Per Guest', desc: 'Ultra-exclusive private sanctuaries, dedicated chauffeurs, and premier spas.' },
-  { id: 'bespoke', label: 'Above ₹10 Lakhs', sub: 'Ultra-Bespoke', desc: 'Charter aviation, royal retreats, and personalized bespoke staff.' }
+  { id: 'classic', label: 'Classic', sub: 'Curated Heritage & Comfort', desc: 'Premium boutique homestays, charming estates, and select heritage resorts.' },
+  { id: 'premium', label: 'Premium', sub: 'Elevated Boutique Luxury', desc: 'Luxury heritage estates, private handcrafted houseboats, and curated transfers.' },
+  { id: 'luxury', label: 'Luxury', sub: 'Signature 5-Star Sanctuaries', desc: '5-star private pool villas, fine dining, and expert local private guides.' },
+  { id: 'signature-luxury', label: 'Signature Luxury', sub: 'Ultra-Exclusive Retreats', desc: 'Ultra-exclusive private sanctuaries, dedicated chauffeurs, and premier Ayurvedic spas.' },
+  { id: 'bespoke', label: 'Ultra-Bespoke', sub: 'Private Aviation & Palatial', desc: 'Charter aviation, royal retreats, and personalized bespoke concierge staff.' }
 ];
 
 const TRAVEL_SEASONS = [
@@ -145,12 +145,22 @@ const TRAVEL_SEASONS = [
 ];
 
 const STAY_PREFERENCES = [
+  'Hotels',
+  'Normal Resorts',
+  'Hill Station Resorts',
   'Heritage Planter’s Bungalow',
   'Private Handcrafted Houseboat',
   'Lakefront Pool Villa',
-  'Canopy Eco-Treehouse',
+  'Beach & Coastal Resort',
   'Authentic Ayurvedic Sanctuary',
-  'Clifftop Ocean Retreat'
+  'Canopy Eco-Treehouse'
+];
+
+const VEHICLE_OPTIONS = [
+  'Standard',
+  'Premium',
+  'Luxury',
+  'Tempo Traveller'
 ];
 
 // ---------------------------------------------------------------------------
@@ -282,6 +292,21 @@ export default function PlanJourneyPage() {
 
   const [location] = useLocation();
 
+  const spiritTrackRef = useRef<HTMLDivElement | null>(null);
+  const destinationTrackRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollSpiritTrack = (offset: number) => {
+    if (spiritTrackRef.current) {
+      spiritTrackRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
+
+  const scrollDestinationTrack = (offset: number) => {
+    if (destinationTrackRef.current) {
+      destinationTrackRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+    }
+  };
+
   // Mode Selection: 'concierge' (Human Atelier) vs 'ai' (AI Trip Planner)
   const [plannerMode, setPlannerMode] = useState<'concierge' | 'ai'>('concierge');
 
@@ -289,17 +314,60 @@ export default function PlanJourneyPage() {
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   // Form State
-  const [selectedStyle, setSelectedStyle] = useState<string>('romantic');
+  const [selectedStyle, setSelectedStyle] = useState<string>('');
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>(['Munnar', 'Alleppey']);
   const [duration, setDuration] = useState<string>('7–10 Nights');
+  const [exactDays, setExactDays] = useState<string>('');
+
+  const handleSelectDurationPreset = (label: string) => {
+    setDuration(label);
+    setExactDays('');
+  };
+
+  const handleExactDaysChange = (val: string) => {
+    const cleaned = val.replace(/\D/g, '');
+    setExactDays(cleaned);
+    if (cleaned === '') {
+      setDuration('7–10 Nights');
+    } else {
+      const num = parseInt(cleaned, 10);
+      if (!isNaN(num) && num > 0) {
+        const sanitized = Math.min(90, num);
+        setDuration(`${sanitized} Days (${sanitized > 1 ? `${sanitized - 1} Nights` : 'Day Trip'})`);
+      }
+    }
+  };
+
+  const handleExactDaysBlur = () => {
+    if (exactDays !== '') {
+      const num = parseInt(exactDays, 10);
+      if (isNaN(num) || num < 1) {
+        setExactDays('');
+        setDuration('7–10 Nights');
+      } else {
+        const sanitized = Math.min(90, num);
+        setExactDays(String(sanitized));
+        setDuration(`${sanitized} Days (${sanitized > 1 ? `${sanitized - 1} Nights` : 'Day Trip'})`);
+      }
+    }
+  };
+
+  const handleExactDaysStep = (delta: number) => {
+    const current = exactDays ? parseInt(exactDays, 10) : 7;
+    const base = isNaN(current) || current < 1 ? 7 : current;
+    const nextVal = Math.max(1, Math.min(90, base + delta));
+    setExactDays(String(nextVal));
+    setDuration(`${nextVal} Days (${nextVal > 1 ? `${nextVal - 1} Nights` : 'Day Trip'})`);
+  };
   const [travelMonth, setTravelMonth] = useState<string>('October – December (Golden Season)');
-  const [budget, setBudget] = useState<string>('₹2L – ₹5 Lakhs');
+  const [budget, setBudget] = useState<string>('Luxury');
   const [adults, setAdults] = useState<number>(2);
   const [children, setChildren] = useState<number>(0);
   const [preferredStays, setPreferredStays] = useState<string[]>([
-    'Private Handcrafted Houseboat',
-    'Heritage Planter’s Bungalow'
+    'Hill Station Resorts',
+    'Private Handcrafted Houseboat'
   ]);
+  const [vehicleType, setVehicleType] = useState<string>('Premium');
 
   // Guest Details
   const [guestName, setGuestName] = useState<string>('');
@@ -307,6 +375,7 @@ export default function PlanJourneyPage() {
   const [guestPhone, setGuestPhone] = useState<string>('');
   const [preferredContact, setPreferredContact] = useState<'whatsapp' | 'phone' | 'email'>('whatsapp');
   const [specialNotes, setSpecialNotes] = useState<string>('');
+  const [marketingConsent, setMarketingConsent] = useState<boolean>(true);
 
   // Status & Feedback
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -333,14 +402,53 @@ export default function PlanJourneyPage() {
   };
 
   // Prepopulate from URL parameters if arriving with query
+  // Prepopulate from draft, sessionStorage & URL parameters
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      scrollSmoothTo(0, true);
+      try {
+        const raw = sessionStorage.getItem('escora_plan_draft');
+        if (raw) {
+          const draft = JSON.parse(raw);
+          if (draft.selectedStyle !== undefined) setSelectedStyle(draft.selectedStyle);
+          if (Array.isArray(draft.selectedDestinations)) setSelectedDestinations(draft.selectedDestinations);
+          if (draft.duration) setDuration(draft.duration);
+          if (draft.exactDays !== undefined) setExactDays(draft.exactDays);
+          if (draft.travelMonth) setTravelMonth(draft.travelMonth);
+          if (draft.budget) setBudget(draft.budget);
+          if (typeof draft.adults === 'number') setAdults(draft.adults);
+          if (typeof draft.children === 'number') setChildren(draft.children);
+          if (Array.isArray(draft.preferredStays)) setPreferredStays(draft.preferredStays);
+          if (draft.vehicleType) setVehicleType(draft.vehicleType);
+          if (draft.guestName) setGuestName(draft.guestName);
+          if (draft.guestEmail) setGuestEmail(draft.guestEmail);
+          if (draft.guestPhone) setGuestPhone(draft.guestPhone);
+          if (draft.preferredContact) setPreferredContact(draft.preferredContact);
+          if (draft.specialNotes) setSpecialNotes(draft.specialNotes);
+          if (typeof draft.marketingConsent === 'boolean') setMarketingConsent(draft.marketingConsent);
+        }
+      } catch (e) {
+        // ignore parse error
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
       const modeParam = urlParams.get('mode');
       const destParam = urlParams.get('destination');
       const expParam = urlParams.get('experience');
       const styleParam = urlParams.get('style');
+      const stepParam = urlParams.get('step');
+      const savedStep = sessionStorage.getItem('escora_plan_step');
+
+      const restoredStep = stepParam ? parseInt(stepParam, 10) : savedStep ? parseInt(savedStep, 10) : 1;
+      if (!isNaN(restoredStep) && restoredStep >= 1 && restoredStep <= 5) {
+        setCurrentStep(restoredStep);
+        if (restoredStep > 1) {
+          setTimeout(() => scrollSmoothTo(320), 120);
+        } else {
+          scrollSmoothTo(0, true);
+        }
+      } else {
+        scrollSmoothTo(0, true);
+      }
 
       if (modeParam === 'ai') {
         setPlannerMode('ai');
@@ -357,6 +465,63 @@ export default function PlanJourneyPage() {
       }
     }
   }, []);
+
+  // Sync currentStep to sessionStorage and URL parameter so reloads remain on current step
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isSubmitted) {
+      sessionStorage.setItem('escora_plan_step', String(currentStep));
+      const url = new URL(window.location.href);
+      url.searchParams.set('step', String(currentStep));
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [currentStep, isSubmitted]);
+
+  // Sync draft form state to sessionStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isSubmitted) {
+      try {
+        const draft = {
+          selectedStyle,
+          selectedDestinations,
+          duration,
+          exactDays,
+          travelMonth,
+          budget,
+          adults,
+          children,
+          preferredStays,
+          vehicleType,
+          guestName,
+          guestEmail,
+          guestPhone,
+          preferredContact,
+          specialNotes,
+          marketingConsent
+        };
+        sessionStorage.setItem('escora_plan_draft', JSON.stringify(draft));
+      } catch (e) {
+        // ignore storage errors
+      }
+    }
+  }, [
+    selectedStyle,
+    selectedDestinations,
+    duration,
+    exactDays,
+    travelMonth,
+    budget,
+    adults,
+    children,
+    preferredStays,
+    vehicleType,
+    guestName,
+    guestEmail,
+    guestPhone,
+    preferredContact,
+    specialNotes,
+    marketingConsent,
+    isSubmitted
+  ]);
 
   const toggleDestination = (name: string) => {
     setSelectedDestinations((prev) =>
@@ -401,7 +566,8 @@ export default function PlanJourneyPage() {
         destinations: selectedDestinations.join(', '),
         travelStyle: TRAVEL_STYLES.find((s) => s.id === selectedStyle)?.title || selectedStyle,
         travelDate: travelMonth,
-        specialRequests: `[Plan Your Journey Atelier] Duration: ${duration} | Budget: ${budget} | Travellers: ${adults} Adults, ${children} Children | Preferred Stays: ${preferredStays.join(', ')} | Preferred Contact: ${preferredContact.toUpperCase()} | Special Notes: ${specialNotes.trim() || 'None'}`.trim(),
+        marketingConsent,
+        specialRequests: `[Plan Your Journey Atelier] Duration: ${duration} | Travel Tier: ${budget} | Vehicle: ${vehicleType || 'Standard'} | Travellers: ${adults} Adults, ${children} Children | Preferred Stays: ${preferredStays.join(', ')} | Preferred Contact: ${preferredContact.toUpperCase()} | Marketing Consent: ${marketingConsent ? 'Granted' : 'Declined'} | Special Notes: ${specialNotes.trim() || 'None'}`.trim(),
         source: 'plan_your_journey_page'
       };
 
@@ -411,10 +577,22 @@ export default function PlanJourneyPage() {
         body: JSON.stringify(payload)
       });
 
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('escora_plan_step');
+        sessionStorage.removeItem('escora_plan_draft');
+        const url = new URL(window.location.href);
+        url.searchParams.delete('step');
+        window.history.replaceState({}, '', url.toString());
+      }
+
       setIsSubmitted(true);
       scrollSmoothTo(0);
     } catch (err) {
       console.warn('Network note:', err);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('escora_plan_step');
+        sessionStorage.removeItem('escora_plan_draft');
+      }
       // Fallback: still show the confirmation screen
       setIsSubmitted(true);
       scrollSmoothTo(0);
@@ -1258,9 +1436,9 @@ export default function PlanJourneyPage() {
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn-pill"
+                        className="btn-pill anim-hover-pill"
                         style={{
-                          backgroundColor: '#25D366',
+                          backgroundColor: '#15803D',
                           color: '#FFFFFF',
                           padding: '0.85rem 1.8rem',
                           fontSize: '0.86rem',
@@ -1399,8 +1577,12 @@ export default function PlanJourneyPage() {
                     <strong style={{ color: '#121316' }}>{duration} · {travelMonth}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Companions & Budget</span>
+                    <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Companions & Travel Tier</span>
                     <strong style={{ color: '#121316' }}>{adults} Adults{children > 0 ? `, ${children} Children` : ''} · {budget}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Chauffeured Vehicle</span>
+                    <strong style={{ color: '#121316' }}>{vehicleType || 'Standard'}</strong>
                   </div>
                   <div style={{ gridColumn: '1 / -1', paddingTop: '0.5rem', borderTop: '1px dashed rgba(0, 0, 0, 0.08)' }}>
                     <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Direct Confirmation Contact</span>
@@ -1440,9 +1622,9 @@ export default function PlanJourneyPage() {
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-pill"
+                  className="btn-pill anim-hover-pill"
                   style={{
-                    backgroundColor: '#25D366',
+                    backgroundColor: '#15803D',
                     color: '#FFFFFF',
                     padding: '0.9rem 2.2rem',
                     fontSize: '0.88rem',
@@ -1532,16 +1714,73 @@ export default function PlanJourneyPage() {
                       What is the Spirit of Your Journey?
                     </h2>
 
-                    <p className="reveal-fade-up stagger-2" style={{ color: '#6B7280', fontSize: '0.96rem', margin: '0 0 2rem', lineHeight: 1.55 }}>
-                      Select the primary rhythm that reflects how you wish to experience Kerala.
-                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                      <p style={{ color: '#6B7280', fontSize: '0.96rem', margin: 0, lineHeight: 1.55 }}>
+                        Select the primary rhythm that reflects how you wish to experience Kerala (optional).
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => scrollSpiritTrack(-320)}
+                          aria-label="Previous options"
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
+                            backgroundColor: '#FFFFFF',
+                            color: '#121316',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                          }}
+                          className="anim-hover-pill"
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => scrollSpiritTrack(320)}
+                          aria-label="Next options"
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
+                            backgroundColor: '#FFFFFF',
+                            color: '#121316',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                          }}
+                          className="anim-hover-pill"
+                        >
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+                    </div>
 
                     <div
-                      className="step1-spirit-grid"
+                      ref={spiritTrackRef}
+                      className="step1-spirit-track"
                       style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                        gap: '1.25rem'
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'nowrap',
+                        gap: '1.25rem',
+                        overflowX: 'auto',
+                        scrollSnapType: 'x mandatory',
+                        paddingBottom: '1rem',
+                        paddingTop: '0.25rem',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#9E6F29 rgba(0, 0, 0, 0.06)',
+                        WebkitOverflowScrolling: 'touch',
                       }}
                     >
                       {TRAVEL_STYLES.map((style, idx) => {
@@ -1549,9 +1788,13 @@ export default function PlanJourneyPage() {
                         return (
                           <div
                             key={style.id}
-                            onClick={() => setSelectedStyle(style.id)}
-                            className={`luxury-interactive-card reveal-card stagger-${(idx % 6) + 1}`}
+                            onClick={() => setSelectedStyle((prev) => (prev === style.id ? '' : style.id))}
+                            className="luxury-interactive-card"
                             style={{
+                              flex: '0 0 280px',
+                              minWidth: '280px',
+                              maxWidth: '280px',
+                              scrollSnapAlign: 'start',
                               border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
                               backgroundColor: isSelected ? '#FAF6EE' : '#FFFFFF',
                               borderRadius: '16px',
@@ -1645,7 +1888,43 @@ export default function PlanJourneyPage() {
                     </div>
 
                     {/* Step Actions */}
-                    <div style={{ marginTop: '2.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <div
+                      style={{
+                        marginTop: '2.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '1rem'
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedStyle('');
+                          handleNextStep(2);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#6B7280',
+                          fontSize: '0.86rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          padding: '0.5rem 0',
+                          textDecoration: 'underline',
+                          textUnderlineOffset: '4px',
+                          transition: 'color 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = '#9E6F29')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = '#6B7280')}
+                      >
+                        Skip →
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => handleNextStep(2)}
@@ -1663,7 +1942,7 @@ export default function PlanJourneyPage() {
                           cursor: 'pointer'
                         }}
                       >
-                        Continue to Sanctuaries <ArrowRight size={16} />
+                        {selectedStyle ? 'Continue to Sanctuaries' : 'Next: Sanctuaries'} <ArrowRight size={16} />
                       </button>
                     </div>
                   </div>
@@ -1708,16 +1987,73 @@ export default function PlanJourneyPage() {
                       Which Kerala Sanctuaries Call to You?
                     </h2>
 
-                    <p style={{ color: '#6B7280', fontSize: '0.96rem', margin: '0 0 2rem', lineHeight: 1.55 }}>
-                      Select one or multiple regions. We will link them with private luxury transfers and panoramic hill routes.
-                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                      <p style={{ color: '#6B7280', fontSize: '0.96rem', margin: 0, lineHeight: 1.55 }}>
+                        Select one or multiple regions. We will link them with private luxury transfers and panoramic hill routes.
+                      </p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                          type="button"
+                          onClick={() => scrollDestinationTrack(-320)}
+                          aria-label="Previous sanctuaries"
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
+                            backgroundColor: '#FFFFFF',
+                            color: '#121316',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                          }}
+                          className="anim-hover-pill"
+                        >
+                          <ChevronLeft size={18} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => scrollDestinationTrack(320)}
+                          aria-label="Next sanctuaries"
+                          style={{
+                            width: '36px',
+                            height: '36px',
+                            borderRadius: '50%',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
+                            backgroundColor: '#FFFFFF',
+                            color: '#121316',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                          }}
+                          className="anim-hover-pill"
+                        >
+                          <ChevronRight size={18} />
+                        </button>
+                      </div>
+                    </div>
 
                     <div
-                      className="step2-destinations-grid"
+                      ref={destinationTrackRef}
+                      className="step2-destinations-track"
                       style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
-                        gap: '1.1rem'
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'nowrap',
+                        gap: '1.1rem',
+                        overflowX: 'auto',
+                        scrollSnapType: 'x mandatory',
+                        paddingBottom: '1rem',
+                        paddingTop: '0.25rem',
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: '#9E6F29 rgba(0, 0, 0, 0.06)',
+                        WebkitOverflowScrolling: 'touch',
                       }}
                     >
                       {DESTINATION_OPTIONS.map((dest) => {
@@ -1728,6 +2064,10 @@ export default function PlanJourneyPage() {
                             onClick={() => toggleDestination(dest.name)}
                             className="luxury-interactive-card"
                             style={{
+                              flex: '0 0 220px',
+                              minWidth: '220px',
+                              maxWidth: '220px',
+                              scrollSnapAlign: 'start',
                               border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
                               borderRadius: '16px',
                               overflow: 'hidden',
@@ -1885,11 +2225,11 @@ export default function PlanJourneyPage() {
                         textTransform: 'uppercase'
                       }}
                     >
-                      Duration, Calendar & Budget Pacing
+                      Duration, Calendar & Travel Tier
                     </h2>
 
                     <p style={{ color: '#6B7280', fontSize: '0.96rem', margin: '0 0 2rem', lineHeight: 1.55 }}>
-                      How many days do you wish to surrender to Kerala, and what budget tier suits your journey?
+                      How many days do you wish to surrender to Kerala, and which travel tier suits your journey?
                     </p>
 
                     {/* Duration Options */}
@@ -1916,11 +2256,11 @@ export default function PlanJourneyPage() {
                         }}
                       >
                         {DURATION_OPTIONS.map((opt) => {
-                          const isSelected = duration === opt.label;
+                          const isSelected = !exactDays && duration === opt.label;
                           return (
                             <div
                               key={opt.id}
-                              onClick={() => setDuration(opt.label)}
+                              onClick={() => handleSelectDurationPreset(opt.label)}
                               className="luxury-interactive-card"
                               style={{
                                 border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
@@ -1952,6 +2292,145 @@ export default function PlanJourneyPage() {
                             </div>
                           );
                         })}
+                      </div>
+
+                      {/* Custom Exact Number of Days Input Option */}
+                      <div
+                        style={{
+                          marginTop: '1.15rem',
+                          padding: '1rem 1.25rem',
+                          borderRadius: '14px',
+                          border: exactDays ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
+                          backgroundColor: exactDays ? '#FAF6EE' : '#FAF8F5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: '1rem',
+                          transition: 'all 0.25s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div
+                            style={{
+                              width: '38px',
+                              height: '38px',
+                              borderRadius: '10px',
+                              backgroundColor: exactDays ? 'rgba(158, 111, 41, 0.18)' : 'rgba(0, 0, 0, 0.04)',
+                              color: exactDays ? '#9E6F29' : '#6B7280',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <Calendar size={18} />
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#121316', display: 'block' }}>
+                              Have an exact number of days in mind?
+                            </span>
+                            <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>
+                              Specify your exact journey length (e.g., 5 days, 8 days, 12 days).
+                            </span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleExactDaysStep(-1)}
+                            aria-label="Decrease days"
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '10px',
+                              border: '1px solid rgba(0, 0, 0, 0.12)',
+                              backgroundColor: '#FFFFFF',
+                              color: '#121316',
+                              fontSize: '1.2rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s ease',
+                              userSelect: 'none'
+                            }}
+                            className="anim-hover-pill"
+                          >
+                            –
+                          </button>
+
+                          <div
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              backgroundColor: '#FFFFFF',
+                              border: exactDays ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.15)',
+                              borderRadius: '12px',
+                              padding: '0.45rem 0.85rem',
+                              boxShadow: exactDays ? '0 0 0 3px rgba(158, 111, 41, 0.12)' : 'none',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <input
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              value={exactDays}
+                              onChange={(e) => handleExactDaysChange(e.target.value)}
+                              onBlur={handleExactDaysBlur}
+                              placeholder="e.g. 8"
+                              style={{
+                                width: '56px',
+                                textAlign: 'center',
+                                border: 'none',
+                                background: 'transparent',
+                                fontSize: '1rem',
+                                fontWeight: 700,
+                                color: '#121316',
+                                outline: 'none',
+                                padding: 0
+                              }}
+                            />
+                            <span
+                              style={{
+                                fontSize: '0.85rem',
+                                fontWeight: 700,
+                                color: exactDays ? '#9E6F29' : '#6B7280',
+                                marginLeft: '0.35rem',
+                                userSelect: 'none'
+                              }}
+                            >
+                              Days
+                            </span>
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleExactDaysStep(1)}
+                            aria-label="Increase days"
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '10px',
+                              border: '1px solid rgba(0, 0, 0, 0.12)',
+                              backgroundColor: '#FFFFFF',
+                              color: '#121316',
+                              fontSize: '1.2rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s ease',
+                              userSelect: 'none'
+                            }}
+                            className="anim-hover-pill"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     </div>
 
@@ -1996,25 +2475,9 @@ export default function PlanJourneyPage() {
                           );
                         })}
                       </div>
-
-                      <input
-                        type="text"
-                        placeholder="Or enter specific exact travel dates (e.g., Nov 12 - Nov 20, 2026)"
-                        value={travelMonth}
-                        onChange={(e) => setTravelMonth(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '0.9rem 1.15rem',
-                          borderRadius: '12px',
-                          border: '1px solid rgba(0, 0, 0, 0.12)',
-                          fontSize: '0.92rem',
-                          backgroundColor: '#FAF8F5',
-                          outline: 'none'
-                        }}
-                      />
                     </div>
 
-                    {/* Approximate Budget Per Guest */}
+                    {/* Preferred Travel Tier */}
                     <div>
                       <label
                         style={{
@@ -2027,7 +2490,7 @@ export default function PlanJourneyPage() {
                           marginBottom: '0.85rem'
                         }}
                       >
-                        Approximate Budget Tier (Per Guest)
+                        Preferred Travel Tier
                       </label>
                       <div
                         className="step3-budget-grid"
@@ -2321,6 +2784,52 @@ export default function PlanJourneyPage() {
                               }}
                             >
                               {isSelected && <Check size={14} />} {stay}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Preferred Vehicle Type */}
+                    <div style={{ marginBottom: '2.5rem' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                          color: '#121316',
+                          marginBottom: '0.85rem'
+                        }}
+                      >
+                        Chauffeured Vehicle Preference
+                      </label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem' }}>
+                        {VEHICLE_OPTIONS.map((veh) => {
+                          const isSelected = vehicleType === veh;
+                          return (
+                            <button
+                              key={veh}
+                              type="button"
+                              onClick={() => setVehicleType((prev) => (prev === veh ? '' : veh))}
+                              className="anim-hover-pill"
+                              style={{
+                                padding: '0.65rem 1.25rem',
+                                borderRadius: '999px',
+                                border: isSelected ? '1.5px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.1)',
+                                backgroundColor: isSelected ? '#FAF6EE' : '#FFFFFF',
+                                color: isSelected ? '#9E6F29' : '#374151',
+                                fontSize: '0.84rem',
+                                fontWeight: isSelected ? 700 : 500,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.45rem'
+                              }}
+                            >
+                              {isSelected && <Check size={14} />} {veh}
                             </button>
                           );
                         })}
@@ -2621,24 +3130,34 @@ export default function PlanJourneyPage() {
                       </div>
                     </div>
 
-                    {/* Trust Seal */}
-                    <div
-                      className="luxury-interactive-card"
-                      style={{
-                        padding: '1rem 1.25rem',
-                        backgroundColor: '#FAF8F5',
-                        borderRadius: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.75rem',
-                        marginBottom: '2rem',
-                        border: '1px solid rgba(0, 0, 0, 0.05)'
-                      }}
-                    >
-                      <ShieldCheck size={20} color="#2D6A4F" />
-                      <span style={{ fontSize: '0.8rem', color: '#5A626A', lineHeight: 1.4 }}>
-                        <strong>Absolute Discretion Assured.</strong> We never share guest details. Your private data is utilized purely for handcrafting this bespoke Escora proposal.
-                      </span>
+                    {/* Marketing Consent Checkbox */}
+                    <div style={{ marginBottom: '2rem' }}>
+                      <label
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'flex-start',
+                          gap: '0.75rem',
+                          cursor: 'pointer',
+                          userSelect: 'none'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={marketingConsent}
+                          onChange={(e) => setMarketingConsent(e.target.checked)}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            marginTop: '2px',
+                            accentColor: '#9E6F29',
+                            cursor: 'pointer',
+                            flexShrink: 0
+                          }}
+                        />
+                        <span style={{ fontSize: '0.84rem', color: '#4B5563', lineHeight: 1.5 }}>
+                          I consent to receive curated travel inspiration, exclusive offers, and Kerala updates from Escora Holidays via WhatsApp & email.
+                        </span>
+                      </label>
                     </div>
 
                     {/* Step Actions */}
@@ -2736,14 +3255,37 @@ export default function PlanJourneyPage() {
           margin: 0 auto !important;
         }
 
-        /* Step 1: 4 columns across horizontal desktop viewport */
+        /* Step 1 & Step 2: Single Horizontal Line Track */
+        .step1-spirit-track,
+        .step2-destinations-track {
+          display: flex !important;
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
+          overflow-x: auto !important;
+          scroll-snap-type: x mandatory !important;
+          -webkit-overflow-scrolling: touch !important;
+          gap: 1.25rem !important;
+        }
+        .step1-spirit-track::-webkit-scrollbar,
+        .step2-destinations-track::-webkit-scrollbar {
+          height: 6px;
+        }
+        .step1-spirit-track::-webkit-scrollbar-track,
+        .step2-destinations-track::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.04);
+          border-radius: 999px;
+        }
+        .step1-spirit-track::-webkit-scrollbar-thumb,
+        .step2-destinations-track::-webkit-scrollbar-thumb {
+          background: #C4A468;
+          border-radius: 999px;
+        }
+        .step1-spirit-track::-webkit-scrollbar-thumb:hover,
+        .step2-destinations-track::-webkit-scrollbar-thumb:hover {
+          background: #9E6F29;
+        }
+
         @media (min-width: 1024px) {
-          .step1-spirit-grid {
-            grid-template-columns: repeat(4, 1fr) !important;
-          }
-          .step2-destinations-grid {
-            grid-template-columns: repeat(5, 1fr) !important;
-          }
           .step3-duration-grid {
             grid-template-columns: repeat(4, 1fr) !important;
           }
@@ -2756,12 +3298,6 @@ export default function PlanJourneyPage() {
         }
 
         @media (max-width: 1023px) and (min-width: 641px) {
-          .step1-spirit-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
-          .step2-destinations-grid {
-            grid-template-columns: repeat(3, 1fr) !important;
-          }
           .step3-duration-grid {
             grid-template-columns: repeat(2, 1fr) !important;
           }
@@ -2774,12 +3310,6 @@ export default function PlanJourneyPage() {
         }
 
         @media (max-width: 640px) {
-          .step1-spirit-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .step2-destinations-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-          }
           .step3-duration-grid {
             grid-template-columns: 1fr !important;
           }

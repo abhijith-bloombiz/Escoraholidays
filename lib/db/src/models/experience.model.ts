@@ -26,6 +26,11 @@ export interface IExperience {
   featured: boolean;
   published: boolean;
   sortOrder: number;
+  isHomeSpotlight?: boolean;
+  spotlightSlot?: number | null;
+  spotlightVideoUrl?: string | null;
+  spotlightTitle?: string | null;
+  spotlightDescription?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -61,6 +66,11 @@ const experienceSchema = new Schema<IExperience>(
     featured: { type: Boolean, required: true, default: true, index: true },
     published: { type: Boolean, required: true, default: true, index: true },
     sortOrder: { type: Number, required: true, default: 0, index: true },
+    isHomeSpotlight: { type: Boolean, required: true, default: false, index: true },
+    spotlightSlot: { type: Number, default: null, index: true },
+    spotlightVideoUrl: { type: String, default: null },
+    spotlightTitle: { type: String, default: null },
+    spotlightDescription: { type: String, default: null },
     createdAt: { type: Date, required: true, default: Date.now },
     updatedAt: { type: Date, required: true, default: Date.now },
   },
@@ -96,6 +106,11 @@ export const insertExperienceSchema = z.object({
   featured: z.boolean().optional().default(true),
   published: z.boolean().optional().default(true),
   sortOrder: z.number().optional().default(0),
+  isHomeSpotlight: z.boolean().optional().default(false),
+  spotlightSlot: z.number().int().min(1).max(4).optional().nullable(),
+  spotlightVideoUrl: z.string().optional().nullable(),
+  spotlightTitle: z.string().optional().nullable(),
+  spotlightDescription: z.string().optional().nullable(),
 });
 
 export type InsertExperience = z.infer<typeof insertExperienceSchema>;

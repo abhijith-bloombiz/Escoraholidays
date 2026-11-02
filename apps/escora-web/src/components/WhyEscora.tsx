@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useScrollReveal } from '../hooks/useScrollAnimation';
-import { Compass, Sparkles, Clock, ShieldCheck, type LucideIcon } from 'lucide-react';
+import { Users, Compass, Home, PhoneCall, type LucideIcon } from 'lucide-react';
 
 export interface PhilosophyConfig {
   cardHeight: number;
@@ -16,7 +16,7 @@ export interface PhilosophyConfig {
 // =========================================================================
 export const PHILOSOPHY_CONFIG: PhilosophyConfig = {
   // 1. Uniform height of each card in pixels
-  cardHeight: 250,
+  cardHeight: 255,
 
   // 2. Vertical offset ratio between consecutive cards (relative to cardHeight):
   staggerRatio: 0.28,
@@ -40,27 +40,27 @@ export interface CorePillar {
 
 const CORE_PILLARS: CorePillar[] = [
   {
-    icon: Compass,
-    title: "100% Private Departures",
-    desc: "Every journey is exclusively chartered for your party. Never a tour group, never a shared vehicle.",
+    icon: Users,
+    title: "Completely Private Journeys",
+    desc: "No shared buses or fixed departures. Every element is 100% exclusive to your group, fully tailored from a blank canvas to your exact pace.",
     dots: [false, false, false, true]
   },
   {
-    icon: Sparkles,
-    title: "Personally Vetted Sanctuaries",
-    desc: "From 150-year-old colonial planter bungalows to private backwater pool villas, verified for stillness.",
+    icon: Compass,
+    title: "Kerala Specialists & Curators",
+    desc: "One destination, a decade of local mastery. Your guides and planners actually live in Kerala — knowing every scenic road, private estate, and chef.",
     dots: [false, false, true, true]
   },
   {
-    icon: Clock,
-    title: "24/7 On-Ground Concierge",
-    desc: "Direct 1-on-1 WhatsApp contact with your personal local curator from airport arrival to departure.",
+    icon: Home,
+    title: "Handpicked Stays",
+    desc: "Every boutique hotel, private villa, and houseboat is personally inspected by our team before it earns a place in your itinerary.",
     dots: [false, true, true, true]
   },
   {
-    icon: ShieldCheck,
-    title: "Executive Hill Chauffeurs",
-    desc: "Whisper-quiet premium fleet steered by seasoned hill-road captains who know every scenic overlook.",
+    icon: PhoneCall,
+    title: "24 × 7 Dedicated Concierge",
+    desc: "Seamless support before, during, and after travel. A real local expert answers whenever you reach out — never a chatbot.",
     dots: [true, true, true, true]
   }
 ];

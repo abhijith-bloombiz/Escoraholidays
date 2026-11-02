@@ -232,15 +232,15 @@ export default function ExperiencesPage() {
       <section ref={gridSectionRef} style={{ padding: '4.5rem 0 6rem', flexGrow: 1 }}>
         <div className="section-wrapper">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2.5rem' }}>
-            <div className="reveal-fade-left">
-              <p style={{ fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#B48235', fontWeight: 700 }}>
+            <div>
+              <p className="reveal-fade-up" style={{ fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#B48235', fontWeight: 700 }}>
                 {activeCategory === 'All' ? 'ALL BESPOKE EXPERIENCES' : `${activeCategory.toUpperCase()} COLLECTION`}
               </p>
-              <h2 className="font-display" style={{ fontSize: '2.4rem', letterSpacing: '0.04em', color: '#121316', marginTop: '0.25rem' }}>
+              <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.4rem', letterSpacing: '0.04em', color: '#121316', marginTop: '0.25rem' }}>
                 {filteredExperiences.length} {filteredExperiences.length === 1 ? 'Experience' : 'Experiences'} Available
               </h2>
             </div>
-            <p className="reveal-fade-right" style={{ fontSize: '0.88rem', color: '#6B7280' }}>
+            <p className="reveal-fade-up stagger-2" style={{ fontSize: '0.88rem', color: '#6B7280' }}>
               Every activity can be woven into your personalized Kerala itinerary
             </p>
           </div>
@@ -279,7 +279,7 @@ export default function ExperiencesPage() {
                   style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}
                 >
                   <article
-                    className={`portal-card luxury-interactive-card reveal-card stagger-${(idx % 6) + 1}`}
+                    className={`portal-card luxury-interactive-card reveal-card stagger-${(idx % 3) + 1}`}
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '24px',

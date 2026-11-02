@@ -239,7 +239,7 @@ export const config: AppConfig = {
   adminPassword,
   allowedOrigins,
   resendApiKey: process.env.RESEND_API_KEY || undefined,
-  emailFrom: process.env.EMAIL_FROM || "Escora Journeys <hello@escoraholidays.com>",
+  emailFrom: process.env.EMAIL_FROM || "Escora Journeys <admin@escoraholidays.com>",
   adminEmail: process.env.ADMIN_EMAIL || "admin@escoraholidays.com",
   // Gmail SMTP / Authenticated Email Configuration
   emailProvider: process.env.EMAIL_PROVIDER === "gmail" ? "gmail" : process.env.EMAIL_PROVIDER === "resend" ? "resend" : "auto",

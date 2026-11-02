@@ -201,7 +201,7 @@ export default function ContactPage() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: '1rem',
               maxWidth: '920px',
               margin: '0 auto'
@@ -239,7 +239,7 @@ export default function ContactPage() {
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '0.72rem', color: '#D4A359', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Direct Voice</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, marginTop: '2px' }}>+91 8157 003 344</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, marginTop: '2px', letterSpacing: '0.04em', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>+91 8157 003 344</div>
               </div>
             </a>
 
@@ -282,7 +282,7 @@ export default function ContactPage() {
             </a>
 
             <a
-              href="mailto:hello@escoraholidays.com"
+              href="mailto:admin@escoraholidays.com"
               className="luxury-interactive-card reveal-card stagger-3"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.04)',
@@ -313,42 +313,9 @@ export default function ContactPage() {
               </div>
               <div style={{ textAlign: 'left' }}>
                 <div style={{ fontSize: '0.72rem', color: '#D4A359', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Official Email</div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 600, marginTop: '2px', wordBreak: 'break-all' }}>hello@escoraholidays.com</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, marginTop: '2px', wordBreak: 'break-all' }}>admin@escoraholidays.com</div>
               </div>
             </a>
-
-            <div
-              className="luxury-interactive-card reveal-card stagger-4"
-              style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                borderRadius: '16px',
-                padding: '1.1rem 1.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.85rem',
-                color: '#FFFFFF'
-              }}
-            >
-              <div
-                style={{
-                  width: '42px',
-                  height: '42px',
-                  borderRadius: '12px',
-                  backgroundColor: 'rgba(212, 163, 89, 0.18)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0
-                }}
-              >
-                <Clock size={19} color="#D4A359" />
-              </div>
-              <div style={{ textAlign: 'left' }}>
-                <div style={{ fontSize: '0.72rem', color: '#D4A359', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600 }}>Response Time</div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 600, marginTop: '2px' }}>&lt; 2–4 Hours</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -382,12 +349,12 @@ export default function ContactPage() {
                 boxShadow: '0 20px 50px rgba(0, 0, 0, 0.06)'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#B48235', fontSize: '0.82rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
+              <div className="reveal-fade-up" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#B48235', fontSize: '0.82rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 <Sparkles size={16} /> Direct Inquiry Dossier
               </div>
 
               <h2
-                className="font-display"
+                className="font-display reveal-fade-up stagger-1"
                 style={{
                   fontSize: 'clamp(2rem, 3vw, 2.5rem)',
                   color: '#121316',
@@ -398,7 +365,7 @@ export default function ContactPage() {
                 CRAFT YOUR BESPOKE RETREAT
               </h2>
 
-              <p style={{ color: '#4B5563', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+              <p className="reveal-fade-up stagger-2" style={{ color: '#4B5563', fontSize: '0.96rem', lineHeight: 1.6, marginBottom: '2rem' }}>
                 Share your journey dates, desires, and travel party. We will shape an exclusive, personalized Kerala itinerary with pricing and handpicked estates.
               </p>
 
@@ -798,7 +765,7 @@ export default function ContactPage() {
 
               {/* Direct Concierge WhatsApp Banner */}
               <div
-                className="luxury-interactive-card"
+                className="luxury-interactive-card reveal-card stagger-2"
                 style={{
                   backgroundColor: '#0D0F13',
                   color: '#FFFFFF',
@@ -917,10 +884,10 @@ export default function ContactPage() {
       >
         <div className="section-wrapper" style={{ maxWidth: '960px' }}>
           <div className="reveal-fade-up" style={{ textAlign: 'center', marginBottom: '3.5rem' }}>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
+            <div className="reveal-fade-up" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
               <HelpCircle size={15} /> Travel Planning Clarity
             </div>
-            <h2 className="font-display" style={{ fontSize: 'clamp(2.2rem, 3.5vw, 3rem)', color: '#121316' }}>
+            <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: 'clamp(2.2rem, 3.5vw, 3rem)', color: '#121316' }}>
               FREQUENTLY ASKED QUESTIONS
             </h2>
           </div>

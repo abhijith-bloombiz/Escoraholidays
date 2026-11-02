@@ -412,10 +412,10 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 EXPERIENTIAL NARRATIVE
               </p>
-              <h2 className="font-display" style={{ fontSize: '2.6rem', color: '#121316', lineHeight: 1.1, marginBottom: '1.75rem' }}>
+              <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.6rem', color: '#121316', lineHeight: 1.1, marginBottom: '1.75rem' }}>
                 THE UNFORGETTABLE JOURNEY
               </h2>
-              <p style={{ fontSize: '1.05rem', color: '#374151', lineHeight: 1.85, marginBottom: '2rem' }}>
+              <p className="reveal-fade-up stagger-2" style={{ fontSize: '1.05rem', color: '#374151', lineHeight: 1.85, marginBottom: '2rem' }}>
                 {experience.story}
               </p>
 
@@ -491,16 +491,16 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
             }}
           >
             {/* Highlights */}
-            <div>
+            <div className="reveal-fade-left">
               <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 WHAT TO EXPECT
               </p>
-              <h3 className="font-display" style={{ fontSize: '2.4rem', color: '#121316', marginBottom: '1.75rem' }}>
+              <h3 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.4rem', color: '#121316', marginBottom: '1.75rem' }}>
                 EXPERIENCE HIGHLIGHTS
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {experience.highlights.map((item, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                  <div key={idx} className={`reveal-card stagger-${(idx % 4) + 1}`} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                     <div
                       className="anim-check-pop"
                       style={{
@@ -525,16 +525,16 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
             </div>
 
             {/* Inclusions */}
-            <div>
+            <div className="reveal-fade-right">
               <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 THE ESCORA STANDARD
               </p>
-              <h3 className="font-display" style={{ fontSize: '2.4rem', color: '#121316', marginBottom: '1.75rem' }}>
+              <h3 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.4rem', color: '#121316', marginBottom: '1.75rem' }}>
                 EVERY DETAIL INCLUDED
               </h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 {experience.inclusions.map((item, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
+                  <div key={idx} className={`reveal-card stagger-${(idx % 4) + 1}`} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
                     <div
                       className="anim-check-pop"
                       style={{
@@ -565,23 +565,23 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
       <section style={{ padding: '5rem 0', backgroundColor: '#0D0F13', color: '#FFFFFF' }}>
         <div className="section-wrapper">
           <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 3rem' }}>
-            <p style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
+            <p className="reveal-fade-up" style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
               REGIONAL GEOGRAPHY
             </p>
-            <h2 className="font-display" style={{ fontSize: '2.5rem', color: '#FFFFFF' }}>
+            <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.5rem', color: '#FFFFFF' }}>
               DESTINATIONS FOR THIS EXPERIENCE
             </h2>
-            <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.95rem', marginTop: '0.5rem' }}>
+            <p className="reveal-fade-up stagger-2" style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.95rem', marginTop: '0.5rem' }}>
               Discover the Kerala sanctuaries where this signature activity can be experienced at its highest standard.
             </p>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
-            {experience.destinations.map((dest) => (
+            {experience.destinations.map((dest, idx) => (
               <Link
                 key={dest.slug}
                 href={`/destinations/${dest.slug}`}
-                className="luxury-interactive-card card-arrow-hover"
+                className={`luxury-interactive-card card-arrow-hover reveal-card stagger-${(idx % 4) + 1}`}
                 style={{
                   textDecoration: 'none',
                   backgroundColor: 'rgba(255, 255, 255, 0.06)',
@@ -653,10 +653,10 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
         <div className="section-wrapper">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2.5rem' }}>
             <div>
-              <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
+              <p className="reveal-fade-up" style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', fontWeight: 700 }}>
                 MORE SIGNATURE ACTIVITIES
               </p>
-              <h2 className="font-display" style={{ fontSize: '2.2rem', color: '#121316', marginTop: '0.25rem' }}>
+              <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.2rem', color: '#121316', marginTop: '0.25rem' }}>
                 CURATED EXPERIENCES
               </h2>
             </div>
@@ -672,14 +672,14 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               gap: '2rem'
             }}
           >
-            {otherExperiences.map((other) => (
+            {otherExperiences.map((other, idx) => (
               <Link
                 key={other.slug}
                 href={`/experiences/${other.slug}`}
                 style={{ textDecoration: 'none', color: 'inherit' }}
               >
                 <div
-                  className="luxury-interactive-card card-arrow-hover"
+                  className={`luxury-interactive-card card-arrow-hover reveal-card stagger-${(idx % 4) + 1}`}
                   style={{
                     borderRadius: '20px',
                     overflow: 'hidden',

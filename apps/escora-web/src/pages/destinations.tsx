@@ -297,13 +297,13 @@ export default function DestinationsPage() {
       <section ref={mapSectionRef} className="kerala-3d-map-section reveal-fade-up">
         <div className="section-wrapper">
           <div className="kerala-3d-map-header">
-            <div className="kerala-3d-map-eyebrow anim-hero-badge">
+            <div className="kerala-3d-map-eyebrow anim-hero-badge reveal-fade-up">
               <Compass size={14} color="#9E6F29" /> Regional Geography &amp; Terroirs
             </div>
-            <h2 className="font-display kerala-3d-map-title">
+            <h2 className="font-display kerala-3d-map-title reveal-fade-up stagger-1">
               EXPLORE KERALA BY REGION
             </h2>
-            <p className="kerala-3d-map-subtitle">
+            <p className="kerala-3d-map-subtitle reveal-fade-up stagger-2">
               From mist-cloaked tea summits to silent backwater lagoons — explore Kerala's diverse terroirs and curated havens.
             </p>
           </div>
@@ -440,15 +440,15 @@ export default function DestinationsPage() {
       <section ref={gridSectionRef} style={{ padding: '4.5rem 0 6rem', flexGrow: 1 }}>
         <div className="section-wrapper">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2.5rem' }}>
-            <div className="reveal-fade-left">
-              <p style={{ fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#B48235', fontWeight: 700 }}>
+            <div>
+              <p className="reveal-fade-up" style={{ fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#B48235', fontWeight: 700 }}>
                 {activeCategory === 'All' ? 'ALL REGIONAL SANCTUARIES' : `${activeCategory.toUpperCase()} COLLECTION`}
               </p>
-              <h2 className="font-display" style={{ fontSize: '2.4rem', letterSpacing: '0.04em', color: '#121316', marginTop: '0.25rem' }}>
+              <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.4rem', letterSpacing: '0.04em', color: '#121316', marginTop: '0.25rem' }}>
                 {filteredDestinations.length} {filteredDestinations.length === 1 ? 'Destination' : 'Destinations'} Curated
               </h2>
             </div>
-            <p className="reveal-fade-right" style={{ fontSize: '0.88rem', color: '#6B7280' }}>
+            <p className="reveal-fade-up stagger-2" style={{ fontSize: '0.88rem', color: '#6B7280' }}>
               Click any destination for in-depth itineraries, seasonal guides &amp; luxury stays
             </p>
           </div>
@@ -488,7 +488,7 @@ export default function DestinationsPage() {
                 >
                   <article
                     id={`destination-${dest.slug}`}
-                    className={`portal-card luxury-interactive-card reveal-card stagger-${(idx % 6) + 1}`}
+                    className={`portal-card luxury-interactive-card reveal-card stagger-${(idx % 3) + 1}`}
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '24px',

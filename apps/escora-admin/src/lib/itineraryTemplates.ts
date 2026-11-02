@@ -73,7 +73,7 @@ export const itineraryTemplates: ItineraryTemplate[] = [
     endDate: "2026-10-31",
     curatorName: "Midhilaj Chelakkal",
     curatorPhone: "+91 9745585813",
-    emergencyContacts: "+91 9400280420 | +91 8157003344",
+    emergencyContacts: "+91 9400 280 420 | +91 8157 003 344",
     referenceNumber: "L100021/Q1020",
     createdDate: "01-10-2026",
     adults: 1,

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'wouter';
 import {
   Compass,
@@ -17,29 +17,130 @@ import Footer from '../components/Footer';
 import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
 import HeroGradientBackground from '../components/HeroGradientBackground';
+import CertificatesAccreditationsSection from '../components/CertificatesAccreditationsSection';
 import { useScrollReveal, usePageScrollReveal } from '../hooks/useScrollAnimation';
+
+interface StatCounterProps {
+  value: number;
+  suffix?: string;
+  duration?: number;
+}
+
+function StatCounter({ value, suffix = '', duration = 2000 }: StatCounterProps) {
+  const containerRef = React.useRef<HTMLSpanElement | null>(null);
+  const [displayValue, setDisplayValue] = React.useState<number>(0);
+  const animRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const prefersReduced =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReduced) {
+      setDisplayValue(value);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Cancel any pending animation
+            if (animRef.current) {
+              cancelAnimationFrame(animRef.current);
+            }
+
+            let start: number | null = null;
+            setDisplayValue(0);
+
+            const animate = (timestamp: number) => {
+              if (!start) start = timestamp;
+              const elapsed = timestamp - start;
+              const progress = Math.min(elapsed / duration, 1);
+
+              // Quartic ease out curve: fast responsive start, buttery luxury decelerating finish
+              const ease = 1 - Math.pow(1 - progress, 4);
+              const current = Math.round(ease * value);
+
+              setDisplayValue(current);
+
+              if (progress < 1) {
+                animRef.current = requestAnimationFrame(animate);
+              } else {
+                setDisplayValue(value);
+                animRef.current = null;
+              }
+            };
+
+            animRef.current = requestAnimationFrame(animate);
+          } else {
+            // Scrolled out of view (both when scrolling up past it or scrolling down past it)
+            // Reset to 0 so scrolling back into view from either direction runs the animation again
+            if (animRef.current) {
+              cancelAnimationFrame(animRef.current);
+              animRef.current = null;
+            }
+            setDisplayValue(0);
+          }
+        });
+      },
+      {
+        threshold: 0.15,
+        rootMargin: '0px 0px -40px 0px'
+      }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      if (animRef.current) cancelAnimationFrame(animRef.current);
+    };
+  }, [value, duration]);
+
+  return (
+    <span
+      ref={containerRef}
+      style={{
+        display: 'inline-block',
+        fontVariantNumeric: 'tabular-nums',
+        letterSpacing: '0.01em'
+      }}
+    >
+      {displayValue.toLocaleString()}{suffix}
+    </span>
+  );
+}
 
 export default function AboutPage() {
   usePageScrollReveal();
 
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
+  const [enquiryDestination, setEnquiryDestination] = useState<string>('About Escora Journey');
   const [toastMessage, setToastMessage] = useState<string>('');
 
   const [philosophyRef, philosophyVisible] = useScrollReveal<HTMLElement>({ threshold: 0.12, reEnter: true });
-  const [founderRef, founderVisible] = useScrollReveal<HTMLElement>({ threshold: 0.12, reEnter: true });
   const [pillarsRef, pillarsVisible] = useScrollReveal<HTMLElement>({ threshold: 0.1, reEnter: true });
   const [milestonesRef, milestonesVisible] = useScrollReveal<HTMLElement>({ threshold: 0.15, reEnter: true });
+  const [accreditationsRef] = useScrollReveal<HTMLDivElement>({ threshold: 0.1, reEnter: true });
   const [ctaRef, ctaVisible] = useScrollReveal<HTMLElement>({ threshold: 0.15, reEnter: true });
 
   return (
-    <div className="anim-page-fade-in" style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column' }}>
+    <div className="anim-page-fade-in" style={{ minHeight: '100vh', backgroundColor: '#F8F6F1', color: '#121316', display: 'flex', flexDirection: 'column', overflowX: 'hidden' }}>
       <Navbar onOpenEnquiry={() => setEnquiryOpen(true)} />
 
       {/* Hero Section */}
       <section
         style={{
           position: 'relative',
-          padding: '11rem 2rem 6rem',
+          padding: 'clamp(8.5rem, 13vw, 11rem) 2rem clamp(3.5rem, 6vw, 5.5rem)',
+          minHeight: 'clamp(500px, 65vh, 640px)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
           backgroundColor: '#0D0F13',
           color: '#FFFFFF',
           textAlign: 'center',
@@ -102,7 +203,7 @@ export default function AboutPage() {
       </section>
 
       {/* Philosophy Section */}
-      <section ref={philosophyRef} style={{ padding: '6rem 0', backgroundColor: '#FFFFFF', overflow: 'hidden' }}>
+      <section ref={philosophyRef} style={{ padding: 'clamp(4.5rem, 7vw, 6.5rem) 0', backgroundColor: '#FFFFFF', overflow: 'hidden' }}>
         <div className="section-wrapper">
           <div
             style={{
@@ -151,99 +252,17 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Founder & CEO Story */}
-      <section ref={founderRef} style={{ padding: 'clamp(3.5rem, 6vw, 4.75rem) 0', backgroundColor: '#F8F6F1', borderTop: '1px solid rgba(0, 0, 0, 0.06)' }}>
+            {/* The 4 Trust Pillars */}
+      <section ref={pillarsRef} style={{ padding: 'clamp(5rem, 8vw, 6.5rem) 0', backgroundColor: '#0D0F13', color: '#FFFFFF' }}>
         <div className="section-wrapper">
-          <div className="about-founder-card luxury-interactive-card reveal-card">
-            {/* Founder Image */}
-            <div className="about-founder-image-col reveal-scale-up">
-              <img
-                src="/images/midhilaj-founder.jpg"
-                alt="Midhilaj — Founder & CEO, Escora Holidays"
-                className="card-zoom-img"
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  objectPosition: 'center 12%',
-                  display: 'block'
-                }}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'linear-gradient(to top, rgba(13, 15, 19, 0.85) 0%, rgba(13, 15, 19, 0.2) 35%, transparent 60%)'
-                }}
-              />
-              <div style={{ position: 'absolute', bottom: '1.5rem', left: '1.5rem', right: '1.5rem', zIndex: 2 }}>
-                <span style={{ color: '#D4A359', fontSize: '0.72rem', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, display: 'block' }}>
-                  FOUNDER &amp; CEO
-                </span>
-                <h3 className="font-display" style={{ color: '#FFFFFF', fontSize: '1.75rem', marginTop: '0.15rem', letterSpacing: '0.03em' }}>
-                  MIDHILAJ
-                </h3>
-              </div>
-            </div>
-
-            {/* Founder Bio */}
-            <div style={{ padding: 'clamp(1.75rem, 3vw, 2.75rem)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <p style={{ color: '#B48235', fontSize: '0.75rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.4rem' }}>
-                THE VISIONARY BEHIND ESCORA
-              </p>
-              <h3 className="font-display" style={{ fontSize: 'clamp(1.5rem, 2vw, 1.95rem)', color: '#121316', marginBottom: '1rem', lineHeight: 1.15 }}>
-                GLOBAL STANDARDS. LOCAL SOUL.
-              </h3>
-              <p style={{ color: '#4B5563', fontSize: '0.94rem', lineHeight: 1.75, marginBottom: '0.9rem' }}>
-                Born and raised in Kerala, Midhilaj built his career across three continents before returning home.
-                He spent three years in Saudi Arabia and three in Dubai in luxury travel and tourism — mastering what discerning
-                guests from the Gulf and worldwide expect in discreet service and comfort.
-              </p>
-              <p style={{ color: '#4B5563', fontSize: '0.94rem', lineHeight: 1.75, marginBottom: '1.5rem' }}>
-                He then earned his MBA in the United Kingdom and spent six years in London, deepening that understanding from within
-                the world’s most demanding luxury travel market. He returned home to Kerala with one conviction: that the state’s finest
-                experiences were being undersold, and that the people who deserved them most were never finding them. Escora is his answer.
-              </p>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '1.25rem',
-                  paddingTop: '1.25rem',
-                  borderTop: '1px solid rgba(0, 0, 0, 0.08)',
-                  fontSize: '0.82rem'
-                }}
-              >
-                <div>
-                  <span style={{ color: '#9CA3AF', display: 'block', textTransform: 'uppercase', fontSize: '0.68rem', letterSpacing: '0.06em', marginBottom: '0.15rem' }}>
-                    HEADQUARTERS
-                  </span>
-                  <span style={{ fontWeight: 600, color: '#1F2937' }}>Kozhikode, Kerala</span>
-                </div>
-                <div>
-                  <span style={{ color: '#9CA3AF', display: 'block', textTransform: 'uppercase', fontSize: '0.68rem', letterSpacing: '0.06em', marginBottom: '0.15rem' }}>
-                    EDUCATION
-                  </span>
-                  <span style={{ fontWeight: 600, color: '#1F2937' }}>MBA, United Kingdom</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* The 4 Trust Pillars */}
-      <section ref={pillarsRef} style={{ padding: '6rem 0', backgroundColor: '#0D0F13', color: '#FFFFFF' }}>
-        <div className="section-wrapper">
-          <div className="reveal-fade-up" style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4rem' }}>
-            <p style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
+          <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4rem' }}>
+            <p className="reveal-fade-up" style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
               THE ESCORA STANDARD
             </p>
-            <h2 className="font-display" style={{ fontSize: '2.8rem', color: '#FFFFFF', lineHeight: 1.1 }}>
+            <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: 'clamp(2.2rem, 3.8vw, 2.9rem)', color: '#FFFFFF', lineHeight: 1.1 }}>
               OUR FOUR PILLARS OF LUXURY TRUST
             </h2>
-            <p style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '1rem', marginTop: '0.5rem' }}>
+            <p className="reveal-fade-up stagger-2" style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '1rem', marginTop: '0.5rem' }}>
               Every journey we compose is held to these non-negotiable benchmarks of hospitality excellence.
             </p>
           </div>
@@ -309,7 +328,7 @@ export default function AboutPage() {
       </section>
 
       {/* Numbers / Milestones */}
-      <section ref={milestonesRef} style={{ padding: '5rem 0', backgroundColor: '#FFFFFF', borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
+      <section ref={milestonesRef} style={{ padding: 'clamp(4rem, 6vw, 5.5rem) 0', backgroundColor: '#FFFFFF', borderBottom: '1px solid rgba(0, 0, 0, 0.06)' }}>
         <div className="section-wrapper">
           <div
             style={{
@@ -320,10 +339,10 @@ export default function AboutPage() {
             }}
           >
             {[
-              { number: '10+', label: 'Years in Kerala' },
-              { number: '2,400+', label: 'Bespoke Journeys Designed' },
-              { number: '14', label: 'Districts of Kerala Covered' },
-              { number: '98%', label: 'Returning & Recommended Guests' }
+              { target: 10, suffix: '+', label: 'Years in Kerala' },
+              { target: 2400, suffix: '+', label: 'Bespoke Journeys Designed' },
+              { target: 14, suffix: '', label: 'Districts of Kerala Covered' },
+              { target: 98, suffix: '%', label: 'Returning & Recommended Guests' }
             ].map((item, idx) => (
               <div
                 key={idx}
@@ -335,8 +354,21 @@ export default function AboutPage() {
                   border: '1px solid rgba(0, 0, 0, 0.04)'
                 }}
               >
-                <div className="font-display" style={{ fontSize: '3.6rem', color: '#B48235', lineHeight: 1, marginBottom: '0.5rem' }}>
-                  {item.number}
+                <div
+                  className="font-display"
+                  style={{
+                    fontSize: '3.6rem',
+                    color: '#B48235',
+                    lineHeight: 1,
+                    marginBottom: '0.5rem',
+                    fontVariantNumeric: 'tabular-nums'
+                  }}
+                >
+                  <StatCounter
+                    value={item.target}
+                    suffix={item.suffix}
+                    duration={1800 + idx * 150}
+                  />
                 </div>
                 <div style={{ fontSize: '0.85rem', color: '#4B5563', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 }}>
                   {item.label}
@@ -347,8 +379,14 @@ export default function AboutPage() {
         </div>
       </section>
 
+      {/* Certificates & Accreditations Showcase */}
+      <div ref={accreditationsRef}>
+        <CertificatesAccreditationsSection />
+      </div>
+
+
       {/* Call to Action Banner */}
-      <section ref={ctaRef} style={{ padding: '6rem 2rem', backgroundColor: '#F8F6F1', textAlign: 'center', overflow: 'hidden' }}>
+      <section ref={ctaRef} style={{ padding: 'clamp(5rem, 8vw, 6.5rem) 2rem', backgroundColor: '#F8F6F1', textAlign: 'center', overflow: 'hidden' }}>
         <div className="section-wrapper" style={{ maxWidth: '780px' }}>
           <Sparkles size={28} color="#B48235" className="reveal-pop" style={{ margin: '0 auto 1.25rem' }} />
           <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#121316', lineHeight: 1.1, marginBottom: '1.25rem' }}>
@@ -377,7 +415,7 @@ export default function AboutPage() {
       <EnquiryModal
         isOpen={enquiryOpen}
         onClose={() => setEnquiryOpen(false)}
-        initialData={{ destination: 'About Escora Journey' }}
+        initialData={{ destination: enquiryDestination }}
         onShowToast={(msg) => setToastMessage(msg)}
       />
 

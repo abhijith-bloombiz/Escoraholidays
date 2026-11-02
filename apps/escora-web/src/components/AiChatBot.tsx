@@ -92,7 +92,7 @@ function getIntelligentFallbackResponse(query: string): string {
   return (
     `Thank you for your interest in Kerala with Escora Holidays. ` +
     `Every voyage we craft is tailored around your individual pace, privacy, and sensory wishes. ` +
-    `Would you like to design a tailored day-by-day itinerary in our Journey Studio, or speak directly with our senior travel curators on WhatsApp (+91 81570 03344)?`
+    `Would you like to design a tailored day-by-day itinerary in our Journey Studio, or speak directly with our senior travel curators on WhatsApp (+91 8157 003 344)?`
   );
 }
 

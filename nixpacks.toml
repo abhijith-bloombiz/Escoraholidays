@@ -1,0 +1,7 @@
+[phases.install]
+cmds = [
+  "npm install -g corepack@latest",
+  "corepack enable",
+  "corepack prepare pnpm@12.4.2 --activate",
+  "pnpm i --frozen-lockfile"
+]

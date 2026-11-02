@@ -402,14 +402,52 @@ export default function PlanJourneyPage() {
   };
 
   // Prepopulate from URL parameters if arriving with query
+  // Prepopulate from draft, sessionStorage & URL parameters
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      scrollSmoothTo(0, true);
+      try {
+        const raw = sessionStorage.getItem('escora_plan_draft');
+        if (raw) {
+          const draft = JSON.parse(raw);
+          if (draft.selectedStyle !== undefined) setSelectedStyle(draft.selectedStyle);
+          if (Array.isArray(draft.selectedDestinations)) setSelectedDestinations(draft.selectedDestinations);
+          if (draft.duration) setDuration(draft.duration);
+          if (draft.exactDays !== undefined) setExactDays(draft.exactDays);
+          if (draft.travelMonth) setTravelMonth(draft.travelMonth);
+          if (draft.budget) setBudget(draft.budget);
+          if (typeof draft.adults === 'number') setAdults(draft.adults);
+          if (typeof draft.children === 'number') setChildren(draft.children);
+          if (Array.isArray(draft.preferredStays)) setPreferredStays(draft.preferredStays);
+          if (draft.vehicleType) setVehicleType(draft.vehicleType);
+          if (draft.guestName) setGuestName(draft.guestName);
+          if (draft.guestEmail) setGuestEmail(draft.guestEmail);
+          if (draft.guestPhone) setGuestPhone(draft.guestPhone);
+          if (draft.preferredContact) setPreferredContact(draft.preferredContact);
+          if (draft.specialNotes) setSpecialNotes(draft.specialNotes);
+        }
+      } catch (e) {
+        // ignore parse error
+      }
+
       const urlParams = new URLSearchParams(window.location.search);
       const modeParam = urlParams.get('mode');
       const destParam = urlParams.get('destination');
       const expParam = urlParams.get('experience');
       const styleParam = urlParams.get('style');
+      const stepParam = urlParams.get('step');
+      const savedStep = sessionStorage.getItem('escora_plan_step');
+
+      const restoredStep = stepParam ? parseInt(stepParam, 10) : savedStep ? parseInt(savedStep, 10) : 1;
+      if (!isNaN(restoredStep) && restoredStep >= 1 && restoredStep <= 5) {
+        setCurrentStep(restoredStep);
+        if (restoredStep > 1) {
+          setTimeout(() => scrollSmoothTo(320), 120);
+        } else {
+          scrollSmoothTo(0, true);
+        }
+      } else {
+        scrollSmoothTo(0, true);
+      }
 
       if (modeParam === 'ai') {
         setPlannerMode('ai');
@@ -426,6 +464,61 @@ export default function PlanJourneyPage() {
       }
     }
   }, []);
+
+  // Sync currentStep to sessionStorage and URL parameter so reloads remain on current step
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isSubmitted) {
+      sessionStorage.setItem('escora_plan_step', String(currentStep));
+      const url = new URL(window.location.href);
+      url.searchParams.set('step', String(currentStep));
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [currentStep, isSubmitted]);
+
+  // Sync draft form state to sessionStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isSubmitted) {
+      try {
+        const draft = {
+          selectedStyle,
+          selectedDestinations,
+          duration,
+          exactDays,
+          travelMonth,
+          budget,
+          adults,
+          children,
+          preferredStays,
+          vehicleType,
+          guestName,
+          guestEmail,
+          guestPhone,
+          preferredContact,
+          specialNotes
+        };
+        sessionStorage.setItem('escora_plan_draft', JSON.stringify(draft));
+      } catch (e) {
+        // ignore storage errors
+      }
+    }
+  }, [
+    selectedStyle,
+    selectedDestinations,
+    duration,
+    exactDays,
+    travelMonth,
+    budget,
+    adults,
+    children,
+    preferredStays,
+    vehicleType,
+    guestName,
+    guestEmail,
+    guestPhone,
+    preferredContact,
+    specialNotes,
+    isSubmitted
+  ]);
 
   const toggleDestination = (name: string) => {
     setSelectedDestinations((prev) =>
@@ -480,10 +573,22 @@ export default function PlanJourneyPage() {
         body: JSON.stringify(payload)
       });
 
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('escora_plan_step');
+        sessionStorage.removeItem('escora_plan_draft');
+        const url = new URL(window.location.href);
+        url.searchParams.delete('step');
+        window.history.replaceState({}, '', url.toString());
+      }
+
       setIsSubmitted(true);
       scrollSmoothTo(0);
     } catch (err) {
       console.warn('Network note:', err);
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('escora_plan_step');
+        sessionStorage.removeItem('escora_plan_draft');
+      }
       // Fallback: still show the confirmation screen
       setIsSubmitted(true);
       scrollSmoothTo(0);

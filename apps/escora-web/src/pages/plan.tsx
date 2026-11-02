@@ -305,7 +305,7 @@ export default function PlanJourneyPage() {
   const [currentStep, setCurrentStep] = useState<number>(1);
 
   // Form State
-  const [selectedStyle, setSelectedStyle] = useState<string>('romantic');
+  const [selectedStyle, setSelectedStyle] = useState<string>('');
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>(['Munnar', 'Alleppey']);
   const [duration, setDuration] = useState<string>('7–10 Nights');
   const [exactDays, setExactDays] = useState<string>('');
@@ -1592,7 +1592,7 @@ export default function PlanJourneyPage() {
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1.5rem' }}>
                       <p style={{ color: '#6B7280', fontSize: '0.96rem', margin: 0, lineHeight: 1.55 }}>
-                        Select the primary rhythm that reflects how you wish to experience Kerala.
+                        Select the primary rhythm that reflects how you wish to experience Kerala (optional).
                       </p>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <button
@@ -1664,7 +1664,7 @@ export default function PlanJourneyPage() {
                         return (
                           <div
                             key={style.id}
-                            onClick={() => setSelectedStyle(style.id)}
+                            onClick={() => setSelectedStyle((prev) => (prev === style.id ? '' : style.id))}
                             className="luxury-interactive-card"
                             style={{
                               flex: '0 0 280px',
@@ -1764,7 +1764,43 @@ export default function PlanJourneyPage() {
                     </div>
 
                     {/* Step Actions */}
-                    <div style={{ marginTop: '2.5rem', display: 'flex', justifyContent: 'flex-end' }}>
+                    <div
+                      style={{
+                        marginTop: '2.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        flexWrap: 'wrap',
+                        gap: '1rem'
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedStyle('');
+                          handleNextStep(2);
+                        }}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#6B7280',
+                          fontSize: '0.86rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          padding: '0.5rem 0',
+                          textDecoration: 'underline',
+                          textUnderlineOffset: '4px',
+                          transition: 'color 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = '#9E6F29')}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = '#6B7280')}
+                      >
+                        Skip this step & continue →
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => handleNextStep(2)}
@@ -1782,7 +1818,7 @@ export default function PlanJourneyPage() {
                           cursor: 'pointer'
                         }}
                       >
-                        Continue to Sanctuaries <ArrowRight size={16} />
+                        {selectedStyle ? 'Continue to Sanctuaries' : 'Next: Sanctuaries'} <ArrowRight size={16} />
                       </button>
                     </div>
                   </div>

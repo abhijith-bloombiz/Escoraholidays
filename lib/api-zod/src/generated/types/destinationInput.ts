@@ -22,5 +22,6 @@ export interface DestinationInput {
   nightsMax?: number;
   highlights?: string;
   howToReach?: string;
+  featured?: boolean;
   published?: boolean;
 }

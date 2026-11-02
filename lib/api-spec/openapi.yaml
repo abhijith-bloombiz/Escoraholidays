@@ -2592,6 +2592,8 @@ components:
           type: ["string", "null"]
         howToReach:
           type: ["string", "null"]
+        featured:
+          type: boolean
         published:
           type: boolean
         createdAt:
@@ -2635,6 +2637,8 @@ components:
           type: string
         howToReach:
           type: string
+        featured:
+          type: boolean
         published:
           type: boolean
 
@@ -2673,6 +2677,8 @@ components:
           type: string
         howToReach:
           type: string
+        featured:
+          type: boolean
         published:
           type: boolean
 

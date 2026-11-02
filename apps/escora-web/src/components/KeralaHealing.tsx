@@ -89,7 +89,7 @@ const HEALING_CARDS: HealingCard[] = [
     pill: 'NATURE RETREATS',
     title: 'Nature Retreats',
     heading: 'Find Stillness in Nature.',
-    desc: "Escape into the primeval stillness of Kerala’s mist-crowned Western Ghats, ancient cardamom hills, and secluded valleys. Far above the rush of modern life, the cadence of each day is shaped by mountain winds, birdsong, and highland mist. Walk solitary trails through private tea estates or rest in forest pavilions to rediscover the restorative joy of slowing down.",
+    desc: "Escape into the primeval stillness of Kerala’s mist-crowned Western Ghats. Walk solitary trails through private tea estates, breathe crisp mountain air, and rest in secluded forest pavilions to rediscover the restorative art of slowing down.",
     mobileDesc: "Escape into Kerala’s mist-crowned Western Ghats. Walk solitary trails through private tea estates to rediscover the restorative joy of slowing down.",
     image: '/images/retreat_hiker_full.jpg',
     highlights: ['Doctor-Supervised', 'Custom Dosha Oils', 'Vaidya Consultation'],
@@ -102,9 +102,9 @@ const HEALING_CARDS: HealingCard[] = [
       title: 'Stillness among mountain mist',
       desc: 'Quiet highland sanctuaries nestled in ancient cardamom hills, designed for unhurried rest.',
       cluster: [
-        { src: '/images/exp_treehouse.jpg', alt: 'Forest Sanctuary' },
-        { src: '/images/tour_2_rainforest.jpg', alt: 'Rainforest Valley' },
-        { src: '/images/retreat_hiker_full.jpg', alt: 'Mountain Ridge Walk' }
+        { src: '/images/exp_treehouse.jpg', alt: 'Forest Treehouse Sanctuary' },
+        { src: '/images/exp_tea_bungalow.jpg', alt: 'Cardamom Estate Heritage Bungalow' },
+        { src: '/images/dest_3_munnar.jpg', alt: 'Misty Highland Sunrise Ridge' }
       ],
       features: [
         { icon: Leaf, label: 'Highlands' },
@@ -136,7 +136,7 @@ const HEALING_CARDS: HealingCard[] = [
     pill: 'AYURVEDIC WELLNESS',
     title: 'Ayurvedic Wellness',
     heading: 'Rooted in Ancient Wisdom.',
-    desc: "Discover an unbroken 5,000-year Ayurvedic heritage nurtured by Kerala’s classical Ashtavaidya lineage. Your journey begins with a private 1-on-1 pulse diagnosis by a Senior Vaidya to uncover your unique biological constitution, followed by synchronized warm herbal therapies, continuous Shirodhara oil streams, and bespoke botanicals formulated to cleanse deeply and restore inner equilibrium.",
+    desc: "Discover an unbroken 5,000-year Ayurvedic heritage nurtured by Kerala’s Ashtavaidya lineage. Private pulse diagnosis with a Senior Vaidya, warm synchronized herbal therapies, and continuous Shirodhara restore your body’s natural rhythm and inner equilibrium.",
     mobileDesc: "Rooted in 5,000 years of classical Ashtavaidya lineage. Personal pulse diagnosis and warm herbal therapies restore inner equilibrium.",
     image: '/images/retreat_ayurveda_hd.jpg',
     highlights: ['Senior Vaidya Care', 'Synchronized Abhyanga', 'Warm Shirodhara'],
@@ -149,9 +149,9 @@ const HEALING_CARDS: HealingCard[] = [
       title: 'Ancient wisdom, personalized care',
       desc: 'From pulse diagnosis to customized sattvic nutrition — tailored to your biological balance.',
       cluster: [
-        { src: '/images/retreat_ayurveda_hd.jpg', alt: 'Shirodhara Ritual' },
-        { src: '/images/exp_treehouse.jpg', alt: 'Medicinal Gardens' },
-        { src: '/images/exp_ayurveda.jpg', alt: 'Ayurveda Courtyard' }
+        { src: '/images/ayurveda_herbal_oils.jpg', alt: 'Botanical Herbs & Dosha Oils' },
+        { src: '/images/ayurveda_kizhi_ritual.jpg', alt: 'Warm Herbal Kizhi Poultice' },
+        { src: '/images/ayurveda_vaidya_care.jpg', alt: 'Ashtavaidya Nadi Pariksha Care' }
       ],
       features: [
         { icon: Flower2, label: 'Botanicals' },
@@ -183,7 +183,7 @@ const HEALING_CARDS: HealingCard[] = [
     pill: 'MINDFUL LIVING',
     title: 'Mindful Living',
     heading: 'Reconnect with Your Inner Rhythm.',
-    desc: "Make space for mindful movement, guided Vedic breathing, and restorative meditation in open-air dawn pavilions overlooking tranquil backwaters. As amber morning light touches the water, gentle breathwork awakens the body’s innate vitality. From lakefront yoga to sunset sound baths, every session is thoughtfully personalized to quiet mental chatter, release tension, and bring you into effortless harmony with the present moment.",
+    desc: "Make space for guided Vedic breathwork, lakefront yoga, and meditation in open-air dawn pavilions. As morning light touches the water, gentle somatic practices quiet mental noise and bring you into effortless harmony with the present moment.",
     mobileDesc: "Dawn meditation and somatic Vedic breathwork in open-air lakefront pavilions to calm the mind and awaken vital energy.",
     image: '/images/retreat_mindful_hd.jpg',
     highlights: ['Dawn Meditation', 'Guided Breathwork', 'Mindful Movement'],
@@ -196,9 +196,9 @@ const HEALING_CARDS: HealingCard[] = [
       title: 'Prana flows with morning light',
       desc: 'Open-air pavilions bathed in amber mist, calming the nervous system with somatic breath and stillness.',
       cluster: [
-        { src: '/images/dest_5_varkala.jpg', alt: 'Coastal Cliff Sanctuary' },
-        { src: '/images/tour_1_backwaters.jpg', alt: 'Backwater Reflection' },
-        { src: '/images/retreat_mindful_hd.jpg', alt: 'Dawn Lakefront Meditation' }
+        { src: '/images/exp_yoga.jpg', alt: 'Open-Air Dawn Yoga Shala' },
+        { src: '/images/why_1_private_pace.jpg', alt: 'Tranquil Water Reflection' },
+        { src: '/images/dest_2_vagamon.jpg', alt: 'Misty Valley Dawn Meditation' }
       ],
       features: [
         { icon: Sun, label: 'Dawn Asana' },
@@ -230,7 +230,7 @@ const HEALING_CARDS: HealingCard[] = [
     pill: 'RESTORATIVE ESCAPES',
     title: 'Restorative Escapes',
     heading: 'Time to Simply Be.',
-    desc: "Step away from the demands of everyday life and settle into private waterfront pool villas, secluded heritage estates, and quiet lakeside sanctuaries. Here, your days unfold without schedules, guided by intuitive hospitality and serene water views. Nourished by fresh organic estate dining, gentle breezes, and unhurried stillness, immerse in peaceful surroundings tailored entirely around your wellbeing.",
+    desc: "Step away from everyday pace into private waterfront pool villas and secluded lakeside estates. Guided by serene lagoon views, intuitive hospitality, and nourishing farm-to-table dining, immerse in peaceful surroundings designed purely for your rest.",
     mobileDesc: "Private waterfront pool villas and unhurried days nourished by organic farm-to-table dining and serene backwater views.",
     image: '/images/retreat_restorative_hd.jpg',
     highlights: ['Waterfront Solitude', 'Private Pool Villa', 'Unhurried Days'],
@@ -243,9 +243,9 @@ const HEALING_CARDS: HealingCard[] = [
       title: 'Unhurried days, peaceful surroundings',
       desc: 'Private waterfront pool villas, thoughtful hospitality, and restorative stillness designed around your wellbeing.',
       cluster: [
-        { src: '/images/retreat_restorative_hd.jpg', alt: 'Sanctuary Pool Villa' },
-        { src: '/images/tour_1_backwaters.jpg', alt: 'Backwater Sunset' },
-        { src: '/images/exp_pool_villa.jpg', alt: 'Waterfront Veranda' }
+        { src: '/images/exp_pool_villa.jpg', alt: 'Private Waterfront Pool Villa' },
+        { src: '/images/tour_1_backwaters.jpg', alt: 'Candlelit Starlit Water Dining' },
+        { src: '/images/exp_houseboat.jpg', alt: 'Heritage Backwater Houseboat' }
       ],
       features: [
         { icon: Leaf, label: 'Estate Herbs' },
@@ -279,7 +279,9 @@ export interface KeralaHealingProps {
 
 export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
   const sectionRef = useRef<HTMLElement | null>(null);
+  const deckContainerRef = useRef<HTMLDivElement | null>(null);
   const cardsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const cardAnchorsRef = useRef<(HTMLDivElement | null)[]>([]);
   const cardImgsRef = useRef<(HTMLImageElement | null)[]>([]);
   const [activeCardIndex, setActiveCardIndex] = useState(0);
   const activeCardIndexRef = useRef(0);
@@ -299,13 +301,21 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
   const handleCardSelect = (idx: number) => {
     setActiveCardIndex(idx);
     activeCardIndexRef.current = idx;
-    const card = cardsRef.current[idx];
-    if (card) {
-      if (window.innerWidth > 1040) {
-        const rect = card.getBoundingClientRect();
-        const targetY = window.scrollY + rect.top - (idx === 0 ? 96 : 124);
-        window.scrollTo({ top: targetY, behavior: 'smooth' });
-      } else {
+    if (window.innerWidth > 1040) {
+      const anchor = cardAnchorsRef.current[idx];
+      if (anchor) {
+        const anchorRect = anchor.getBoundingClientRect();
+        const targetY = window.scrollY + anchorRect.top - (idx === 0 ? 96 : 124);
+        const lenis = (window as any).lenis;
+        if (lenis && typeof lenis.scrollTo === 'function') {
+          lenis.scrollTo(targetY, { duration: 1.2 });
+        } else {
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
+        }
+      }
+    } else {
+      const card = cardsRef.current[idx];
+      if (card) {
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
@@ -338,32 +348,14 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
 
   // 2-Card Cycling Stacking Animation & Active Card Detection:
   // Keeps at most 2 cards in the tiered stack at any time during desktop scroll.
-  // Dynamically tracks which card is currently displayed and updates the right column content.
+  // Dynamically tracks which card is currently displayed and updates the right & left content.
   useEffect(() => {
     let ticking = false;
-    let cachedCardTops: number[] = [];
-
-    const cacheCardPositions = () => {
-      const cards = cardsRef.current;
-      if (!cards || cards.length === 0) return;
-      cachedCardTops = cards.map((card) => {
-        if (!card) return 0;
-        let top = 0;
-        let el: HTMLElement | null = card;
-        while (el) {
-          top += el.offsetTop;
-          el = el.offsetParent as HTMLElement | null;
-        }
-        return top;
-      });
-    };
 
     const updateCardTransforms = () => {
       ticking = false;
       const cards = cardsRef.current;
       if (!cards || cards.length === 0) return;
-
-      const scrollY = window.scrollY;
 
       if (window.innerWidth <= 1040) {
         cardImgsRef.current.forEach((img) => {
@@ -375,28 +367,30 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
             card.style.opacity = '';
           }
         });
-
-        // Determine active card on mobile (card closest to upper 45% of viewport)
-        const targetLine = window.innerHeight * 0.45;
-        let closestDist = Infinity;
-        let closestIdx = 0;
-        cards.forEach((card, idx) => {
-          if (!card) return;
-          const cardTop = (cachedCardTops[idx] || card.offsetTop) - scrollY;
-          const cardCenter = cardTop + (card.offsetHeight || 480) / 2;
-          const dist = Math.abs(cardCenter - targetLine);
-          if (dist < closestDist) {
-            closestDist = dist;
-            closestIdx = idx;
-          }
-        });
-
-        if (closestIdx !== activeCardIndexRef.current) {
-          activeCardIndexRef.current = closestIdx;
-          setActiveCardIndex(closestIdx);
-        }
         return;
       }
+
+      // Check if section is anywhere near viewport
+      const section = sectionRef.current;
+      if (section) {
+        const secRect = section.getBoundingClientRect();
+        if (secRect.bottom < -200 || secRect.top > window.innerHeight + 200) {
+          return;
+        }
+      }
+
+      const deckContainer = deckContainerRef.current;
+      const deckTop = deckContainer ? deckContainer.getBoundingClientRect().top : 0;
+
+      // Helper to get real-time un-stuck top position for card i
+      const getCardArrivalTop = (i: number): number => {
+        const anchor = cardAnchorsRef.current[i];
+        if (anchor) {
+          return anchor.getBoundingClientRect().top;
+        }
+        // Fallback using container offset
+        return deckTop + (i === 0 ? 0 : 560 + (i - 1) * 1020 + 460);
+      };
 
       // Calculate arrival progress of incoming cards (i >= 2)
       // When card i arrives at top: 124px, p[i] = 1.
@@ -405,7 +399,7 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
       for (let i = 2; i < cards.length; i++) {
         const card = cards[i];
         if (!card) continue;
-        const cardTop = (cachedCardTops[i] || 0) - scrollY;
+        const cardTop = getCardArrivalTop(i);
         const rawP = Math.max(0, Math.min(1, 1 - (cardTop - 124) / 260));
         p[i] = rawP * rawP * (3 - 2 * rawP);
       }
@@ -415,7 +409,7 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
       const lastIdx = cards.length - 1;
       const lastCard = cards[lastIdx];
       if (lastCard) {
-        const lastCardTop = (cachedCardTops[lastIdx] || 0) - scrollY;
+        const lastCardTop = getCardArrivalTop(lastIdx);
         const overscroll = 124 - lastCardTop;
         const rawLastSlide = Math.max(0, Math.min(1, (overscroll - 60) / 220));
         p[cards.length] = rawLastSlide * rawLastSlide * (3 - 2 * rawLastSlide);
@@ -443,22 +437,22 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
         // Smooth optical depth parallax for every center card image
         const img = cardImgsRef.current[k];
         if (img) {
-          const cardBaseY = cachedCardTops[k] || card.offsetTop;
-          const pRange = k === cards.length - 1 ? vh + 850 : vh + 720;
-          const pScroll = (scrollY - (cardBaseY - vh)) / pRange;
-          const clampedP = Math.max(0, Math.min(1, pScroll));
+          const anchorTop = getCardArrivalTop(k);
+          const clampedP = Math.max(0, Math.min(1, (vh - anchorTop) / (vh + 560)));
           const parallaxY = (clampedP - 0.5) * -80;
           img.style.transform = `translate3d(0, ${parallaxY.toFixed(1)}px, 0)`;
         }
       });
 
       // Desktop: Detect which card is currently active (on top in the sticky stack)
+      // Card 1 sticks at 124px; when its top reaches <= 220px, it covers over 75% of Card 0,
+      // providing smooth, timely synchronization between the center image and editorial text.
       let currentActive = 0;
       for (let i = cards.length - 1; i >= 1; i--) {
         const card = cards[i];
         if (!card) continue;
-        const cardTop = (cachedCardTops[i] || 0) - scrollY;
-        if (cardTop <= 180) {
+        const cardTop = getCardArrivalTop(i);
+        if (cardTop <= 220) {
           currentActive = i;
           break;
         }
@@ -477,21 +471,23 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
       }
     };
 
-    const onResize = () => {
-      cacheCardPositions();
-      onScroll();
-    };
-
     window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onResize, { passive: true });
-    
-    // Initial position caching
-    cacheCardPositions();
+    window.addEventListener('resize', onScroll, { passive: true });
+
+    const lenis = (window as any).lenis;
+    if (lenis && typeof lenis.on === 'function') {
+      lenis.on('scroll', onScroll);
+    }
+
     updateCardTransforms();
 
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onResize);
+      window.removeEventListener('resize', onScroll);
+      const activeLenis = (window as any).lenis;
+      if (activeLenis && typeof activeLenis.off === 'function') {
+        activeLenis.off('scroll', onScroll);
+      }
     };
   }, []);
 
@@ -593,121 +589,152 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
               ))}
             </div>
 
+            {/* Smooth Directional Cross-Fade Narrative Stack */}
             <div
-              key={`left-narrative-${activeCardIndex}`}
-              className="healing-dynamic-content"
+              className="healing-narrative-stack"
               style={{
-                display: 'flex',
-                flexDirection: 'column'
+                display: 'grid',
+                gridTemplateColumns: '1fr',
+                position: 'relative'
               }}
             >
-              <h2
-                className="font-display healing-heading-text"
-                style={{
-                  fontSize: 'clamp(2.85rem, 4.6vw, 4.4rem)',
-                  color: '#121316',
-                  lineHeight: 1.02,
-                  letterSpacing: '0.035em',
-                  textTransform: 'uppercase',
-                  marginBottom: '1.15rem'
-                }}
-              >
-                {activeCard.heading}
-              </h2>
-
-              {/* Desktop Full Narrative */}
-              <p
-                className="desktop-desc"
-                style={{
-                  fontSize: '1rem',
-                  color: '#5C5850',
-                  lineHeight: 1.65,
-                  marginBottom: '1.85rem',
-                  fontWeight: 400
-                }}
-              >
-                {activeCard.desc}
-              </p>
-
-              {/* Mobile Concise Narrative */}
-              <p
-                className="mobile-desc"
-                style={{
-                  display: 'none',
-                  fontSize: '0.88rem',
-                  color: '#5C5850',
-                  lineHeight: 1.5,
-                  marginBottom: '1rem',
-                  fontWeight: 400
-                }}
-              >
-                {activeCard.mobileDesc || activeCard.desc}
-              </p>
-
-              {/* Mobile-Only Compact Preview Image Card */}
-              <div
-                className="healing-mobile-card-img"
-                style={{
-                  display: 'none',
-                  position: 'relative',
-                  width: '100%',
-                  height: '175px',
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  marginBottom: '1rem',
-                  boxShadow: '0 8px 24px rgba(18, 19, 22, 0.08)'
-                }}
-              >
-                <img
-                  src={activeCard.image}
-                  alt={activeCard.title}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    display: 'block'
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'linear-gradient(to top, rgba(18, 19, 22, 0.6) 0%, rgba(18, 19, 22, 0) 60%)'
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '10px',
-                    left: '12px',
-                    right: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    color: '#FFFFFF'
-                  }}
-                >
-                  <span
+              {HEALING_CARDS.map((card, idx) => {
+                const isActive = activeCardIndex === idx;
+                const isPast = activeCardIndex > idx;
+                return (
+                  <div
+                    key={card.id}
+                    className={`healing-narrative-item ${isActive ? 'is-active-narrative' : ''}`}
                     style={{
-                      fontSize: '0.68rem',
-                      fontWeight: 700,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase'
+                      gridRow: 1,
+                      gridColumn: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      opacity: isActive ? 1 : 0,
+                      transform: isActive
+                        ? 'translate3d(0, 0, 0)'
+                        : (isPast ? 'translate3d(0, -60px, 0)' : 'translate3d(0, 60px, 0)'),
+                      transition: 'opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.65s',
+                      pointerEvents: isActive ? 'auto' : 'none',
+                      visibility: isActive ? 'visible' : 'hidden',
+                      willChange: 'opacity, transform'
                     }}
                   >
-                    {activeCard.num} · {activeCard.pill}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: '0.66rem',
-                      color: '#E0C08B',
-                      fontWeight: 600
-                    }}
-                  >
-                    {activeCard.highlights[0]}
-                  </span>
-                </div>
-              </div>
+                    <h2
+                      className="font-display healing-heading-text"
+                      style={{
+                        fontSize: 'clamp(2.85rem, 4.6vw, 4.4rem)',
+                        color: '#121316',
+                        lineHeight: 1.02,
+                        letterSpacing: '0.035em',
+                        textTransform: 'uppercase',
+                        marginBottom: '1.15rem'
+                      }}
+                    >
+                      {card.heading}
+                    </h2>
+
+                    {/* Desktop Full Narrative */}
+                    <p
+                      className="desktop-desc"
+                      style={{
+                        fontSize: 'clamp(0.92rem, 1vw, 1rem)',
+                        color: '#5C5850',
+                        lineHeight: 1.62,
+                        marginBottom: '1.85rem',
+                        fontWeight: 400,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 7,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        maxHeight: 'calc(1.62em * 7)'
+                      }}
+                    >
+                      {card.desc}
+                    </p>
+
+                    {/* Mobile Concise Narrative */}
+                    <p
+                      className="mobile-desc"
+                      style={{
+                        display: 'none',
+                        fontSize: '0.88rem',
+                        color: '#5C5850',
+                        lineHeight: 1.5,
+                        marginBottom: '1rem',
+                        fontWeight: 400
+                      }}
+                    >
+                      {card.mobileDesc || card.desc}
+                    </p>
+
+                    {/* Mobile-Only Compact Preview Image Card */}
+                    <div
+                      className="healing-mobile-card-img"
+                      style={{
+                        display: 'none',
+                        position: 'relative',
+                        width: '100%',
+                        height: '175px',
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        marginBottom: '1rem',
+                        boxShadow: '0 8px 24px rgba(18, 19, 22, 0.08)'
+                      }}
+                    >
+                      <img
+                        src={card.image}
+                        alt={card.title}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block'
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          inset: 0,
+                          background: 'linear-gradient(to top, rgba(18, 19, 22, 0.6) 0%, rgba(18, 19, 22, 0) 60%)'
+                        }}
+                      />
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: '10px',
+                          left: '12px',
+                          right: '12px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          color: '#FFFFFF'
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '0.68rem',
+                            fontWeight: 700,
+                            letterSpacing: '0.08em',
+                            textTransform: 'uppercase'
+                          }}
+                        >
+                          {card.num} · {card.pill}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: '0.66rem',
+                            color: '#E0C08B',
+                            fontWeight: 600
+                          }}
+                        >
+                          {card.highlights[0]}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             <div>
@@ -734,6 +761,7 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
 
           {/* Center Column: Card Deck with Clean Reference Shape & Image */}
           <div
+            ref={deckContainerRef}
             className="healing-deck-container"
             style={{
               position: 'relative',
@@ -743,63 +771,75 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
             }}
           >
             {HEALING_CARDS.map((card, idx) => (
-              <div
-                key={card.id}
-                ref={(el) => { cardsRef.current[idx] = el; }}
-                className={`healing-stack-card healing-card-${idx} ${activeCardIndex === idx ? 'is-active-card' : ''}`}
-                style={{
-                  position: 'sticky',
-                  top: idx === 0 ? '96px' : '124px',
-                  zIndex: idx + 2,
-                  marginTop: idx === 0 ? '0px' : '460px',
-                  marginBottom: '0px',
-                  height: '560px',
-                  borderRadius: '20px',
-                  overflow: 'hidden',
-                  boxShadow: activeCardIndex === idx
-                    ? '0 16px 36px rgba(18, 19, 22, 0.12), 0 4px 12px rgba(18, 19, 22, 0.05)'
-                    : '0 10px 24px rgba(18, 19, 22, 0.07), 0 2px 6px rgba(18, 19, 22, 0.03)',
-                  border: 'none',
-                  backgroundColor: '#121316',
-                  cursor: 'pointer',
-                  transition: 'box-shadow 0.35s ease',
-                  willChange: 'transform, opacity'
-                }}
-                onClick={() => {
-                  if (activeCardIndex !== idx) {
-                    handleCardSelect(idx);
-                  } else {
-                    handleConsultation(card.title);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
-                aria-label={card.title}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    handleConsultation(card.title);
-                  }
-                }}
-              >
-                {/* Clean Edge-to-Edge Image with Optical Parallax for Every Center Card */}
-                <img
-                  ref={(el) => { cardImgsRef.current[idx] = el; }}
-                  src={card.image}
-                  alt={card.title}
+              <React.Fragment key={card.id}>
+                {/* Real-time viewport anchor in normal flow to calculate arrival & active card */}
+                <div
+                  ref={(el) => { cardAnchorsRef.current[idx] = el; }}
                   style={{
-                    width: '100%',
-                    height: '120%',
-                    objectFit: 'cover',
-                    display: 'block',
-                    position: 'absolute',
-                    top: '-10%',
-                    left: 0,
-                    willChange: 'transform',
-                    transition: 'none'
+                    position: 'relative',
+                    height: '0px',
+                    marginTop: idx === 0 ? '0px' : '460px',
+                    pointerEvents: 'none'
                   }}
-                  className="stack-card-img"
+                  aria-hidden="true"
                 />
-              </div>
+                <div
+                  ref={(el) => { cardsRef.current[idx] = el; }}
+                  className={`healing-stack-card healing-card-${idx} ${activeCardIndex === idx ? 'is-active-card' : ''}`}
+                  style={{
+                    position: 'sticky',
+                    top: idx === 0 ? '96px' : '124px',
+                    zIndex: idx + 2,
+                    marginTop: '0px',
+                    marginBottom: '0px',
+                    height: '560px',
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    boxShadow: activeCardIndex === idx
+                      ? '0 16px 36px rgba(18, 19, 22, 0.12), 0 4px 12px rgba(18, 19, 22, 0.05)'
+                      : '0 10px 24px rgba(18, 19, 22, 0.07), 0 2px 6px rgba(18, 19, 22, 0.03)',
+                    border: 'none',
+                    backgroundColor: '#121316',
+                    cursor: 'pointer',
+                    transition: 'box-shadow 0.35s ease',
+                    willChange: 'transform, opacity'
+                  }}
+                  onClick={() => {
+                    if (activeCardIndex !== idx) {
+                      handleCardSelect(idx);
+                    } else {
+                      handleConsultation(card.title);
+                    }
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={card.title}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleConsultation(card.title);
+                    }
+                  }}
+                >
+                  {/* Clean Edge-to-Edge Image with Optical Parallax for Every Center Card */}
+                  <img
+                    ref={(el) => { cardImgsRef.current[idx] = el; }}
+                    src={card.image}
+                    alt={card.title}
+                    style={{
+                      width: '100%',
+                      height: '120%',
+                      objectFit: 'cover',
+                      display: 'block',
+                      position: 'absolute',
+                      top: '-10%',
+                      left: 0,
+                      willChange: 'transform',
+                      transition: 'none'
+                    }}
+                    className="stack-card-img"
+                  />
+                </div>
+              </React.Fragment>
             ))}
 
             {/* Hold Spacer to keep full card stack pinned & aligned before scrolling away */}
@@ -814,234 +854,261 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
             />
           </div>
 
-          {/* Right Column: Dynamic Metrics Table & Fanned Photo Bento Card */}
+          {/* Right Column: Smooth Cross-Fade Metrics & Fanned Bento Stack */}
           <div
             className="healing-col-right"
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-end',
-              gap: '1.25rem',
+              display: 'grid',
+              gridTemplateColumns: '1fr',
               height: '560px',
               position: 'sticky',
               top: '96px',
               alignSelf: 'start'
             }}
           >
-            {/* Heritage Wellness Traditions Showcase (Dynamic per Card) */}
-            <div
-              key={`wellness-pillars-${activeCardIndex}`}
-              className="healing-wellness-pillars healing-dynamic-content"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.8rem'
-              }}
-            >
-              {activeCard.pillars.map((item, pIdx) => {
-                const IconComponent = item.icon;
-                return (
+            {HEALING_CARDS.map((card, idx) => {
+              const isActive = activeCardIndex === idx;
+              const isPast = activeCardIndex > idx;
+              return (
+                <div
+                  key={card.id}
+                  className={`healing-right-item ${isActive ? 'is-active-right' : ''}`}
+                  style={{
+                    gridRow: 1,
+                    gridColumn: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-end',
+                    gap: '1.25rem',
+                    height: '100%',
+                    opacity: isActive ? 1 : 0,
+                    transform: isActive
+                      ? 'translate3d(0, 0, 0)'
+                      : (isPast ? 'translate3d(0, -60px, 0)' : 'translate3d(0, 60px, 0)'),
+                    transition: 'opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.65s',
+                    pointerEvents: isActive ? 'auto' : 'none',
+                    visibility: isActive ? 'visible' : 'hidden',
+                    willChange: 'opacity, transform'
+                  }}
+                >
+                  {/* Heritage Wellness Traditions Showcase */}
                   <div
-                    key={pIdx}
+                    className="healing-wellness-pillars"
                     style={{
                       display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '0.85rem'
+                      flexDirection: 'column',
+                      gap: '0.8rem'
                     }}
                   >
+                    {card.pillars.map((item, pIdx) => {
+                      const IconComponent = item.icon;
+                      return (
+                        <div
+                          key={pIdx}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: '0.85rem'
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '50%',
+                              backgroundColor: '#FAF5ED',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              marginTop: '2px'
+                            }}
+                          >
+                            <IconComponent size={17} color="#A3722A" />
+                          </div>
+                          <div style={{ display: 'flex', flexDirection: 'column' }}>
+                            <span
+                              style={{
+                                fontSize: '0.96rem',
+                                fontWeight: 700,
+                                fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                                color: '#121316',
+                                lineHeight: 1.25,
+                                letterSpacing: '-0.01em',
+                                marginBottom: '0.15rem'
+                              }}
+                            >
+                              {item.title}
+                            </span>
+                            {item.subtitle && (
+                              <p
+                                style={{
+                                  fontSize: '0.82rem',
+                                  color: '#6B7280',
+                                  lineHeight: 1.4,
+                                  margin: 0,
+                                  fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                                  fontWeight: 400
+                                }}
+                              >
+                                {item.subtitle}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Trova-Style Bento Card */}
+                  <div
+                    className="healing-bento-card"
+                    style={{
+                      backgroundColor: '#FFFFFF',
+                      borderRadius: '24px',
+                      padding: '1.75rem',
+                      border: '1px solid rgba(0, 0, 0, 0.06)',
+                      boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => handleConsultation(card.title)}
+                    role="button"
+                    tabIndex={isActive ? 0 : -1}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handleConsultation(card.title);
+                      }
+                    }}
+                  >
+                    <h3
+                      style={{
+                        fontSize: '1.2rem',
+                        color: '#121316',
+                        fontWeight: 700,
+                        marginBottom: '0.45rem',
+                        fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1.3
+                      }}
+                    >
+                      {card.bento.title}
+                    </h3>
+
+                    <p
+                      style={{
+                        fontSize: '0.85rem',
+                        color: '#6B7280',
+                        lineHeight: 1.5,
+                        maxWidth: '300px',
+                        marginBottom: '1.5rem'
+                      }}
+                    >
+                      {card.bento.desc}
+                    </p>
+
+                    {/* Fanned 3-Photo Cluster */}
                     <div
                       style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '50%',
-                        backgroundColor: '#FAF5ED',
+                        position: 'relative',
+                        width: '260px',
+                        height: '140px',
+                        marginBottom: '1.25rem'
+                      }}
+                    >
+                      <img
+                        src={card.bento.cluster[0].src}
+                        alt={card.bento.cluster[0].alt}
+                        className="bento-photo-left"
+                        style={{
+                          position: 'absolute',
+                          left: '10px',
+                          top: '15px',
+                          width: '100px',
+                          height: '110px',
+                          borderRadius: '14px',
+                          objectFit: 'cover',
+                          transform: 'rotate(-10deg)',
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+                          border: '3px solid #FFFFFF',
+                          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
+                      />
+                      <img
+                        src={card.bento.cluster[1].src}
+                        alt={card.bento.cluster[1].alt}
+                        className="bento-photo-right"
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '15px',
+                          width: '100px',
+                          height: '110px',
+                          borderRadius: '14px',
+                          objectFit: 'cover',
+                          transform: 'rotate(10deg)',
+                          boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
+                          border: '3px solid #FFFFFF',
+                          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
+                      />
+                      <img
+                        src={card.bento.cluster[2].src}
+                        alt={card.bento.cluster[2].alt}
+                        className="bento-photo-center"
+                        style={{
+                          position: 'absolute',
+                          left: '75px',
+                          top: '0px',
+                          width: '110px',
+                          height: '125px',
+                          borderRadius: '16px',
+                          objectFit: 'cover',
+                          boxShadow: '0 12px 25px rgba(0,0,0,0.2)',
+                          border: '3px solid #FFFFFF',
+                          zIndex: 2,
+                          transition: 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+                        }}
+                      />
+                    </div>
+
+                    {/* 3 Minimal Icons at Base */}
+                    <div
+                      style={{
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        flexShrink: 0,
-                        marginTop: '2px'
+                        gap: '1.75rem',
+                        color: '#9E6F29'
                       }}
                     >
-                      <IconComponent size={17} color="#A3722A" />
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                      <span
-                        style={{
-                          fontSize: '0.96rem',
-                          fontWeight: 700,
-                          fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
-                          color: '#121316',
-                          lineHeight: 1.25,
-                          letterSpacing: '-0.01em',
-                          marginBottom: '0.15rem'
-                        }}
-                      >
-                        {item.title}
-                      </span>
-                      {item.subtitle && (
-                        <p
-                          style={{
-                            fontSize: '0.82rem',
-                            color: '#6B7280',
-                            lineHeight: 1.4,
-                            margin: 0,
-                            fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
-                            fontWeight: 400
-                          }}
-                        >
-                          {item.subtitle}
-                        </p>
-                      )}
+                      {card.bento.features.map((feat, fIdx) => {
+                        const IconComp = feat.icon;
+                        return (
+                          <div
+                            key={fIdx}
+                            style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              alignItems: 'center',
+                              gap: '0.2rem'
+                            }}
+                          >
+                            <IconComp size={18} />
+                            <span style={{ fontSize: '0.68rem', fontWeight: 600, color: '#6B7280' }}>
+                              {feat.label}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                );
-              })}
-            </div>
-
-            {/* Trova-Style Bento Card (Changes dynamically) */}
-            <div
-              key={`bento-${activeCardIndex}`}
-              className="healing-dynamic-content"
-              style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '24px',
-                padding: '1.75rem',
-                border: '1px solid rgba(0, 0, 0, 0.06)',
-                boxShadow: '0 10px 30px rgba(0, 0, 0, 0.05)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                textAlign: 'center',
-                cursor: 'pointer',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-              }}
-              onClick={() => handleConsultation(activeCard.title)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  handleConsultation(activeCard.title);
-                }
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: '1.2rem',
-                  color: '#121316',
-                  fontWeight: 700,
-                  marginBottom: '0.45rem',
-                  fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
-                  letterSpacing: '-0.02em',
-                  lineHeight: 1.3
-                }}
-              >
-                {activeCard.bento.title}
-              </h3>
-
-              <p
-                style={{
-                  fontSize: '0.85rem',
-                  color: '#6B7280',
-                  lineHeight: 1.5,
-                  maxWidth: '300px',
-                  marginBottom: '1.5rem'
-                }}
-              >
-                {activeCard.bento.desc}
-              </p>
-
-              {/* Fanned 3-Photo Cluster */}
-              <div
-                style={{
-                  position: 'relative',
-                  width: '260px',
-                  height: '140px',
-                  marginBottom: '1.25rem'
-                }}
-              >
-                <img
-                  src={activeCard.bento.cluster[0].src}
-                  alt={activeCard.bento.cluster[0].alt}
-                  style={{
-                    position: 'absolute',
-                    left: '10px',
-                    top: '15px',
-                    width: '100px',
-                    height: '110px',
-                    borderRadius: '14px',
-                    objectFit: 'cover',
-                    transform: 'rotate(-10deg)',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
-                    border: '3px solid #FFFFFF'
-                  }}
-                />
-                <img
-                  src={activeCard.bento.cluster[1].src}
-                  alt={activeCard.bento.cluster[1].alt}
-                  style={{
-                    position: 'absolute',
-                    right: '10px',
-                    top: '15px',
-                    width: '100px',
-                    height: '110px',
-                    borderRadius: '14px',
-                    objectFit: 'cover',
-                    transform: 'rotate(10deg)',
-                    boxShadow: '0 8px 20px rgba(0,0,0,0.15)',
-                    border: '3px solid #FFFFFF'
-                  }}
-                />
-                <img
-                  src={activeCard.bento.cluster[2].src}
-                  alt={activeCard.bento.cluster[2].alt}
-                  style={{
-                    position: 'absolute',
-                    left: '75px',
-                    top: '0px',
-                    width: '110px',
-                    height: '125px',
-                    borderRadius: '16px',
-                    objectFit: 'cover',
-                    boxShadow: '0 12px 25px rgba(0,0,0,0.2)',
-                    border: '3px solid #FFFFFF',
-                    zIndex: 2
-                  }}
-                />
-              </div>
-
-              {/* 3 Minimal Icons at Base */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '1.75rem',
-                  color: '#9E6F29'
-                }}
-              >
-                {activeCard.bento.features.map((feat, fIdx) => {
-                  const IconComp = feat.icon;
-                  return (
-                    <div
-                      key={fIdx}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: '0.2rem'
-                      }}
-                    >
-                      <IconComp size={18} />
-                      <span style={{ fontSize: '0.68rem', fontWeight: 600, color: '#6B7280' }}>
-                        {feat.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-            </div>
-
+                </div>
+              );
+            })}
           </div>
 
         </div>
@@ -1058,19 +1125,21 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
             box-shadow: 0 -30px 80px rgba(1, 29, 63, 0.14), 0 -8px 24px rgba(0, 0, 0, 0.05);
           }
 
-          @keyframes healingContentFadeIn {
-            0% {
-              opacity: 0.35;
-              transform: translateY(6px);
-            }
-            100% {
-              opacity: 1;
-              transform: translateY(0);
-            }
+          .healing-bento-card {
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
           }
-
-          .healing-dynamic-content {
-            animation: healingContentFadeIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          .healing-bento-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08) !important;
+          }
+          .healing-bento-card:hover .bento-photo-left {
+            transform: rotate(-13deg) translate3d(-3px, -2px, 0) !important;
+          }
+          .healing-bento-card:hover .bento-photo-right {
+            transform: rotate(13deg) translate3d(3px, -2px, 0) !important;
+          }
+          .healing-bento-card:hover .bento-photo-center {
+            transform: scale(1.04) translate3d(0, -3px, 0) !important;
           }
 
           .healing-stack-card {
@@ -1110,6 +1179,16 @@ export default function KeralaHealing({ onOpenEnquiry }: KeralaHealingProps) {
             .healing-col-left {
               position: static !important;
               height: auto !important;
+            }
+            .healing-narrative-stack > div {
+              position: static !important;
+              display: none !important;
+            }
+            .healing-narrative-stack > div.is-active-narrative {
+              display: flex !important;
+              opacity: 1 !important;
+              transform: none !important;
+              visibility: visible !important;
             }
             .healing-col-right {
               display: none !important;

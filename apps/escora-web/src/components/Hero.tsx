@@ -37,22 +37,24 @@ export const resolveDestinationSlug = (dest?: { slug?: string; name?: string; sh
 
 const HERO_VIDEOS = [
   {
-    id: 'hero-video-1',
+    id: 'hero-slide-1',
     video: '/hero/15015065_1920_1080_60fps.mp4',
     title: 'KERALA HIGHLANDS',
     subtitle: 'Misty Summits & Ancient Valleys',
     eyebrow: "GOD'S OWN COUNTRY",
     headingLine1: 'A WORLD WAITING',
-    headingLine2: 'TO BE DISCOVERED'
+    headingLine2: 'TO BE DISCOVERED',
+    duration: 8
   },
   {
-    id: 'hero-video-2',
+    id: 'hero-slide-2',
     video: '/hero/9154179-uhd_3840_2160_25fps.mp4',
     title: 'HERITAGE WATERWAYS',
     subtitle: 'Arabian Sea & Living Legacies',
     eyebrow: "GOD'S OWN COUNTRY",
     headingLine1: 'DISCOVER MORE,',
-    headingLine2: 'TRAVEL FURTHER.'
+    headingLine2: 'TRAVEL FURTHER.',
+    duration: 8
   }
 ];
 
@@ -189,14 +191,22 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
 
   const heroSlides = useMemo(() => {
     if (!remoteHeroSlides || remoteHeroSlides.length === 0) return HERO_VIDEOS;
-    return remoteHeroSlides.map((s, idx) => ({
+    const publishedSlides = remoteHeroSlides.filter((s) => s.published !== false);
+    const activeList = publishedSlides.length > 0 ? publishedSlides : remoteHeroSlides;
+    const sortedList = [...activeList].sort(
+      (a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id - b.id
+    );
+    return sortedList.map((s, idx) => ({
       id: `hero-slide-${s.id}`,
       video: s.videoUrl || HERO_VIDEOS[idx % HERO_VIDEOS.length]?.video || HERO_VIDEOS[0].video,
-      title: s.title || `Slide ${idx + 1}`,
-      subtitle: s.subtitle || '',
+      title: s.headingLine1 || `Slide ${idx + 1}`,
+      subtitle: s.headingLine2 || '',
       eyebrow: s.eyebrow || "GOD'S OWN COUNTRY",
       headingLine1: s.headingLine1 || '',
       headingLine2: s.headingLine2 || '',
+      duration: Number(s.duration) > 0 ? Number(s.duration) : 8,
+      ctaText: s.ctaText || 'Plan a Journey',
+      ctaLink: s.ctaLink || '/plan',
     }));
   }, [remoteHeroSlides]);
 
@@ -511,13 +521,19 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   }, []);
 
   // Synchronize active hero video playback on slide change or play/pause toggle
+  const prevSlideRef = useRef<number | null>(null);
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
+    const isSlideChanged = prevSlideRef.current !== null && prevSlideRef.current !== currentSlide;
+    prevSlideRef.current = currentSlide;
+
     heroVideoRefs.current.forEach((videoEl, idx) => {
       if (!videoEl) return;
       if (idx === currentSlide) {
         if (isPlaying && scrollProgress < 0.35) {
-          videoEl.currentTime = 0;
+          if (isSlideChanged) {
+            videoEl.currentTime = 0;
+          }
           videoEl.play().catch(() => {});
         } else {
           videoEl.pause();
@@ -568,14 +584,18 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     }
   }, [scrollProgress, currentSlide, isPlaying]);
 
-  // Hero video carousel loop (continuously repeats through the 2 hero videos)
+  // Hero video carousel loop (uses configured duration per slide, default 8s)
   useEffect(() => {
-    if (!isPlaying) return;
-    const interval = setInterval(() => {
-      setCurrentSlide((curr) => (curr + 1) % (heroSlides.length || 1));
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [isPlaying, heroSlides.length]);
+    if (!isPlaying || !heroSlides.length) return;
+    const currentDurationSec =
+      heroSlides[currentSlide]?.duration && heroSlides[currentSlide]?.duration > 0
+        ? heroSlides[currentSlide].duration
+        : 8;
+    const timer = setTimeout(() => {
+      setCurrentSlide((curr) => (curr + 1) % heroSlides.length);
+    }, currentDurationSec * 1000);
+    return () => clearTimeout(timer);
+  }, [isPlaying, currentSlide, heroSlides]);
 
   // High-performance synchronized scroll listener with zero layout thrashing
   useEffect(() => {
@@ -974,8 +994,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                               textShadow: '0 6px 30px rgba(0, 0, 0, 0.7), 0 2px 8px rgba(0, 0, 0, 0.85)'
                             }}
                           >
-                            {slide.headingLine1} <br />
-                            {slide.headingLine2}
+                            {slide.headingLine1}
+                            {slide.headingLine2 ? (
+                              <>
+                                {' '}
+                                <br />
+                                {slide.headingLine2}
+                              </>
+                            ) : null}
                           </h1>
                         </div>
                       );
@@ -1171,7 +1197,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   transform: phase3Raw > 0
                     ? `translateY(${-headingExitEase * 45}px)`
                     : `translateY(${(1 - rearrangeEase) * -22}px)`,
-                  maxHeight: `calc(130px * ${rearrangeEase} * ${1 - headingExitEase})`,
+                  maxHeight: `calc(190px * ${rearrangeEase} * ${1 - headingExitEase})`,
                   marginBottom: `calc(clamp(16px, 2.2vh, 26px) * ${rearrangeEase} * ${1 - headingExitEase})`,
                   overflow: 'hidden',
                   pointerEvents: (rearrangeEase > 0.8 && headingExitEase < 0.2) ? 'auto' : 'none',
@@ -1210,6 +1236,21 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 >
                   Where Every Landscape Tells a Story
                 </h2>
+
+                {/* Short Description */}
+                <p
+                  style={{
+                    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                    fontSize: 'clamp(0.9rem, 1.05vw, 1.05rem)',
+                    lineHeight: 1.5,
+                    color: '#4B5563',
+                    maxWidth: '680px',
+                    margin: '0.75rem auto 0',
+                    fontWeight: 400
+                  }}
+                >
+                  Handpicked sanctuaries across God’s Own Country—from private backwater lagoons to highland tea estates, crafted for seamless luxury exploration.
+                </p>
               </div>
 
               {/* The 3 Columns Grid Row — Concept 3 3D Amphitheater */}
@@ -1512,14 +1553,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       : 0;
                     return (
                       <div
-                        key={slide.id}
+                        key={idx}
                         style={{
                           position: 'absolute',
                           inset: 0,
                           opacity: heroVideoOpacity,
                           transform: isActive ? 'scale(1.02)' : 'scale(1.0)',
                           transition: 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 8s cubic-bezier(0.16, 1, 0.3, 1)',
-                          zIndex: 1,
+                          zIndex: 2,
                           overflow: 'hidden',
                           pointerEvents: 'none',
                           backgroundColor: '#0B1410'
@@ -1527,8 +1568,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       >
                         <video
                           ref={(el) => { heroVideoRefs.current[idx] = el; }}
+                          src={slide.video}
                           autoPlay
                           muted
+                          loop
                           playsInline
                           preload="auto"
                           disablePictureInPicture
@@ -1537,11 +1580,6 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           data-video-popout="false"
                           tabIndex={-1}
                           aria-hidden="true"
-                          onEnded={() => {
-                            if (idx === currentSlide && isPlaying) {
-                              setCurrentSlide((curr) => (curr + 1) % (heroSlides.length || 1));
-                            }
-                          }}
                           style={{
                             width: '100%',
                             height: '100%',
@@ -2570,7 +2608,8 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 const isActive = idx === currentSlide;
                 return (
                   <video
-                    key={slide.id}
+                    key={idx}
+                    src={slide.video}
                     autoPlay
                     loop
                     muted
@@ -2592,7 +2631,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       pointerEvents: 'none',
                       opacity: isActive ? 1 : 0,
                       transition: 'opacity 1.2s ease',
-                      backgroundColor: '#0B1410'
+                      backgroundColor: '#121316'
                     }}
                   >
                     <source src={slide.video} type="video/mp4" />
@@ -2764,6 +2803,18 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                 >
                   Where Every Landscape Tells a Story
                 </h3>
+                <p
+                  style={{
+                    fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif",
+                    fontSize: '0.88rem',
+                    lineHeight: 1.5,
+                    color: '#4B5563',
+                    margin: '0.65rem 0 0',
+                    fontWeight: 400
+                  }}
+                >
+                  Handpicked sanctuaries across God’s Own Country—from private backwater lagoons to highland tea estates, crafted for seamless luxury exploration.
+                </p>
               </div>
 
               <div

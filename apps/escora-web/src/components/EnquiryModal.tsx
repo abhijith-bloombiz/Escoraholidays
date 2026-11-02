@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Compass, CheckCircle2, Clock } from 'lucide-react';
 import { PLANNING_STEPS } from '../data/escoraData';
 
@@ -33,6 +33,15 @@ export default function EnquiryModal({ isOpen, onClose, initialData = {}, onShow
 
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [activeStepTab, setActiveStepTab] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const lenis = (window as any).lenis;
+    lenis?.stop();
+    return () => {
+      lenis?.start();
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 

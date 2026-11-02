@@ -17,9 +17,11 @@ import Footer from '../components/Footer';
 import EnquiryModal from '../components/EnquiryModal';
 import Toast from '../components/Toast';
 import HeroGradientBackground from '../components/HeroGradientBackground';
-import { useScrollReveal } from '../hooks/useScrollAnimation';
+import { useScrollReveal, usePageScrollReveal } from '../hooks/useScrollAnimation';
 
 export default function AboutPage() {
+  usePageScrollReveal();
+
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
 
@@ -110,16 +112,14 @@ export default function AboutPage() {
               alignItems: 'center'
             }}
           >
-            <div
-              className={`reveal-fade-left ${philosophyVisible ? 'in-view' : ''}`}
-            >
-              <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
+            <div className="reveal-fade-left">
+              <p className="reveal-fade-up" style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 OUR REASON FOR BEING
               </p>
-              <h2 className="font-display" style={{ fontSize: '2.8rem', color: '#121316', lineHeight: 1.1, marginBottom: '1.5rem' }}>
+              <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.8rem', color: '#121316', lineHeight: 1.1, marginBottom: '1.5rem' }}>
                 WHERE EVERY JOURNEY FEELS LIKE HOME
               </h2>
-              <div style={{ fontSize: '1.02rem', color: '#4B5563', lineHeight: 1.85, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div className="reveal-fade-up stagger-2" style={{ fontSize: '1.02rem', color: '#4B5563', lineHeight: 1.85, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <p>
                   Kerala is often hailed as "God’s Own Country", yet so much of its magic remains hidden beneath cookie-cutter travel packages.
                   Mass tourism rushes travellers through crowded spots, missing the true quiet majesty of our land.
@@ -137,7 +137,7 @@ export default function AboutPage() {
             </div>
 
             <div
-              className={`reveal-fade-right luxury-interactive-card ${philosophyVisible ? 'in-view' : ''}`}
+              className="reveal-fade-right luxury-interactive-card"
               style={{ borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0, 0, 0, 0.1)', height: '480px' }}
             >
               <img
@@ -154,9 +154,9 @@ export default function AboutPage() {
       {/* Founder & CEO Story */}
       <section ref={founderRef} style={{ padding: 'clamp(3.5rem, 6vw, 4.75rem) 0', backgroundColor: '#F8F6F1', borderTop: '1px solid rgba(0, 0, 0, 0.06)' }}>
         <div className="section-wrapper">
-          <div className={`about-founder-card luxury-interactive-card reveal-scale-up ${founderVisible ? 'in-view' : ''}`}>
+          <div className="about-founder-card luxury-interactive-card reveal-card">
             {/* Founder Image */}
-            <div className="about-founder-image-col">
+            <div className="about-founder-image-col reveal-scale-up">
               <img
                 src="/images/midhilaj-founder.jpg"
                 alt="Midhilaj — Founder & CEO, Escora Holidays"
@@ -236,7 +236,7 @@ export default function AboutPage() {
       {/* The 4 Trust Pillars */}
       <section ref={pillarsRef} style={{ padding: '6rem 0', backgroundColor: '#0D0F13', color: '#FFFFFF' }}>
         <div className="section-wrapper">
-          <div className={`reveal-fade-up ${pillarsVisible ? 'in-view' : ''}`} style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4rem' }}>
+          <div className="reveal-fade-up" style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4rem' }}>
             <p style={{ color: '#D4A359', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
               THE ESCORA STANDARD
             </p>
@@ -279,7 +279,7 @@ export default function AboutPage() {
             ].map((pillar, idx) => (
               <div
                 key={pillar.num}
-                className={`luxury-interactive-card reveal-fade-up stagger-${idx + 1} ${pillarsVisible ? 'in-view' : ''}`}
+                className={`luxury-interactive-card reveal-card stagger-${idx + 1}`}
                 style={{
                   backgroundColor: 'rgba(255, 255, 255, 0.05)',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -327,7 +327,7 @@ export default function AboutPage() {
             ].map((item, idx) => (
               <div
                 key={idx}
-                className={`luxury-stat-card reveal-pop stagger-${idx + 1} ${milestonesVisible ? 'in-view' : ''}`}
+                className={`luxury-stat-card reveal-card stagger-${idx + 1}`}
                 style={{
                   padding: '1.5rem',
                   borderRadius: '16px',
@@ -349,15 +349,15 @@ export default function AboutPage() {
 
       {/* Call to Action Banner */}
       <section ref={ctaRef} style={{ padding: '6rem 2rem', backgroundColor: '#F8F6F1', textAlign: 'center', overflow: 'hidden' }}>
-        <div className={`section-wrapper reveal-scale-up ${ctaVisible ? 'in-view' : ''}`} style={{ maxWidth: '780px' }}>
-          <Sparkles size={28} color="#B48235" className="anim-hero-badge" style={{ margin: '0 auto 1.25rem' }} />
-          <h2 className="font-display" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#121316', lineHeight: 1.1, marginBottom: '1.25rem' }}>
+        <div className="section-wrapper" style={{ maxWidth: '780px' }}>
+          <Sparkles size={28} color="#B48235" className="reveal-pop" style={{ margin: '0 auto 1.25rem' }} />
+          <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#121316', lineHeight: 1.1, marginBottom: '1.25rem' }}>
             READY TO BEGIN YOUR KERALA STORY?
           </h2>
-          <p style={{ color: '#4B5563', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
+          <p className="reveal-fade-up stagger-2" style={{ color: '#4B5563', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
             Tell us where you want to go and how you want to feel. We will take care of every single detail.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="reveal-scale-up stagger-3" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/plan" className="btn-pill btn-gold anim-hover-pill" style={{ padding: '0.9rem 2.4rem', fontSize: '0.95rem' }}>
               Plan a Journey
             </Link>

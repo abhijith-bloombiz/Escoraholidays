@@ -20,7 +20,7 @@ import { detectMediaMimeType } from "../lib/auth-crypto";
 
 const router: IRouter = Router();
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB limit
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB limit for videos and images
 
 const workspaceRoot = process.cwd().endsWith(path.join("apps", "api-server"))
   ? path.resolve(process.cwd(), "../..")
@@ -329,7 +329,7 @@ const handleUpload = async (req: Request, res: Response, next: NextFunction): Pr
   try {
     const declaredLength = parseInt(req.headers["content-length"] || "0", 10);
     if (declaredLength > MAX_FILE_SIZE) {
-      res.status(413).json({ error: "File exceeds maximum size limit of 10MB" });
+      res.status(413).json({ error: "File exceeds maximum size limit of 100MB" });
       return;
     }
 
@@ -349,7 +349,7 @@ const handleUpload = async (req: Request, res: Response, next: NextFunction): Pr
 
     if (exceeded) {
       req.resume();
-      res.status(413).json({ error: "File exceeds maximum size limit of 10MB" });
+      res.status(413).json({ error: "File exceeds maximum size limit of 100MB" });
       return;
     }
 
@@ -367,8 +367,13 @@ const handleUpload = async (req: Request, res: Response, next: NextFunction): Pr
       return;
     }
 
-    // Sanitize user-provided filename
-    const rawHeaderFilename = (req.headers["x-filename"] as string) || "";
+    // Sanitize user-provided filename safely supporting URL-encoded Unicode filenames
+    let rawHeaderFilename = (req.headers["x-filename"] as string) || "";
+    try {
+      rawHeaderFilename = decodeURIComponent(rawHeaderFilename);
+    } catch {
+      // already plain text or invalid encoding
+    }
     const baseNameOnly = rawHeaderFilename.replace(/^.*[\\\/]/, "").replace(/\0/g, "");
     const sanitizedBase = baseNameOnly.replace(/[^a-zA-Z0-9.\-_]/g, "_").trim();
     const originalFilename = sanitizedBase || `upload-${Date.now()}${detected.extension}`;
@@ -439,6 +444,13 @@ router.get("/media/files/:name", (req, res): void => {
   res.setHeader("Access-Control-Allow-Headers", "*");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  if (name.endsWith(".heic") || name.endsWith(".heif")) {
+    res.setHeader("Content-Type", "image/heic");
+  } else if (name.endsWith(".webp")) {
+    res.setHeader("Content-Type", "image/webp");
+  } else if (name.endsWith(".avif")) {
+    res.setHeader("Content-Type", "image/avif");
+  }
   res.sendFile(filePath);
 });
 

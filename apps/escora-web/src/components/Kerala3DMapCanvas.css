@@ -6,8 +6,8 @@
 .kerala-3d-map-wrap {
   position: relative;
   width: 100%;
-  max-width: 520px;
-  height: clamp(480px, 58vh, 600px);
+  max-width: 440px;
+  height: 350px;
   margin: 0 auto;
 }
 

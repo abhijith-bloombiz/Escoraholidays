@@ -8,6 +8,7 @@ import {
   formatDate,
   numberToIndianWords,
 } from "@/lib/invoices";
+import { Calendar, Phone, Mail } from "lucide-react";
 import { PAGE_WIDTH_PX } from "@/lib/measurePagination";
 import escoraLogoMarkPath from "@assets/escora/escora-logo-mark.png";
 import escoraWordmarkPath from "@assets/escora/escora-wordmark.png";
@@ -135,6 +136,9 @@ export default function InvoicePrintDocument({
                   <h1 className="text-xl font-serif font-bold tracking-widest uppercase text-stone-900 leading-tight">
                     Tax Invoice
                   </h1>
+                  <p className="font-mono text-xs font-semibold text-stone-600 mt-0.5">
+                    {invoice.invoiceNumber}
+                  </p>
                   <span className="inline-block mt-1 px-2 py-0.5 rounded text-[9.5px] font-sans tracking-wider uppercase font-semibold border border-stone-300 bg-stone-100 text-[#153925]">
                     {statusUpper}
                   </span>
@@ -153,38 +157,38 @@ export default function InvoicePrintDocument({
                   {invoice.customerName}
                 </p>
                 {invoice.customerPhone && (
-                  <p className="text-[11px] text-stone-600 mt-0.5">Tel: {invoice.customerPhone}</p>
+                  <p className="text-[11px] text-stone-600 mt-1 flex items-center gap-1.5">
+                    <Phone className="h-3 w-3 text-stone-500 flex-shrink-0" />
+                    <span>{invoice.customerPhone}</span>
+                  </p>
                 )}
                 {invoice.customerEmail && (
-                  <p className="text-[11px] text-stone-600">Email: {invoice.customerEmail}</p>
+                  <p className="text-[11px] text-stone-600 flex items-center gap-1.5">
+                    <Mail className="h-3 w-3 text-stone-500 flex-shrink-0" />
+                    <span>{invoice.customerEmail}</span>
+                  </p>
                 )}
                 {invoice.customerAddress && (
-                  <p className="text-[10.5px] text-stone-600 mt-0.5 leading-snug whitespace-pre-line">
+                  <p className="text-[10.5px] text-stone-600 mt-1 leading-snug whitespace-pre-line">
                     {invoice.customerAddress}
                   </p>
                 )}
                 {invoice.customerGstin && (
-                  <p className="text-[10.5px] font-mono text-stone-800 font-medium mt-0.5">
+                  <p className="text-[10.5px] font-mono text-stone-800 font-medium mt-1">
                     GSTIN: {invoice.customerGstin}
                   </p>
                 )}
               </div>
 
-              {/* Invoice Specifics */}
+              {/* Trip Details */}
               <div className="bg-stone-50/80 p-3 rounded border border-stone-200 flex flex-col justify-between">
                 <div>
-                  <p className="text-[9.5px] font-sans uppercase tracking-widest font-bold text-[#153925] mb-1">
-                    Invoice Details
+                  <p className="text-[9.5px] font-sans uppercase tracking-widest font-bold text-[#153925] mb-1.5">
+                    Trip Details
                   </p>
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[11px]">
                     <div>
-                      <span className="text-stone-500 block text-[10px]">Invoice Number:</span>
-                      <span className="font-mono font-bold text-stone-900 text-xs">
-                        {invoice.invoiceNumber}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-stone-500 block text-[10px]">Date of Issue:</span>
+                      <span className="text-stone-500 block text-[10px]">Issue Date:</span>
                       <span className="font-medium text-stone-900">{formatDate(invoice.issueDate)}</span>
                     </div>
                     {invoice.dueDate && (
@@ -194,29 +198,34 @@ export default function InvoicePrintDocument({
                       </div>
                     )}
                     {invoice.destination && (
-                      <div>
+                      <div className={invoice.dueDate ? "" : "col-start-1"}>
                         <span className="text-stone-500 block text-[10px]">Destination:</span>
                         <span className="font-medium text-stone-900">{invoice.destination}</span>
                       </div>
                     )}
+                    {invoice.guestCount && (
+                      <div>
+                        <span className="text-stone-500 block text-[10px]">Guests:</span>
+                        <span className="font-medium text-stone-900">{invoice.guestCount} Travelers</span>
+                      </div>
+                    )}
                     <div className="col-span-2">
-                      <span className="text-stone-500 block text-[10px]">Tax Category:</span>
-                      <span className="font-medium text-stone-900 capitalize">
+                      <span className="text-stone-500 block text-[10px]">Tax Configuration:</span>
+                      <span className="font-medium text-stone-900">
                         {totals.taxType === "igst"
-                          ? "Inter-State (IGST)"
+                          ? "Inter-State Supply (IGST)"
                           : totals.taxType === "exempt"
-                          ? "Exempt / Nil Rated"
-                          : "Intra-State (CGST + SGST)"}
+                          ? "Exempt / Nil Rated (0%)"
+                          : "Intra-State Supply (CGST + SGST)"}
                       </span>
                     </div>
                   </div>
                 </div>
 
                 {invoice.travelDates && (
-                  <div className="pt-1.5 mt-1 border-t border-stone-200 text-[10.5px] text-stone-600">
-                    <span className="text-stone-500">Travel Period: </span>
-                    <span className="font-medium text-stone-900">{invoice.travelDates}</span>
-                    {invoice.guestCount ? ` (${invoice.guestCount} Guests)` : ""}
+                  <div className="pt-1.5 mt-1 border-t border-stone-200 text-[10.5px] text-stone-600 flex items-center gap-1.5">
+                    <Calendar className="h-3 w-3 text-stone-500 flex-shrink-0" />
+                    <span>Travel Dates: <strong className="font-medium text-stone-900">{invoice.travelDates}</strong></span>
                   </div>
                 )}
               </div>

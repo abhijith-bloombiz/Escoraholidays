@@ -257,7 +257,7 @@ body {
 
 .reveal-fade-up {
   opacity: 0;
-  transform: translateY(40px);
+  transform: translateY(42px) scale(0.98);
   will-change: transform, opacity;
   transition: opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury);
 }
@@ -292,33 +292,76 @@ body {
 
 .reveal-pop {
   opacity: 0;
-  transform: scale(0.75);
+  transform: scale(0.85);
   will-change: transform, opacity;
-  transition: opacity 0.75s var(--ease-spring), transform 0.75s var(--ease-spring);
+  transition: opacity 0.65s var(--ease-spring), transform 0.65s var(--ease-spring);
 }
 
-/* Active In-View State (Triggers on both scroll down and scroll up) */
+.reveal-card {
+  opacity: 0;
+  transform: translateY(45px) scale(0.97);
+  will-change: transform, opacity;
+  transition: opacity 0.85s var(--ease-luxury), transform 0.85s var(--ease-luxury);
+}
+
+.reveal-text {
+  opacity: 0;
+  transform: translateY(24px);
+  will-change: transform, opacity;
+  transition: opacity 0.75s var(--ease-luxury), transform 0.75s var(--ease-luxury);
+}
+
+.reveal-item {
+  opacity: 0;
+  transform: translateY(30px);
+  will-change: transform, opacity;
+  transition: opacity 0.7s var(--ease-luxury), transform 0.7s var(--ease-luxury);
+}
+
+/* Active In-View State (Triggers when element visibly enters viewport) */
 .is-revealed,
 .in-view {
   opacity: 1 !important;
   transform: translate3d(0, 0, 0) scale(1) !important;
 }
 
-/* Staggered Delays for Grid Children */
-.stagger-1 { transition-delay: 0.08s !important; }
-.stagger-2 { transition-delay: 0.16s !important; }
-.stagger-3 { transition-delay: 0.24s !important; }
-.stagger-4 { transition-delay: 0.32s !important; }
-.stagger-5 { transition-delay: 0.40s !important; }
-.stagger-6 { transition-delay: 0.48s !important; }
+/* Staggered Delays for Grid & Sequence Children on Reveal */
+.in-view.stagger-1, .is-revealed.stagger-1 { transition-delay: 0.06s !important; }
+.in-view.stagger-2, .is-revealed.stagger-2 { transition-delay: 0.12s !important; }
+.in-view.stagger-3, .is-revealed.stagger-3 { transition-delay: 0.18s !important; }
+.in-view.stagger-4, .is-revealed.stagger-4 { transition-delay: 0.24s !important; }
+.in-view.stagger-5, .is-revealed.stagger-5 { transition-delay: 0.30s !important; }
+.in-view.stagger-6, .is-revealed.stagger-6 { transition-delay: 0.36s !important; }
+.in-view.stagger-7, .is-revealed.stagger-7 { transition-delay: 0.42s !important; }
+.in-view.stagger-8, .is-revealed.stagger-8 { transition-delay: 0.48s !important; }
+.in-view.stagger-9, .is-revealed.stagger-9 { transition-delay: 0.54s !important; }
+.in-view.stagger-10, .is-revealed.stagger-10 { transition-delay: 0.60s !important; }
+.in-view.stagger-11, .is-revealed.stagger-11 { transition-delay: 0.66s !important; }
+.in-view.stagger-12, .is-revealed.stagger-12 { transition-delay: 0.72s !important; }
 
-/* Interactive Hover Utilities */
+/* Interactive Hover Utilities with Stable Hit-Area Buffer */
 .interactive-card {
+  position: relative;
   transition: transform 0.4s var(--ease-luxury), box-shadow 0.4s var(--ease-luxury), border-color 0.4s ease;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.interactive-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  pointer-events: auto;
+  z-index: -1;
 }
 
 .interactive-card:hover {
-  transform: translateY(-8px);
+  transform: translate3d(0, -4px, 0);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
 }
 
 /* Contact Section Vice-Versa Reveal & Swap Animation */
@@ -433,11 +476,9 @@ video::-webkit-media-controls-start-playback-button {
 @keyframes luxuryPageFadeIn {
   from {
     opacity: 0;
-    transform: translateY(24px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -507,7 +548,7 @@ video::-webkit-media-controls-start-playback-button {
 }
 
 .anim-page-fade-in {
-  animation: luxuryPageFadeIn 0.85s var(--ease-luxury) forwards;
+  animation: luxuryPageFadeIn 0.35s var(--ease-luxury) forwards;
 }
 
 .anim-hero-badge {
@@ -536,22 +577,42 @@ video::-webkit-media-controls-start-playback-button {
 
 /* Luxury Interactive Card with Image Zoom & Gold Rim */
 .luxury-interactive-card {
+  position: relative;
   transition: transform 0.45s var(--ease-luxury), box-shadow 0.45s var(--ease-luxury), border-color 0.45s ease;
   will-change: transform, box-shadow;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
-.luxury-interactive-card:hover {
-  transform: translateY(-8px);
+/* Hit-testing buffer prevents mouse cursor boundary flutter and card shaking */
+.luxury-interactive-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: -10px;
+  pointer-events: auto;
+  z-index: -1;
+}
+
+.luxury-interactive-card:hover,
+.in-view.luxury-interactive-card:hover {
+  transform: translate3d(0, -4px, 0) !important;
   box-shadow: 0 24px 50px -12px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(212, 163, 89, 0.38) !important;
 }
 
 .luxury-interactive-card:hover .card-zoom-img {
-  transform: scale(1.06);
+  transform: scale(1.06) translate3d(0, 0, 0);
 }
 
 .card-zoom-img {
   transition: transform 0.75s var(--ease-luxury);
   will-change: transform;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .card-arrow-hover {
@@ -724,6 +785,20 @@ video::-webkit-media-controls-start-playback-button {
   );
   animation: luxuryHeroGoldSweep 9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   pointer-events: none;
+}
+
+/* Visibility utilities for client views and print/PDF rendering */
+.hidden {
+  display: none !important;
+}
+
+@media print {
+  .print\:block {
+    display: block !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
 }
 
 

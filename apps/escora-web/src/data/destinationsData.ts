@@ -26,6 +26,9 @@ export interface DestinationDetail {
   gallery: string[];
   highlights: string[];
   howToReach: string;
+  featured?: boolean;
+  latitude?: number;
+  longitude?: number;
   sampleItinerary?: {
     title: string;
     totalNights: string;

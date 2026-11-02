@@ -9,6 +9,7 @@ export interface IHeroSlide {
   headingLine1: string;
   headingLine2: string;
   videoUrl: string;
+  duration?: number;
   posterUrl?: string | null;
   ctaText?: string | null;
   ctaLink?: string | null;
@@ -29,6 +30,7 @@ const heroSlideSchema = new Schema<IHeroSlide>(
     headingLine1: { type: String, required: true },
     headingLine2: { type: String, required: true },
     videoUrl: { type: String, default: "/hero/15015065_1920_1080_60fps.mp4" },
+    duration: { type: Number, default: 8 },
     posterUrl: { type: String, default: null },
     ctaText: { type: String, default: null },
     ctaLink: { type: String, default: null },
@@ -121,8 +123,9 @@ export const insertHeroSlideSchema = z.object({
   subtitle: z.string().optional().default(""),
   eyebrow: z.string().optional().default("GOD'S OWN COUNTRY"),
   headingLine1: z.string().min(1, "Heading Line 1 is required"),
-  headingLine2: z.string().min(1, "Heading Line 2 is required"),
+  headingLine2: z.string().optional().default(""),
   videoUrl: z.string().optional().default("/hero/15015065_1920_1080_60fps.mp4"),
+  duration: z.number().optional().default(8),
   posterUrl: z.string().optional().nullable(),
   ctaText: z.string().optional().nullable(),
   ctaLink: z.string().optional().nullable(),

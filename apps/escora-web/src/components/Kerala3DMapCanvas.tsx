@@ -4,94 +4,8 @@ import gsap from "gsap";
 import districtsGeoData from "@/data/kerala-districts.json";
 import "./Kerala3DMapCanvas.css";
 
-// District metadata & destination associations
-export interface DistrictInfo {
-  name: string;
-  associatedDestId?: string;
-  category: string;
-  highlights: string;
-}
-
-export const DISTRICT_DETAILS: Record<string, DistrictInfo> = {
-  Alappuzha: {
-    name: "Alappuzha",
-    associatedDestId: "alleppey",
-    category: "Backwater Capital",
-    highlights: "Vembanad Lake, Kettuvallam houseboats & Kuttanad paddy fields",
-  },
-  Ernakulam: {
-    name: "Ernakulam (Kochi)",
-    associatedDestId: "kochi",
-    category: "Heritage & Commerce",
-    highlights: "Fort Kochi colonial streets, Chinese fishing nets & Mattancherry",
-  },
-  Idukki: {
-    name: "Idukki",
-    associatedDestId: "munnar",
-    category: "Highland Spice & Tea Country",
-    highlights: "Munnar tea gardens, Anamudi peak & Periyar wildlife in Thekkady",
-  },
-  Kannur: {
-    name: "Kannur",
-    associatedDestId: "kannur",
-    category: "Theyyam & Loom Coast",
-    highlights: "Sacred Theyyam rituals, Muzhappilangad drive-in beach & St. Angelo Fort",
-  },
-  Kasaragod: {
-    name: "Kasaragod",
-    associatedDestId: "bekal",
-    category: "Forts & Rivers",
-    highlights: "Bekal coastal fortress, Ranipuram hill station & uncrowded shores",
-  },
-  Kollam: {
-    name: "Kollam",
-    category: "Ashtamudi Estuary",
-    highlights: "Gateway to the backwaters, historic cashew trade & Munroe Island",
-  },
-  Kottayam: {
-    name: "Kottayam",
-    associatedDestId: "kumarakom",
-    category: "Lakes & Letters",
-    highlights: "Kumarakom bird sanctuary, rubber hills & backwater canals",
-  },
-  Kozhikode: {
-    name: "Kozhikode",
-    category: "Historic Spice Port",
-    highlights: "Vasco da Gama's landing, Malabar culinary heritage & Beypore shipyards",
-  },
-  Malappuram: {
-    name: "Malappuram",
-    category: "Cultural Heartland",
-    highlights: "Kottakkal Arya Vaidya Sala, teak plantations & rolling hills",
-  },
-  Palakkad: {
-    name: "Palakkad",
-    category: "Gateway of the Ghats",
-    highlights: "Palakkad Gap, Silent Valley National Park & historic granite fort",
-  },
-  Pathanamthitta: {
-    name: "Pathanamthitta",
-    category: "Pilgrimage & Forest",
-    highlights: "Gavi ecotourism, Sabarimala shrine & Perunthenaruvi falls",
-  },
-  Thiruvananthapuram: {
-    name: "Thiruvananthapuram",
-    associatedDestId: "varkala",
-    category: "Royal Capital & Cliffs",
-    highlights: "Varkala laterite cliffs, Kovalam lighthouse & Padmanabhaswamy Temple",
-  },
-  Thrissur: {
-    name: "Thrissur",
-    category: "Cultural Capital",
-    highlights: "Thrissur Pooram elephant festival, Vadakkunnathan Temple & performing arts",
-  },
-  Wayanad: {
-    name: "Wayanad",
-    associatedDestId: "wayanad",
-    category: "Highland Rainforest",
-    highlights: "Edakkal prehistoric rock art, Chembra peak & misty rainforest stays",
-  },
-};
+import { DISTRICT_DETAILS, type DistrictInfo } from "@/data/districtDetails";
+export { DISTRICT_DETAILS, type DistrictInfo };
 
 // Reference: 03 Midnight Navy & Antique Gold color theme
 // Map Color: #17283D with subtle topographic elevation variations
@@ -114,7 +28,213 @@ const DISTRICT_TOPOGRAPHY: Record<string, { depth: number; color: number }> = {
 
 // Reference-matched key map pins with accurate geographic coordinates
 // Arranged North to South (top of Kerala down to bottom)
-const MAP_PINS = [
+export const KERALA_DISTRICT_COORDINATES: Record<string, { lat: number; lon: number; district: string }> = {
+  Kasaragod: { lat: 12.5102, lon: 74.9852, district: "Kasaragod" },
+  Kannur: { lat: 11.8745, lon: 75.3704, district: "Kannur" },
+  Wayanad: { lat: 11.6854, lon: 76.1320, district: "Wayanad" },
+  Kozhikode: { lat: 11.2588, lon: 75.7804, district: "Kozhikode" },
+  Malappuram: { lat: 11.0510, lon: 76.0711, district: "Malappuram" },
+  Palakkad: { lat: 10.7867, lon: 76.6548, district: "Palakkad" },
+  Thrissur: { lat: 10.5276, lon: 76.2144, district: "Thrissur" },
+  Ernakulam: { lat: 9.9816, lon: 76.2999, district: "Ernakulam" },
+  Idukki: { lat: 9.8494, lon: 76.9739, district: "Idukki" },
+  Kottayam: { lat: 9.5916, lon: 76.5222, district: "Kottayam" },
+  Alappuzha: { lat: 9.4981, lon: 76.3388, district: "Alappuzha" },
+  Pathanamthitta: { lat: 9.2648, lon: 76.7870, district: "Pathanamthitta" },
+  Kollam: { lat: 8.8932, lon: 76.6141, district: "Kollam" },
+  Thiruvananthapuram: { lat: 8.5241, lon: 76.9366, district: "Thiruvananthapuram" },
+};
+
+export const KNOWN_KERALA_LOCATIONS: Record<string, { lat: number; lon: number; district: string }> = {
+  // Highlands
+  munnar: { lat: 10.0889, lon: 77.0595, district: "Idukki" },
+  thekkady: { lat: 9.6001, lon: 77.1648, district: "Idukki" },
+  periyar: { lat: 9.6001, lon: 77.1648, district: "Idukki" },
+  wayanad: { lat: 11.6854, lon: 76.1320, district: "Wayanad" },
+  vagamon: { lat: 9.6874, lon: 76.9056, district: "Idukki" },
+  silentvalley: { lat: 11.0800, lon: 76.4300, district: "Palakkad" },
+  "silent-valley": { lat: 11.0800, lon: 76.4300, district: "Palakkad" },
+  nelliyampathy: { lat: 10.5348, lon: 76.6936, district: "Palakkad" },
+  ponmudi: { lat: 8.7600, lon: 77.1167, district: "Thiruvananthapuram" },
+  ranipuram: { lat: 12.4286, lon: 75.3533, district: "Kasaragod" },
+  vythiri: { lat: 11.5500, lon: 76.0333, district: "Wayanad" },
+  gavi: { lat: 9.4357, lon: 77.1652, district: "Pathanamthitta" },
+
+  // Coastal & Beaches
+  bekal: { lat: 12.3897, lon: 75.0329, district: "Kasaragod" },
+  varkala: { lat: 8.7379, lon: 76.7163, district: "Thiruvananthapuram" },
+  kovalam: { lat: 8.4004, lon: 76.9787, district: "Thiruvananthapuram" },
+  marari: { lat: 9.6019, lon: 76.2974, district: "Alappuzha" },
+  mararikulam: { lat: 9.6019, lon: 76.2974, district: "Alappuzha" },
+  cherai: { lat: 10.1416, lon: 76.1783, district: "Ernakulam" },
+  kannur: { lat: 11.8745, lon: 75.3704, district: "Kannur" },
+  poovar: { lat: 8.3188, lon: 77.0683, district: "Thiruvananthapuram" },
+  muzhappilangad: { lat: 11.7925, lon: 75.4503, district: "Kannur" },
+  kappad: { lat: 11.3833, lon: 75.7167, district: "Kozhikode" },
+
+  // Backwaters & Lakes
+  alleppey: { lat: 9.4981, lon: 76.3388, district: "Alappuzha" },
+  alappuzha: { lat: 9.4981, lon: 76.3388, district: "Alappuzha" },
+  kumarakom: { lat: 9.6180, lon: 76.4300, district: "Kottayam" },
+  kollam: { lat: 8.8932, lon: 76.6141, district: "Kollam" },
+  ashtamudi: { lat: 8.9500, lon: 76.5833, district: "Kollam" },
+  munroe: { lat: 8.9833, lon: 76.6167, district: "Kollam" },
+  "munroe-island": { lat: 8.9833, lon: 76.6167, district: "Kollam" },
+  kuttanad: { lat: 9.4167, lon: 76.4667, district: "Alappuzha" },
+
+  // Heritage & Cities
+  kochi: { lat: 9.9658, lon: 76.2421, district: "Ernakulam" },
+  "fort-kochi": { lat: 9.9658, lon: 76.2421, district: "Ernakulam" },
+  ernakulam: { lat: 9.9816, lon: 76.2999, district: "Ernakulam" },
+  mattancherry: { lat: 9.9577, lon: 76.2592, district: "Ernakulam" },
+  kozhikode: { lat: 11.2588, lon: 75.7804, district: "Kozhikode" },
+  calicut: { lat: 11.2588, lon: 75.7804, district: "Kozhikode" },
+  thrissur: { lat: 10.5276, lon: 76.2144, district: "Thrissur" },
+  palakkad: { lat: 10.7867, lon: 76.6548, district: "Palakkad" },
+  trivandrum: { lat: 8.5241, lon: 76.9366, district: "Thiruvananthapuram" },
+  thiruvananthapuram: { lat: 8.5241, lon: 76.9366, district: "Thiruvananthapuram" },
+  athirappilly: { lat: 10.2851, lon: 76.5698, district: "Thrissur" },
+  malappuram: { lat: 11.0510, lon: 76.0711, district: "Malappuram" },
+  pathanamthitta: { lat: 9.2648, lon: 76.7870, district: "Pathanamthitta" },
+  kottayam: { lat: 9.5916, lon: 76.5222, district: "Kottayam" },
+  kasaragod: { lat: 12.5102, lon: 74.9852, district: "Kasaragod" },
+};
+
+export const KERALA_DISTRICT_NAMES = [
+  "Alappuzha",
+  "Ernakulam",
+  "Idukki",
+  "Kannur",
+  "Kasaragod",
+  "Kollam",
+  "Kottayam",
+  "Kozhikode",
+  "Malappuram",
+  "Palakkad",
+  "Pathanamthitta",
+  "Thiruvananthapuram",
+  "Thrissur",
+  "Wayanad",
+] as const;
+
+export function resolveDistrictName(input?: string | null): string {
+  if (!input) return "Idukki";
+  const s = input.trim().toLowerCase();
+  if (s.includes("alappuzha") || s.includes("alleppey")) return "Alappuzha";
+  if (s.includes("ernakulam") || s.includes("kochi") || s.includes("cochin")) return "Ernakulam";
+  if (s.includes("idukki") || s.includes("munnar") || s.includes("thekkady")) return "Idukki";
+  if (s.includes("kannur") || s.includes("cannanore")) return "Kannur";
+  if (s.includes("kasaragod") || s.includes("bekal")) return "Kasaragod";
+  if (s.includes("kollam") || s.includes("quilon") || s.includes("ashtamudi")) return "Kollam";
+  if (s.includes("kottayam") || s.includes("kumarakom")) return "Kottayam";
+  if (s.includes("kozhikode") || s.includes("calicut")) return "Kozhikode";
+  if (s.includes("malappuram")) return "Malappuram";
+  if (s.includes("palakkad") || s.includes("palghat")) return "Palakkad";
+  if (s.includes("pathanamthitta") || s.includes("gavi")) return "Pathanamthitta";
+  if (s.includes("thiruvananthapuram") || s.includes("trivandrum") || s.includes("varkala") || s.includes("kovalam")) return "Thiruvananthapuram";
+  if (s.includes("thrissur") || s.includes("trichur") || s.includes("athirappilly")) return "Thrissur";
+  if (s.includes("wayanad")) return "Wayanad";
+
+  const match = KERALA_DISTRICT_NAMES.find((d) => d.toLowerCase() === s);
+  return match || "Idukki";
+}
+
+export function resolveDestinationCoordinates(d: {
+  slug?: string;
+  name?: string;
+  region?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  coordinates?: string | null;
+}): { lat: number; lon: number; district: string } {
+  // 1. Direct explicit numeric latitude & longitude from CMS
+  const latNum = typeof d.latitude === "number" ? d.latitude : parseFloat(String(d.latitude || ""));
+  const lonNum = typeof d.longitude === "number" ? d.longitude : parseFloat(String(d.longitude || ""));
+
+  const hasValidLat = !isNaN(latNum) && latNum >= 8.0 && latNum <= 13.0;
+  const hasValidLon = !isNaN(lonNum) && lonNum >= 74.5 && lonNum <= 77.8;
+
+  // 2. Parse from coordinates string e.g. "10.08°N 77.06°E" or "10.08, 77.06"
+  let parsedLat: number | null = null;
+  let parsedLon: number | null = null;
+  if ((!hasValidLat || !hasValidLon) && d.coordinates) {
+    const match = d.coordinates.match(/([0-9.]+)\s*°?\s*N?[,\s]+([0-9.]+)\s*°?\s*E?/i);
+    if (match) {
+      const pLat = parseFloat(match[1]);
+      const pLon = parseFloat(match[2]);
+      if (!isNaN(pLat) && !isNaN(pLon) && pLat >= 8.0 && pLat <= 13.0 && pLon >= 74.5 && pLon <= 77.8) {
+        parsedLat = pLat;
+        parsedLon = pLon;
+      }
+    }
+  }
+
+  const slug = (d.slug || "").toLowerCase().trim();
+  const name = (d.name || "").toLowerCase().trim();
+  const known = KNOWN_KERALA_LOCATIONS[slug] || KNOWN_KERALA_LOCATIONS[name];
+
+  const district = resolveDistrictName(d.region || known?.district);
+  const districtFallback = KERALA_DISTRICT_COORDINATES[district] || { lat: 10.08, lon: 77.06, district: "Idukki" };
+
+  const finalLat = hasValidLat ? latNum : (parsedLat ?? known?.lat ?? districtFallback.lat);
+  const finalLon = hasValidLon ? lonNum : (parsedLon ?? known?.lon ?? districtFallback.lon);
+
+  return {
+    lat: finalLat,
+    lon: finalLon,
+    district: known?.district || district,
+  };
+}
+
+export interface MapPinData {
+  id: string;
+  label: string;
+  district: string;
+  lon: number;
+  lat: number;
+  associatedDestId?: string;
+}
+
+export function buildMapPins(destinations?: any[]): MapPinData[] {
+  if (!destinations || destinations.length === 0) {
+    return MAP_PINS;
+  }
+
+  // Filter ONLY destinations that are marked as featured in CMS for the map
+  const featuredList = destinations.filter(
+    (d) => Boolean(d && (d.featured === true || d.featured === 1))
+  );
+
+  // If admin has set featured destinations, show ONLY those on the map.
+  // If none are featured yet (e.g. before initial CMS configuration), use curated top destinations
+  const targetList =
+    featuredList.length > 0
+      ? featuredList
+      : destinations.filter((d) => {
+          const s = (d.slug || "").toLowerCase();
+          return ["munnar", "wayanad", "alleppey", "thekkady", "kovalam"].includes(s);
+        });
+
+  const listToUse = targetList.length > 0 ? targetList : destinations.slice(0, 5);
+
+  const pins: MapPinData[] = [];
+  listToUse.forEach((d) => {
+    if (!d || !d.name) return;
+    const { lat, lon, district } = resolveDestinationCoordinates(d);
+    pins.push({
+      id: d.slug || d.name,
+      label: d.name,
+      district,
+      lat,
+      lon,
+      associatedDestId: d.slug,
+    });
+  });
+
+  return pins;
+}
+
+export const MAP_PINS: MapPinData[] = [
   { id: "Kasaragod", label: "Kasaragod", district: "Kasaragod", lon: 75.00, lat: 12.50, associatedDestId: "bekal" },
   { id: "Kannur", label: "Kannur", district: "Kannur", lon: 75.37, lat: 11.87 },
   { id: "Wayanad", label: "Wayanad", district: "Wayanad", lon: 76.13, lat: 11.68, associatedDestId: "wayanad" },
@@ -167,18 +287,29 @@ declare global {
   }
 }
 
-interface Kerala3DMapCanvasProps {
+export interface Kerala3DMapCanvasProps {
   selectedDistrict: string | null;
   activeDestId?: string;
   onSelectDistrict: (districtName: string, associatedDestId?: string) => void;
+  destinations?: any[];
 }
 
 export default function Kerala3DMapCanvas({
   selectedDistrict,
   activeDestId,
   onSelectDistrict,
+  destinations,
 }: Kerala3DMapCanvasProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+
+  const pinsToUse = React.useMemo(() => {
+    return buildMapPins(destinations);
+  }, [destinations]);
+
+  const pinsToUseRef = useRef<MapPinData[]>(pinsToUse);
+  pinsToUseRef.current = pinsToUse;
+
+  const recalcPinsRef = useRef<() => void>(() => {});
 
   const [hoveredDistrict, setHoveredDistrict] = useState<string | null>(null);
   const [pinPositions, setPinPositions] = useState<PinScreenPosition[]>([]);
@@ -202,6 +333,11 @@ export default function Kerala3DMapCanvas({
   useEffect(() => {
     wakeLoopRef.current();
   }, [selectedDistrict]);
+
+  useEffect(() => {
+    recalcPinsRef.current();
+    wakeLoopRef.current();
+  }, [pinsToUse]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -440,7 +576,9 @@ export default function Kerala3DMapCanvas({
       if (intersects.length > 0) {
         const hitName = (intersects[0].object as THREE.Mesh).userData.districtName;
         const details = DISTRICT_DETAILS[hitName];
-        onSelectDistrictRef.current(hitName, details?.associatedDestId);
+        const currentPins = pinsToUseRef.current;
+        const pinMatch = currentPins.find((p) => p.district === hitName && p.associatedDestId);
+        onSelectDistrictRef.current(hitName, pinMatch?.associatedDestId || details?.associatedDestId);
       }
     };
 
@@ -452,8 +590,9 @@ export default function Kerala3DMapCanvas({
     const tempVec = new THREE.Vector3();
     const calculatePins = (w: number, h: number) => {
       const updatedPins: PinScreenPosition[] = [];
+      const currentPins = pinsToUseRef.current;
 
-      MAP_PINS.forEach((pin) => {
+      currentPins.forEach((pin) => {
         const x = (pin.lon - centerLon) * scale;
         const y = (pin.lat - centerLat) * scale;
         const mesh = districtMeshes.get(pin.district);
@@ -479,6 +618,8 @@ export default function Kerala3DMapCanvas({
 
       setPinPositions(updatedPins);
     };
+
+    recalcPinsRef.current = () => calculatePins(dims.w, dims.h);
 
     // Calculate initial pin positions
     calculatePins(width, height);
@@ -546,7 +687,8 @@ export default function Kerala3DMapCanvas({
       // Synchronize pin positions and opacities directly with 3D projection during forward & backward wave
       const w = dims.w;
       const h = dims.h;
-      MAP_PINS.forEach((pin) => {
+      const currentPins = pinsToUseRef.current;
+      currentPins.forEach((pin) => {
         const el = pinElementsRef.current.get(pin.id);
         if (!el) return;
         const st = districtRevealStates.get(pin.district);

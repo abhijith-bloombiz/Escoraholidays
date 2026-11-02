@@ -159,6 +159,7 @@ export interface HeroSlide {
   headingLine1: string;
   headingLine2: string;
   videoUrl: string;
+  duration?: number | null;
   /** @nullable */
   posterUrl?: string | null;
   /** @nullable */
@@ -178,6 +179,7 @@ export interface HeroSlideInput {
   headingLine1: string;
   headingLine2: string;
   videoUrl: string;
+  duration?: number;
   posterUrl?: string;
   ctaText?: string;
   ctaLink?: string;
@@ -192,6 +194,7 @@ export interface HeroSlideUpdate {
   headingLine1?: string;
   headingLine2?: string;
   videoUrl?: string;
+  duration?: number;
   posterUrl?: string;
   ctaText?: string;
   ctaLink?: string;
@@ -229,6 +232,8 @@ export interface Destination {
   highlights?: string | null;
   /** @nullable */
   howToReach?: string | null;
+  /** @nullable */
+  featured?: boolean | null;
   published: boolean;
   createdAt: string;
   updatedAt: string;
@@ -251,6 +256,7 @@ export interface DestinationInput {
   nightsMax?: number;
   highlights?: string;
   howToReach?: string;
+  featured?: boolean;
   published?: boolean;
 }
 
@@ -271,6 +277,7 @@ export interface DestinationUpdate {
   nightsMax?: number;
   highlights?: string;
   howToReach?: string;
+  featured?: boolean;
   published?: boolean;
 }
 

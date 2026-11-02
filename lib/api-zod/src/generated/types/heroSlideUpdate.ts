@@ -12,6 +12,7 @@ export interface HeroSlideUpdate {
   headingLine1?: string;
   headingLine2?: string;
   videoUrl?: string;
+  duration?: number;
   posterUrl?: string;
   ctaText?: string;
   ctaLink?: string;

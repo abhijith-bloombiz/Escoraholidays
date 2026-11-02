@@ -19,12 +19,13 @@ import Footer from "@/components/Footer";
 import ItineraryPrintDocument from "@/components/ItineraryPrintDocument";
 import HeroGradientBackground from "@/components/HeroGradientBackground";
 import escoraWordmarkPath from "@assets/escora/escora-wordmark.png";
+import { usePageScrollReveal } from "@/hooks/useScrollAnimation";
 
 function Layout({ children, hideFooter = false }: { children: React.ReactNode; hideFooter?: boolean }) {
   return (
     <div className="min-h-screen flex flex-col w-full bg-[#F8F6F1]">
       <Navbar onOpenEnquiry={() => {}} />
-      <main className="flex-1 w-full pt-24">{children}</main>
+      <main className="flex-1 w-full">{children}</main>
       {!hideFooter && <Footer onOpenEnquiry={() => {}} onShowToast={() => {}} />}
     </div>
   );
@@ -35,6 +36,8 @@ const PRINT_TARGET_ID = "itinerary-print-target";
 export type ItineraryShareMode = "package" | "itinerary";
 
 export default function ItineraryShare({ mode = "itinerary" }: { mode?: ItineraryShareMode }) {
+  usePageScrollReveal();
+
   const { token } = useParams();
   const [openDays, setOpenDays] = useState<string[]>(["day-0"]);
   const [preparingDownload, setPreparingDownload] = useState(false);
@@ -109,7 +112,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
       `}</style>
       <div className="bg-bg cursor-auto itinerary-share-page anim-page-fade-in">
       {/* Hidden A4 dossier used only for Download PDF — the visible page below is the web view. */}
-      <div id={PRINT_TARGET_ID} className="hidden print:block">
+      <div id={PRINT_TARGET_ID} className="hidden print:block" style={{ display: "none" }}>
         <ItineraryPrintDocument
           data={{
             title: itinerary.title,
@@ -152,7 +155,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
 
       <div className="bg-bg">
         {itinerary.coverImageUrl && !/unsplash\.com\/photos\//i.test(itinerary.coverImageUrl) ? (
-          <div className="relative h-72 md:h-96 w-full overflow-hidden mt-24 md:mt-28 luxury-interactive-card">
+          <div className="relative h-72 md:h-96 w-full overflow-hidden luxury-interactive-card">
             <img
               src={itinerary.coverImageUrl}
               alt={itinerary.title}
@@ -165,7 +168,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
             <HeroGradientBackground hasImage opacity={0.5} />
           </div>
         ) : (
-          <div className="relative h-48 md:h-64 w-full overflow-hidden mt-24 md:mt-28 bg-[#0D0F13]">
+          <div className="relative h-48 md:h-64 w-full overflow-hidden bg-[#0D0F13]">
             <HeroGradientBackground opacity={0.8} />
           </div>
         )}
@@ -224,7 +227,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
                   <AccordionItem
                     key={i}
                     value={`day-${i}`}
-                    className="bg-bg-2 border border-gold/30 border-b-gold/30 p-5 sm:p-6 md:p-7 print:break-inside-avoid luxury-interactive-card"
+                    className={`bg-bg-2 border border-gold/30 border-b-gold/30 p-5 sm:p-6 md:p-7 print:break-inside-avoid luxury-interactive-card reveal-card stagger-${(i % 5) + 1}`}
                   >
                     <AccordionTrigger className="py-0 hover:no-underline items-start [&>svg]:mt-2 [&>svg]:text-gold [&>svg]:w-[18px] [&>svg]:h-[18px] print:[&>svg]:hidden print:cursor-default">
                       <div className="text-left">
@@ -280,7 +283,7 @@ export default function ItineraryShare({ mode = "itinerary" }: { mode?: Itinerar
               <h2 className="font-serif text-3xl text-ink mb-11 border-b border-line pb-5 font-semibold">Where You'll Rest</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {stays.map((stay, i) => (
-                  <div key={i} className="bg-bg-2 border border-gold/30 p-5 sm:p-7 break-inside-avoid luxury-interactive-card">
+                  <div key={i} className={`bg-bg-2 border border-gold/30 p-5 sm:p-7 break-inside-avoid luxury-interactive-card reveal-card stagger-${(i % 3) + 1}`}>
                     {stay.location && <span className="font-mono text-gold text-[10px] uppercase tracking-widest block mb-2.5">{stay.location}</span>}
                     <h3 className="font-serif text-xl text-ink mb-1.5 font-semibold">{stay.name}</h3>
                     {stay.roomType && <p className="font-sans text-ink-soft text-sm">{stay.roomType}</p>}

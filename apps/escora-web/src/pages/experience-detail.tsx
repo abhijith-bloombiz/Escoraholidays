@@ -20,12 +20,15 @@ import Toast from '../components/Toast';
 import HeroGradientBackground from '../components/HeroGradientBackground';
 import { getExperienceBySlug, KERALA_EXPERIENCES, type ExperienceItem } from '../data/experiencesData';
 import { useListExperiences } from '@workspace/api-client-react';
+import { usePageScrollReveal } from '../hooks/useScrollAnimation';
 
 export interface ExperienceDetailPageProps {
   slug?: string;
 }
 
 export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetailPageProps) {
+  usePageScrollReveal();
+
   const [, params] = useRoute('/experiences/:slug');
   const slug = propSlug || params?.slug || '';
 
@@ -64,7 +67,12 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
   const [activeGalleryIndex, setActiveGalleryIndex] = useState<number>(0);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const lenis = (window as any).lenis;
+    if (lenis && typeof lenis.scrollTo === 'function') {
+      lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
     setActiveGalleryIndex(0);
   }, [slug]);
 
@@ -283,7 +291,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               alignItems: 'center'
             }}
           >
-            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
+            <div className="luxury-stat-card reveal-card stagger-1" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
               <div
                 style={{
                   width: '44px',
@@ -308,7 +316,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               </div>
             </div>
 
-            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
+            <div className="luxury-stat-card reveal-card stagger-2" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
               <div
                 style={{
                   width: '44px',
@@ -333,7 +341,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               </div>
             </div>
 
-            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
+            <div className="luxury-stat-card reveal-card stagger-3" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
               <div
                 style={{
                   width: '44px',
@@ -358,7 +366,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
               </div>
             </div>
 
-            <div className="luxury-stat-card" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
+            <div className="luxury-stat-card reveal-card stagger-4" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.85rem 1.15rem', borderRadius: '16px', backgroundColor: '#FAF8F5' }}>
               <div
                 style={{
                   width: '44px',
@@ -400,7 +408,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
             }}
           >
             {/* Story */}
-            <div>
+            <div className="reveal-fade-left">
               <p style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
                 EXPERIENTIAL NARRATIVE
               </p>
@@ -413,7 +421,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
 
               {/* Concierge Tip Box */}
               <div
-                className="luxury-interactive-card"
+                className="luxury-interactive-card reveal-card stagger-2"
                 style={{
                   padding: '1.75rem',
                   backgroundColor: '#FFFFFF',
@@ -433,7 +441,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
             </div>
 
             {/* Gallery */}
-            <div>
+            <div className="reveal-fade-right">
               <div className="luxury-interactive-card" style={{ borderRadius: '24px', overflow: 'hidden', height: '420px', boxShadow: '0 16px 40px rgba(0, 0, 0, 0.12)', marginBottom: '1.25rem' }}>
                 <img
                   className="card-zoom-img"
@@ -609,15 +617,15 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
       {/* Plan Journey Banner */}
       <section style={{ padding: '6rem 2rem', backgroundColor: '#F8F6F1', textAlign: 'center' }}>
         <div className="section-wrapper" style={{ maxWidth: '780px' }}>
-          <Sparkles size={28} color="#B48235" style={{ margin: '0 auto 1.25rem' }} />
-          <h2 className="font-display" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#121316', lineHeight: 1.1, marginBottom: '1.25rem' }}>
+          <Sparkles size={28} color="#B48235" className="reveal-pop" style={{ margin: '0 auto 1.25rem' }} />
+          <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#121316', lineHeight: 1.1, marginBottom: '1.25rem' }}>
             EXPERIENCE THIS IN YOUR KERALA HOLIDAY
           </h2>
-          <p style={{ color: '#4B5563', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
+          <p className="reveal-fade-up stagger-2" style={{ color: '#4B5563', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
             Tell our personal journey designers that you want {experience.title} included in your itinerary.
             We will arrange all private permits, personal specialists, and transfers.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="reveal-scale-up stagger-3" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link
               href={`/plan?experience=${encodeURIComponent(experience.title)}`}
               className="btn-pill btn-gold anim-hover-pill"
@@ -677,16 +685,7 @@ export default function ExperienceDetailPage({ slug: propSlug }: ExperienceDetai
                     overflow: 'hidden',
                     backgroundColor: '#F8F6F1',
                     border: '1px solid rgba(0, 0, 0, 0.06)',
-                    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.04)',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.08)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(0, 0, 0, 0.04)';
+                    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.04)'
                   }}
                 >
                   <div style={{ height: '200px', overflow: 'hidden' }}>

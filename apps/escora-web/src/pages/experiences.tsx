@@ -8,7 +8,7 @@ import Toast from '../components/Toast';
 import HeroGradientBackground from '../components/HeroGradientBackground';
 import { KERALA_EXPERIENCES, type ExperienceItem } from '../data/experiencesData';
 import { useListExperiences } from '@workspace/api-client-react';
-import { useScrollReveal } from '../hooks/useScrollAnimation';
+import { useScrollReveal, usePageScrollReveal } from '../hooks/useScrollAnimation';
 
 const EXPERIENCE_CATEGORIES = [
   'All',
@@ -20,6 +20,8 @@ const EXPERIENCE_CATEGORIES = [
 ] as const;
 
 export default function ExperiencesPage() {
+  usePageScrollReveal();
+
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [enquiryOpen, setEnquiryOpen] = useState<boolean>(false);
@@ -188,9 +190,8 @@ export default function ExperiencesPage() {
       {/* Filter Chips Bar */}
       <section
         style={{
-          position: 'sticky',
-          top: '70px',
-          zIndex: 40,
+          position: 'relative',
+          zIndex: 10,
           backgroundColor: '#FFFFFF',
           borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
           padding: '1rem 0',
@@ -199,13 +200,13 @@ export default function ExperiencesPage() {
       >
         <div className="section-wrapper" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <div style={{ display: 'flex', gap: '0.75rem', minWidth: 'max-content', padding: '0.2rem 0' }}>
-            {EXPERIENCE_CATEGORIES.map((cat) => {
+            {EXPERIENCE_CATEGORIES.map((cat, idx) => {
               const active = activeCategory === cat;
               return (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className="anim-hover-pill"
+                  className={`anim-hover-pill reveal-pop stagger-${(idx % 6) + 1}`}
                   style={{
                     backgroundColor: active ? '#121316' : '#F3EFE8',
                     color: active ? '#FFFFFF' : '#121316',
@@ -231,7 +232,7 @@ export default function ExperiencesPage() {
       <section ref={gridSectionRef} style={{ padding: '4.5rem 0 6rem', flexGrow: 1 }}>
         <div className="section-wrapper">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2.5rem' }}>
-            <div className={`reveal-fade-left ${gridVisible ? 'in-view' : ''}`}>
+            <div className="reveal-fade-left">
               <p style={{ fontSize: '0.8rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: '#B48235', fontWeight: 700 }}>
                 {activeCategory === 'All' ? 'ALL BESPOKE EXPERIENCES' : `${activeCategory.toUpperCase()} COLLECTION`}
               </p>
@@ -239,7 +240,7 @@ export default function ExperiencesPage() {
                 {filteredExperiences.length} {filteredExperiences.length === 1 ? 'Experience' : 'Experiences'} Available
               </h2>
             </div>
-            <p className={`reveal-fade-right ${gridVisible ? 'in-view' : ''}`} style={{ fontSize: '0.88rem', color: '#6B7280' }}>
+            <p className="reveal-fade-right" style={{ fontSize: '0.88rem', color: '#6B7280' }}>
               Every activity can be woven into your personalized Kerala itinerary
             </p>
           </div>
@@ -278,7 +279,7 @@ export default function ExperiencesPage() {
                   style={{ textDecoration: 'none', color: 'inherit', display: 'flex', flexDirection: 'column' }}
                 >
                   <article
-                    className={`portal-card luxury-interactive-card reveal-fade-up stagger-${(idx % 6) + 1} ${gridVisible ? 'in-view' : ''}`}
+                    className={`portal-card luxury-interactive-card reveal-card stagger-${(idx % 6) + 1}`}
                     style={{
                       backgroundColor: '#FFFFFF',
                       borderRadius: '24px',
@@ -428,16 +429,16 @@ export default function ExperiencesPage() {
 
       {/* Plan Custom Experience CTA */}
       <section ref={ctaSectionRef} style={{ backgroundColor: '#0D0F13', color: '#FFFFFF', padding: '6rem 2rem', textAlign: 'center', overflow: 'hidden' }}>
-        <div className={`section-wrapper reveal-scale-up ${ctaVisible ? 'in-view' : ''}`} style={{ maxWidth: '780px' }}>
-          <Sparkles size={28} color="#D4A359" className="anim-hero-badge" style={{ margin: '0 auto 1.25rem' }} />
-          <h2 className="font-display" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#FFFFFF', lineHeight: 1.1, marginBottom: '1.25rem' }}>
+        <div className="section-wrapper" style={{ maxWidth: '780px' }}>
+          <Sparkles size={28} color="#D4A359" className="reveal-pop" style={{ margin: '0 auto 1.25rem' }} />
+          <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: 'clamp(2.4rem, 4vw, 3.8rem)', color: '#FFFFFF', lineHeight: 1.1, marginBottom: '1.25rem' }}>
             HAVE A SPECIFIC EXPERIENCE IN MIND?
           </h2>
-          <p style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
+          <p className="reveal-fade-up stagger-2" style={{ color: 'rgba(255, 255, 255, 0.72)', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2.5rem' }}>
             Whether it’s a private culinary masterclass with a royal Travancore chef, sunrise hot-air ballooning,
             or an ancient martial arts initiation — we make the impossible effortless.
           </p>
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="reveal-scale-up stagger-3" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/plan" className="btn-pill btn-gold anim-hover-pill" style={{ padding: '0.9rem 2.25rem', fontSize: '0.9rem' }}>
               Design a Bespoke Journey
             </Link>

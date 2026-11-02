@@ -101,6 +101,23 @@ const KERALA_DISTRICTS = [
   "Wayanad",
 ];
 
+const KERALA_DISTRICT_COORDINATES: Record<string, { lat: number; lon: number }> = {
+  Alappuzha: { lat: 9.4981, lon: 76.3388 },
+  Ernakulam: { lat: 9.9816, lon: 76.2999 },
+  Idukki: { lat: 9.8494, lon: 76.9739 },
+  Kannur: { lat: 11.8745, lon: 75.3704 },
+  Kasaragod: { lat: 12.5102, lon: 74.9852 },
+  Kollam: { lat: 8.8932, lon: 76.6141 },
+  Kottayam: { lat: 9.5916, lon: 76.5222 },
+  Kozhikode: { lat: 11.2588, lon: 75.7804 },
+  Malappuram: { lat: 11.0510, lon: 76.0711 },
+  Palakkad: { lat: 10.7867, lon: 76.6548 },
+  Pathanamthitta: { lat: 9.2648, lon: 76.7870 },
+  Thiruvananthapuram: { lat: 8.5241, lon: 76.9366 },
+  Thrissur: { lat: 10.5276, lon: 76.2144 },
+  Wayanad: { lat: 11.6854, lon: 76.1320 },
+};
+
 interface DestinationFormData {
   name: string;
   slug: string;
@@ -109,12 +126,15 @@ interface DestinationFormData {
   shortDesc: string;
   description: string;
   imageUrl: string;
+  latitude: number | "";
+  longitude: number | "";
   bestSeason: string;
   elevation: string;
   nightsMin: number | "";
   nightsMax: number | "";
   highlightsList: string[];
   howToReach: string;
+  featured: boolean;
   published: boolean;
 }
 
@@ -126,12 +146,15 @@ const emptyForm: DestinationFormData = {
   shortDesc: "",
   description: "",
   imageUrl: "",
+  latitude: "",
+  longitude: "",
   bestSeason: "",
   elevation: "",
   nightsMin: 2,
   nightsMax: 4,
   highlightsList: [],
   howToReach: "",
+  featured: false,
   published: false,
 };
 
@@ -245,8 +268,15 @@ export default function DestinationsPage() {
 
     // Status filter
     if (filterStatus !== "all") {
-      const isPub = filterStatus === "published";
-      result = result.filter((d) => d.published === isPub);
+      if (filterStatus === "published") {
+        result = result.filter((d) => d.published === true);
+      } else if (filterStatus === "draft") {
+        result = result.filter((d) => d.published === false);
+      } else if (filterStatus === "featured") {
+        result = result.filter((d) => Boolean(d.featured));
+      } else if (filterStatus === "not-featured") {
+        result = result.filter((d) => !d.featured);
+      }
     }
 
     // Sort
@@ -297,12 +327,15 @@ export default function DestinationsPage() {
       description: d.description ?? "",
       shortDesc: d.shortDesc ?? "",
       imageUrl: d.imageUrl ?? "",
+      latitude: typeof d.latitude === "number" ? d.latitude : "",
+      longitude: typeof d.longitude === "number" ? d.longitude : "",
       bestSeason: d.bestSeason ?? "",
       elevation: d.elevation ?? "",
       nightsMin: d.nightsMin ?? "",
       nightsMax: d.nightsMax ?? "",
       highlightsList: parsedHighlights,
       howToReach: d.howToReach ?? "",
+      featured: Boolean(d.featured),
       published: d.published,
     });
     setBulkHighlightsText(parsedHighlights.join("\n"));
@@ -457,12 +490,15 @@ export default function DestinationsPage() {
       shortDesc: form.shortDesc.trim() || undefined,
       description: form.description.trim() || undefined,
       imageUrl: form.imageUrl.trim() || undefined,
+      latitude: form.latitude === "" ? undefined : Number(form.latitude),
+      longitude: form.longitude === "" ? undefined : Number(form.longitude),
       bestSeason: form.bestSeason.trim() || undefined,
       elevation: form.elevation.trim() || undefined,
       nightsMin: form.nightsMin === "" ? undefined : Number(form.nightsMin),
       nightsMax: form.nightsMax === "" ? undefined : Number(form.nightsMax),
       highlights: finalHighlights.length > 0 ? JSON.stringify(finalHighlights) : undefined,
       howToReach: form.howToReach.trim() || undefined,
+      featured: form.featured,
       published: form.published,
     };
 
@@ -602,15 +638,17 @@ export default function DestinationsPage() {
             </SelectContent>
           </Select>
 
-          {/* Publication Status Filter */}
+          {/* Publication Status & Map Filter */}
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="h-9 w-[130px] text-xs">
+            <SelectTrigger className="h-9 w-[150px] text-xs">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="published">Published</SelectItem>
               <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="featured">Featured on Map</SelectItem>
+              <SelectItem value="not-featured">Hidden from Map</SelectItem>
             </SelectContent>
           </Select>
 
@@ -659,6 +697,7 @@ export default function DestinationsPage() {
               <TableHead>Category</TableHead>
               <TableHead>Best Time &amp; Stay</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="text-center w-36">Featured on Map</TableHead>
               <TableHead className="w-28 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -686,13 +725,16 @@ export default function DestinationsPage() {
                     <Skeleton className="h-5 w-16" />
                   </TableCell>
                   <TableCell>
+                    <Skeleton className="h-7 w-20 mx-auto rounded-full" />
+                  </TableCell>
+                  <TableCell>
                     <Skeleton className="h-8 w-20 ml-auto" />
                   </TableCell>
                 </TableRow>
               ))
             ) : filteredDestinations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="h-40 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-40 text-center text-muted-foreground">
                   {hasActiveFilters ? (
                     <div className="space-y-2">
                       <p>No destinations match your search and filter criteria.</p>
@@ -745,6 +787,11 @@ export default function DestinationsPage() {
                       <MapPin className="h-3.5 w-3.5 text-primary/70 shrink-0" />
                       <span>{d.region}</span>
                     </div>
+                    {d.latitude != null && d.longitude != null && (
+                      <div className="text-[11px] text-muted-foreground/80 font-mono mt-0.5 pl-4.5">
+                        {Number(d.latitude).toFixed(4)}°N, {Number(d.longitude).toFixed(4)}°E
+                      </div>
+                    )}
                   </TableCell>
 
                   {/* Category */}
@@ -780,6 +827,43 @@ export default function DestinationsPage() {
                     >
                       {d.published ? "Published" : "Draft"}
                     </Badge>
+                  </TableCell>
+
+                  {/* Featured on Map Toggle */}
+                  <TableCell className="py-2.5 text-center">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const nextVal = !d.featured;
+                        updateMutation.mutate(
+                          { id: d.id, data: { featured: nextVal } },
+                          {
+                            onSuccess: () => {
+                              invalidate();
+                              toast({
+                                title: nextVal ? "Pinned on 3D Map" : "Removed from 3D Map",
+                                description: `"${d.name}" ${nextVal ? "will now appear as a pin" : "is now hidden"} on the Destinations page 3D map.`,
+                              });
+                            },
+                          }
+                        );
+                      }}
+                      className={`h-7 px-2.5 text-xs font-medium rounded-full transition-colors ${
+                        d.featured
+                          ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30 hover:bg-amber-500/25"
+                          : "text-muted-foreground/60 hover:text-foreground hover:bg-muted/50 border border-transparent"
+                      }`}
+                      title={d.featured ? "Click to hide from 3D map" : "Click to pin on 3D map"}
+                    >
+                      <MapPin
+                        className={`h-3 w-3 mr-1 ${
+                          d.featured ? "text-amber-500 fill-amber-500/30" : "text-muted-foreground/60"
+                        }`}
+                      />
+                      {d.featured ? "Featured" : "Hidden"}
+                    </Button>
                   </TableCell>
 
                   {/* Actions */}
@@ -850,6 +934,12 @@ export default function DestinationsPage() {
                 <Field label="Page URL" value={`/destinations/${viewing.slug}`} />
                 <Field label="District / Region" value={viewing.region} />
                 <Field label="Destination Category" value={viewing.type} />
+                {typeof viewing.latitude === "number" && typeof viewing.longitude === "number" && (
+                  <Field
+                    label="Map Coordinates"
+                    value={`${viewing.latitude.toFixed(4)}°N, ${viewing.longitude.toFixed(4)}°E`}
+                  />
+                )}
               </div>
 
               <Field label="Short Introduction" value={viewing.shortDesc} />
@@ -885,16 +975,28 @@ export default function DestinationsPage() {
               <Field label="How to Get There" value={viewing.howToReach} />
 
               <div className="flex items-center justify-between pt-2 border-t border-border">
-                <Badge
-                  variant={viewing.published ? "default" : "secondary"}
-                  className={`text-xs ${
-                    viewing.published
-                      ? "bg-emerald-600/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
-                      : ""
-                  }`}
-                >
-                  {viewing.published ? "Published on Website" : "Draft (Unpublished)"}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant={viewing.published ? "default" : "secondary"}
+                    className={`text-xs ${
+                      viewing.published
+                        ? "bg-emerald-600/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                        : ""
+                    }`}
+                  >
+                    {viewing.published ? "Published on Website" : "Draft (Unpublished)"}
+                  </Badge>
+                  <Badge
+                    variant={viewing.featured ? "default" : "secondary"}
+                    className={`text-xs ${
+                      viewing.featured
+                        ? "bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-500/30"
+                        : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    {viewing.featured ? "Featured on 3D Map" : "Hidden from 3D Map"}
+                  </Badge>
+                </div>
                 <p className="text-xs text-muted-foreground">
                   ID: {viewing.id} · Created: {new Date(viewing.createdAt).toLocaleDateString()}
                 </p>
@@ -1023,7 +1125,13 @@ export default function DestinationsPage() {
                       value={regionsList.includes(form.region) ? form.region : "custom"}
                       onValueChange={(val) => {
                         if (val !== "custom") {
-                          setForm((f) => ({ ...f, region: val }));
+                          const coords = KERALA_DISTRICT_COORDINATES[val];
+                          setForm((f) => ({
+                            ...f,
+                            region: val,
+                            latitude: f.latitude === "" && coords ? coords.lat : f.latitude,
+                            longitude: f.longitude === "" && coords ? coords.lon : f.longitude,
+                          }));
                           if (validationErrors.region) {
                             setValidationErrors((v) => ({ ...v, region: "" }));
                           }
@@ -1046,7 +1154,14 @@ export default function DestinationsPage() {
                       id="dest-region"
                       value={form.region}
                       onChange={(e) => {
-                        setForm((f) => ({ ...f, region: e.target.value }));
+                        const newReg = e.target.value;
+                        const coords = KERALA_DISTRICT_COORDINATES[newReg];
+                        setForm((f) => ({
+                          ...f,
+                          region: newReg,
+                          latitude: f.latitude === "" && coords ? coords.lat : f.latitude,
+                          longitude: f.longitude === "" && coords ? coords.lon : f.longitude,
+                        }));
                         if (validationErrors.region) {
                           setValidationErrors((v) => ({ ...v, region: "" }));
                         }
@@ -1109,6 +1224,75 @@ export default function DestinationsPage() {
                   {validationErrors.type && (
                     <p className="text-xs text-destructive">{validationErrors.type}</p>
                   )}
+                </div>
+              </div>
+
+              {/* Map Geographical Coordinates */}
+              <div className="p-3 rounded-md bg-muted/30 border border-border/60 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5 text-primary" />
+                    <Label className="text-xs font-semibold text-foreground">
+                      Map Geographical Coordinates (Kerala 3D Map Pin)
+                    </Label>
+                  </div>
+                  {form.region && KERALA_DISTRICT_COORDINATES[form.region] && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const coords = KERALA_DISTRICT_COORDINATES[form.region];
+                        if (coords) {
+                          setForm((f) => ({ ...f, latitude: coords.lat, longitude: coords.lon }));
+                        }
+                      }}
+                      className="text-[11px] text-primary hover:underline font-medium"
+                    >
+                      Auto-fill {form.region} center
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Accurate latitude and longitude coordinates place this destination precisely on the Destinations page 3D map. If left blank, the system automatically resolves coordinates from the selected district or destination name.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="dest-latitude" className="text-[11px] text-muted-foreground">
+                      Latitude (°N)
+                    </Label>
+                    <Input
+                      id="dest-latitude"
+                      type="number"
+                      step="0.0001"
+                      placeholder="e.g. 10.0889"
+                      value={form.latitude}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          latitude: e.target.value === "" ? "" : parseFloat(e.target.value),
+                        }))
+                      }
+                      className="text-xs h-8"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="dest-longitude" className="text-[11px] text-muted-foreground">
+                      Longitude (°E)
+                    </Label>
+                    <Input
+                      id="dest-longitude"
+                      type="number"
+                      step="0.0001"
+                      placeholder="e.g. 77.0595"
+                      value={form.longitude}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          longitude: e.target.value === "" ? "" : parseFloat(e.target.value),
+                        }))
+                      }
+                      className="text-xs h-8"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -1348,15 +1532,51 @@ export default function DestinationsPage() {
               </div>
             </div>
 
-            {/* Section 5: Publishing */}
+            {/* Section 5: Publishing & Map Visibility */}
             <div className="rounded-lg border border-border/80 bg-card/60 p-4 space-y-4">
               <div className="flex items-center gap-2 border-b border-border/60 pb-2.5">
                 <div className="h-2 w-2 rounded-full bg-primary" />
                 <h3 className="font-serif text-base font-semibold tracking-wide text-foreground">
-                  5. Publishing
+                  5. Publishing &amp; Map Visibility
                 </h3>
               </div>
 
+              {/* Featured on 3D Map */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 bg-amber-500/5 rounded-md border border-amber-500/20">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-amber-500" />
+                    <Label
+                      htmlFor="dest-featured"
+                      className="font-medium text-sm cursor-pointer"
+                    >
+                      Featured on Map
+                    </Label>
+                    <Badge
+                      variant={form.featured ? "default" : "secondary"}
+                      className={`text-xs ml-2 ${
+                        form.featured
+                          ? "bg-amber-500/20 text-amber-800 dark:text-amber-300 border-amber-500/30"
+                          : ""
+                      }`}
+                    >
+                      {form.featured ? "Shown on 3D Map" : "Hidden from 3D Map"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    When enabled, this destination will appear as an interactive pin on the Destinations page 3D map.
+                  </p>
+                </div>
+
+                <Switch
+                  id="dest-featured"
+                  checked={form.featured}
+                  onCheckedChange={(val) => setForm((f) => ({ ...f, featured: val }))}
+                  data-testid="switch-destination-featured"
+                />
+              </div>
+
+              {/* Publish on Website */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-3 bg-muted/20 rounded-md border border-border">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">

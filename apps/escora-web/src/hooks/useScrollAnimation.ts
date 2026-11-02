@@ -70,7 +70,13 @@ export function useScrollReveal<T extends HTMLElement = HTMLElement>({
           observer.unobserve(element);
         }
       } else if (reEnter) {
-        setIsVisible(false);
+        // Only reset if the element is below the viewport (scrolling back up before seeing it).
+        // Never reset when the element has scrolled past through the top of the viewport (rect.top <= 0),
+        // which completely eliminates the infinite translateY oscillation / card shaking when only the bottom 2% is visible!
+        const rect = entry.boundingClientRect;
+        if (rect.top > 0) {
+          setIsVisible(false);
+        }
       }
     }, { threshold, rootMargin });
 
@@ -83,3 +89,80 @@ export function useScrollReveal<T extends HTMLElement = HTMLElement>({
 
   return [ref, isVisible];
 }
+
+/**
+ * Page-level hook that automatically observes all reveal elements on public pages.
+ * Supports bi-directional animations on both SCROLL DOWN and SCROLL UP.
+ * When elements enter the visible viewport (coming from below or above), they animate into view.
+ * When they scroll out of the viewport, they reset so they animate again on re-entry.
+ */
+export function usePageScrollReveal(containerRef?: RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const root = containerRef?.current || document;
+
+    const selector = [
+      '.reveal-fade-up',
+      '.reveal-fade-down',
+      '.reveal-fade-left',
+      '.reveal-fade-right',
+      '.reveal-scale-up',
+      '.reveal-pop',
+      '.reveal-card',
+      '.reveal-text',
+      '.reveal-item',
+      '.anim-hero-badge',
+      '.anim-hero-title',
+      '.anim-hero-desc',
+      '.anim-hero-search'
+    ].join(', ');
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('in-view');
+            entry.target.classList.add('is-revealed');
+          } else {
+            // Scrolled out of view (either above or below) -> reset for bi-directional re-animation
+            entry.target.classList.remove('in-view');
+            entry.target.classList.remove('is-revealed');
+          }
+        });
+      },
+      {
+        threshold: 0.08,
+        rootMargin: '0px 0px -40px 0px', // Waits until element is 40px inside viewport
+      }
+    );
+
+    const observeAll = () => {
+      const els = root.querySelectorAll<HTMLElement>(selector);
+      els.forEach((el) => {
+        observer.observe(el);
+      });
+    };
+
+    observeAll();
+    const timer = setTimeout(observeAll, 120);
+
+    const mutationObserver = new MutationObserver(() => {
+      observeAll();
+    });
+
+    const targetNode = containerRef?.current || document.body;
+    if (targetNode) {
+      mutationObserver.observe(targetNode, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [containerRef]);
+}
+
+

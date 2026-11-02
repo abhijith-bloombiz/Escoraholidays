@@ -747,7 +747,14 @@ export default function ItineraryBuilderPage() {
       destination: form.destination.trim() || undefined,
       startDate: form.startDate || undefined,
       endDate: form.endDate || undefined,
-      coverImageUrl: form.coverImageUrl || undefined,
+      coverImageUrl: (() => {
+        let u = (form.coverImageUrl || "").trim();
+        const m = u.match(/unsplash\.com\/photos\/([a-zA-Z0-9_\-]+)/i);
+        if (m && !u.includes("images.unsplash.com")) {
+          u = `https://images.unsplash.com/photo-${m[1]}?auto=format&fit=crop&w=1600&q=80`;
+        }
+        return u || undefined;
+      })(),
       summary: form.summary.trim() || undefined,
       currency: form.currency,
       status: form.status,
@@ -766,7 +773,14 @@ export default function ItineraryBuilderPage() {
             ? [d.imageUrl]
             : [];
           const sanitizedImages = rawImages
-            .map((s) => String(s || "").trim())
+            .map((s) => {
+              let u = String(s || "").trim();
+              const m = u.match(/unsplash\.com\/photos\/([a-zA-Z0-9_\-]+)/i);
+              if (m && !u.includes("images.unsplash.com")) {
+                u = `https://images.unsplash.com/photo-${m[1]}?auto=format&fit=crop&w=1600&q=80`;
+              }
+              return u;
+            })
             .filter(Boolean)
             .slice(0, 3);
           return {
@@ -1993,24 +2007,6 @@ export default function ItineraryBuilderPage() {
                 <p className="text-[10.5px] text-muted-foreground">
                   High-resolution photo displayed across the top hero header of the PDF proposal.
                 </p>
-              </div>
-
-              {/* Row 5: Summary */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="summary" className="font-medium text-xs">
-                    Journey Overview &amp; Summary
-                  </Label>
-                  <Badge variant="outline" className="text-[9.5px] uppercase font-mono tracking-wider text-muted-foreground border-border bg-muted/40">
-                    PDF Intro Section
-                  </Badge>
-                </div>
-                <Textarea
-                  id="summary"
-                  {...register("summary")}
-                  rows={3}
-                  placeholder="A curated route through Kerala's historic quarters, temples, and coastal retreats."
-                />
               </div>
             </CardContent>
           </Card>

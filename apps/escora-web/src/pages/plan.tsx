@@ -375,6 +375,7 @@ export default function PlanJourneyPage() {
   const [guestPhone, setGuestPhone] = useState<string>('');
   const [preferredContact, setPreferredContact] = useState<'whatsapp' | 'phone' | 'email'>('whatsapp');
   const [specialNotes, setSpecialNotes] = useState<string>('');
+  const [marketingConsent, setMarketingConsent] = useState<boolean>(true);
 
   // Status & Feedback
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -423,6 +424,7 @@ export default function PlanJourneyPage() {
           if (draft.guestPhone) setGuestPhone(draft.guestPhone);
           if (draft.preferredContact) setPreferredContact(draft.preferredContact);
           if (draft.specialNotes) setSpecialNotes(draft.specialNotes);
+          if (typeof draft.marketingConsent === 'boolean') setMarketingConsent(draft.marketingConsent);
         }
       } catch (e) {
         // ignore parse error
@@ -493,7 +495,8 @@ export default function PlanJourneyPage() {
           guestEmail,
           guestPhone,
           preferredContact,
-          specialNotes
+          specialNotes,
+          marketingConsent
         };
         sessionStorage.setItem('escora_plan_draft', JSON.stringify(draft));
       } catch (e) {
@@ -516,6 +519,7 @@ export default function PlanJourneyPage() {
     guestPhone,
     preferredContact,
     specialNotes,
+    marketingConsent,
     isSubmitted
   ]);
 
@@ -562,7 +566,8 @@ export default function PlanJourneyPage() {
         destinations: selectedDestinations.join(', '),
         travelStyle: TRAVEL_STYLES.find((s) => s.id === selectedStyle)?.title || selectedStyle,
         travelDate: travelMonth,
-        specialRequests: `[Plan Your Journey Atelier] Duration: ${duration} | Travel Tier: ${budget} | Vehicle: ${vehicleType || 'Standard'} | Travellers: ${adults} Adults, ${children} Children | Preferred Stays: ${preferredStays.join(', ')} | Preferred Contact: ${preferredContact.toUpperCase()} | Special Notes: ${specialNotes.trim() || 'None'}`.trim(),
+        marketingConsent,
+        specialRequests: `[Plan Your Journey Atelier] Duration: ${duration} | Travel Tier: ${budget} | Vehicle: ${vehicleType || 'Standard'} | Travellers: ${adults} Adults, ${children} Children | Preferred Stays: ${preferredStays.join(', ')} | Preferred Contact: ${preferredContact.toUpperCase()} | Marketing Consent: ${marketingConsent ? 'Granted' : 'Declined'} | Special Notes: ${specialNotes.trim() || 'None'}`.trim(),
         source: 'plan_your_journey_page'
       };
 
@@ -3125,7 +3130,36 @@ export default function PlanJourneyPage() {
                       </div>
                     </div>
 
-                    {/* Trust Seal */}
+                    {/* Marketing Consent Checkbox */}
+                    <div style={{ marginBottom: '2rem' }}>
+                      <label
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'flex-start',
+                          gap: '0.75rem',
+                          cursor: 'pointer',
+                          userSelect: 'none'
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={marketingConsent}
+                          onChange={(e) => setMarketingConsent(e.target.checked)}
+                          style={{
+                            width: '18px',
+                            height: '18px',
+                            marginTop: '2px',
+                            accentColor: '#9E6F29',
+                            cursor: 'pointer',
+                            flexShrink: 0
+                          }}
+                        />
+                        <span style={{ fontSize: '0.84rem', color: '#4B5563', lineHeight: 1.5 }}>
+                          I consent to receive curated travel inspiration, exclusive offers, and Kerala updates from Escora Holidays via WhatsApp & email.
+                        </span>
+                      </label>
+                    </div>
+
                     {/* Step Actions */}
                     <div
                       style={{

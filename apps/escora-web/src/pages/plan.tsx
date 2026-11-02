@@ -308,6 +308,31 @@ export default function PlanJourneyPage() {
   const [selectedStyle, setSelectedStyle] = useState<string>('romantic');
   const [selectedDestinations, setSelectedDestinations] = useState<string[]>(['Munnar', 'Alleppey']);
   const [duration, setDuration] = useState<string>('7–10 Nights');
+  const [exactDays, setExactDays] = useState<number | null>(null);
+
+  const handleSelectDurationPreset = (label: string) => {
+    setDuration(label);
+    setExactDays(null);
+  };
+
+  const handleExactDaysChange = (val: string) => {
+    const num = parseInt(val, 10);
+    if (!isNaN(num) && num > 0) {
+      const sanitized = Math.min(60, num);
+      setExactDays(sanitized);
+      setDuration(`${sanitized} Days (${sanitized > 1 ? `${sanitized - 1} Nights` : 'Day Trip'})`);
+    } else if (val === '') {
+      setExactDays(null);
+      setDuration('7–10 Nights');
+    }
+  };
+
+  const handleExactDaysStep = (delta: number) => {
+    const current = exactDays || 7;
+    const nextVal = Math.max(1, Math.min(60, current + delta));
+    setExactDays(nextVal);
+    setDuration(`${nextVal} Days (${nextVal > 1 ? `${nextVal - 1} Nights` : 'Day Trip'})`);
+  };
   const [travelMonth, setTravelMonth] = useState<string>('October – December (Golden Season)');
   const [budget, setBudget] = useState<string>('₹2L – ₹5 Lakhs');
   const [adults, setAdults] = useState<number>(2);
@@ -2054,11 +2079,11 @@ export default function PlanJourneyPage() {
                         }}
                       >
                         {DURATION_OPTIONS.map((opt) => {
-                          const isSelected = duration === opt.label;
+                          const isSelected = !exactDays && duration === opt.label;
                           return (
                             <div
                               key={opt.id}
-                              onClick={() => setDuration(opt.label)}
+                              onClick={() => handleSelectDurationPreset(opt.label)}
                               className="luxury-interactive-card"
                               style={{
                                 border: isSelected ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
@@ -2090,6 +2115,147 @@ export default function PlanJourneyPage() {
                             </div>
                           );
                         })}
+                      </div>
+
+                      {/* Custom Exact Number of Days Input Option */}
+                      <div
+                        style={{
+                          marginTop: '1.15rem',
+                          padding: '1rem 1.25rem',
+                          borderRadius: '14px',
+                          border: exactDays ? '2px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.08)',
+                          backgroundColor: exactDays ? '#FAF6EE' : '#FAF8F5',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          flexWrap: 'wrap',
+                          gap: '1rem',
+                          transition: 'all 0.25s ease'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                          <div
+                            style={{
+                              width: '38px',
+                              height: '38px',
+                              borderRadius: '10px',
+                              backgroundColor: exactDays ? 'rgba(158, 111, 41, 0.18)' : 'rgba(0, 0, 0, 0.04)',
+                              color: exactDays ? '#9E6F29' : '#6B7280',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            <Calendar size={18} />
+                          </div>
+                          <div>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#121316', display: 'block' }}>
+                              Have an exact number of days in mind?
+                            </span>
+                            <span style={{ fontSize: '0.78rem', color: '#6B7280' }}>
+                              Specify your exact journey length (e.g., 5 days, 8 days, 12 days).
+                            </span>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleExactDaysStep(-1)}
+                            aria-label="Decrease days"
+                            style={{
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '10px',
+                              border: '1px solid rgba(0, 0, 0, 0.12)',
+                              backgroundColor: '#FFFFFF',
+                              color: '#121316',
+                              fontSize: '1.1rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s ease'
+                            }}
+                            className="anim-hover-pill"
+                          >
+                            –
+                          </button>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              backgroundColor: '#FFFFFF',
+                              border: exactDays ? '1.5px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.12)',
+                              borderRadius: '10px',
+                              padding: '0.25rem 0.75rem'
+                            }}
+                          >
+                            <input
+                              type="number"
+                              min={1}
+                              max={60}
+                              value={exactDays ?? ''}
+                              onChange={(e) => handleExactDaysChange(e.target.value)}
+                              placeholder="e.g. 8"
+                              style={{
+                                width: '48px',
+                                textAlign: 'center',
+                                border: 'none',
+                                background: 'transparent',
+                                fontSize: '0.98rem',
+                                fontWeight: 700,
+                                color: '#121316',
+                                outline: 'none'
+                              }}
+                            />
+                            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#9E6F29', marginLeft: '0.25rem' }}>
+                              Days
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleExactDaysStep(1)}
+                            aria-label="Increase days"
+                            style={{
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '10px',
+                              border: '1px solid rgba(0, 0, 0, 0.12)',
+                              backgroundColor: '#FFFFFF',
+                              color: '#121316',
+                              fontSize: '1.1rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              transition: 'all 0.15s ease'
+                            }}
+                            className="anim-hover-pill"
+                          >
+                            +
+                          </button>
+                          {exactDays && (
+                            <button
+                              type="button"
+                              onClick={() => handleSelectDurationPreset('7–10 Nights')}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#9E6F29',
+                                fontSize: '0.78rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                textDecoration: 'underline',
+                                marginLeft: '0.4rem'
+                              }}
+                            >
+                              Reset to ranges
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -2134,22 +2300,6 @@ export default function PlanJourneyPage() {
                           );
                         })}
                       </div>
-
-                      <input
-                        type="text"
-                        placeholder="Or enter specific exact travel dates (e.g., Nov 12 - Nov 20, 2026)"
-                        value={travelMonth}
-                        onChange={(e) => setTravelMonth(e.target.value)}
-                        style={{
-                          width: '100%',
-                          padding: '0.9rem 1.15rem',
-                          borderRadius: '12px',
-                          border: '1px solid rgba(0, 0, 0, 0.12)',
-                          fontSize: '0.92rem',
-                          backgroundColor: '#FAF8F5',
-                          outline: 'none'
-                        }}
-                      />
                     </div>
 
                     {/* Approximate Budget Per Guest */}

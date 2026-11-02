@@ -146,12 +146,15 @@ const TRAVEL_SEASONS = [
 ];
 
 const STAY_PREFERENCES = [
+  'Hotels',
+  'Normal Resorts',
+  'Hill Station Resorts',
   'Heritage Planter’s Bungalow',
   'Private Handcrafted Houseboat',
   'Lakefront Pool Villa',
-  'Canopy Eco-Treehouse',
+  'Beach & Coastal Resort',
   'Authentic Ayurvedic Sanctuary',
-  'Clifftop Ocean Retreat'
+  'Canopy Eco-Treehouse'
 ];
 
 // ---------------------------------------------------------------------------
@@ -355,8 +358,8 @@ export default function PlanJourneyPage() {
   const [adults, setAdults] = useState<number>(2);
   const [children, setChildren] = useState<number>(0);
   const [preferredStays, setPreferredStays] = useState<string[]>([
-    'Private Handcrafted Houseboat',
-    'Heritage Planter’s Bungalow'
+    'Hill Station Resorts',
+    'Private Handcrafted Houseboat'
   ]);
 
   // Guest Details

@@ -1349,8 +1349,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: phase4Raw > 0 ? '0px' : gridGap,
-                  position: 'relative',
-                  perspective: '1400px'
+                  position: 'relative'
                 }}
               >
                 {/* Arrow Slider: Left Edge / Horizontal Start, Vertical Center of Card Layout */}
@@ -1402,8 +1401,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     pointerEvents: (bentoCardOpacity > 0.4 && expandRaw < 0.2) ? 'auto' : 'none',
                     flexShrink: 0,
                     alignSelf: 'center',
-                    transform: `perspective(1200px) rotateY(${rearrangeEase * 4.5}deg)`,
-                    transformOrigin: 'right center',
+                    transform: 'none',
                     transition: 'none',
                     zIndex: 2
                   }}
@@ -1905,8 +1903,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                     pointerEvents: (bentoCardOpacity > 0.4 && expandRaw < 0.2) ? 'auto' : 'none',
                     flexShrink: 0,
                     alignSelf: 'center',
-                    transform: `perspective(1200px) rotateY(${-rearrangeEase * 4.5}deg)`,
-                    transformOrigin: 'left center',
+                    transform: 'none',
                     transition: 'none',
                     zIndex: 2
                   }}
@@ -3169,20 +3166,18 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
         }
 
         .bento-theater-stage {
-          perspective: 1400px;
+          perspective: none;
         }
 
         .bento-theater-wing-left,
         .bento-theater-wing-right {
-          transform-style: preserve-3d;
+          transform: none !important;
         }
 
         .bento-theater-card {
           border: none !important;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 20px 36px -6px rgba(0, 0, 0, 0.16), 0 36px 64px -12px rgba(0, 0, 0, 0.14) !important;
           transition: box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
-          transform-style: preserve-3d;
-          -webkit-transform-style: preserve-3d;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
           will-change: transform;
@@ -3217,8 +3212,6 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
           border: none !important;
           box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 8px 16px -2px rgba(0, 0, 0, 0.08), 0 20px 36px -6px rgba(0, 0, 0, 0.16), 0 36px 64px -12px rgba(0, 0, 0, 0.14) !important;
           transition: box-shadow 0.4s ease !important;
-          transform-style: preserve-3d;
-          -webkit-transform-style: preserve-3d;
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
           will-change: transform, width, height;

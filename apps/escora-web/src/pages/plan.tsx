@@ -130,11 +130,11 @@ const DURATION_OPTIONS = [
 ];
 
 const BUDGET_OPTIONS = [
-  { id: 'comfort', label: 'Under ₹1 Lakh', sub: 'Per Guest', desc: 'Premium boutique homestays and select resorts.' },
-  { id: 'premium', label: '₹1L – ₹2 Lakhs', sub: 'Per Guest', desc: 'Luxury heritage estates, private houseboats, and curated transfers.' },
-  { id: 'luxury', label: '₹2L – ₹5 Lakhs', sub: 'Per Guest', desc: '5-star private pool villas, fine dining, and expert local guides.' },
-  { id: 'signature-luxury', label: '₹5L – ₹10 Lakhs', sub: 'Per Guest', desc: 'Ultra-exclusive private sanctuaries, dedicated chauffeurs, and premier spas.' },
-  { id: 'bespoke', label: 'Above ₹10 Lakhs', sub: 'Ultra-Bespoke', desc: 'Charter aviation, royal retreats, and personalized bespoke staff.' }
+  { id: 'classic', label: 'Classic', sub: 'Curated Heritage & Comfort', desc: 'Premium boutique homestays, charming estates, and select heritage resorts.' },
+  { id: 'premium', label: 'Premium', sub: 'Elevated Boutique Luxury', desc: 'Luxury heritage estates, private handcrafted houseboats, and curated transfers.' },
+  { id: 'luxury', label: 'Luxury', sub: 'Signature 5-Star Sanctuaries', desc: '5-star private pool villas, fine dining, and expert local private guides.' },
+  { id: 'signature-luxury', label: 'Signature Luxury', sub: 'Ultra-Exclusive Retreats', desc: 'Ultra-exclusive private sanctuaries, dedicated chauffeurs, and premier Ayurvedic spas.' },
+  { id: 'bespoke', label: 'Ultra-Bespoke', sub: 'Private Aviation & Palatial', desc: 'Charter aviation, royal retreats, and personalized bespoke concierge staff.' }
 ];
 
 const TRAVEL_SEASONS = [
@@ -351,7 +351,7 @@ export default function PlanJourneyPage() {
     setDuration(`${nextVal} Days (${nextVal > 1 ? `${nextVal - 1} Nights` : 'Day Trip'})`);
   };
   const [travelMonth, setTravelMonth] = useState<string>('October – December (Golden Season)');
-  const [budget, setBudget] = useState<string>('₹2L – ₹5 Lakhs');
+  const [budget, setBudget] = useState<string>('Luxury');
   const [adults, setAdults] = useState<number>(2);
   const [children, setChildren] = useState<number>(0);
   const [preferredStays, setPreferredStays] = useState<string[]>([
@@ -459,7 +459,7 @@ export default function PlanJourneyPage() {
         destinations: selectedDestinations.join(', '),
         travelStyle: TRAVEL_STYLES.find((s) => s.id === selectedStyle)?.title || selectedStyle,
         travelDate: travelMonth,
-        specialRequests: `[Plan Your Journey Atelier] Duration: ${duration} | Budget: ${budget} | Travellers: ${adults} Adults, ${children} Children | Preferred Stays: ${preferredStays.join(', ')} | Preferred Contact: ${preferredContact.toUpperCase()} | Special Notes: ${specialNotes.trim() || 'None'}`.trim(),
+        specialRequests: `[Plan Your Journey Atelier] Duration: ${duration} | Travel Tier: ${budget} | Travellers: ${adults} Adults, ${children} Children | Preferred Stays: ${preferredStays.join(', ')} | Preferred Contact: ${preferredContact.toUpperCase()} | Special Notes: ${specialNotes.trim() || 'None'}`.trim(),
         source: 'plan_your_journey_page'
       };
 
@@ -1457,7 +1457,7 @@ export default function PlanJourneyPage() {
                     <strong style={{ color: '#121316' }}>{duration} · {travelMonth}</strong>
                   </div>
                   <div>
-                    <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Companions & Budget</span>
+                    <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Companions & Travel Tier</span>
                     <strong style={{ color: '#121316' }}>{adults} Adults{children > 0 ? `, ${children} Children` : ''} · {budget}</strong>
                   </div>
                   <div style={{ gridColumn: '1 / -1', paddingTop: '0.5rem', borderTop: '1px dashed rgba(0, 0, 0, 0.08)' }}>
@@ -2065,11 +2065,11 @@ export default function PlanJourneyPage() {
                         textTransform: 'uppercase'
                       }}
                     >
-                      Duration, Calendar & Budget Pacing
+                      Duration, Calendar & Travel Tier
                     </h2>
 
                     <p style={{ color: '#6B7280', fontSize: '0.96rem', margin: '0 0 2rem', lineHeight: 1.55 }}>
-                      How many days do you wish to surrender to Kerala, and what budget tier suits your journey?
+                      How many days do you wish to surrender to Kerala, and which travel tier suits your journey?
                     </p>
 
                     {/* Duration Options */}
@@ -2317,7 +2317,7 @@ export default function PlanJourneyPage() {
                       </div>
                     </div>
 
-                    {/* Approximate Budget Per Guest */}
+                    {/* Preferred Travel Tier */}
                     <div>
                       <label
                         style={{
@@ -2330,7 +2330,7 @@ export default function PlanJourneyPage() {
                           marginBottom: '0.85rem'
                         }}
                       >
-                        Approximate Budget Tier (Per Guest)
+                        Preferred Travel Tier
                       </label>
                       <div
                         className="step3-budget-grid"

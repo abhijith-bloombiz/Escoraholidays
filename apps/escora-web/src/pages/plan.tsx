@@ -157,6 +157,13 @@ const STAY_PREFERENCES = [
   'Canopy Eco-Treehouse'
 ];
 
+const VEHICLE_OPTIONS = [
+  'Standard (Sedan)',
+  'Premium (Innova Crysta)',
+  'Luxury (Innova Hycross / SUV)',
+  'Tempo Traveller (Group Van)'
+];
+
 // ---------------------------------------------------------------------------
 // AI Generated Itinerary Interfaces & Fallback Generator
 // ---------------------------------------------------------------------------
@@ -361,6 +368,7 @@ export default function PlanJourneyPage() {
     'Hill Station Resorts',
     'Private Handcrafted Houseboat'
   ]);
+  const [vehicleType, setVehicleType] = useState<string>('Premium (Innova Crysta)');
 
   // Guest Details
   const [guestName, setGuestName] = useState<string>('');
@@ -462,7 +470,7 @@ export default function PlanJourneyPage() {
         destinations: selectedDestinations.join(', '),
         travelStyle: TRAVEL_STYLES.find((s) => s.id === selectedStyle)?.title || selectedStyle,
         travelDate: travelMonth,
-        specialRequests: `[Plan Your Journey Atelier] Duration: ${duration} | Travel Tier: ${budget} | Travellers: ${adults} Adults, ${children} Children | Preferred Stays: ${preferredStays.join(', ')} | Preferred Contact: ${preferredContact.toUpperCase()} | Special Notes: ${specialNotes.trim() || 'None'}`.trim(),
+        specialRequests: `[Plan Your Journey Atelier] Duration: ${duration} | Travel Tier: ${budget} | Vehicle: ${vehicleType || 'Standard'} | Travellers: ${adults} Adults, ${children} Children | Preferred Stays: ${preferredStays.join(', ')} | Preferred Contact: ${preferredContact.toUpperCase()} | Special Notes: ${specialNotes.trim() || 'None'}`.trim(),
         source: 'plan_your_journey_page'
       };
 
@@ -1462,6 +1470,10 @@ export default function PlanJourneyPage() {
                   <div>
                     <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Companions & Travel Tier</span>
                     <strong style={{ color: '#121316' }}>{adults} Adults{children > 0 ? `, ${children} Children` : ''} · {budget}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Chauffeured Vehicle</span>
+                    <strong style={{ color: '#121316' }}>{vehicleType || 'Standard (Sedan)'}</strong>
                   </div>
                   <div style={{ gridColumn: '1 / -1', paddingTop: '0.5rem', borderTop: '1px dashed rgba(0, 0, 0, 0.08)' }}>
                     <span style={{ color: '#8A857A', display: 'block', fontSize: '0.76rem', textTransform: 'uppercase' }}>Direct Confirmation Contact</span>
@@ -2663,6 +2675,52 @@ export default function PlanJourneyPage() {
                               }}
                             >
                               {isSelected && <Check size={14} />} {stay}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Preferred Vehicle Type */}
+                    <div style={{ marginBottom: '2.5rem' }}>
+                      <label
+                        style={{
+                          display: 'block',
+                          fontSize: '0.82rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.1em',
+                          color: '#121316',
+                          marginBottom: '0.85rem'
+                        }}
+                      >
+                        Chauffeured Vehicle Preference
+                      </label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.65rem' }}>
+                        {VEHICLE_OPTIONS.map((veh) => {
+                          const isSelected = vehicleType === veh;
+                          return (
+                            <button
+                              key={veh}
+                              type="button"
+                              onClick={() => setVehicleType((prev) => (prev === veh ? '' : veh))}
+                              className="anim-hover-pill"
+                              style={{
+                                padding: '0.65rem 1.25rem',
+                                borderRadius: '999px',
+                                border: isSelected ? '1.5px solid #9E6F29' : '1px solid rgba(0, 0, 0, 0.1)',
+                                backgroundColor: isSelected ? '#FAF6EE' : '#FFFFFF',
+                                color: isSelected ? '#9E6F29' : '#374151',
+                                fontSize: '0.84rem',
+                                fontWeight: isSelected ? 700 : 500,
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.45rem'
+                              }}
+                            >
+                              {isSelected && <Check size={14} />} {veh}
                             </button>
                           );
                         })}

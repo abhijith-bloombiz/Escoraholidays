@@ -212,7 +212,7 @@ export function buildMapPins(destinations?: any[]): MapPinData[] {
       ? featuredList
       : destinations.filter((d) => {
           const s = (d.slug || "").toLowerCase();
-          return ["munnar", "wayanad", "alleppey", "thekkady", "kovalam"].includes(s);
+          return ["kochi", "munnar", "thekkady", "alleppey", "varkala", "trivandrum", "calicut", "wayanad"].includes(s);
         });
 
   const listToUse = targetList.length > 0 ? targetList : destinations.slice(0, 5);
@@ -235,17 +235,14 @@ export function buildMapPins(destinations?: any[]): MapPinData[] {
 }
 
 export const MAP_PINS: MapPinData[] = [
-  { id: "Kasaragod", label: "Kasaragod", district: "Kasaragod", lon: 75.00, lat: 12.50, associatedDestId: "bekal" },
-  { id: "Kannur", label: "Kannur", district: "Kannur", lon: 75.37, lat: 11.87 },
   { id: "Wayanad", label: "Wayanad", district: "Wayanad", lon: 76.13, lat: 11.68, associatedDestId: "wayanad" },
-  { id: "Kozhikode", label: "Kozhikode", district: "Kozhikode", lon: 75.78, lat: 11.25 },
-  { id: "Thrissur", label: "Thrissur", district: "Thrissur", lon: 76.21, lat: 10.52 },
+  { id: "Calicut", label: "Calicut", district: "Kozhikode", lon: 75.78, lat: 11.25, associatedDestId: "calicut" },
   { id: "Munnar", label: "Munnar", district: "Idukki", lon: 77.06, lat: 10.08, associatedDestId: "munnar" },
   { id: "Kochi", label: "Kochi", district: "Ernakulam", lon: 76.26, lat: 9.93, associatedDestId: "kochi" },
   { id: "Thekkady", label: "Thekkady", district: "Idukki", lon: 77.16, lat: 9.60, associatedDestId: "thekkady" },
   { id: "Alleppey", label: "Alleppey", district: "Alappuzha", lon: 76.33, lat: 9.49, associatedDestId: "alleppey" },
   { id: "Varkala", label: "Varkala", district: "Thiruvananthapuram", lon: 76.71, lat: 8.73, associatedDestId: "varkala" },
-  { id: "Trivandrum", label: "Trivandrum", district: "Thiruvananthapuram", lon: 76.93, lat: 8.50, associatedDestId: "kovalam" },
+  { id: "Trivandrum", label: "Trivandrum", district: "Thiruvananthapuram", lon: 76.93, lat: 8.50, associatedDestId: "trivandrum" },
 ];
 
 // 14 Kerala districts sorted strictly North to South (top of Kerala map down to bottom)

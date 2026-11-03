@@ -88,9 +88,7 @@ export default function DestinationsPage() {
       };
     });
 
-    const cmsSlugs = new Set(cmsList.map((c) => c.slug.toLowerCase()));
-    const extraStatic = KERALA_DESTINATIONS.filter((k) => !cmsSlugs.has(k.slug.toLowerCase()));
-    return [...cmsList, ...extraStatic];
+    return cmsList;
   }, [remoteDestinations]);
 
   const spotlightDest = useMemo(() => {

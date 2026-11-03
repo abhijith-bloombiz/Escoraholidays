@@ -42,7 +42,6 @@ export const DISTRICT_DETAILS: Record<string, DistrictInfo> = {
   },
   Kottayam: {
     name: "Kottayam",
-    associatedDestId: "alleppey",
     category: "Lakes & Letters",
     highlights: "Kumarakom bird sanctuary, rubber hills & backwater canals",
   },

@@ -67,6 +67,33 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
             ? `${cmsMatch.latitude.toFixed(4)}°N ${cmsMatch.longitude.toFixed(4)}°E`
             : existing?.coordinates || '10.0889°N 77.0595°E';
 
+        const parsedGallery: string[] = (() => {
+
+
+          if (cmsMatch.galleryImages) {
+
+
+            try {
+
+
+              const arr = JSON.parse(cmsMatch.galleryImages);
+
+
+              if (Array.isArray(arr) && arr.length > 0) return arr.map(String);
+
+
+            } catch {}
+
+
+          }
+
+
+          return existing?.gallery || (cmsMatch.imageUrl ? [cmsMatch.imageUrl] : ['/images/destinations/munnar.jpg']);
+
+
+        })();
+
+
         return {
           slug: cmsMatch.slug,
           name: cmsMatch.name,
@@ -79,8 +106,8 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
           bestSeason: cmsMatch.bestSeason || existing?.bestSeason || 'Year-round',
           nightsMin: typeof cmsMatch.nightsMin === 'number' ? cmsMatch.nightsMin : (existing?.nightsMin ?? 2),
           nightsMax: typeof cmsMatch.nightsMax === 'number' ? cmsMatch.nightsMax : (existing?.nightsMax ?? 4),
-          imageUrl: cmsMatch.imageUrl || existing?.imageUrl || '/images/dest_3_munnar.jpg',
-          gallery: existing?.gallery || (cmsMatch.imageUrl ? [cmsMatch.imageUrl] : ['/images/dest_3_munnar.jpg']),
+          imageUrl: cmsMatch.imageUrl || existing?.imageUrl || '/images/destinations/munnar.jpg',
+          gallery: parsedGallery,
           highlights: parsedHighlights.length > 0 ? parsedHighlights : (existing?.highlights || []),
           howToReach:
             cmsMatch.howToReach ||
@@ -488,7 +515,7 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
 
               {/* Thumbnails */}
               <div style={{ display: 'flex', gap: '0.75rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-                {destination.gallery.map((img, idx) => (
+                {destination.gallery.map((img: string, idx: number) => (
                   <button
                     key={idx}
                     onClick={() => setActiveGalleryIndex(idx)}

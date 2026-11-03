@@ -109,16 +109,14 @@ interface DestinationOption {
 }
 
 const DESTINATION_OPTIONS: DestinationOption[] = [
-  { id: 'munnar', name: 'Munnar', region: 'Highlands', tag: 'Tea Estates & Mist', image: '/images/dest_3_munnar.jpg' },
-  { id: 'alleppey', name: 'Alleppey', region: 'Backwaters', tag: 'Private Houseboat Lagoons', image: '/images/tour_1_backwaters.jpg' },
-  { id: 'wayanad', name: 'Wayanad', region: 'Rainforest', tag: 'Ancient Caves & Canopy', image: '/images/dest_1_wayanad.jpg' },
-  { id: 'fort-kochi', name: 'Fort Kochi', region: 'Heritage Coast', tag: 'Colonial Spice Port', image: '/images/dest_fort_kochi.jpg' },
-  { id: 'thekkady', name: 'Thekkady', region: 'Wildlife Sanctuary', tag: 'Elephant Trails & Spices', image: '/images/dest_4_rafting.jpg' },
-  { id: 'kumarakom', name: 'Kumarakom', region: 'Vembanad Lake', tag: 'Bird Sanctuary & Lakefront', image: '/images/dest_kumarakom.jpg' },
-  { id: 'varkala', name: 'Varkala', region: 'Southern Shore', tag: 'Red Cliffs & Arabian Sea', image: '/images/dest_5_varkala.jpg' },
-  { id: 'bekal', name: 'Bekal', region: 'North Malabar', tag: 'Coastal Fort & Quiet Beaches', image: '/images/dest_bekal.jpg' },
-  { id: 'vagamon', name: 'Vagamon', region: 'Pine Valleys', tag: 'Rolling Meadows & Solitude', image: '/images/dest_2_vagamon.jpg' },
-  { id: 'kannur', name: 'Kannur', region: 'Malabar Coast', tag: 'Sacred Theyyam Rituals', image: '/images/dest_kannur.jpg' }
+  { id: 'kochi', name: 'Kochi', region: 'Heritage Coast', tag: 'Colonial Spice Port', image: '/images/destinations/kochi.jpg' },
+  { id: 'munnar', name: 'Munnar', region: 'Highlands', tag: 'Tea Estates & Mist', image: '/images/destinations/munnar.jpg' },
+  { id: 'thekkady', name: 'Thekkady', region: 'Wildlife Sanctuary', tag: 'Elephant Trails & Spices', image: '/images/destinations/thekkady.jpg' },
+  { id: 'alleppey', name: 'Alleppey', region: 'Backwaters', tag: 'Private Houseboat Lagoons', image: '/images/destinations/alleppey.jpg' },
+  { id: 'varkala', name: 'Varkala', region: 'Southern Shore', tag: 'Red Cliffs & Arabian Sea', image: '/images/destinations/varkala.jpg' },
+  { id: 'trivandrum', name: 'Trivandrum', region: 'Royal Coast', tag: 'Temples & Crescent Beaches', image: '/images/destinations/trivandrum.jpg' },
+  { id: 'calicut', name: 'Calicut', region: 'Malabar Coast', tag: 'Culinary Heritage & Beaches', image: '/images/destinations/calicut.jpg' },
+  { id: 'wayanad', name: 'Wayanad', region: 'Rainforest', tag: 'Ancient Caves & Canopy', image: '/images/destinations/wayanad.jpg' }
 ];
 
 const DURATION_OPTIONS = [

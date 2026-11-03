@@ -7,32 +7,38 @@ import { useLocation } from 'wouter';
 export const resolveDestinationSlug = (dest?: { slug?: string; name?: string; shortName?: string } | string | null): string => {
   if (typeof dest === 'string') {
     const s = dest.trim().toLowerCase();
-    if (s.includes('fort kochi') || s.includes('kochi')) return 'fort-kochi';
+    if (s.includes('fort kochi') || s.includes('kochi')) return 'kochi';
     if (s.includes('munnar')) return 'munnar';
     if (s.includes('alleppey') || s.includes('alappuzha')) return 'alleppey';
-    if (s.includes('wayanad')) return 'wayanad';
     if (s.includes('thekkady') || s.includes('periyar')) return 'thekkady';
     if (s.includes('varkala')) return 'varkala';
+    if (s.includes('trivandrum') || s.includes('kovalam') || s.includes('thiruvananthapuram')) return 'trivandrum';
+    if (s.includes('calicut') || s.includes('kozhikode')) return 'calicut';
+    if (s.includes('wayanad')) return 'wayanad';
     if (s.includes('bekal')) return 'bekal';
     if (s.includes('kannur')) return 'kannur';
     if (s.includes('kumarakom')) return 'kumarakom';
-    if (s.includes('kovalam')) return 'kovalam';
     return s.replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'munnar';
   }
   if (dest?.slug && typeof dest.slug === 'string' && dest.slug.trim() !== '') {
-    return dest.slug.trim().toLowerCase();
+    const s = dest.slug.trim().toLowerCase();
+    if (s === 'fort-kochi') return 'kochi';
+    if (s === 'kovalam' || s === 'thiruvananthapuram') return 'trivandrum';
+    if (s === 'kozhikode') return 'calicut';
+    return s;
   }
   const n = (dest?.shortName || dest?.name || '').toLowerCase();
-  if (n.includes('fort kochi') || n.includes('kochi')) return 'fort-kochi';
+  if (n.includes('fort kochi') || n.includes('kochi')) return 'kochi';
   if (n.includes('munnar')) return 'munnar';
   if (n.includes('alleppey') || n.includes('alappuzha')) return 'alleppey';
-  if (n.includes('wayanad')) return 'wayanad';
   if (n.includes('thekkady') || n.includes('periyar')) return 'thekkady';
   if (n.includes('varkala')) return 'varkala';
+  if (n.includes('trivandrum') || n.includes('kovalam') || n.includes('thiruvananthapuram')) return 'trivandrum';
+  if (n.includes('calicut') || n.includes('kozhikode')) return 'calicut';
+  if (n.includes('wayanad')) return 'wayanad';
   if (n.includes('bekal')) return 'bekal';
   if (n.includes('kannur')) return 'kannur';
   if (n.includes('kumarakom')) return 'kumarakom';
-  if (n.includes('kovalam')) return 'kovalam';
   return n.replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') || 'munnar';
 };
 
@@ -1423,7 +1429,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   {/* Card 1: Top-Left (Slot 0) */}
                   <div
                     ref={slot0Ref}
-                    onClick={() => handlePromoteSlot(0)}
+                    onClick={() => handleCardClick(liveCompanions.topLeft)}
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
@@ -1447,7 +1453,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         const target = e.currentTarget as HTMLImageElement;
                         if (!target.dataset.fallbackApplied) {
                           target.dataset.fallbackApplied = 'true';
-                          target.src = '/images/dest_fort_kochi.jpg';
+                          target.src = '/images/destinations/kochi.jpg';
                         }
                       }}
                       style={{
@@ -1518,7 +1524,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   {/* Card 2: Bottom-Left (Slot 1) */}
                   <div
                     ref={slot1Ref}
-                    onClick={() => handlePromoteSlot(1)}
+                    onClick={() => handleCardClick(liveCompanions.bottomLeft)}
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
@@ -1934,7 +1940,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   {/* Card 4: Top-Right (Slot 3) */}
                   <div
                     ref={slot3Ref}
-                    onClick={() => handlePromoteSlot(3)}
+                    onClick={() => handleCardClick(liveCompanions.topRight)}
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
@@ -2030,7 +2036,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   {/* Card 5: Bottom-Right (Slot 4) */}
                   <div
                     ref={slot4Ref}
-                    onClick={() => handlePromoteSlot(4)}
+                    onClick={() => handleCardClick(liveCompanions.bottomRight)}
                     className="bento-companion-card bento-theater-card"
                     style={{
                       width: '100%',
@@ -2054,7 +2060,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         const target = e.currentTarget as HTMLImageElement;
                         if (!target.dataset.fallbackApplied) {
                           target.dataset.fallbackApplied = 'true';
-                          target.src = '/images/dest_5_varkala.jpg';
+                          target.src = '/images/destinations/varkala.jpg';
                         }
                       }}
                       style={{

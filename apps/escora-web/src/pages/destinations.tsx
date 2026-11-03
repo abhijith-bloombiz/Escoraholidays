@@ -376,14 +376,7 @@ export default function DestinationsPage() {
                           <span>Explore Sanctuary Details</span>
                           <ArrowRight size={16} className="card-arrow-hover" />
                         </Link>
-                        <button
-                          type="button"
-                          className="kerala-3d-btn-secondary anim-hover-pill"
-                          onClick={() => handleJumpToGrid(spotlightDest.slug, spotlightDest.type)}
-                        >
-                          <MapPin size={15} color="#D4A359" />
-                          <span>Jump to Collection</span>
-                        </button>
+
                       </div>
                     </div>
                   </div>

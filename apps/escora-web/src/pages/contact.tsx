@@ -340,7 +340,7 @@ export default function ContactPage() {
           >
             {/* Left Column: Interactive Contact Form */}
             <div
-              className="reveal-card"
+              className="luxury-interactive-card reveal-card"
               style={{
                 backgroundColor: '#FFFFFF',
                 borderRadius: '24px',
@@ -763,74 +763,15 @@ export default function ContactPage() {
                 </div>
               </div>
 
-              {/* Direct Concierge WhatsApp Banner */}
-              <div
-                className="luxury-interactive-card reveal-card stagger-2"
-                style={{
-                  backgroundColor: '#0D0F13',
-                  color: '#FFFFFF',
-                  borderRadius: '24px',
-                  padding: '2.5rem',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  border: '1px solid rgba(212, 163, 89, 0.25)'
-                }}
-              >
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: '-30%',
-                    right: '-20%',
-                    width: '240px',
-                    height: '240px',
-                    borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(212, 163, 89, 0.22) 0%, transparent 70%)',
-                    pointerEvents: 'none'
-                  }}
-                />
-
-                <span style={{ fontSize: '0.76rem', color: '#D4A359', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '0.5rem' }}>
-                  INSTANT COMMUNICATION
-                </span>
-
-                <h3 className="font-display" style={{ fontSize: '1.9rem', color: '#FFFFFF', marginBottom: '0.85rem' }}>
-                  SPEAK DIRECTLY WITH A CURATOR
-                </h3>
-
-                <p style={{ color: 'rgba(255, 255, 255, 0.78)', fontSize: '0.95rem', lineHeight: 1.65, marginBottom: '1.75rem' }}>
-                  Prefer chatting immediately? Message our senior concierge team directly on WhatsApp with your prospective dates and party size for real-time assistance.
-                </p>
-
-                <a
-                  href="https://wa.me/918157003344?text=Hello%20Escora%20Holidays%2C%20I%20would%20like%20to%20inquire%20about%20a%20bespoke%20Kerala%20holiday."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-pill"
-                  style={{
-                    backgroundColor: '#25D366',
-                    color: '#FFFFFF',
-                    textDecoration: 'none',
-                    fontSize: '0.88rem',
-                    fontWeight: 700,
-                    padding: '0.85rem 1.75rem',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.6rem',
-                    letterSpacing: '0.04em'
-                  }}
-                >
-                  <MessageCircle size={18} /> Chat on WhatsApp Now
-                </a>
-              </div>
-
               {/* The Escora Distinction Pillars */}
               <div
-                className="reveal-card stagger-2"
+                className="luxury-interactive-card reveal-card stagger-2"
                 style={{
                   backgroundColor: '#FFFFFF',
                   borderRadius: '24px',
                   padding: '2.2rem',
-                  border: '1px solid rgba(0, 0, 0, 0.07)'
+                  border: '1px solid rgba(0, 0, 0, 0.07)',
+                  boxShadow: '0 12px 36px rgba(0, 0, 0, 0.05)'
                 }}
               >
                 <h4 className="font-display" style={{ fontSize: '1.35rem', color: '#121316', marginBottom: '1.25rem' }}>
@@ -842,7 +783,9 @@ export default function ContactPage() {
                     { title: "Completely Bespoke", desc: "Every route is crafted from scratch based on your rhythm and desires." },
                     { title: "Privately Chauffeured", desc: "Pristine luxury fleet with discreet, master chauffeurs across Kerala." },
                     { title: "Handpicked Stays", desc: "Heritage plantations, private backwater kettuvallams, and eco-luxury retreats." },
-                    { title: "Round-the-Clock Concierge", desc: "A direct personal line to your Kerala curator throughout your stay." }
+                    { title: "Round-the-Clock Concierge", desc: "A direct personal line to your Kerala curator throughout your stay." },
+                    { title: "Own Language Tour Guide", desc: "Certified local guides fluent in your preferred language for deep cultural connection." },
+                    { title: "Female Drivers Available", desc: "Professional female chauffeurs available upon request for personalized comfort and peace of mind." }
                   ].map((pillar, idx) => (
                     <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.85rem' }}>
                       <div

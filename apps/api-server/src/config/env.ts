@@ -89,6 +89,8 @@ export interface AppConfig {
   enableWhatsappDocumentDelivery: boolean;
   whatsappSimulateAutoDeliver: boolean;
   maintenanceMode: boolean;
+  railwayVolumeMountPath?: string;
+  uploadsDir?: string;
 }
 
 const rawPort = process.env.PORT || "8080";
@@ -294,6 +296,8 @@ export const config: AppConfig = {
   enableWhatsappDocumentDelivery: process.env.ENABLE_WHATSAPP_DOCUMENT_DELIVERY !== "false",
   whatsappSimulateAutoDeliver: process.env.WHATSAPP_SIMULATE_AUTO_DELIVER !== "false",
   maintenanceMode: process.env.MAINTENANCE_MODE !== "false",
+  railwayVolumeMountPath: process.env.RAILWAY_VOLUME_MOUNT_PATH?.trim() || undefined,
+  uploadsDir: process.env.UPLOADS_DIR?.trim() || undefined,
 };
 
 // Fail fast immediately on import if running under production environment

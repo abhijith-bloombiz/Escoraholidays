@@ -20,7 +20,9 @@
     "test:whatsapp:stage3": "pnpm --filter scripts exec tsx --env-file=../.env verify-whatsapp-stage3.ts",
     "test:whatsapp:stage4": "pnpm --filter scripts exec tsx --env-file=../.env verify-whatsapp-stage4.ts",
     "test:whatsapp:stage5": "pnpm --filter scripts exec tsx --env-file=../.env verify-whatsapp-stage5.ts",
-    "test:revenue": "pnpm --filter scripts exec tsx --env-file=../.env test-dashboard-revenue.ts"
+    "test:revenue": "pnpm --filter scripts exec tsx --env-file=../.env test-dashboard-revenue.ts",
+    "migrate:volume": "pnpm --filter scripts exec tsx --env-file=../.env migrate-uploads-to-volume.ts",
+    "test:volume": "pnpm --filter scripts exec tsx --env-file=../.env verify-railway-volume-storage.ts"
   },
   "private": true,
   "devDependencies": {

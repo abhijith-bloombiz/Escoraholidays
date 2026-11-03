@@ -1,6 +1,7 @@
 import { Router, type IRouter, type Request, type Response, type NextFunction } from "express";
 import path from "path";
 import fs from "fs";
+import { fileURLToPath } from "url";
 import {
   MediaModel,
   DestinationModel,
@@ -17,22 +18,207 @@ import {
   DeleteMediaParams,
 } from "@workspace/api-zod";
 import { detectMediaMimeType } from "../lib/auth-crypto";
+import { logger } from "../lib/logger";
 
 const router: IRouter = Router();
 
 const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB limit for videos and images
 
-const workspaceRoot = process.cwd().endsWith(path.join("apps", "api-server"))
-  ? path.resolve(process.cwd(), "../..")
-  : process.cwd();
-
-const uploadsDir = process.env.UPLOADS_DIR
-  ? path.resolve(process.env.UPLOADS_DIR)
-  : path.resolve(workspaceRoot, "apps/api-server/uploads");
-
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
+export interface StorageConfig {
+  uploadsDir: string;
+  defaultUploadsDir: string;
+  source: "RAILWAY_VOLUME_MOUNT_PATH" | "UPLOADS_DIR" | "default";
+  isVolume: boolean;
 }
+
+/**
+ * Resolves the uploads directory with priority:
+ * 1. RAILWAY_VOLUME_MOUNT_PATH (Railway persistent volume)
+ * 2. UPLOADS_DIR (Local dev or custom container mount)
+ * 3. Default fallback: apps/api-server/uploads
+ *
+ * Absolute paths are preserved as-is and never resolved relative to workspaceRoot.
+ */
+function findWorkspaceRoot(): string {
+  let curr = path.resolve(process.cwd());
+  while (true) {
+    if (fs.existsSync(path.join(curr, "pnpm-workspace.yaml"))) {
+      return curr;
+    }
+    const parent = path.dirname(curr);
+    if (parent === curr) break;
+    curr = parent;
+  }
+  try {
+    const fileDir = typeof __dirname !== "undefined"
+      ? __dirname
+      : path.dirname(fileURLToPath(import.meta.url));
+    curr = path.resolve(fileDir);
+    while (true) {
+      if (fs.existsSync(path.join(curr, "pnpm-workspace.yaml"))) {
+        return curr;
+      }
+      const parent = path.dirname(curr);
+      if (parent === curr) break;
+      curr = parent;
+    }
+  } catch {}
+  return process.cwd();
+}
+
+export function resolveUploadsDirectory(): StorageConfig {
+  const workspaceRoot = findWorkspaceRoot();
+
+  const defaultUploadsDir = path.resolve(workspaceRoot, "apps/api-server/uploads");
+
+  const railwayMount =
+    process.env.RAILWAY_VOLUME_MOUNT_PATH?.trim() ||
+    (Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_SERVICE_ID) && fs.existsSync("/data") ? "/data" : undefined);
+  const envUploads = process.env.UPLOADS_DIR?.trim();
+
+  // Priority 1: Railway persistent volume mount path
+  if (railwayMount) {
+    const uploadsDir = path.isAbsolute(railwayMount)
+      ? path.normalize(railwayMount)
+      : path.resolve(workspaceRoot, railwayMount);
+    return {
+      uploadsDir,
+      defaultUploadsDir,
+      source: "RAILWAY_VOLUME_MOUNT_PATH",
+      isVolume: true,
+    };
+  }
+
+  // Priority 2: Custom UPLOADS_DIR configuration (e.g., local development)
+  if (envUploads) {
+    const uploadsDir = path.isAbsolute(envUploads)
+      ? path.normalize(envUploads)
+      : path.resolve(workspaceRoot, envUploads);
+    return {
+      uploadsDir,
+      defaultUploadsDir,
+      source: "UPLOADS_DIR",
+      isVolume: false,
+    };
+  }
+
+  // Priority 3: Default workspace uploads directory
+  return {
+    uploadsDir: defaultUploadsDir,
+    defaultUploadsDir,
+    source: "default",
+    isVolume: false,
+  };
+}
+
+/**
+ * Verifies that the persistent storage directory exists and is writable.
+ */
+export function checkUploadsDirectoryWritable(dirPath: string): { writable: boolean; error?: string } {
+  try {
+    if (!fs.existsSync(dirPath)) {
+      fs.mkdirSync(dirPath, { recursive: true });
+    }
+    fs.accessSync(dirPath, fs.constants.R_OK | fs.constants.W_OK);
+    // Probe actual disk write
+    const probeFile = path.join(dirPath, `.write-probe-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    fs.writeFileSync(probeFile, "probe");
+    fs.unlinkSync(probeFile);
+    return { writable: true };
+  } catch (err: any) {
+    return { writable: false, error: err?.message || String(err) };
+  }
+}
+
+/**
+ * Safely copies any bundled uploads from the application package into the
+ * persistent volume if they are not already present. This ensures zero data loss
+ * or missing stock images when a fresh volume is first mounted on Railway.
+ */
+export function syncLegacyFilesToVolume(): { copied: number; skipped: number; errors: number } {
+  const { uploadsDir, defaultUploadsDir } = resolveUploadsDirectory();
+  if (uploadsDir === defaultUploadsDir || !fs.existsSync(defaultUploadsDir)) {
+    return { copied: 0, skipped: 0, errors: 0 };
+  }
+
+  let copied = 0;
+  let skipped = 0;
+  let errors = 0;
+
+  try {
+    const files = fs.readdirSync(defaultUploadsDir);
+    for (const file of files) {
+      if (file.startsWith(".") || file.includes("..")) continue;
+      const srcFile = path.join(defaultUploadsDir, file);
+      const dstFile = path.join(uploadsDir, file);
+      try {
+        const stat = fs.statSync(srcFile);
+        if (!stat.isFile()) continue;
+        if (fs.existsSync(dstFile)) {
+          skipped++;
+          continue;
+        }
+        fs.copyFileSync(srcFile, dstFile);
+        copied++;
+      } catch (err: any) {
+        errors++;
+        logger.warn({ file, error: err?.message }, "[media] Failed to copy legacy file to volume");
+      }
+    }
+    if (copied > 0) {
+      logger.info(
+        { copied, skipped, errors, target: uploadsDir },
+        "[media] Successfully auto-seeded legacy bundled uploads into persistent volume"
+      );
+    }
+  } catch (err: any) {
+    logger.warn({ error: err?.message }, "[media] Failed to scan default uploads directory for auto-seed");
+  }
+
+  return { copied, skipped, errors };
+}
+
+/**
+ * Initializes the media storage subsystem on startup and logs the resolved directory and status.
+ */
+export function initMediaStorage(): StorageConfig {
+  const config = resolveUploadsDirectory();
+  const { uploadsDir, defaultUploadsDir, source } = config;
+
+  try {
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+  } catch (err: any) {
+    logger.error(
+      { uploadsDir, source, error: err?.message },
+      "[media] Failed to create uploads directory on initialization"
+    );
+  }
+
+  const probe = checkUploadsDirectoryWritable(uploadsDir);
+  if (!probe.writable) {
+    logger.error(
+      { uploadsDir, source, error: probe.error },
+      `[media] Persistent storage directory (${uploadsDir}) is NOT WRITABLE or UNAVAILABLE!`
+    );
+  } else {
+    logger.info(
+      { uploadsDir, source, defaultUploadsDir },
+      `[media] Upload storage directory initialized successfully from ${source}: ${uploadsDir}`
+    );
+  }
+
+  // Non-destructive copy of any legacy bundled files to the persistent volume
+  if (probe.writable) {
+    syncLegacyFilesToVolume();
+  }
+
+  return config;
+}
+
+// Module-level initial check ensuring directory exists upon import
+initMediaStorage();
 
 interface MediaReferenceItem {
   type: string;
@@ -46,50 +232,58 @@ interface MediaReferenceItem {
  * files that are missing from the MediaModel collection.
  */
 async function syncDiskUploads(): Promise<void> {
-  if (!fs.existsSync(uploadsDir)) return;
-  try {
-    const files = fs.readdirSync(uploadsDir);
-    for (const filename of files) {
-      if (filename.startsWith(".") || filename.includes("..")) continue;
-      const fileUrl = `/api/media/files/${filename}`;
-      const existing = await MediaModel.findOne({ url: fileUrl }).lean();
-      if (!existing) {
-        const fullPath = path.join(uploadsDir, filename);
-        let stat: fs.Stats;
-        try {
-          stat = fs.statSync(fullPath);
-        } catch {
-          continue;
-        }
-        if (!stat.isFile()) continue;
+  const { uploadsDir, defaultUploadsDir } = resolveUploadsDirectory();
+  const dirs = [uploadsDir];
+  if (defaultUploadsDir !== uploadsDir && fs.existsSync(defaultUploadsDir)) {
+    dirs.push(defaultUploadsDir);
+  }
 
-        let mimeType = "application/octet-stream";
-        try {
-          const fd = fs.openSync(fullPath, "r");
-          const headBuffer = Buffer.alloc(Math.min(stat.size, 4096));
-          fs.readSync(fd, headBuffer, 0, headBuffer.length, 0);
-          fs.closeSync(fd);
-          const detected = detectMediaMimeType(headBuffer);
-          if (detected) {
-            mimeType = detected.mimeType;
+  for (const dir of dirs) {
+    if (!fs.existsSync(dir)) continue;
+    try {
+      const files = fs.readdirSync(dir);
+      for (const filename of files) {
+        if (filename.startsWith(".") || filename.includes("..")) continue;
+        const fileUrl = `/api/media/files/${filename}`;
+        const existing = await MediaModel.findOne({ url: fileUrl }).lean();
+        if (!existing) {
+          const fullPath = path.join(dir, filename);
+          let stat: fs.Stats;
+          try {
+            stat = fs.statSync(fullPath);
+          } catch {
+            continue;
           }
-        } catch {
-          // ignore read error
-        }
+          if (!stat.isFile()) continue;
 
-        const id = await getNextSequence("media");
-        await MediaModel.create({
-          id,
-          filename,
-          url: fileUrl,
-          mimeType,
-          sizeBytes: stat.size,
-          createdAt: stat.birthtime || stat.mtime || new Date(),
-        });
+          let mimeType = "application/octet-stream";
+          try {
+            const fd = fs.openSync(fullPath, "r");
+            const headBuffer = Buffer.alloc(Math.min(stat.size, 4096));
+            fs.readSync(fd, headBuffer, 0, headBuffer.length, 0);
+            fs.closeSync(fd);
+            const detected = detectMediaMimeType(headBuffer);
+            if (detected) {
+              mimeType = detected.mimeType;
+            }
+          } catch {
+            // ignore read error
+          }
+
+          const id = await getNextSequence("media");
+          await MediaModel.create({
+            id,
+            filename,
+            url: fileUrl,
+            mimeType,
+            sizeBytes: stat.size,
+            createdAt: stat.birthtime || stat.mtime || new Date(),
+          });
+        }
       }
+    } catch (err) {
+      logger.warn({ dir, err: err instanceof Error ? err.message : String(err) }, "[media] Error syncing disk uploads");
     }
-  } catch (err) {
-    console.warn("[media] Error syncing disk uploads:", err);
   }
 }
 
@@ -216,6 +410,7 @@ async function collectAllContentReferences(): Promise<Map<string, MediaReference
 
 router.get("/media", async (req, res, next): Promise<void> => {
   try {
+    const { uploadsDir, defaultUploadsDir } = resolveUploadsDirectory();
     const query = ListMediaQueryParams.safeParse(req.query);
     const filterType = query.success && query.data?.type ? query.data.type : "all";
 
@@ -236,8 +431,19 @@ router.get("/media", async (req, res, next): Promise<void> => {
       const savedName = path.basename(m.url);
       const filePath = path.resolve(uploadsDir, savedName);
       const normalizedUploadsDir = path.resolve(uploadsDir);
-      const fileExists =
+      let fileExists =
         filePath.startsWith(normalizedUploadsDir + path.sep) && fs.existsSync(filePath);
+
+      if (!fileExists && defaultUploadsDir !== uploadsDir) {
+        const legacyPath = path.resolve(defaultUploadsDir, savedName);
+        const normalizedDefaultDir = path.resolve(defaultUploadsDir);
+        if (
+          legacyPath.startsWith(normalizedDefaultDir + path.sep) &&
+          fs.existsSync(legacyPath)
+        ) {
+          fileExists = true;
+        }
+      }
 
       const refs = urlReferences.get(m.url) || [];
 
@@ -261,7 +467,13 @@ router.get("/media", async (req, res, next): Promise<void> => {
         seenUrls.add(url);
         const savedName = path.basename(url);
         const filePath = path.resolve(uploadsDir, savedName);
-        const fileExists = fs.existsSync(filePath);
+        let fileExists = fs.existsSync(filePath);
+        if (!fileExists && defaultUploadsDir !== uploadsDir) {
+          const legacyPath = path.resolve(defaultUploadsDir, savedName);
+          if (fs.existsSync(legacyPath)) {
+            fileExists = true;
+          }
+        }
         resultItems.push({
           id: -(resultItems.length + 1000),
           filename: savedName,
@@ -329,6 +541,7 @@ router.get("/media", async (req, res, next): Promise<void> => {
 
 const handleUpload = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
+    const { uploadsDir } = resolveUploadsDirectory();
     const declaredLength = parseInt(req.headers["content-length"] || "0", 10);
     if (declaredLength > MAX_FILE_SIZE) {
       res.status(413).json({ error: "File exceeds maximum size limit of 100MB" });
@@ -384,7 +597,22 @@ const handleUpload = async (req: Request, res: Response, next: NextFunction): Pr
     const savedName = `${Date.now()}-${Math.random().toString(36).slice(2)}${detected.extension}`;
     const filePath = path.join(uploadsDir, savedName);
 
-    fs.writeFileSync(filePath, buffer);
+    // Verify directory exists and is writable with graceful error handling
+    try {
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, buffer);
+    } catch (writeErr: any) {
+      logger.error(
+        { filePath, uploadsDir, error: writeErr?.message },
+        "[media] Persistent volume storage write failure"
+      );
+      res.status(500).json({
+        error: "Persistent file storage is currently unavailable or not writable. Please check volume mount and permissions.",
+      });
+      return;
+    }
 
     const id = await getNextSequence("media");
     const media = await MediaModel.create({
@@ -420,6 +648,7 @@ router.options("/media/files/:name", (_req, res): void => {
 });
 
 router.get("/media/files/:name", (req, res): void => {
+  const { uploadsDir, defaultUploadsDir } = resolveUploadsDirectory();
   const parsed = GetMediaFileParams.safeParse(req.params);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -430,12 +659,25 @@ router.get("/media/files/:name", (req, res): void => {
     res.status(400).json({ error: "Invalid filename" });
     return;
   }
-  const filePath = path.resolve(uploadsDir, name);
+  let filePath = path.resolve(uploadsDir, name);
   const normalizedUploadsDir = path.resolve(uploadsDir);
   if (!filePath.startsWith(normalizedUploadsDir + path.sep)) {
     res.status(400).json({ error: "Invalid filename path" });
     return;
   }
+
+  // Fallback to bundled legacy uploads if file is not found in volume directory
+  if (!fs.existsSync(filePath) && defaultUploadsDir !== uploadsDir) {
+    const legacyPath = path.resolve(defaultUploadsDir, name);
+    const normalizedDefaultDir = path.resolve(defaultUploadsDir);
+    if (
+      legacyPath.startsWith(normalizedDefaultDir + path.sep) &&
+      fs.existsSync(legacyPath)
+    ) {
+      filePath = legacyPath;
+    }
+  }
+
   if (!fs.existsSync(filePath)) {
     res.status(404).json({ error: "File not found" });
     return;
@@ -453,10 +695,16 @@ router.get("/media/files/:name", (req, res): void => {
   } else if (name.endsWith(".avif")) {
     res.setHeader("Content-Type", "image/avif");
   }
-  res.sendFile(filePath);
+  res.sendFile(filePath, (err) => {
+    if (err && !res.headersSent) {
+      logger.error({ filePath, name, error: err.message }, "[media] Error delivering media file");
+      res.status(500).json({ error: "Failed to deliver media file" });
+    }
+  });
 });
 
 router.delete("/media/:id", async (req, res): Promise<void> => {
+  const { uploadsDir, defaultUploadsDir } = resolveUploadsDirectory();
   const params = DeleteMediaParams.safeParse(req.params);
   if (!params.success) {
     res.status(400).json({ error: params.error.message });
@@ -498,8 +746,25 @@ router.delete("/media/:id", async (req, res): Promise<void> => {
   const filePath = path.resolve(uploadsDir, savedName);
   const normalizedUploadsDir = path.resolve(uploadsDir);
   if (filePath.startsWith(normalizedUploadsDir + path.sep) && fs.existsSync(filePath)) {
-    fs.unlinkSync(filePath);
+    try {
+      fs.unlinkSync(filePath);
+    } catch (err: any) {
+      logger.warn({ filePath, err: err?.message }, "[media] Failed to unlink file from persistent volume");
+    }
   }
+
+  if (defaultUploadsDir !== uploadsDir) {
+    const legacyPath = path.resolve(defaultUploadsDir, savedName);
+    const normalizedDefault = path.resolve(defaultUploadsDir);
+    if (legacyPath.startsWith(normalizedDefault + path.sep) && fs.existsSync(legacyPath)) {
+      try {
+        fs.unlinkSync(legacyPath);
+      } catch (err: any) {
+        logger.warn({ legacyPath, err: err?.message }, "[media] Failed to unlink file from legacy default uploads");
+      }
+    }
+  }
+
   res.sendStatus(204);
 });
 

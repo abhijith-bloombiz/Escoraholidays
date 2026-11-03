@@ -4,6 +4,7 @@ import { logger } from "./lib/logger";
 import { connectDB, disconnectDB } from "@workspace/db";
 import { startCampaignScheduler, stopCampaignScheduler } from "./services/campaign-scheduler";
 import { migrateLegacyCampaignApprovalStates } from "./services/campaign-service";
+import { initMediaStorage } from "./routes/media";
 
 async function bootstrap() {
   validateProductionConfig(config);
@@ -11,6 +12,9 @@ async function bootstrap() {
   if (!config.isProduction) {
     logger.info("Dev Notice: Running in local development mode with standard dev defaults.");
   }
+
+  // Initialize and verify persistent media storage directory
+  initMediaStorage();
 
   try {
     await connectDB();
@@ -49,4 +53,3 @@ bootstrap().catch((err) => {
   logger.fatal({ err: err instanceof Error ? err.message : String(err) }, "Fatal error during server startup");
   process.exit(1);
 });
-

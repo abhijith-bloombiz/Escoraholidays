@@ -293,6 +293,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const [experience, setExperience] = useState('');
   const [guests, setGuests] = useState('');
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [loadedSlides, setLoadedSlides] = useState<number[]>([0]);
   const [isPlaying, setIsPlaying] = useState(true);
 
   // Bento 3D Stage Carousel active offset/index state
@@ -598,16 +599,24 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   }, []);
 
   // Synchronize active hero video playback on slide change or play/pause toggle
+  // Track scroll visibility gates as booleans to avoid thrashing video playback on every scroll frame
+  const isHeroVisible = scrollProgress < 0.35;
+  const isExpVisible = scrollProgress >= 0.30 && scrollProgress <= 1.05;
+
+  // Synchronize active hero video playback on slide change or play/pause toggle
   const prevSlideRef = useRef<number | null>(null);
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
     const isSlideChanged = prevSlideRef.current !== null && prevSlideRef.current !== currentSlide;
     prevSlideRef.current = currentSlide;
 
+    // Ensure active slide is registered as loaded
+    setLoadedSlides((prev) => (prev.includes(currentSlide) ? prev : [...prev, currentSlide]));
+
     heroVideoRefs.current.forEach((videoEl, idx) => {
       if (!videoEl) return;
       if (idx === currentSlide) {
-        if (isPlaying && scrollProgress < 0.35) {
+        if (isPlaying && isHeroVisible) {
           if (isSlideChanged) {
             videoEl.currentTime = 0;
           }
@@ -628,14 +637,10 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
     return () => {
       timers.forEach((t) => clearTimeout(t));
     };
-  }, [currentSlide, isPlaying, scrollProgress]);
+  }, [currentSlide, isPlaying, isHeroVisible]);
 
   // Smart video decode management: pause out-of-view videos to liberate GPU/CPU resources
   useEffect(() => {
-    const isHeroVisible = scrollProgress < 0.35;
-    const isExpVisible = scrollProgress >= 0.30 && scrollProgress <= 1.05;
-
-    // 1. Hero videos management
     const currentHeroVideo = heroVideoRefs.current[currentSlide];
     if (isHeroVisible && isPlaying) {
       if (currentHeroVideo && currentHeroVideo.paused) {
@@ -647,7 +652,6 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       });
     }
 
-    // 2. Experience video management
     if (expVideoRef.current) {
       if (isExpVisible) {
         if (expVideoRef.current.paused) {
@@ -659,7 +663,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
         }
       }
     }
-  }, [scrollProgress, currentSlide, isPlaying]);
+  }, [isHeroVisible, isExpVisible, currentSlide, isPlaying]);
 
   // Hero video carousel loop (uses configured duration per slide, default 8s)
   useEffect(() => {
@@ -668,10 +672,26 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       heroSlides[currentSlide]?.duration && heroSlides[currentSlide]?.duration > 0
         ? heroSlides[currentSlide].duration
         : 8;
+
+    // Preload next slide 3s before transition to ensure instant seamless crossfade without network contention
+    const preloadDelay = Math.max(1000, (currentDurationSec - 3) * 1000);
+    const preloadTimer = setTimeout(() => {
+      const nextSlide = (currentSlide + 1) % heroSlides.length;
+      setLoadedSlides((prev) => (prev.includes(nextSlide) ? prev : [...prev, nextSlide]));
+    }, preloadDelay);
+
     const timer = setTimeout(() => {
-      setCurrentSlide((curr) => (curr + 1) % heroSlides.length);
+      setCurrentSlide((curr) => {
+        const next = (curr + 1) % heroSlides.length;
+        setLoadedSlides((prev) => (prev.includes(next) ? prev : [...prev, next]));
+        return next;
+      });
     }, currentDurationSec * 1000);
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(preloadTimer);
+      clearTimeout(timer);
+    };
   }, [isPlaying, currentSlide, heroSlides]);
 
   // High-performance synchronized scroll listener with zero layout thrashing
@@ -1632,6 +1652,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   {/* Layer 1: Opening Hero Video Carousel (Cinematic 4K/HD Videos from public/hero) */}
                   {heroSlides.map((slide, idx) => {
                     const isActive = idx === currentSlide;
+                    const isLoaded = loadedSlides.includes(idx);
                     const heroVideoOpacity = isActive
                       ? Math.max(0, (1 - destImageEase) * (1 - expandRaw * 1.5))
                       : 0;
@@ -1642,39 +1663,43 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           position: 'absolute',
                           inset: 0,
                           opacity: heroVideoOpacity,
-                          transform: isActive ? 'scale(1.02)' : 'scale(1.0)',
+                          transform: isActive ? 'scale(1.02) translateZ(0)' : 'scale(1.0) translateZ(0)',
                           transition: 'opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1), transform 8s cubic-bezier(0.16, 1, 0.3, 1)',
                           zIndex: 2,
                           overflow: 'hidden',
                           pointerEvents: 'none',
-                          backgroundColor: '#0B1410'
+                          backgroundColor: '#0B1410',
+                          willChange: 'opacity, transform',
+                          backfaceVisibility: 'hidden'
                         }}
                       >
-                        <video
-                          ref={(el) => { heroVideoRefs.current[idx] = el; }}
-                          src={slide.video}
-                          autoPlay
-                          muted
-                          loop
-                          playsInline
-                          preload="auto"
-                          disablePictureInPicture
-                          disableRemotePlayback
-                          controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
-                          data-video-popout="false"
-                          tabIndex={-1}
-                          aria-hidden="true"
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            display: 'block',
-                            pointerEvents: 'none',
-                            backgroundColor: '#0B1410'
-                          }}
-                        >
-                          <source src={slide.video} type="video/mp4" />
-                        </video>
+                        {isLoaded && (
+                          <video
+                            ref={(el) => { heroVideoRefs.current[idx] = el; }}
+                            src={slide.video}
+                            autoPlay={isActive}
+                            muted
+                            loop
+                            playsInline
+                            preload={isActive ? 'auto' : 'metadata'}
+                            disablePictureInPicture
+                            disableRemotePlayback
+                            controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+                            data-video-popout="false"
+                            tabIndex={-1}
+                            aria-hidden="true"
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              display: 'block',
+                              pointerEvents: 'none',
+                              backgroundColor: '#0B1410',
+                              transform: 'translateZ(0)',
+                              backfaceVisibility: 'hidden'
+                            }}
+                          />
+                        )}
                       </div>
                     );
                   })}
@@ -1701,36 +1726,40 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       position: 'absolute',
                       inset: 0,
                       opacity: Math.min(1, expandRaw * 1.8),
-                      transform: `scale(${1.08 - 0.08 * expandEase})`,
+                      transform: `scale(${1.08 - 0.08 * expandEase}) translateZ(0)`,
                       zIndex: 3,
                       pointerEvents: 'none',
-                      overflow: 'hidden'
+                      overflow: 'hidden',
+                      willChange: 'opacity, transform',
+                      backfaceVisibility: 'hidden'
                     }}
                   >
-                    <video
-                      ref={expVideoRef}
-                      key={homeCard1.videoUrl}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      preload="auto"
-                      disablePictureInPicture
-                      disableRemotePlayback
-                      controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
-                      data-video-popout="false"
-                      tabIndex={-1}
-                      aria-hidden="true"
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        display: 'block',
-                        pointerEvents: 'none'
-                      }}
-                    >
-                      <source src={homeCard1.videoUrl} type="video/mp4" />
-                    </video>
+                    {scrollProgress >= 0.15 && (
+                      <video
+                        ref={expVideoRef}
+                        key={homeCard1.videoUrl}
+                        src={homeCard1.videoUrl}
+                        loop
+                        muted
+                        playsInline
+                        preload={scrollProgress >= 0.3 ? 'auto' : 'metadata'}
+                        disablePictureInPicture
+                        disableRemotePlayback
+                        controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+                        data-video-popout="false"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                          pointerEvents: 'none',
+                          transform: 'translateZ(0)',
+                          backfaceVisibility: 'hidden'
+                        }}
+                      />
+                    )}
                   </div>
 
                   {/* Luxury Ambient & Vignette Overlays - Lightened for vibrant video clarity */}
@@ -2520,23 +2549,21 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                           }}
                           className="exp-showcase-card"
                         >
-                          {card.videoUrl ? (
+                          {card.videoUrl && scrollProgress >= 0.65 ? (
                             <video
                               key={card.videoUrl}
+                              src={card.videoUrl}
                               autoPlay
                               loop
                               muted
                               playsInline
-                              poster={card.image}
                               disableRemotePlayback
                               controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
                               data-video-popout="false"
                               tabIndex={-1}
                               aria-hidden="true"
-                              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
-                            >
-                              <source src={card.videoUrl} type="video/mp4" />
-                            </video>
+                              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none', transform: 'translateZ(0)' }}
+                            />
                           ) : (
                             <img
                               src={card.image}
@@ -2709,36 +2736,44 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
             >
               {heroSlides.map((slide, idx) => {
                 const isActive = idx === currentSlide;
+                const isLoaded = loadedSlides.includes(idx);
                 return (
-                  <video
+                  <div
                     key={idx}
-                    src={slide.video}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="auto"
-                    disablePictureInPicture
-                    disableRemotePlayback
-                    controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
-                    data-video-popout="false"
-                    tabIndex={-1}
-                    aria-hidden="true"
                     style={{
                       position: 'absolute',
                       inset: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                      pointerEvents: 'none',
                       opacity: isActive ? 1 : 0,
                       transition: 'opacity 1.2s ease',
                       backgroundColor: '#121316'
                     }}
                   >
-                    <source src={slide.video} type="video/mp4" />
-                  </video>
+                    {isLoaded && (
+                      <video
+                        src={slide.video}
+                        autoPlay={isActive}
+                        loop
+                        muted
+                        playsInline
+                        preload={isActive ? 'auto' : 'metadata'}
+                        disablePictureInPicture
+                        disableRemotePlayback
+                        controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
+                        data-video-popout="false"
+                        tabIndex={-1}
+                        aria-hidden="true"
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                          pointerEvents: 'none',
+                          backgroundColor: '#121316',
+                          transform: 'translateZ(0)'
+                        }}
+                      />
+                    )}
+                  </div>
                 );
               })}
               <div
@@ -3014,22 +3049,20 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                   <div style={{ height: '220px', position: 'relative', overflow: 'hidden' }}>
                     <video
                       key={homeCard1.videoUrl}
+                      src={homeCard1.videoUrl}
                       autoPlay
                       loop
                       muted
                       playsInline
-                      preload="auto"
-                      poster={homeCard1.posterUrl}
+                      preload="none"
                       disablePictureInPicture
                       disableRemotePlayback
                       controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
                       data-video-popout="false"
                       tabIndex={-1}
                       aria-hidden="true"
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
-                    >
-                      <source src={homeCard1.videoUrl} type="video/mp4" />
-                    </video>
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none', transform: 'translateZ(0)' }}
+                    />
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(180deg, rgba(0,0,0,0.15) 0%, rgba(11,20,16,0.95) 100%)' }} />
                   </div>
                   <div style={{ padding: '1.35rem', color: '#FFFFFF', marginTop: '-35px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
@@ -3059,20 +3092,19 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                       {card.videoUrl ? (
                         <video
                           key={card.videoUrl}
+                          src={card.videoUrl}
                           autoPlay
                           loop
                           muted
                           playsInline
-                          poster={card.image}
+                          preload="none"
                           disableRemotePlayback
                           controlsList="nodownload noplaybackrate nofullscreen noremoteplayback"
                           data-video-popout="false"
                           tabIndex={-1}
                           aria-hidden="true"
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none' }}
-                        >
-                          <source src={card.videoUrl} type="video/mp4" />
-                        </video>
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', pointerEvents: 'none', transform: 'translateZ(0)' }}
+                        />
                       ) : (
                         <img src={card.image} alt={card.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                       )}

@@ -66,32 +66,32 @@ const SHOW_HERO_SEARCH_BAR = false;
 
 const COMPANIONS = {
   topLeft: {
-    name: 'Bekal',
-    tag: 'HERITAGE SEA STRONGHOLD',
-    coordinates: '12.39°N 75.03°E',
-    subtitle: "Kerala's largest fort — a 17th-century laterite stronghold above unspoiled northern beaches.",
-    image: '/images/dest_bekal.jpg'
+    name: 'Kochi',
+    tag: 'HERITAGE & COASTAL',
+    coordinates: '9.97°N 76.28°E',
+    subtitle: 'Kochi is a beautiful coastal city known for its rich history, colonial architecture, heritage streets, and vibrant culture.',
+    image: '/images/destinations/kochi.jpg'
   },
   bottomLeft: {
-    name: 'Fort Kochi',
-    tag: 'SPICE PORT & BIENNALE',
-    coordinates: '9.96°N 76.24°E',
-    subtitle: 'Historic spice port with colonial architecture and Chinese fishing nets.',
-    image: '/images/dest_fort_kochi.jpg'
+    name: 'Thekkady',
+    tag: 'WILDLIFE & SPICE HILLS',
+    coordinates: '9.59°N 77.16°E',
+    subtitle: 'Thekkady is a nature destination known for its spice plantations, rich wildlife, Periyar Lake, and exciting nature experiences.',
+    image: '/images/destinations/thekkady.jpg'
   },
   topRight: {
-    name: 'Kannur',
-    tag: 'MYSTIC THEYYAM RITUAL',
-    coordinates: '11.87°N 75.37°E',
-    subtitle: "Malabar's untouristed coast — Muzhappilangad's drive-in beach, Thalassery's forts, and the ritual fire of Theyyam.",
-    image: '/images/dest_kannur.jpg'
+    name: 'Alleppey',
+    tag: 'BACKWATER OASIS',
+    coordinates: '9.50°N 76.34°E',
+    subtitle: 'Alleppey is known as the Venice of the East, famous for its tranquil backwaters and luxurious houseboat experiences.',
+    image: '/images/destinations/alleppey.jpg'
   },
   bottomRight: {
     name: 'Varkala',
     tag: 'RED CLIFF SANCTUARY',
     coordinates: '8.73°N 76.71°E',
-    subtitle: 'Dramatic red laterite cliffs meeting the Arabian Sea, yoga shalas and ocean sunsets.',
-    image: '/images/dest_5_varkala.jpg'
+    subtitle: 'Varkala is a beautiful coastal destination known for its stunning cliffs, sandy beaches, seaside cafés, and exciting beach activities.',
+    image: '/images/destinations/varkala.jpg'
   }
 };
 
@@ -125,20 +125,20 @@ const formatDestinationCoordinates = (
 
 const resolveDestinationImage = (
   dest?: { name?: string; imageUrl?: string | null } | null,
-  fallback: string = '/images/dest_3_munnar.jpg'
+  fallback: string = '/images/destinations/munnar.jpg'
 ): string => {
   if (dest?.imageUrl && typeof dest.imageUrl === 'string' && dest.imageUrl.trim() !== '') {
     return dest.imageUrl.trim();
   }
   const n = (dest?.name || '').toLowerCase();
-  if (n.includes('bekal')) return '/images/dest_bekal.jpg';
-  if (n.includes('kochi')) return '/images/dest_fort_kochi.jpg';
-  if (n.includes('kannur')) return '/images/dest_kannur.jpg';
-  if (n.includes('varkala')) return '/images/dest_5_varkala.jpg';
-  if (n.includes('kovalam')) return '/images/dest_kovalam.jpg';
-  if (n.includes('kumarakom')) return '/images/dest_kumarakom.jpg';
-  if (n.includes('munnar')) return '/images/dest_3_munnar.jpg';
-  if (n.includes('wayanad')) return '/images/dest_1_wayanad.jpg';
+  if (n.includes('kochi')) return '/images/destinations/kochi.jpg';
+  if (n.includes('munnar')) return '/images/destinations/munnar.jpg';
+  if (n.includes('thekkady')) return '/images/destinations/thekkady.jpg';
+  if (n.includes('alleppey')) return '/images/destinations/alleppey.jpg';
+  if (n.includes('varkala')) return '/images/destinations/varkala.jpg';
+  if (n.includes('trivandrum') || n.includes('kovalam')) return '/images/destinations/trivandrum.jpg';
+  if (n.includes('calicut') || n.includes('kozhikode')) return '/images/destinations/calicut.jpg';
+  if (n.includes('wayanad')) return '/images/destinations/wayanad.jpg';
   return fallback;
 };
 
@@ -148,7 +148,7 @@ const EXP_CARDS = [
     tag: 'Estate Seclusion',
     duration: 'Dawn // 3 Hours',
     title: 'Dawn Tea Cupping with a Planter',
-    location: 'Munnar Highlands',
+    location: 'Kolukkumalai Hills, Munnar',
     desc: 'Single-origin tastings & high-range trails in a 150-year-old colonial bungalow.',
     image: '/images/exp_tea_bungalow.jpg'
   },
@@ -217,12 +217,12 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   const homeCard1 = useMemo(() => {
     const card = remoteHomeCards?.find((c) => c.slot === 1) || remoteHomeCards?.[0];
     return {
-      title: card?.title || 'Kayaking',
-      desc: card?.desc || 'Glide through silent lagoons and tranquil backwaters on a private kayak.',
-      location: card?.location || 'Alleppey Waters',
+      title: card?.title || 'Luxury Houseboat Experience',
+      desc: card?.desc || 'An iconic Kerala experience with private cruising, beautiful backwaters and personalised dining.',
+      location: card?.location || 'Alleppey Backwaters',
       videoUrl: card?.videoUrl || '/Experience-section/12881094-hd_1920_1080_30fps.mp4',
       posterUrl: card?.posterUrl || '/images/exp_houseboat.jpg',
-      slug: (card as any)?.slug || card?.experienceSlug || 'private-houseboat-charter',
+      slug: (card as any)?.slug || card?.experienceSlug || 'luxury-houseboat-experience',
     };
   }, [remoteHomeCards]);
 
@@ -231,38 +231,38 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       {
         id: 'exp-card-2',
         slot: 2,
-        tag: 'Estate Seclusion',
-        duration: 'Dawn // 3 Hours',
-        title: 'Dawn Tea Cupping with a Planter',
+        tag: 'Mountain Sunrise',
+        duration: 'Dawn // 4 Hours',
+        title: 'Kolukkumalai Jeep Safari & Sunrise',
         location: 'Munnar Highlands',
-        desc: 'Single-origin tastings & high-range trails in a 150-year-old colonial bungalow.',
-        image: '/images/exp_tea_bungalow.jpg',
+        desc: 'Thrilling off-road adventure combined with breathtaking mountain sunrise views.',
+        image: '/images/dest_3_munnar.jpg',
         videoUrl: '/hero/15015065_1920_1080_60fps.mp4',
-        slug: 'tea-planter-bungalow',
+        slug: 'kolukkumalai-jeep-safari-sunrise',
       },
       {
         id: 'exp-card-3',
         slot: 3,
-        tag: 'Wilderness Reserve',
-        duration: 'Full Day',
-        title: 'Periyar Bamboo River Rafting',
-        location: 'Periyar Reserve',
-        desc: 'Silent misty waters with indigenous tribal trackers and wild elephant herds.',
-        image: '/images/dest_4_rafting.jpg',
+        tag: 'Waterways Adventure',
+        duration: '2–3 Hours',
+        title: 'Kayaking',
+        location: 'Calicut',
+        desc: 'An immersive water adventure that lets travellers explore Kerala\'s waterways up close.',
+        image: '/images/dest_2_alleppey.jpg',
         videoUrl: '/hero/9154179-uhd_3840_2160_25fps.mp4',
-        slug: 'periyar-bamboo-rafting',
+        slug: 'kayaking',
       },
       {
         id: 'exp-card-4',
         slot: 4,
-        tag: 'Living Arts',
-        duration: 'Masterclass',
-        title: 'Kathakali Greenroom & Sacred Arts',
-        location: 'Thrissur Cultural Quarters',
-        desc: 'Front-row sacred makeup transformation & royal Travancore culinary feasts.',
-        image: '/images/exp_kathakali.jpg',
+        tag: 'Coastal Flight',
+        duration: '1–2 Hours',
+        title: 'Paragliding',
+        location: 'Varkala Beach',
+        desc: 'An exciting aerial experience with spectacular views of Varkala\'s coastline.',
+        image: '/images/dest_5_varkala.jpg',
         videoUrl: '/hero/15015065_1920_1080_60fps.mp4',
-        slug: 'theyyam-sacred-fire',
+        slug: 'paragliding',
       }
     ];
 
@@ -302,111 +302,102 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
   // Fallback destination pool matching Escora luxury portfolio
   const fallbackDestPool = useMemo(() => [
     {
-      id: -1,
-      name: 'Munnar Highlands',
-      shortName: 'Munnar',
-      slug: 'munnar',
-      type: 'HIGHLANDS & ESTATES',
-      shortDesc: 'Endless emerald tea estates rolling across the Western Ghats at 1,600 m above sea level.',
-      description: 'Endless emerald tea estates rolling across the Western Ghats at 1,600 m above sea level.',
-      imageUrl: '/images/dest_3_munnar.jpg'
+      id: 1,
+      name: 'Kochi',
+      shortName: 'Kochi',
+      slug: 'kochi',
+      type: 'HERITAGE & COASTAL',
+      shortDesc: 'Kochi is a beautiful coastal city known for its rich history, colonial architecture, heritage streets, and vibrant culture.',
+      description: 'Kochi is a beautiful coastal city known for its rich history, colonial architecture, heritage streets, and vibrant culture.',
+      imageUrl: '/images/destinations/kochi.jpg'
     },
     {
-      id: -2,
+      id: 2,
+      name: 'Munnar',
+      shortName: 'Munnar',
+      slug: 'munnar',
+      type: 'HIGHLANDS & TEA ESTATES',
+      shortDesc: 'Munnar is a scenic hill station famous for its lush tea plantations, misty mountains, waterfalls, and cool climate.',
+      description: 'Munnar is a scenic hill station famous for its lush tea plantations, misty mountains, waterfalls, and cool climate.',
+      imageUrl: '/images/destinations/munnar.jpg'
+    },
+    {
+      id: 4,
+      name: 'Thekkady',
+      shortName: 'Thekkady',
+      slug: 'thekkady',
+      type: 'NATURE & WILDLIFE',
+      shortDesc: 'Thekkady is a nature destination known for its spice plantations, rich wildlife, Periyar Lake, and exciting nature experiences.',
+      description: 'Thekkady is a nature destination known for its spice plantations, rich wildlife, Periyar Lake, and exciting nature experiences.',
+      imageUrl: '/images/destinations/thekkady.jpg'
+    },
+    {
+      id: 3,
       name: 'Alleppey',
       shortName: 'Alleppey',
       slug: 'alleppey',
-      type: 'BACKWATER LAGOONS',
-      shortDesc: "The 'Venice of the East' — kettuvallam houseboats drifting through Kuttanad's below-sea-level paddy fields.",
-      description: "The 'Venice of the East' — kettuvallam houseboats drifting through Kuttanad's below-sea-level paddy fields.",
-      imageUrl: '/images/dest_alleppey.jpg'
+      type: 'BACKWATERS & HOUSEBOATS',
+      shortDesc: 'Alleppey is known as the Venice of the East, famous for its tranquil backwaters and luxurious houseboat experiences.',
+      description: 'Alleppey is known as the Venice of the East, famous for its tranquil backwaters and luxurious houseboat experiences.',
+      imageUrl: '/images/destinations/alleppey.jpg'
     },
     {
-      id: -3,
-      name: 'Bekal',
-      shortName: 'Bekal',
-      slug: 'bekal',
-      type: 'HERITAGE SEA STRONGHOLD',
-      shortDesc: "Kerala's largest fort — a 17th-century laterite stronghold above unspoiled northern beaches.",
-      description: "Kerala's largest fort — a 17th-century laterite stronghold above unspoiled northern beaches.",
-      imageUrl: '/images/dest_bekal.jpg'
-    },
-    {
-      id: -4,
-      name: 'Fort Kochi',
-      shortName: 'Fort Kochi',
-      slug: 'fort-kochi',
-      type: 'SPICE PORT & BIENNALE',
-      shortDesc: 'Historic spice port with colonial architecture and Chinese fishing nets.',
-      description: 'Historic spice port with colonial architecture and Chinese fishing nets.',
-      imageUrl: '/images/dest_fort_kochi.jpg'
-    },
-    {
-      id: -5,
-      name: 'Kannur',
-      shortName: 'Kannur',
-      slug: 'kannur',
-      type: 'MYSTIC THEYYAM RITUAL',
-      shortDesc: "Malabar's untouristed coast — Muzhappilangad's drive-in beach, Thalassery's forts, and the ritual fire of Theyyam.",
-      description: "Malabar's untouristed coast — Muzhappilangad's drive-in beach, Thalassery's forts, and the ritual fire of Theyyam.",
-      imageUrl: '/images/dest_kannur.jpg'
-    },
-    {
-      id: -6,
+      id: 6,
       name: 'Varkala',
       shortName: 'Varkala',
       slug: 'varkala',
-      type: 'RED CLIFF SANCTUARY',
-      shortDesc: 'Dramatic red laterite cliffs meeting the Arabian Sea, yoga shalas and ocean sunsets.',
-      description: 'Dramatic red laterite cliffs meeting the Arabian Sea, yoga shalas and ocean sunsets.',
-      imageUrl: '/images/dest_5_varkala.jpg'
+      type: 'COASTAL CLIFFS & BEACHES',
+      shortDesc: 'Varkala is a beautiful coastal destination known for its stunning cliffs, sandy beaches, seaside cafés, and exciting beach activities.',
+      description: 'Varkala is a beautiful coastal destination known for its stunning cliffs, sandy beaches, seaside cafés, and exciting beach activities.',
+      imageUrl: '/images/destinations/varkala.jpg'
     },
     {
-      id: -7,
+      id: 8,
+      name: 'Trivandrum',
+      shortName: 'Trivandrum',
+      slug: 'trivandrum',
+      type: 'TEMPLES, CULTURE & BEACHES',
+      shortDesc: "Trivandrum, Kerala's capital city, is known for its historic temples and cultural attractions, while nearby Kovalam is famous for its beautiful beaches and seaside activities.",
+      description: "Trivandrum, Kerala's capital city, is known for its historic temples and cultural attractions, while nearby Kovalam is famous for its beautiful beaches and seaside activities.",
+      imageUrl: '/images/destinations/trivandrum.jpg'
+    },
+    {
+      id: 11,
+      name: 'Calicut',
+      shortName: 'Calicut',
+      slug: 'calicut',
+      type: 'MALABAR CULTURE & SPICE COAST',
+      shortDesc: 'A beautiful coastal city known for its rich history, Malabar culture, traditional cuisine, and scenic beaches.',
+      description: 'A beautiful coastal city known for its rich history, Malabar culture, traditional cuisine, and scenic beaches.',
+      imageUrl: '/images/destinations/calicut.jpg'
+    },
+    {
+      id: 5,
       name: 'Wayanad',
       shortName: 'Wayanad',
       slug: 'wayanad',
-      type: 'MISTY CLOUD FORESTS',
-      shortDesc: 'Prehistoric caves, rolling tea & coffee plantations, waterfalls and treehouse sanctuaries.',
-      description: 'Prehistoric caves, rolling tea & coffee plantations, waterfalls and treehouse sanctuaries.',
-      imageUrl: '/images/dest_1_wayanad.jpg'
-    },
-    {
-      id: -8,
-      name: 'Kumarakom',
-      shortName: 'Kumarakom',
-      slug: 'kumarakom',
-      type: 'BIRD SANCTUARY & LAGOONS',
-      shortDesc: 'Quiet mangrove canals on the eastern shore of Vembanad Lake, luxury lakeside retreats.',
-      description: 'Quiet mangrove canals on the eastern shore of Vembanad Lake, luxury lakeside retreats.',
-      imageUrl: '/images/dest_kumarakom.jpg'
-    }
-  ], []);
+      type: 'MISTY MOUNTAINS & WATERFALLS',
+      shortDesc: 'A scenic hill destination filled with misty mountains, lush green forests, tea plantations, and beautiful waterfalls.',
+      description: 'A scenic hill destination filled with misty mountains, lush green forests, tea plantations, and beautiful waterfalls.',
+      imageUrl: '/images/destinations/wayanad.jpg'
+    }  ], []);
 
   // Ordered full list of destinations from CMS or fallback
   const allDestinationsList = useMemo(() => {
     if (remoteDestinations && remoteDestinations.length > 0) {
       const published = remoteDestinations.filter((d) => d.published);
       const pool = published.length > 0 ? published : remoteDestinations;
-      // Ensure Munnar is first in initial rotation for signature opening
-      const munnar = pool.find((d) => d.name.toLowerCase().includes('munnar'));
-      if (munnar) {
-        return [munnar, ...pool.filter((d) => d.id !== munnar.id)];
-      }
-      return pool;
+      return [...pool].sort((a, b) => ((a as any).sortOrder || 0) - ((b as any).sortOrder || 0));
     }
     return fallbackDestPool;
   }, [remoteDestinations, fallbackDestPool]);
 
   const formatDestCard = (item: any) => {
     const target = item || fallbackDestPool[0];
-    const hasHighlands = (target.name || '').toLowerCase().includes('highland');
-    const isMunnar = (target.name || '').toLowerCase().includes('munnar');
-    const displayName = isMunnar && !hasHighlands ? `${target.name} Highlands` : target.name;
 
     return {
       id: target.id,
-      name: displayName,
+      name: target.name,
       shortName: target.shortName || target.name,
       slug: target.slug || resolveDestinationSlug(target),
       tag: (target.type || 'SANCTUARY').toUpperCase(),
@@ -581,11 +572,14 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
       }));
     }
     return [
-      { name: 'Munnar Highlands', slug: 'munnar', image: '/images/dest_3_munnar.jpg', tag: 'HIGHLANDS' },
-      { name: 'Bekal Fortress', slug: 'bekal', image: '/images/dest_bekal.jpg', tag: 'NORTH COAST' },
-      { name: 'Fort Kochi Heritage', slug: 'fort-kochi', image: '/images/dest_fort_kochi.jpg', tag: 'HERITAGE' },
-      { name: 'Kannur Ritual Fire', slug: 'kannur', image: '/images/dest_kannur.jpg', tag: 'MYSTIC TRADITIONS' },
-      { name: 'Varkala Sea Cliffs', slug: 'varkala', image: '/images/dest_5_varkala.jpg', tag: 'COASTLINE' },
+      { name: 'Kochi Heritage', slug: 'kochi', image: '/images/destinations/kochi.jpg', tag: 'HERITAGE' },
+      { name: 'Munnar Highlands', slug: 'munnar', image: '/images/destinations/munnar.jpg', tag: 'HIGHLANDS' },
+      { name: 'Thekkady Wilderness', slug: 'thekkady', image: '/images/destinations/thekkady.jpg', tag: 'WILDLIFE' },
+      { name: 'Alleppey Backwaters', slug: 'alleppey', image: '/images/destinations/alleppey.jpg', tag: 'BACKWATERS' },
+      { name: 'Varkala Sea Cliffs', slug: 'varkala', image: '/images/destinations/varkala.jpg', tag: 'COASTLINE' },
+      { name: 'Trivandrum Temples & Coast', slug: 'trivandrum', image: '/images/destinations/trivandrum.jpg', tag: 'CULTURE & BEACH' },
+      { name: 'Calicut Heritage & Cuisine', slug: 'calicut', image: '/images/destinations/calicut.jpg', tag: 'MALABAR COAST' },
+      { name: 'Wayanad Misty Highlands', slug: 'wayanad', image: '/images/destinations/wayanad.jpg', tag: 'HIGHLANDS' },
     ];
   }, [remoteDestinations]);
 
@@ -1549,7 +1543,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         const target = e.currentTarget as HTMLImageElement;
                         if (!target.dataset.fallbackApplied) {
                           target.dataset.fallbackApplied = 'true';
-                          target.src = '/images/dest_kannur.jpg';
+                          target.src = '/images/destinations/kochi.jpg';
                         }
                       }}
                       style={{
@@ -1965,7 +1959,7 @@ export default function Hero({ onOpenEnquiry, onSelectFilter, onSelectDestinatio
                         const target = e.currentTarget as HTMLImageElement;
                         if (!target.dataset.fallbackApplied) {
                           target.dataset.fallbackApplied = 'true';
-                          target.src = '/images/dest_kovalam.jpg';
+                          target.src = '/images/destinations/trivandrum.jpg';
                         }
                       }}
                       style={{

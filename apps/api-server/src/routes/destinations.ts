@@ -14,7 +14,14 @@ import {
 const router: IRouter = Router();
 
 function serializeDates<T extends { createdAt: Date; updatedAt: Date }>(row: T) {
-  return { ...row, createdAt: row.createdAt.toISOString(), updatedAt: row.updatedAt.toISOString() };
+  const r = row as any;
+  return {
+    ...row,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    galleryImages: Array.isArray(r.galleryImages) ? JSON.stringify(r.galleryImages) : r.galleryImages ?? null,
+    highlights: Array.isArray(r.highlights) ? JSON.stringify(r.highlights) : r.highlights ?? null,
+  };
 }
 
 router.get("/destinations", async (req, res, next): Promise<void> => {
@@ -36,7 +43,7 @@ router.get("/destinations", async (req, res, next): Promise<void> => {
   }
 
   try {
-    const destinations = await DestinationModel.find(filter).sort({ name: 1 }).lean();
+    const destinations = await DestinationModel.find(filter).sort({ sortOrder: 1, name: 1 }).lean();
     res.json(ListDestinationsResponse.parse(destinations.map(serializeDates)));
   } catch (err) {
     next(err);

@@ -15,7 +15,7 @@ const DIST = resolve(__dirname, "../dist/public");
 const PORT = 5999;
 const BASE = `http://localhost:${PORT}`;
 
-if (process.env.MAINTENANCE_MODE !== "false" && process.env.VITE_MAINTENANCE_MODE !== "false") {
+if (process.env.MAINTENANCE_MODE === "true" || process.env.VITE_MAINTENANCE_MODE === "true") {
   console.log("ℹ️  Maintenance mode is active: skipping public route prerender.");
   process.exit(0);
 }

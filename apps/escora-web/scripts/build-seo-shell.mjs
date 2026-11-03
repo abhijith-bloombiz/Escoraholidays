@@ -17,7 +17,7 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const DIST = resolve(__dirname, "../dist/public");
 const ORIGIN = "https://www.escoraholidays.com";
 
-if (process.env.MAINTENANCE_MODE !== "false" && process.env.VITE_MAINTENANCE_MODE !== "false") {
+if (process.env.MAINTENANCE_MODE === "true" || process.env.VITE_MAINTENANCE_MODE === "true") {
   console.log("ℹ️  Maintenance mode is active: skipping public SEO shell generation.");
   process.exit(0);
 }

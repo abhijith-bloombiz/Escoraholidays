@@ -293,7 +293,7 @@ export const config: AppConfig = {
   enableWhatsappPostTripFeedback: process.env.ENABLE_WHATSAPP_POST_TRIP_FEEDBACK !== "false",
   enableWhatsappDocumentDelivery: process.env.ENABLE_WHATSAPP_DOCUMENT_DELIVERY !== "false",
   whatsappSimulateAutoDeliver: process.env.WHATSAPP_SIMULATE_AUTO_DELIVER !== "false",
-  maintenanceMode: process.env.MAINTENANCE_MODE !== "false",
+  maintenanceMode: process.env.MAINTENANCE_MODE === "true",
 };
 
 // Fail fast immediately on import if running under production environment

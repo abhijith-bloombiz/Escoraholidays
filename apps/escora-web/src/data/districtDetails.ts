@@ -27,13 +27,11 @@ export const DISTRICT_DETAILS: Record<string, DistrictInfo> = {
   },
   Kannur: {
     name: "Kannur",
-    associatedDestId: "kannur",
     category: "Theyyam & Loom Coast",
     highlights: "Sacred Theyyam rituals, Muzhappilangad drive-in beach & St. Angelo Fort",
   },
   Kasaragod: {
     name: "Kasaragod",
-    associatedDestId: "bekal",
     category: "Forts & Rivers",
     highlights: "Bekal coastal fortress, Ranipuram hill station & uncrowded shores",
   },
@@ -44,12 +42,13 @@ export const DISTRICT_DETAILS: Record<string, DistrictInfo> = {
   },
   Kottayam: {
     name: "Kottayam",
-    associatedDestId: "kumarakom",
+    associatedDestId: "alleppey",
     category: "Lakes & Letters",
     highlights: "Kumarakom bird sanctuary, rubber hills & backwater canals",
   },
   Kozhikode: {
     name: "Kozhikode",
+    associatedDestId: "calicut",
     category: "Historic Spice Port",
     highlights: "Vasco da Gama's landing, Malabar culinary heritage & Beypore shipyards",
   },
@@ -70,7 +69,7 @@ export const DISTRICT_DETAILS: Record<string, DistrictInfo> = {
   },
   Thiruvananthapuram: {
     name: "Thiruvananthapuram",
-    associatedDestId: "varkala",
+    associatedDestId: "trivandrum",
     category: "Royal Capital & Cliffs",
     highlights: "Varkala laterite cliffs, Kovalam lighthouse & Padmanabhaswamy Temple",
   },

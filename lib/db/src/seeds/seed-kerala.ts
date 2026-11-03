@@ -1,302 +1,266 @@
 /**
- * Additive seed — adds "Explore Kerala" destinations that aren't already in the database,
- * and backfills highlights/howToReach on any that already exist but are missing them
- * (leaving every other field — name, region, description, images — untouched, since those
- * may have been customized live via the Admin Portal).
- * Unlike seed.ts, this does NOT skip if destinations already exist — it only skips
- * individual destinations whose slug is already present, so it's safe to run alongside
- * existing production data added via the Admin Portal. Runs on every deploy (see
- * railway.toml), so it must stay idempotent and side-effect-free when there's nothing to do.
- * Run manually with: MONGODB_URI=<url> pnpm --filter @workspace/db seed:kerala
+ * Seed Kerala Destinations — populates strictly the 8 agreed destinations
+ * with authentic local photography and rich travel details.
+ * Also cleans up any deprecated draft destinations (Bekal, Kannur, Kumarakom, etc.)
  */
 import { connectDB, disconnectDB } from "../connection";
 import { DestinationModel, getNextSequence } from "../models";
 
 const KERALA_DESTINATIONS = [
   {
-    name: "Varkala",
-    slug: "varkala",
-    region: "Thiruvananthapuram",
-    type: "Coastal",
-    shortDesc: "Kerala's only clifftop beach town — red laterite cliffs above the Arabian Sea, cafés and yoga shalas along the edge.",
-    description: "Varkala's defining feature is its unique geology — the only place along Kerala's coastline where cliffs meet the sea directly, creating a dramatic natural promenade known as the North Cliff. Beneath the cliffs, Papanasam Beach (\"sins-destroying\") draws pilgrims who believe a ritual dip here brings absolution, anchored by the 2,000-year-old Sree Janardanaswamy Temple and the hillside Sivagiri Mutt, an ashram founded in honour of social reformer Sree Narayana Guru. Natural mineral springs near the beach are considered medicinally significant. Since the 1980s, Varkala has evolved into a bohemian-to-boutique destination with yoga retreats, Ayurvedic spas and clifftop dining, while retaining a quieter, more spiritual character than Kerala's other beach towns.",
-    imageUrl: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=2000&q=80",
-    latitude: 8.7379,
-    longitude: 76.7163,
-    bestSeason: "October – March",
-    nightsMin: 2,
-    nightsMax: 3,
-    highlights: JSON.stringify([
-      "North Cliff promenade — cafés, shops and sunset viewpoints along the cliff edge",
-      "Papanasam Beach — ritual dip beneath the cliffs, one of Kerala's few pilgrimage beaches",
-      "Sree Janardanaswamy Temple — a 2,000-year-old Vishnu temple",
-      "Sivagiri Mutt — hillside ashram of social reformer Sree Narayana Guru",
-      "Clifftop Ayurvedic spas and massage centres",
-      "Kappil Lake backwater boat rides and Anjengo (Anchuthengu) Fort nearby",
-    ]),
-    howToReach: "Nearest airport: Trivandrum International Airport (TRV), approx. 45–50 km (about 1 hour by road). Varkala also has its own railway station on the Thiruvananthapuram–Kochi line.",
-    published: true,
-  },
-  {
-    name: "Wayanad",
-    slug: "wayanad",
-    region: "Wayanad",
-    type: "Forest",
-    shortDesc: "Misty highland forests, coffee estates, Edakkal's prehistoric caves and Chembra's heart-shaped lake.",
-    description: "Sitting on the Deccan plateau at elevations between 700–2,100 metres, Wayanad is characterised by evergreen and deciduous forests, bamboo thickets and terraced plantations of coffee, tea, pepper and cardamom. The Edakkal Caves contain Neolithic-era petroglyphs dated to around 6000 BCE, among the oldest evidence of human habitation in South India. The district's wildlife sanctuaries — Muthanga and Tholpetty — form part of the larger Nilgiri Biosphere Reserve, contiguous with Bandipur and Nagarhole, hosting elephants, tigers and gaur. Chembra Peak, the district's highest point, is famed for its heart-shaped Hridaya Saras lake, reached via a moderate trek, while the man-made Banasura Sagar Dam — the largest earthen dam in India — creates a reservoir dotted with small islands amid the hills.",
-    imageUrl: "https://images.unsplash.com/photo-1691342538271-5a97b7c1c089?auto=format&fit=crop&w=2000&q=80",
-    latitude: 11.6854,
-    longitude: 76.1320,
-    bestSeason: "October – May",
-    elevation: "700–2,100 m",
-    nightsMin: 3,
-    nightsMax: 4,
-    highlights: JSON.stringify([
-      "Edakkal Caves — prehistoric petroglyphs (~6000 BCE) reached via a rock-cut trail near Ambukuthi Hill",
-      "Chembra Peak trek to the heart-shaped Hridaya Saras lake (permit required, daily trekkers limited)",
-      "Banasura Sagar Dam — India's largest earthen dam, with boating and island views",
-      "Muthanga Wildlife Sanctuary — jeep safaris through deciduous forest",
-      "Tholpetty Wildlife Sanctuary — a quieter safari zone within the Nilgiri Biosphere Reserve",
-      "Pookode Lake, Soochipara and Meenmutty waterfalls, and working spice/coffee estate visits",
-    ]),
-    howToReach: "Nearest airports: Kozhikode (Calicut) International Airport (CCJ), approx. 90 km, or Kannur International Airport (CNN), approx. 70–90 km depending on entry point. No railway station within the district — road transfer from either airport.",
-    published: true,
-  },
-  {
-    name: "Alleppey",
-    slug: "alleppey",
-    region: "Alappuzha",
-    type: "Backwaters",
-    shortDesc: "The 'Venice of the East' — kettuvallam houseboats drifting through Kuttanad's below-sea-level paddy fields.",
-    description: "Alappuzha's backwater network is fed by the Vembanad Lake system and threads through the Kuttanad region, one of the few places in the world where farming happens below sea level, reclaimed from the lake for rice cultivation. The town itself was planned in the 18th century by Dewan Raja Kesavadas with a grid of canals for the spice trade, once earning it the nickname \"Venice of the East.\" Multi-day cruises aboard converted kettuvallam rice barges are the region's signature experience, gliding past coconut groves, toddy shops and village life along narrow canals. The Nehru Trophy Snake Boat Race, held on Punnamada Lake every August, features chundan vallams over 100 feet long crewed by up to 100 rowers, while Alappuzha Beach and its 19th-century pier offer a quieter coastal counterpoint to the inland waterways.",
-    imageUrl: "https://images.unsplash.com/photo-1785932413547-cdd1159e1f1e?auto=format&fit=crop&w=2000&q=80",
-    latitude: 9.4981,
-    longitude: 76.3388,
-    bestSeason: "November – February",
-    nightsMin: 1,
-    nightsMax: 2,
-    highlights: JSON.stringify([
-      "Overnight or day kettuvallam houseboat cruise through Vembanad Lake and Kuttanad's canals",
-      "Nehru Trophy Snake Boat Race on Punnamada Lake (second Saturday of August)",
-      "Kuttanad — the 'rice bowl of Kerala', with below-sea-level paddy-field villages",
-      "Alappuzha Beach and its historic 19th-century pier",
-      "Marari Beach nearby for a quieter coastal stay",
-      "Krishnapuram Palace murals and St. Mary's Forane Church",
-    ]),
-    howToReach: "Nearest airport: Cochin International Airport (COK), approx. 85 km (about 1.5–2 hours). Alappuzha also has a well-connected railway station.",
-    published: true,
-  },
-  {
-    name: "Kannur",
-    slug: "kannur",
-    region: "Kannur",
-    type: "Coastal",
-    shortDesc: "Malabar's untouristed coast — Muzhappilangad's drive-in beach, Thalassery's forts, and the ritual fire of Theyyam.",
-    description: "Historically a major Malabar Coast spice-trading port, Kannur retains layers of colonial history through St. Angelo Fort (built by the Portuguese in 1505) and the nearby handloom town of Thalassery, famous for its own fort, a distinctive Malabar biryani and centuries-old weaving traditions. The district is the epicentre of Theyyam, a ritual performance art in which performers undergo elaborate transformation through costume, face-painting and trance-like dance to embody deities — usually performed in temple groves between November and May. The Parassinikadavu Sri Muthappan Temple is unusual in staging Theyyam performances almost daily, not just seasonally. Muzhappilangad is India's only true drive-in beach, a 4-km stretch of firm sand where vehicles can be driven along the shore, and the wider district's plantation-covered hills and river estuaries — like Dharmadam Island — round out a coast that rewards travellers who go slow.",
-    imageUrl: "https://images.unsplash.com/photo-1741243781186-fee59344ea4f?auto=format&fit=crop&w=2000&q=80",
-    latitude: 11.8745,
-    longitude: 75.3704,
-    bestSeason: "November – May",
-    nightsMin: 2,
-    nightsMax: 3,
-    highlights: JSON.stringify([
-      "Muzhappilangad Drive-in Beach — 4 km of drivable sand, India's longest such beach",
-      "Theyyam ritual performances at village temple groves (season: November–May)",
-      "Parassinikadavu Sri Muthappan Temple — near-daily Theyyam rituals",
-      "St. Angelo Fort (1505, Portuguese-built) and Thalassery Fort",
-      "Thalassery handloom weaving centres and its famous biryani",
-      "Dharmadam Island and sunset at Payyambalam Beach",
-    ]),
-    howToReach: "Nearest airport: Kannur International Airport (CNN), approx. 25–30 km. Kannur also sits on the main Konkan/west-coast railway line with frequent connections.",
-    published: true,
-  },
-  {
-    name: "Munnar",
-    slug: "munnar",
-    region: "Idukki",
-    type: "Hills",
-    shortDesc: "Endless tea estates across the Western Ghats, Eravikulam's Nilgiri tahr and Anamudi, South India's highest peak.",
-    description: "Sitting at the confluence of three mountain streams, Munnar was developed as a hill station and tea-growing centre by British planters in the late 19th century, and its rolling plantations — many still operated by Tata-owned Kannan Devan Hills Plantations — remain the region's visual signature. Eravikulam National Park, just outside town, protects one of the largest surviving populations of the endangered Nilgiri tahr and encompasses Anamudi peak (2,695 m), the highest point in India outside the Himalayan range (the park closes for several weeks around February–March for tahr calving season — worth confirming exact dates before travel). The region's cool climate supports cardamom and other spice cultivation in surrounding valleys, and beyond the plantations, Munnar offers viewpoints, dams and a Tea Museum documenting the estates' colonial-era origins.",
-    imageUrl: "https://images.unsplash.com/photo-1444927714506-8492d94b4e3d?auto=format&fit=crop&w=2000&q=80",
-    latitude: 10.0889,
-    longitude: 77.0595,
-    bestSeason: "November – May",
-    elevation: "~1,600 m (Anamudi peak: 2,695 m)",
-    nightsMin: 2,
-    nightsMax: 3,
-    highlights: JSON.stringify([
-      "Eravikulam National Park — Nilgiri tahr sightings and shuttle-accessed viewpoints",
-      "Anamudi Peak trek — the highest point in South India, at 2,695 m (permit-restricted)",
-      "Tea Museum and working tea-estate tours with the Kannan Devan Hills heritage story",
-      "Mattupetty Dam and Kundala Lake boating",
-      "Top Station viewpoint over the Western Ghats and the Tamil Nadu border",
-      "Cardamom and spice plantation visits around Chinnakanal",
-    ]),
-    howToReach: "Nearest airport: Cochin International Airport (COK), approx. 110–120 km (about 3.5 hours by road). No railway station within Munnar — nearest is Aluva, near Kochi.",
-    published: true,
-  },
-  {
-    name: "Fort Kochi",
-    slug: "fort-kochi",
+    sortOrder: 1,
+    name: "Kochi",
+    slug: "kochi",
     region: "Ernakulam",
-    type: "Heritage",
-    shortDesc: "Chinese fishing nets, Jew Town's 1568 synagogue and the Dutch Palace's centuries-old murals.",
-    description: "Once part of the ancient Muziris spice-trade network, Fort Kochi and adjoining Mattancherry absorbed centuries of foreign influence, visible in the Portuguese-built St. Francis Church (where Vasco da Gama was originally buried), Dutch-era warehouses and British colonial bungalows lining quiet lanes. The Chinese fishing nets (cheena vala) along the shore, introduced by traders from the court of Kublai Khan in the 14th century, remain in daily operational use and are among Kerala's most photographed sights. Mattancherry Palace — also called the Dutch Palace — houses murals depicting the Ramayana and portraits of Kochi's royal family, while adjacent Jew Town, centred on the 1568 Paradesi Synagogue, preserves the legacy of Kochi's historic Paradesi Jewish community amid antique shops and spice warehouses. Every two years, the Kochi-Muziris Biennale — India's largest contemporary art exhibition — transforms heritage buildings like Aspinwall House into gallery spaces.",
-    imageUrl: "https://images.unsplash.com/photo-1783068146008-022c4472de73?auto=format&fit=crop&w=2000&q=80",
+    type: "Heritage & Coastal",
+    shortDesc: "Kochi is a beautiful coastal city known for its rich history, colonial architecture, heritage streets, and vibrant culture.",
+    description: "Kochi is a beautiful coastal city known for its rich history, colonial architecture, heritage streets, and vibrant culture. Once part of the ancient Muziris spice-trade network, Fort Kochi and Mattancherry absorbed Portuguese, Dutch, and British colonial influences. Iconized by cantilevered Chinese fishing nets along Vasco da Gama Square, spice warehouses in Jew Town, and the historic 1568 Paradesi Synagogue, Kochi harmonizes centuries of maritime heritage with contemporary art and serene Arabian sea views.",
+    imageUrl: "/images/destinations/kochi.jpg",
+    galleryImages: JSON.stringify(["/images/destinations/kochi.jpg", "/images/destinations/kochi_2.jpg"]),
     latitude: 9.9658,
     longitude: 76.2422,
     bestSeason: "October – March",
     nightsMin: 1,
-    nightsMax: 2,
+    nightsMax: 3,
     highlights: JSON.stringify([
-      "Chinese fishing nets at the harbour mouth — best photographed at sunset",
-      "Mattancherry Palace (Dutch Palace) — 16th-century murals and royal portraits",
-      "Jew Town and the Paradesi Synagogue, built in 1568",
-      "St. Francis Church (1503) — Vasco da Gama's original burial site",
-      "Kochi-Muziris Biennale at Aspinwall House and other heritage venues (biennial, Dec–Mar)",
-      "Kathakali and Kalaripayattu performance venues, and Santa Cruz Basilica",
+      "Iconic cantilevered Chinese fishing nets at sunset",
+      "Mattancherry Palace (Dutch Palace) and historic Ramayana murals",
+      "Jew Town spice markets and the 1568 Paradesi Synagogue",
+      "St. Francis Church — original burial site of Vasco da Gama",
+      "Heritage walking tours through colonial Fort Kochi streets and art cafés"
     ]),
-    howToReach: "Nearest airport: Cochin International Airport (COK), approx. 35–45 km (about 1 hour). Ernakulam Junction and Ernakulam Town railway stations are both a short ferry or drive away.",
+    howToReach: "Nearest airport: Cochin International Airport (COK), approx. 38 km (about 1 hour by car). Ernakulam Junction (ERS) and Ernakulam Town (ERN) railway stations are located 12 km away.",
     published: true,
   },
   {
+    sortOrder: 2,
+    name: "Munnar",
+    slug: "munnar",
+    region: "Idukki",
+    type: "Hills & Plantations",
+    shortDesc: "Munnar is a scenic hill station famous for its lush tea plantations, misty mountains, waterfalls, and cool climate.",
+    description: "Munnar is a scenic hill station famous for its lush tea plantations, misty mountains, waterfalls, and cool climate. Perched at 1,600 metres in the Western Ghats, Munnar was the favored summer resort of the British administration in South India. Expansive carpet-like emerald tea estates, rolling fog over Anamudi Peak (the highest peak in South India), and endemic wildlife like the endangered Nilgiri Tahr create a quintessential high-altitude haven.",
+    imageUrl: "/images/destinations/munnar.jpg",
+    galleryImages: JSON.stringify(["/images/destinations/munnar.jpg", "/images/destinations/munnar_2.jpg"]),
+    latitude: 10.0889,
+    longitude: 77.0595,
+    bestSeason: "September – May",
+    elevation: "1,600 m",
+    nightsMin: 2,
+    nightsMax: 4,
+    highlights: JSON.stringify([
+      "Eravikulam National Park and Nilgiri Tahr sanctuary",
+      "Kolukkumalai off-road jeep safari and breathtaking sunrise peak",
+      "Tea museum and artisanal tea-tasting sessions in century-old estates",
+      "Mattupetty Dam, Kundala Lake, and Echo Point excursions",
+      "Trek through lush shola forests and scenic hillside waterfalls"
+    ]),
+    howToReach: "Nearest airport: Cochin International Airport (COK), approx. 110 km (3.5 hours scenic drive). Nearest railway station: Aluva (110 km).",
+    published: true,
+  },
+  {
+    sortOrder: 3,
     name: "Thekkady",
     slug: "thekkady",
     region: "Idukki",
-    type: "Wildlife",
-    shortDesc: "Periyar Tiger Reserve's lake safaris, ringed by cardamom, pepper and clove plantations.",
-    description: "Periyar Tiger Reserve, established around Periyar Lake — formed by a 19th-century British-built dam — spans evergreen and deciduous forest across 777 sq km and is one of India's most visited wildlife reserves, though tiger sightings remain rare; elephants, sambar deer and langurs are more commonly seen. Boat safaris on the lake, run several times daily by the forest department, are the signature wildlife-viewing activity. The surrounding hills, part of Kerala's historic \"High Range,\" are covered in plantations of cardamom, black pepper, cinnamon, clove, nutmeg and vanilla, and Thekkady is considered one of the birthplaces of Kerala's spice-trade reputation — making it a hybrid wildlife-and-agritourism destination with trekking, bamboo rafting and working plantation tours alongside the reserve itself.",
-    imageUrl: "https://images.unsplash.com/photo-1548707309-dcebeab9ea9b?auto=format&fit=crop&w=2000&q=80",
+    type: "Wildlife & Nature",
+    shortDesc: "Thekkady is a nature destination known for its spice plantations, rich wildlife, Periyar Lake, and exciting nature experiences.",
+    description: "Thekkady is a nature destination known for its spice plantations, rich wildlife, Periyar Lake, and exciting nature experiences. Centered around the renowned Periyar National Park and Tiger Reserve, this sanctuary is home to wild elephants, sambar deer, leopards, and rare avian species. The surrounding mist-clad slopes of Kumily are blanketed in aromatic plantations of cardamom, black pepper, nutmeg, cinnamon, and vanilla.",
+    imageUrl: "/images/destinations/thekkady.jpg",
+    galleryImages: JSON.stringify(["/images/destinations/thekkady.jpg", "/images/destinations/thekkady_2.jpg"]),
     latitude: 9.5916,
     longitude: 77.1600,
-    bestSeason: "October – March",
-    elevation: "~900–1,100 m",
-    nightsMin: 2,
-    nightsMax: 2,
+    bestSeason: "September – April",
+    elevation: "900 – 1,200 m",
+    nightsMin: 1,
+    nightsMax: 3,
     highlights: JSON.stringify([
-      "Periyar Lake boat safari — forest-department run, several departures daily",
-      "Spice plantation tours — cardamom, pepper, clove and vanilla, with tasting and processing demos",
-      "Guided nature treks and bamboo rafting through the forest department's eco-tourism programmes",
-      "Periyar Tiger Trail — multi-day guided trekking (permit-based)",
-      "Elephant interaction and safari experiences near the reserve",
-      "Kumily town spice markets and Ayurvedic centres",
+      "Scenic wildlife boat safari on Periyar Lake inside the Tiger Reserve",
+      "Guided aromatic spice plantation walks with interactive botanical tastings",
+      "Bamboo rafting and nature trekking through evergreen forest trails",
+      "Traditional Kalaripayattu martial arts and Kathakali cultural performances",
+      "Elephant junction experiences and spice market discovery in Kumily"
     ]),
-    howToReach: "Nearest major airport: Cochin International Airport (COK), approx. 145 km; Madurai Airport (Tamil Nadu) is closer at approx. 114 km. No railway station in Thekkady — nearest is Kottayam.",
+    howToReach: "Nearest airport: Cochin International Airport (COK), 145 km, or Madurai Airport (IXM), 140 km. Nearest railway station: Kottayam (110 km).",
     published: true,
   },
   {
-    name: "Kovalam",
-    slug: "kovalam",
-    region: "Thiruvananthapuram",
-    type: "Coastal",
-    shortDesc: "Kerala's original beach resort — three crescent coves anchored by the 30-metre Vizhinjam lighthouse.",
-    description: "Kovalam's coastline is shaped into three distinct beaches — Lighthouse Beach, Hawah Beach and Samudra Beach — divided by rocky headlands, each with a different character. Lighthouse Beach takes its name from the 30-metre Vizhinjam lighthouse on its southern promontory, climbable via 142 steps for panoramic coastal views. Hawah Beach, historically known as \"Eve's Beach\" from its 1970s hippie-era reputation, is quieter and less commercial, while Samudra Beach to the north is the largest and least crowded, favoured by locals and the luxury resorts along its shore. Kovalam has drawn international visitors since the 1930s and holds a long-established reputation as a centre for authentic Ayurvedic treatment and panchakarma therapy, balancing beach-town energy with genuine wellness tourism.",
-    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80",
-    latitude: 8.4004,
-    longitude: 76.9787,
-    bestSeason: "November – March",
-    nightsMin: 2,
-    nightsMax: 2,
-    highlights: JSON.stringify([
-      "Vizhinjam Lighthouse — climb 142 steps for a panoramic coastal view",
-      "Lighthouse Beach — promenade, cafés and water sports",
-      "Hawah Beach — a quieter, less commercial stretch of sand",
-      "Samudra Beach — the largest cove, favoured by locals and resort guests",
-      "Ayurvedic spa and panchakarma treatment centres",
-      "Day trips to Vizhinjam fishing harbour and the Poovar backwaters",
-    ]),
-    howToReach: "Nearest airport: Trivandrum International Airport (TRV), approx. 13–16 km (about 30 minutes) — one of the shortest airport transfers of any Kerala destination.",
-    published: true,
-  },
-  {
-    name: "Kumarakom",
-    slug: "kumarakom",
-    region: "Kottayam",
+    sortOrder: 4,
+    name: "Alleppey",
+    slug: "alleppey",
+    region: "Alappuzha",
     type: "Backwaters",
-    shortDesc: "A quieter Vembanad Lake shore — a 14-acre bird sanctuary and lake-facing luxury resorts.",
-    description: "Set within the Vembanad Lake ecosystem — the longest lake in India — Kumarakom is defined by a network of canals, paddy fields, mangroves and coconut groves that create a lush, water-woven landscape. The Kumarakom Bird Sanctuary, a 14-acre reserve established by Kerala Tourism, protects mangrove and wetland habitat frequented by cormorants, darters and herons, plus migratory species including Siberian cranes, with peak breeding season from June to August. Pathiramanal, a small island accessible only by boat within Vembanad Lake, is a haven for rare migratory birds and a popular short-cruise destination. Unlike Alappuzha's overnight houseboat culture, Kumarakom has developed as a luxury resort destination, with high-end properties built directly on the lake — often with private canals or floating cottages — for travellers seeking a more secluded backwater experience.",
-    imageUrl: "https://images.unsplash.com/photo-1715785849770-22374ff8bdfb?auto=format&fit=crop&w=2000&q=80",
-    latitude: 9.6180,
-    longitude: 76.4300,
-    bestSeason: "November – February",
+    shortDesc: "Alleppey is known as the Venice of the East, famous for its tranquil backwaters and luxurious houseboat experiences.",
+    description: "Alleppey is known as the Venice of the East, famous for its tranquil backwaters and luxurious houseboat experiences. Here, a vast network of emerald lagoons, natural canals, and freshwater lakes intertwines with lush below-sea-level paddy fields in Kuttanad. Drifting aboard an exclusive handcrafted wooden Kettuvallam with your private captain and personal chef, experience life slowed to the soothing rhythm of lapping water, swaying coconut palms, and sunset skies mirrored in glass-flat backwaters.",
+    imageUrl: "/images/destinations/alleppey.jpg",
+    galleryImages: JSON.stringify(["/images/destinations/alleppey.jpg", "/images/destinations/alleppey_2.jpg"]),
+    latitude: 9.4981,
+    longitude: 76.3388,
+    bestSeason: "Year-Round (Peak: October – March)",
+    elevation: "Sea Level (-1m in Kuttanad)",
     nightsMin: 1,
-    nightsMax: 2,
+    nightsMax: 3,
     highlights: JSON.stringify([
-      "Kumarakom Bird Sanctuary — mangrove walking trails, peak birding June–August",
-      "Vembanad Lake sunset cruise or canoe tour through backwater canals",
-      "Pathiramanal Island — a boat-only excursion for rare migratory birds",
-      "Luxury lake-resort stays with private canal or floating-cottage access",
-      "Ayurvedic wellness treatments at resort spas",
-      "Local toddy-tapping and coir-making village demonstrations",
+      "Overnight private luxury Kettuvallam houseboat charter with personal chef and starlit open deck",
+      "Dawn country-boat canoe excursions slipping silently into narrow canals lined with lotus blossoms",
+      "Cruising through Kuttanad, one of the world’s few farming systems operating below sea level",
+      "Gourmet Malabar culinary feasts featuring fresh Karimeen (pearl spot), king prawns, and tender coconut curries",
+      "Sunset champagne toast while anchored in the secluded stillness of Vembanad Lake"
     ]),
-    howToReach: "Nearest airport: Cochin International Airport (COK), approx. 75–90 km (about 1.5–2 hours). Kottayam railway station is the closest rail link.",
+    howToReach: "Nearest airport: Cochin International Airport (COK), approx. 85 km (2 hours scenic drive). Alleppey Railway Station is located 4 km from boat jetty.",
     published: true,
   },
   {
-    name: "Bekal",
-    slug: "bekal",
-    region: "Kasaragod",
-    type: "Coastal",
-    shortDesc: "Kerala's largest fort — a 17th-century laterite stronghold above unspoiled northern beaches.",
-    description: "Bekal Fort, built around 1650 in a distinctive keyhole/polygonal shape from laterite stone, is the largest fort in Kerala and one of the best-preserved on the Malabar coast, with ramparts, an observation tower and tunnels offering sweeping views of the Arabian Sea. The fort complex sits within Bekal Fort Beach Park, combining the historic structure with a landscaped beachfront. Nearby Kappil Beach, about 6 km away, is a scenic spot where a freshwater lagoon meets the sea, with the Kodi Cliff viewpoint above offering panoramic coastal views. The wider Kasaragod district — Kerala's northernmost — is dotted with additional forts reflecting a layered history of regional dynasties, plus the twin Anandashram meditation caves cut into a nearby hillock, and remains less developed for tourism than southern Kerala, giving it an unspoiled character.",
-    imageUrl: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=2000&q=80",
-    latitude: 12.3897,
-    longitude: 75.0329,
+    sortOrder: 5,
+    name: "Varkala",
+    slug: "varkala",
+    region: "Thiruvananthapuram",
+    type: "Coastal & Cliffs",
+    shortDesc: "Varkala is a beautiful coastal destination known for its stunning cliffs, sandy beaches, seaside cafés, and exciting beach activities.",
+    description: "Varkala is a beautiful coastal destination known for its stunning cliffs, sandy beaches, seaside cafés, and exciting beach activities. Unique along the Indian peninsula, glowing red laterite geological formations plunge dramatically into the Arabian Sea along the North Cliff promenade. Beneath lies the pristine golden strand of Papanasam Beach, famed for its therapeutic mineral springs, soothing ocean breeze, panoramic sunsets, and exhilarating ocean paragliding.",
+    imageUrl: "/images/destinations/varkala.jpg",
+    galleryImages: JSON.stringify(["/images/destinations/varkala.jpg", "/images/destinations/varkala_2.jpg"]),
+    latitude: 8.7379,
+    longitude: 76.7163,
     bestSeason: "October – March",
-    nightsMin: 1,
-    nightsMax: 2,
+    nightsMin: 2,
+    nightsMax: 4,
     highlights: JSON.stringify([
-      "Bekal Fort — a 17th-century laterite fort with ramparts and a sea-view observation tower",
-      "Bekal Fort Beach Park — landscaped beachfront adjoining the fort",
-      "Kappil Beach and Kodi Cliff viewpoint — lagoon-meets-sea scenery, about 6 km away",
-      "Chandragiri Fort and river boat rides nearby",
-      "Anandashram meditation caves — a heritage and spiritual site",
-      "Valiyaparamba backwaters houseboat cruise",
+      "Tandem paragliding over dramatic red laterite cliffs and azure coastline",
+      "North Cliff sunset promenade lined with bohemian cafés, yoga shalas, and live music",
+      "Papanasam Beach and natural holy mineral water springs",
+      "2,000-year-old historic Janardanaswamy Temple sanctuary",
+      "Surf sessions, paddleboarding, and day trips to Kappil Lake backwater estuary"
     ]),
-    howToReach: "Nearest airport: Kannur International Airport (CNN), approx. 50–55 km; Mangalore International Airport (Karnataka) is a similar distance. Kanhangad and Kasaragod railway stations are both nearby.",
+    howToReach: "Nearest airport: Trivandrum International Airport (TRV), approx. 45 km (1 hour drive). Varkala Sivagiri Railway Station is directly connected.",
     published: true,
   },
+  {
+    sortOrder: 6,
+    name: "Trivandrum",
+    slug: "trivandrum",
+    region: "Thiruvananthapuram",
+    type: "Heritage & Beach",
+    shortDesc: "Trivandrum, Kerala's capital city, is known for its historic temples and cultural attractions, while nearby Kovalam is famous for its beautiful beaches and seaside activities.",
+    description: "Trivandrum, Kerala's capital city, is known for its historic temples and cultural attractions, while nearby Kovalam is famous for its beautiful beaches and seaside activities. Anchored by the majestic Sree Padmanabhaswamy Temple, the world's richest sacred temple, Trivandrum showcases royal Travancore heritage, classical museums, and traditional arts. Just 15 km south, Kovalam features iconic crescent beaches sheltered by rocky headlands and the historic 30-metre red-and-white Vizhinjam Lighthouse.",
+    imageUrl: "/images/destinations/trivandrum.jpg",
+    galleryImages: JSON.stringify(["/images/destinations/trivandrum.jpg", "/images/destinations/trivandrum_2.jpg"]),
+    latitude: 8.5241,
+    longitude: 76.9366,
+    bestSeason: "September – March",
+    nightsMin: 2,
+    nightsMax: 3,
+    highlights: JSON.stringify([
+      "Architectural marvel of Sree Padmanabhaswamy Temple and royal Kuthiramalika Palace",
+      "Vizhinjam Lighthouse climb for 360-degree views of Kovalam's three crescent bays",
+      "Authentic seaside Ayurvedic panchakarma therapies and ocean meditation",
+      "Napier Museum, Kanakakkunnu Palace, and Sri Chitra Art Gallery",
+      "Poovar Island estuary boat cruise where river, backwaters, and sea converge"
+    ]),
+    howToReach: "Trivandrum International Airport (TRV) is located 6 km from the city center. Trivandrum Central (TVC) is a premier rail gateway.",
+    published: true,
+  },
+  {
+    sortOrder: 7,
+    name: "Calicut",
+    slug: "calicut",
+    region: "Kozhikode",
+    type: "Malabar Heritage & Culinary",
+    shortDesc: "A beautiful coastal city known for its rich history, Malabar culture, traditional cuisine, and scenic beaches.",
+    description: "A beautiful coastal city known for its rich history, Malabar culture, traditional cuisine, and scenic beaches. Kozhikode (Calicut) has welcomed travelers since Vasco da Gama first landed at Kappad Beach in 1498. Recognized globally as UNESCO's City of Literature, Calicut is celebrated for its centuries-old spice trade, legendary culinary heritage featuring world-famous Dum Biryani and sweet Kozhikodan Halwa, bustling Sweet Meat Street (S.M. Street), and serene coastal waterways.",
+    imageUrl: "/images/destinations/calicut.jpg",
+    galleryImages: JSON.stringify(["/images/destinations/calicut.jpg", "/images/destinations/calicut_2.jpg"]),
+    latitude: 11.2588,
+    longitude: 75.7804,
+    bestSeason: "October – March",
+    nightsMin: 1,
+    nightsMax: 3,
+    highlights: JSON.stringify([
+      "Historic Kappad Beach where Vasco da Gama landed in 1498",
+      "Culinary exploration of authentic Malabar biryani, seafood roasts, and banana chips on S.M. Street",
+      "Kayaking and stand-up paddling through tranquil backwaters and mangrove estuaries",
+      "Kozhikode Beach with historic century-old pier ruins and evening street food",
+      "Beypore port visit to witness traditional wooden dhow (Uru) shipbuilding by master craftsmen"
+    ]),
+    howToReach: "Calicut International Airport (CCJ) is located 28 km away with international and domestic connections. Kozhikode Main (CLT) is a primary railway junction.",
+    published: true,
+  },
+  {
+    sortOrder: 8,
+    name: "Wayanad",
+    slug: "wayanad",
+    region: "Wayanad",
+    type: "Misty Highlands & Rainforest",
+    shortDesc: "A scenic hill destination filled with misty mountains, lush green forests, tea plantations, and beautiful waterfalls.",
+    description: "A scenic hill destination filled with misty mountains, lush green forests, tea plantations, and beautiful waterfalls. Situated high on the Deccan plateau, Wayanad is part of the Nilgiri Biosphere Reserve. From prehistoric petroglyphs at Edakkal Caves to thrilling treks across the transparent Wayanad Glass Bridge and the roaring multi-tiered Soochipara Waterfalls, Wayanad combines ancient tribal wilderness with eco-luxury retreats nestled within coffee and cardamom estates.",
+    imageUrl: "/images/destinations/wayanad.jpg",
+    galleryImages: JSON.stringify(["/images/destinations/wayanad.jpg", "/images/destinations/wayanad_2.jpg"]),
+    latitude: 11.6854,
+    longitude: 76.1320,
+    bestSeason: "September – May",
+    elevation: "700 – 2,100 m",
+    nightsMin: 2,
+    nightsMax: 4,
+    highlights: JSON.stringify([
+      "Walk the transparent 100-foot Wayanad Glass Bridge with panoramic mountain canyon views",
+      "Trek to the roaring cascades and natural jungle pools of Soochipara (Sentinel Rock) Waterfalls",
+      "Explore prehistoric Neolithic petroglyphs inside the mystical Edakkal Caves",
+      "Jeep safaris through Muthanga Wildlife Sanctuary to observe wild elephants and leopards",
+      "Banasura Sagar Dam — India’s largest earthen dam set amidst lush island-studded reservoirs"
+    ]),
+    howToReach: "Nearest airport: Calicut International Airport (CCJ), approx. 85 km (2.5 hours scenic mountain drive). Nearest rail: Kozhikode (80 km).",
+    published: true,
+  }
 ];
 
 export async function seedKerala(): Promise<boolean> {
   await connectDB();
-  const slugs = KERALA_DESTINATIONS.map((d) => d.slug);
-  const existing = await DestinationModel.find(
-    { slug: { $in: slugs } },
-    { slug: 1, highlights: 1, howToReach: 1 }
-  ).lean();
-  const existingBySlug = new Map(existing.map((d) => [d.slug, d]));
+  const approvedSlugs = KERALA_DESTINATIONS.map((d) => d.slug);
 
-  const toInsert = KERALA_DESTINATIONS.filter((d) => !existingBySlug.has(d.slug));
-  if (toInsert.length > 0) {
-    for (const d of toInsert) {
+  // 1. Permanently remove unapproved or deprecated draft destinations
+  const deleteResult = await DestinationModel.deleteMany({
+    slug: { $nin: approvedSlugs }
+  });
+  if (deleteResult.deletedCount > 0) {
+    console.log(`✓ Deleted ${deleteResult.deletedCount} deprecated destination(s) from database.`);
+  }
+
+  // 2. Upsert each of the 8 approved destinations
+  for (const d of KERALA_DESTINATIONS) {
+    const existing = await DestinationModel.findOne({ slug: d.slug });
+    if (!existing) {
       const id = await getNextSequence("destinations");
       await DestinationModel.create({ ...d, id });
+      console.log(`✓ Created destination: ${d.name} (sortOrder: ${d.sortOrder})`);
+    } else {
+      await DestinationModel.updateOne(
+        { slug: d.slug },
+        {
+          $set: {
+            name: d.name,
+            sortOrder: d.sortOrder,
+            region: d.region,
+            type: d.type,
+            shortDesc: d.shortDesc,
+            description: d.description,
+            imageUrl: d.imageUrl,
+            galleryImages: d.galleryImages,
+            highlights: d.highlights,
+            howToReach: d.howToReach,
+            bestSeason: d.bestSeason,
+            elevation: d.elevation,
+            nightsMin: d.nightsMin,
+            nightsMax: d.nightsMax,
+            published: true,
+            updatedAt: new Date(),
+          }
+        }
+      );
+      console.log(`✓ Updated destination: ${d.name} (sortOrder: ${d.sortOrder})`);
     }
-    console.log(`✓ Inserted ${toInsert.length} destination(s): ${toInsert.map((d) => d.name).join(", ")}`);
-  } else {
-    console.log("No missing destinations to insert.");
   }
 
-  // Backfill highlights/howToReach on existing rows that are missing them —
-  // every other field (name, region, description, images, etc.) is left
-  // untouched since it may have been customized live via the Admin Portal.
-  const toBackfill = KERALA_DESTINATIONS.filter((d) => {
-    const row = existingBySlug.get(d.slug);
-    return row && (!row.highlights || !row.howToReach);
-  });
-  for (const d of toBackfill) {
-    await DestinationModel.updateOne(
-      { slug: d.slug, $or: [{ highlights: null }, { highlights: "" }, { howToReach: null }, { howToReach: "" }] },
-      { $set: { highlights: d.highlights, howToReach: d.howToReach, updatedAt: new Date() } }
-    );
-  }
-  if (toBackfill.length > 0) {
-    console.log(`✓ Backfilled highlights/howToReach on ${toBackfill.length} destination(s): ${toBackfill.map((d) => d.name).join(", ")}`);
-  } else {
-    console.log("No existing destinations needed a highlights/howToReach backfill.");
-  }
-
+  console.log(`✓ Kerala destinations successfully synced (total 8 destinations).`);
   return true;
 }
 

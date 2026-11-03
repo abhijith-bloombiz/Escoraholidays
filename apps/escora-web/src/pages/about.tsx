@@ -215,24 +215,17 @@ export default function AboutPage() {
           >
             <div className="reveal-fade-left">
               <p className="reveal-fade-up" style={{ color: '#B48235', fontSize: '0.8rem', letterSpacing: '0.18em', textTransform: 'uppercase', fontWeight: 700, marginBottom: '0.5rem' }}>
-                OUR REASON FOR BEING
+                PHILOSOPHY
               </p>
               <h2 className="font-display reveal-fade-up stagger-1" style={{ fontSize: '2.8rem', color: '#121316', lineHeight: 1.1, marginBottom: '1.5rem' }}>
-                WHERE EVERY JOURNEY FEELS LIKE HOME
+                SLOW TRAVEL. CURATED ACCESS. HONEST HOSPITALITY.
               </h2>
               <div className="reveal-fade-up stagger-2" style={{ fontSize: '1.02rem', color: '#4B5563', lineHeight: 1.85, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <p>
-                  Kerala is often hailed as "God’s Own Country", yet so much of its magic remains hidden beneath cookie-cutter travel packages.
-                  Mass tourism rushes travellers through crowded spots, missing the true quiet majesty of our land.
+                  We believe the finest journeys are not assembled from a catalogue. They are built around a conversation — between you and the places you visit, between your pace and the landscape’s rhythm.
                 </p>
                 <p>
-                  Escora was founded on a simple, uncompromising conviction: that discerning international travellers deserve
-                  an authentic, deeply private encounter with Kerala. One where you wake up in 140-year-old colonial planter bungalows,
-                  drift on silent Kettuvallams with private chefs, and experience healing guided by master Ayurvedic physicians.
-                </p>
-                <p>
-                  We don’t sell pre-packaged bus tours. Every itinerary is composed by native Keralites who know every curve of the Western Ghats,
-                  every backwater inlet, and every temple grove.
+                  Kerala has nine hundred kilometres of backwaters, a coastline that changes character every hour, hills that hold the oldest tea estates in India, and a culture of hospitality that predates the tourism industry by centuries. We are custodians of access to all of it.
                 </p>
               </div>
             </div>

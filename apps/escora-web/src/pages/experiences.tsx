@@ -16,6 +16,7 @@ const EXPERIENCE_CATEGORIES = [
   'Tea & Highlands',
   'Wilderness & Wildlife',
   'Heritage & Sacred Arts',
+  'Coastal & Adventure',
   'Wellness & Ayurveda'
 ] as const;
 

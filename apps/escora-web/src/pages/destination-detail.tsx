@@ -33,14 +33,22 @@ export default function DestinationDetailPage({ slug: propSlug }: DestinationDet
   usePageScrollReveal();
 
   const [, params] = useRoute('/destinations/:slug');
-  const slug = propSlug || params?.slug || '';
+  const rawSlug = propSlug || params?.slug || '';
+  const aliasMap: Record<string, string> = {
+    'fort-kochi': 'kochi',
+    'kovalam': 'trivandrum',
+    'thiruvananthapuram': 'trivandrum',
+    'kozhikode': 'calicut'
+  };
+  const normalized = (rawSlug || '').trim().toLowerCase();
+  const slug = aliasMap[normalized] || normalized;
 
   const { data: remoteDestinations } = useListDestinations();
 
   const destination = React.useMemo(() => {
     if (remoteDestinations && remoteDestinations.length > 0) {
       const cmsMatch = remoteDestinations.find(
-        (d) => d.slug.toLowerCase() === slug.toLowerCase()
+        (d) => d.slug.toLowerCase() === slug.toLowerCase() || (aliasMap[d.slug.toLowerCase()] === slug.toLowerCase()) || (d.name.toLowerCase() === slug.toLowerCase())
       );
       if (cmsMatch) {
         const existing = getDestinationBySlug(slug);

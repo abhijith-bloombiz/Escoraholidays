@@ -477,25 +477,25 @@ export const INSTAGRAM_POSTS = ESCORA_RETREAT_ITEMS;
 // Section 7: Testimonials
 export const TESTIMONIALS: TestimonialItem[] = [
   {
-    id: "t-1",
-    author: "EMILY D. CARTER",
-    role: "Creative Director, London",
-    quote: "“ ESCORA completely changed the way we think about luxury travel. From the very first conversation, everything felt personal, thoughtfully planned, and deeply respectful of authentic Kerala culture. ”",
-    image: "/images/testimonial_emily.jpg"
+    id: "1",
+    author: "Eleanor V.",
+    role: "LONDON • HONEYMOON",
+    quote: "They moved a sunset for us. Or it felt that way. A boat appeared on a backwater I'd been told didn't exist — and a chef I'd long admired was on it.",
+    image: "/images/testimonials/photo_eleanor.jpg"
   },
   {
-    id: "t-2",
-    author: "DR. JULIAN WEISS",
-    role: "Architect & Explorer, Zurich",
-    quote: "“ Traveling through Munnar's tea hills and the Alleppey backwaters with Escora felt like visiting old friends. The level of care, the handpicked heritage villas, and the private houseboat were beyond compare. ”",
-    image: "/images/testimonial_emily.jpg"
+    id: "2",
+    author: "Marcus T.",
+    role: "SAN FRANCISCO • FAMILY",
+    quote: "Our family of seven, ages 6 to 78. The itinerary anticipated every single one of us.",
+    image: "/images/testimonials/photo_marcus.jpg"
   },
   {
-    id: "t-3",
-    author: "SOPHIE & MARCUS LAURENT",
-    role: "Travel Writers, Paris",
-    quote: "“ The bespoke Ayurvedic retreat arranged for us in Varkala and Marari was transformative. Every single detail, from the private chauffeur to the culinary masters, was executed with quiet perfection. ”",
-    image: "/images/testimonial_emily.jpg"
+    id: "3",
+    author: "Dr. Aiko N.",
+    role: "TOKYO • WELLNESS",
+    quote: "Escora did not arrange a holiday — they arranged a recovery.",
+    image: "/images/testimonials/photo_aiko.jpg"
   }
 ];
 

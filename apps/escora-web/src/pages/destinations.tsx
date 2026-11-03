@@ -38,7 +38,8 @@ export default function DestinationsPage() {
       return KERALA_DESTINATIONS;
     }
 
-    const cmsList: DestinationDetail[] = remoteDestinations.map((d) => {
+    const publishedPool = remoteDestinations.filter((d) => d.published !== false).sort((a, b) => ((a as any).sortOrder || 0) - ((b as any).sortOrder || 0));
+    const cmsList: DestinationDetail[] = publishedPool.map((d) => {
       const existing = KERALA_DESTINATIONS.find(
         (k) =>
           k.slug.toLowerCase() === d.slug.toLowerCase() ||

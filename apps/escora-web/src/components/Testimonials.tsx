@@ -9,6 +9,10 @@ export interface TestimonialItem {
   role: string;
   quote: string;
   image: string;
+  avatar?: string;
+  tag?: string;
+  category?: string;
+  dateLabel?: string;
 }
 
 const TESTIMONIALS: TestimonialItem[] = [
@@ -17,21 +21,21 @@ const TESTIMONIALS: TestimonialItem[] = [
     author: 'DR. EMILY WATSON',
     role: 'Wellness Director, London',
     quote: "Escora crafted an extraordinary journey through Kerala's backwaters and highland sanctuaries. The depth of cultural immersion and the attention to detail surpassed every expectation. It was not merely a trip; it was a profound personal rejuvenation.",
-    image: '/images/testimonial_emily.jpg'
+    image: '/images/testimonial_emily.jpg', avatar: '/images/testimonial_emily.jpg', tag: '• WELLNESS RETREAT', category: 'Wellness Retreat', dateLabel: 'London'
   },
   {
     id: '2',
     author: 'MARCUS VANDERBILT',
     role: 'Architectural Historian, Amsterdam',
     quote: "Exploring the colonial spice routes and heritage estates with Escora's private guides was a masterclass in luxury travel. Every stay felt hand-selected, intimate, and deeply authentic to Kerala's rich maritime heritage.",
-    image: '/images/testimonial_marcus.jpg'
+    image: '/images/testimonial_marcus.jpg', avatar: '/images/testimonial_marcus.jpg', tag: '• HERITAGE EXPEDITION', category: 'Heritage Expedition', dateLabel: 'Amsterdam'
   },
   {
     id: '3',
     author: 'SARAH CHEN-MORGAN',
     role: 'Conservation Biologist, Singapore',
     quote: "The private wildlife reserve in Periyar arranged by Escora was beyond anything I could have imagined. Waking to mist over the rainforest canopy with hornbills overhead — truly God's Own Country experienced at the highest level of care and elegance.",
-    image: '/images/testimonial_sarah.jpg'
+    image: '/images/testimonial_sarah.jpg', avatar: '/images/testimonial_sarah.jpg', tag: '• WILDERNESS DISCOVERY', category: 'Wilderness Discovery', dateLabel: 'Singapore'
   }
 ];
 
@@ -102,17 +106,21 @@ function QuoteCard({
     cardAnimation = 'slideInFromLeftScreen 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards';
   }
 
+  const tagText = item.tag || (item.category && item.dateLabel ? `• ${item.category} • ${item.dateLabel}` : '• ESCORA JOURNEY');
+
   return (
     <div
       style={{
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#0E241C',
+        backgroundImage: 'radial-gradient(circle at 10% 10%, rgba(200, 169, 126, 0.08) 0%, transparent 60%)',
         borderRadius: '24px',
-        padding: 'clamp(1.5rem, 2.2vw, 2.2rem) clamp(1.75rem, 2.6vw, 2.75rem)',
-        boxShadow: '0 12px 36px rgba(0, 0, 0, 0.06)',
+        border: '1px solid rgba(200, 169, 126, 0.22)',
+        padding: 'clamp(1.75rem, 2.4vw, 2.5rem) clamp(2rem, 3vw, 3rem)',
+        boxShadow: '0 20px 48px rgba(10, 24, 18, 0.18)',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
-        minHeight: 'clamp(270px, 32vh, 310px)',
+        justifyContent: 'space-between',
+        minHeight: 'clamp(280px, 34vh, 320px)',
         width: '100%',
         boxSizing: 'border-box',
         ...(isExiting
@@ -135,52 +143,103 @@ function QuoteCard({
             })
       }}
     >
-      {/* Top row: Author Info */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          marginBottom: '0.85rem',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
-          paddingBottom: '0.65rem'
-        }}
-      >
-        <div>
-          <h3
-            className="font-display"
+      {/* Top row: Category/Date Tag + 5 Gold Stars */}
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '0.45rem'
+          }}
+        >
+          <span
             style={{
-              fontSize: '1.4rem',
-              color: '#121316',
-              letterSpacing: '0.04em',
-              lineHeight: 1.1,
-              margin: 0
+              color: '#C8A97E',
+              fontSize: '0.78rem',
+              letterSpacing: '0.18em',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              fontFamily: "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif"
             }}
           >
-            {item.author}
-          </h3>
-          <p style={{ fontSize: '0.85rem', color: '#9CA3AF', margin: '0.2rem 0 0 0' }}>
-            {item.role}
-          </p>
+            {tagText}
+          </span>
+          <div style={{ display: 'flex', gap: '4px', color: '#C8A97E', fontSize: '0.92rem' }}>
+            {'★★★★★'}
+          </div>
         </div>
       </div>
 
-      {/* Large Quote with letter-by-letter handwriting ink animation */}
+      {/* Large Quote in Serif Italics with letter-by-letter handwriting ink animation */}
       <blockquote
         style={{
-          fontSize: 'clamp(1.06rem, 1.3vw, 1.25rem)',
+          fontSize: 'clamp(1.08rem, 1.35vw, 1.28rem)',
           fontWeight: 400,
-          color: '#121316',
-          lineHeight: 1.5,
-          fontFamily: 'var(--font-body)',
-          fontStyle: 'normal',
-          margin: 0
+          color: '#F8F6F1',
+          lineHeight: 1.55,
+          fontFamily: "'Playfair Display', Georgia, serif",
+          fontStyle: 'italic',
+          margin: '0.6rem 0 1rem'
         }}
       >
-        {renderLetterByLetter(item.quote, isVisible)}
+        "{renderLetterByLetter(item.quote, isVisible)}"
       </blockquote>
 
-      {/* Pagination dots indicator with animated duration progress bar */}
+      {/* Bottom row: Author with Avatar + Subtitle */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          paddingTop: '0.85rem'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          {item.avatar && (
+            <img
+              src={item.avatar}
+              alt={item.author}
+              style={{
+                width: '42px',
+                height: '42px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '1.5px solid #C8A97E'
+              }}
+            />
+          )}
+          <div>
+            <h3
+              style={{
+                fontSize: '1.18rem',
+                color: '#FFFFFF',
+                letterSpacing: '0.02em',
+                lineHeight: 1.1,
+                margin: 0,
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontWeight: 600
+              }}
+            >
+              {item.author}
+            </h3>
+            <p
+              style={{
+                fontSize: '0.74rem',
+                color: '#C8A97E',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                margin: '0.2rem 0 0 0',
+                fontWeight: 600
+              }}
+            >
+              {item.role}
+            </p>
+          </div>
+        </div>
+
+        {/* Pagination dots indicator with animated duration progress bar */}
       <div
         style={{
           display: 'flex',
@@ -233,6 +292,7 @@ function QuoteCard({
         })}
       </div>
     </div>
+    </div>
   );
 }
 
@@ -259,6 +319,10 @@ export default function Testimonials() {
             role: formattedRole,
             quote: (t.quote || '').replace(/<[^>]*>/g, '').trim(),
             image: t.photoUrl || t.avatarUrl || TESTIMONIALS[idx % TESTIMONIALS.length]?.image || '/images/testimonial_emily.jpg',
+            avatar: t.photoUrl || t.avatarUrl || TESTIMONIALS[idx % TESTIMONIALS.length]?.image || '/images/testimonial_emily.jpg',
+            tag: t.category ? ('• ' + t.category.toUpperCase()) : '• ESCORA JOURNEY',
+            category: t.category || '',
+            dateLabel: t.location || 'Verified Guest',
           };
         });
       }
@@ -581,6 +645,103 @@ export default function Testimonials() {
               />
             </div>
           </div>
+
+        {/* 3-Card Interactive Grid matching the user's luxury mockup */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+            gap: '1.25rem',
+            width: '100%',
+            marginTop: '2rem'
+          }}
+        >
+          {testimonialsList.map((t, idx) => {
+            const isSelected = idx === safeCurrentIdx;
+            return (
+              <div
+                key={t.id}
+                onClick={() => {
+                  remainingTimeRef.current = DURATION_MS;
+                  setActiveIdx(idx);
+                }}
+                style={{
+                  backgroundColor: '#0E241C',
+                  backgroundImage: isSelected ? 'radial-gradient(circle at 10% 10%, rgba(200, 169, 126, 0.12) 0%, transparent 60%)' : 'none',
+                  border: isSelected ? '1.5px solid #C8A97E' : '1px solid rgba(200, 169, 126, 0.16)',
+                  borderRadius: '18px',
+                  padding: '1.5rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.3s var(--ease-luxury)',
+                  transform: isSelected ? 'translateY(-4px)' : 'none',
+                  boxShadow: isSelected ? '0 12px 32px rgba(10, 24, 18, 0.28)' : '0 4px 16px rgba(0, 0, 0, 0.04)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  minHeight: '200px'
+                }}
+              >
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.45rem' }}>
+                    <span
+                      style={{
+                        color: '#C8A97E',
+                        fontSize: '0.72rem',
+                        letterSpacing: '0.18em',
+                        fontWeight: 700,
+                        textTransform: 'uppercase'
+                      }}
+                    >
+                      {t.tag || '• ESCORA JOURNEY'}
+                    </span>
+                    <span style={{ color: '#C8A97E', fontSize: '0.82rem', letterSpacing: '0.2em' }}>
+                      ★★★★★
+                    </span>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: '0.95rem',
+                      fontFamily: "'Playfair Display', Georgia, serif",
+                      fontStyle: 'italic',
+                      lineHeight: 1.5,
+                      color: isSelected ? '#FFFFFF' : 'rgba(255, 255, 255, 0.8)',
+                      margin: '0.65rem 0 0 0',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}
+                  >
+                    "{t.quote}"
+                  </p>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '1.1rem', paddingTop: '0.8rem', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                  {t.avatar && (
+                    <img
+                      src={t.avatar}
+                      alt={t.author}
+                      style={{
+                        width: '34px',
+                        height: '34px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                        border: isSelected ? '1.5px solid #C8A97E' : '1px solid rgba(255, 255, 255, 0.2)'
+                      }}
+                    />
+                  )}
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '0.98rem', color: '#FFFFFF', fontWeight: 600, fontFamily: "'Playfair Display', Georgia, serif" }}>
+                      {t.author}
+                    </h4>
+                    <span style={{ fontSize: '0.7rem', color: '#C8A97E', letterSpacing: '0.14em', textTransform: 'uppercase', fontWeight: 600 }}>
+                      {t.role}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
         </div>
 

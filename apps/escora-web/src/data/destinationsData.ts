@@ -39,32 +39,87 @@ export interface DestinationDetail {
 
 export const KERALA_DESTINATIONS: DestinationDetail[] = [
   {
+    slug: 'kochi',
+    name: 'Kochi',
+    region: 'Central Malabar Coast',
+    type: 'Heritage',
+    shortDesc: 'Kochi is a beautiful coastal city known for its rich history, colonial architecture, heritage streets, and vibrant culture.',
+    description: 'Where the Arabian Sea embraces emerald backwaters, Kochi stands as the queen of the Malabar coast. A storied crossroads of global maritime history, its heritage quarters whisper tales of Portuguese navigators, Dutch governors, British merchants, and ancient Jewish spice traders. Stroll through cobblestone streets shaded by raintrees in Fort Kochi, marvel at cantilevered Chinese fishing nets silhouetted against twilight skies, browse fragrant cardamom and cinnamon warehouses in Mattancherry, and immerse yourself in contemporary art at the world-renowned Kochi-Muziris Biennale.',
+    coordinates: '9.9674°N 76.2429°E',
+    elevation: 'Sea Level',
+    bestSeason: 'October – March',
+    nightsMin: 2,
+    nightsMax: 3,
+    imageUrl: '/images/destinations/kochi.jpg',
+    gallery: [
+      '/images/destinations/kochi.jpg',
+      '/images/destinations/kochi_2.jpg'
+    ],
+    highlights: [
+      'Sunset champagne cruise beside historic cantilevered Chinese fishing nets along the harbor mouth',
+      'Guided heritage walking tour through Fort Kochi colonial avenues, St. Francis Church, and Dutch Cemeteries',
+      'Private evening Kathakali masterclass and performance with greenroom makeup access',
+      'Curated antiquities, pepper warehouses, and spices tour through historic Jew Town and Paradesi Synagogue',
+      'Seafood dining and heritage bistro trails showcasing 500 years of global fusion cuisine'
+    ],
+    howToReach: 'Nearest airport: Cochin International Airport (COK), 38 km (approx. 1 hour executive chauffeur transfer). Major railway stations: Ernakulam Junction (ERS) & Ernakulam Town (ERN).',
+    featured: true,
+    latitude: 9.9674,
+    longitude: 76.2429,
+    sampleItinerary: {
+      title: 'Colonial Legacies & Maritime Elegance',
+      totalNights: '2 Nights / 3 Days',
+      days: [
+        {
+          day: 1,
+          title: 'Arrival & Fort Kochi Stroll',
+          desc: 'Arrive via Cochin International Airport. Private luxury transfer to your heritage colonial boutique hotel. Twilight walk along Princess Street and sunset views over the Chinese fishing nets.'
+        },
+        {
+          day: 2,
+          title: 'Jew Town & Kathakali Mastery',
+          desc: 'Morning exploration of Mattancherry Palace, Jew Town spice markets, and 16th-century synagogue. Evening front-row seats to an authentic Kathakali performance with greenroom access.'
+        },
+        {
+          day: 3,
+          title: 'Harbor Yacht Cruise & Departure',
+          desc: 'Private morning harbor motor launch cruise across Willingdon Island and Bolgatty Palace, followed by chef-led coastal lunch before airport transit.'
+        }
+      ]
+    },
+    curatedStays: [
+      { name: 'Brunton Boatyard', type: 'Heritage Waterfront Hotel', note: 'Restored Victorian shipyard hotel overlooking the bustling harbor channel with ocean liner aesthetics.' },
+      { name: 'Old Harbour Hotel', type: 'Colonial Boutique Manor', note: 'A 300-year-old Dutch colonial residence surrounded by lush courtyard gardens in the heart of Fort Kochi.' }
+    ]
+  },
+  {
     slug: 'munnar',
     name: 'Munnar',
     region: 'Idukki Highlands',
     type: 'Highlands',
-    shortDesc: 'Misty rolling tea highlands, century-old British colonial bungalows, cool mountain breezes, and the wild Nilgiri tahr on Anamudi slopes.',
-    description: 'Perched 1,600 metres above sea level where three mountain streams converge, Munnar is the crown jewel of the Western Ghats. Rolling carpet-green tea estates stretch as far as the eye can see, punctuated by cool mountain mists, cascading silver waterfalls, and heritage bungalows that echo a storied colonial past. Eravikulam National Park protects the endangered Nilgiri tahr, while trails through cardamom-scented shola forests lead to private picnic spots high above the cloudline.',
-    coordinates: '10.08°N 77.06°E',
+    shortDesc: 'Munnar is a scenic hill station famous for its lush tea plantations, misty mountains, waterfalls, and cool climate.',
+    description: 'Perched 1,600 metres above sea level where three mountain streams converge, Munnar is the crown jewel of the Western Ghats. Rolling carpet-green tea estates stretch across misty ridges as far as the eye can see, punctuated by cool mountain mists, cascading silver waterfalls, and heritage bungalows that echo a storied colonial past. Eravikulam National Park protects the endangered Nilgiri tahr, while trails through cardamom-scented shola forests lead to private picnic spots high above the cloudline.',
+    coordinates: '10.0889°N 77.0595°E',
     elevation: '1,600 m – 2,695 m',
     bestSeason: 'September – May',
     nightsMin: 2,
     nightsMax: 4,
-    imageUrl: '/images/dest_3_munnar.jpg',
+    imageUrl: '/images/destinations/munnar.jpg',
     gallery: [
-      '/images/dest_3_munnar.jpg',
-      '/images/tour_3_tea_highlands.jpg',
-      '/images/exp_tea_bungalow.jpg',
-      '/images/dest_2_vagamon.jpg'
+      '/images/destinations/munnar.jpg',
+      '/images/destinations/munnar_2.jpg'
     ],
     highlights: [
-      'Private dawn tea-cupping walking tour through century-old Kannan Devan estates with a 3rd-generation planter',
-      'Exclusive permit excursion to Eravikulam National Park to witness the rare Nilgiri tahr in their natural habitat',
-      'Highland private picnics overlooking Mattupetty reservoir and rolling eucalyptus ridges',
-      'Strolls through private organic cardamom and cinnamon plantations around Chinnakanal',
-      'Sundowners by a wood-burning colonial fireplace in a restored British heritage planter residence'
+      'Pre-dawn 4x4 jeep safari ascending to Kolukkumalai summit for panoramic cloud-sea sunrise',
+      'Private tea-cupping walking tour through century-old Kannan Devan estates with an expert planter',
+      'Guided excursion into Eravikulam National Park to encounter the rare endangered Nilgiri tahr',
+      'Scenic drives past cascading Attukal and Cheeyappara waterfalls tumbling through mountain gorges',
+      'Evening sundowners beside colonial wood-burning fireplaces in historic British planter residences'
     ],
     howToReach: 'Nearest airport: Cochin International Airport (COK), approx. 110 km (3.5 hours scenic drive through mountain waterfalls). Private luxury chauffeur transit provided.',
+    featured: true,
+    latitude: 10.0889,
+    longitude: 77.0595,
     sampleItinerary: {
       title: 'Misty Summits & Planter Heritage',
       totalNights: '3 Nights / 4 Days',
@@ -72,526 +127,374 @@ export const KERALA_DESTINATIONS: DestinationDetail[] = [
         {
           day: 1,
           title: 'Ascent to the Tea Highlands',
-          desc: 'Private scenic drive from Cochin up through mist-draped ghat roads and Cheeyappara falls. Check-in to your heritage tea estate bungalow with afternoon high tea overlooking the valley.'
+          desc: 'Scenic private drive from Cochin up through mist-draped ghat roads and cascading waterfalls. Check-in to your colonial planter bungalow with valley high tea.'
         },
         {
           day: 2,
-          title: 'Planter Trail & Private Tea Cupping',
-          desc: 'Dawn walk through rolling tea fields with a resident planter. Afternoon visit to the historical tea museum, followed by a private single-origin cupping session and sunset strolls.'
+          title: 'Kolukkumalai Sunrise & Factory Cupping',
+          desc: 'Dawn 4x4 safari to Kolukkumalai peak for sunrise above the clouds. Afternoon walkthrough of a 1935 orthodox tea factory and artisanal tastings.'
         },
         {
           day: 3,
-          title: 'Eravikulam & Shola Forest Sanctuaries',
-          desc: 'Morning VIP access to Eravikulam National Park. Afternoon lakeside relaxation at Mattupetty and an aromatic spice walk through mountain valleys.'
+          title: 'Eravikulam Wildlife & Shola Forest Trek',
+          desc: 'Morning safari in Eravikulam National Park spotting wild Nilgiri tahr. Afternoon walk through high-altitude shola grasslands and organic cardamom valleys.'
         },
         {
           day: 4,
-          title: 'Highland Sunrise & Onward Journey',
-          desc: 'Crisp mountain dawn with estate-fresh brew. Leisurely breakfast on the verandah before chauffeured transfer down toward the backwaters or Cochin.'
+          title: 'Waterfall Picnics & Farewell',
+          desc: 'Gentle morning breakfast overlooking Mattupetty reservoir before scenic chauffeur transfer down the ghats.'
         }
       ]
     },
     curatedStays: [
-      { name: 'Lockhart Estate Bungalow', type: 'Colonial Planter Residence', note: '140-year-old stone architecture set amidst private organic tea hills.' },
-      { name: 'Windermere Estate', type: 'Highland Luxury Retreat', note: 'Coffee and cardamom sanctuary offering panoramic valley sunset vistas.' },
-      { name: 'Chandy’s Windy Woods', type: 'Boutique Forest Lodge', note: 'Contemporary glass-and-stone luxury nestled into high mountain slopes.' }
-    ]
-  },
-  {
-    slug: 'alleppey',
-    name: 'Alleppey & Vembanad',
-    region: 'Alappuzha Waterways',
-    type: 'Backwaters',
-    shortDesc: 'Silent emerald palm canals, private handcrafted Kettuvallam houseboats with personal chefs, and tranquil village life below sea level.',
-    description: 'Revered as the Venice of the East, Alappuzha is an intricate tapestry of freshwater rivers, tranquil lagoons, and canals fed by the majestic Vembanad Lake. Gliding aboard a private handcrafted Kettuvallam — made of jackwood and coir without a single nail — you encounter an unhurried, timeless world of toddy-tappers, lotus meadows, and below-sea-level paddy fields in Kuttanad. Nights on the water are silent, accompanied only by the soft rhythm of water and starry skies.',
-    coordinates: '9.49°N 76.33°E',
-    elevation: 'Sea Level (Below-sea-level farming)',
-    bestSeason: 'Year-round (Peak: October – March)',
-    nightsMin: 1,
-    nightsMax: 3,
-    imageUrl: '/images/tour_1_backwaters.jpg',
-    gallery: [
-      '/images/tour_1_backwaters.jpg',
-      '/images/exp_houseboat.jpg',
-      '/images/exp_pool_villa.jpg',
-      '/images/dest_kumarakom.jpg'
-    ],
-    highlights: [
-      'Private luxury Kettuvallam charter equipped with air-conditioned staterooms and your personal onboard chef',
-      'Candlelit dinners anchored in secluded lagoons with fresh Karimeen Pollichathu caught that afternoon',
-      'Sunrise country canoe excursions into narrow village canals inaccessible to larger craft',
-      'Slow exploration of Kuttanad — the only region in India where agriculture flourishes below sea level',
-      'Sunset cruise across Vembanad Lake with traditional hot banana fritters and spiced chai'
-    ],
-    howToReach: 'Nearest airport: Cochin International Airport (COK), approx. 85 km (1.5 to 2 hours drive via private highway chauffeur).',
-    sampleItinerary: {
-      title: 'The Silent Waterways Voyage',
-      totalNights: '2 Nights / 3 Days',
-      days: [
-        {
-          day: 1,
-          title: 'Embarkation on the Private Kettuvallam',
-          desc: 'Board your private luxury houseboat at midday with fresh tender coconut water. Cruise along Vembanad Lake as your chef prepares a traditional multi-course Kerala banana-leaf feast. Sunset anchor in quiet waters.'
-        },
-        {
-          day: 2,
-          title: 'Dawn Canoe & Village Waterways',
-          desc: 'Wake to mist rising off the lake. Transfer into a slender wooden canoe guided by a local boatman to explore narrow village waterways. Afternoon relaxation at a private lakeside boutique villa.'
-        },
-        {
-          day: 3,
-          title: 'Lake Strolls & Departure',
-          desc: 'Slow lakeside breakfast with views of migratory aquatic birds. Leisurely morning by the pool villa before your concierge chauffeur arrives.'
-        }
-      ]
-    },
-    curatedStays: [
-      { name: 'ESCORA Sovereign Kettuvallam', type: 'Private Houseboat Charter', note: 'Handcrafted luxury barge with personalized culinary crew and private observation deck.' },
-      { name: 'Purity at Lake Vembanad', type: 'Waterfront Boutique Sanctuary', note: 'Art-filled Italian-Keralite retreat right on the tranquil shore.' },
-      { name: 'Aymanam Heritage Retreat', type: 'Historic Waterfront Residence', note: 'Aristocratic riverside mansion with serene private gardens.' }
-    ]
-  },
-  {
-    slug: 'wayanad',
-    name: 'Wayanad Rainforest',
-    region: 'Deccan Plateau Ghats',
-    type: 'Forest & Wildlife',
-    shortDesc: 'Ancient mist-clad rainforests, Neolithic Edakkal rock caves, wild elephant sanctuaries, and eco-luxury canopy treehouses 60 feet above the forest floor.',
-    description: 'Resting on the southern tip of the Deccan plateau, Wayanad is an unspoiled mountain wilderness of evergreen canopies, bamboo groves, and ancient spice plantations. The district forms a crucial wildlife corridor of the Nilgiri Biosphere Reserve, where wild Asian elephants, leopards, and gaurs roam free. Neolithic petroglyphs at Edakkal Caves whisper of civilizations dating back 8,000 years, while secluded luxury treehouses provide an unmatched connection to the untamed forest.',
-    coordinates: '11.68°N 76.13°E',
-    elevation: '700 m – 2,100 m',
-    bestSeason: 'September – May',
-    nightsMin: 2,
-    nightsMax: 4,
-    imageUrl: '/images/dest_1_wayanad.jpg',
-    gallery: [
-      '/images/dest_1_wayanad.jpg',
-      '/images/exp_treehouse.jpg',
-      '/images/dest_4_rafting.jpg',
-      '/images/tour_2_rainforest.jpg'
-    ],
-    highlights: [
-      'Eco-luxury treehouse suites suspended 60 feet above the forest canopy with open valley panoramas',
-      'Guided private trek to the Neolithic Edakkal Caves with an anthropological guide',
-      'Exclusive 4x4 wildlife safari through Muthanga Sanctuary in search of wild elephant herds',
-      'Quiet bamboo rafting across the serene waters of Banasura Sagar Lake',
-      'Private plantation walk learning the cultivation of Malabar black pepper, ginger, and wild coffee'
-    ],
-    howToReach: 'Nearest airports: Calicut/Kozhikode International Airport (CCJ), 85 km (2.5 hours); or Kannur International Airport (CNN), 90 km. Private luxury 4x4/SUV escort.',
-    sampleItinerary: {
-      title: 'Rainforest Canopy & Wildlife Trail',
-      totalNights: '3 Nights / 4 Days',
-      days: [
-        {
-          day: 1,
-          title: 'Ascent into the Rainforest Canopy',
-          desc: 'Chauffeur escort up the dramatic Thamarassery Ghat pass into Wayanad. Check in to your private canopy treehouse sanctuary surrounded by birdsong and mountain mist.'
-        },
-        {
-          day: 2,
-          title: 'Neolithic Secrets & Spice Estates',
-          desc: 'Morning private trek to Edakkal Caves to examine prehistoric petroglyphs. Afternoon tasting of single-estate Robusta coffees and spice harvesting at a family-run heritage plantation.'
-        },
-        {
-          day: 3,
-          title: 'Wildlife Safari & Banasura Waters',
-          desc: 'Dawn jeep safari through Muthanga Reserve accompanied by a naturalist tracker. Afternoon serene boat cruise on Banasura Sagar reservoir.'
-        },
-        {
-          day: 4,
-          title: 'Forest Dawn & Calicut Transit',
-          desc: 'Enjoy a slow morning listening to the waking jungle canopy. Chauffeured transfer down to Kozhikode for coastal culinary journeys or airport departure.'
-        }
-      ]
-    },
-    curatedStays: [
-      { name: 'Vythiri Resort Treehouse', type: 'Canopy Eco-Sanctuary', note: 'Engineered entirely from natural materials over a mountain stream.' },
-      { name: 'Tranquil Resort', type: 'Coffee Estate Hideaway', note: 'Private 400-acre working coffee and pepper plantation with heritage rooms.' },
-      { name: 'Pepper Trail', type: 'Colonial Plantation Bungalow', note: 'Restored 140-year-old estate bungalow surrounded by pristine tropical forest.' }
-    ]
-  },
-  {
-    slug: 'fort-kochi',
-    name: 'Fort Kochi',
-    region: 'Central Malabar Coast',
-    type: 'Heritage',
-    shortDesc: 'Centuries-old Chinese cantilevered fishing nets, Portuguese churches, Dutch palaces, Jew Town spice merchants, and world-renowned Biennale art spaces.',
-    description: 'Steeped in half a millennium of maritime history, Fort Kochi is a living museum where Arab, Portuguese, Dutch, and British influences meld into a hypnotic coastal rhythm. Massive Chinese cantilevered fishing nets still dip silently into the harbour at sunset. Cobblestoned lanes are lined with pastel-washed heritage mansions, spice warehouses exuding black pepper and cardamom, and contemporary art galleries that host the celebrated Kochi-Muziris Biennale.',
-    coordinates: '9.96°N 76.24°E',
-    elevation: 'Sea Level',
-    bestSeason: 'October – March',
-    nightsMin: 1,
-    nightsMax: 3,
-    imageUrl: '/images/dest_fort_kochi.jpg',
-    gallery: [
-      '/images/dest_fort_kochi.jpg',
-      '/images/exp_heritage.jpg',
-      '/images/exp_kathakali.jpg',
-      '/images/tour_1_classic.jpg'
-    ],
-    highlights: [
-      'Sunset cocktails overlooking the iconic 14th-century Chinese fishing nets in active operation',
-      'Private walking tour with a local historian through Jew Town and the 1568 Paradesi Synagogue',
-      'Exclusive backstage access to the sacred Kathakali makeup transformation and live classical performance',
-      'Curated contemporary art tour through Kochi-Muziris Biennale venues and colonial warehouses',
-      'Fine dining at historic courtyards sampling royal Travancore coastal seafood and Syrian Christian delicacies'
-    ],
-    howToReach: 'Nearest airport: Cochin International Airport (COK), approx. 38 km (1 hour smooth transit via executive chauffeur).',
-    sampleItinerary: {
-      title: 'Spice Routes & Colonial Heritage',
-      totalNights: '2 Nights / 3 Days',
-      days: [
-        {
-          day: 1,
-          title: 'Arrival in the Historic Port',
-          desc: 'Executive transfer from Cochin airport to your colonial boutique heritage hotel in Fort Kochi. Sunset walk past the Chinese fishing nets followed by dinner at a restored Dutch courtyard.'
-        },
-        {
-          day: 2,
-          title: 'Historian Walk, Jew Town & Sacred Arts',
-          desc: 'Morning walking exploration of St. Francis Church, Mattancherry Palace murals, and antique spice stores in Jew Town. Evening private front-row seats for a traditional Kathakali performance.'
-        },
-        {
-          day: 3,
-          title: 'Artisan Cafés & Onward Transfer',
-          desc: 'Morning coffee at a historic art café. Leisurely check-out and private transfer to Munnar highlands or Alleppey waterways.'
-        }
-      ]
-    },
-    curatedStays: [
-      { name: 'Brunton Boatyard', type: 'Colonial Maritime Luxury', note: 'Restored Victorian shipyard hotel directly on the harbor entrance.' },
-      { name: 'Malabar House', type: 'Design Heritage Boutique', note: '18th-century residence combining contemporary Indian art with historic architecture.' },
-      { name: 'Old Harbour Hotel', type: 'Portuguese Heritage Residence', note: '300-year-old boutique property with lush open garden courtyards.' }
+      { name: 'Windermere Estate', type: 'Highland Planter Retreat', note: 'Set amid 60 acres of coffee and cardamom with panoramic valley balconies and handcrafted cedar furnishings.' },
+      { name: 'Tall Trees Resort', type: 'Canopy Cottage Sanctuary', note: 'Nestled deep under a canopy of 600 towering preserved trees with crystal mountain stream trails.' }
     ]
   },
   {
     slug: 'thekkady',
-    name: 'Thekkady & Periyar',
-    region: 'Cardamom Hills',
+    name: 'Thekkady',
+    region: 'Cardamom Hills & Wildlife Sanctuary',
     type: 'Forest & Wildlife',
-    shortDesc: 'Periyar Tiger Reserve lake safaris, wild elephant herds at the water’s edge, spice plantation aromatherapy, and dawn bamboo river rafting.',
-    description: 'Resting in the aromatic Cardamom Hills, Thekkady is a sanctuary where pristine wilderness meets centuries of spice-trade history. Centred around Periyar Lake, the 777 sq km tiger reserve is home to wild Asian elephants, gaurs, Nilgiri langurs, and over 320 species of birds. The surrounding hills are draped in endless spice plantations of cardamom, black pepper, cinnamon, nutmeg, and vanilla, filling the mountain air with an intoxicating fragrance.',
-    coordinates: '9.59°N 77.16°E',
-    elevation: '900 m – 1,200 m',
-    bestSeason: 'October – April',
+    shortDesc: 'Thekkady is a nature destination known for its spice plantations, rich wildlife, Periyar Lake, and exciting nature experiences.',
+    description: 'Set in the lush foothills of the Cardamom Hills, Thekkady is India’s premier wilderness and spice sanctuary. At its heart lies the 777-square-kilometer Periyar Tiger Reserve, centered around a historic man-made lake where wild elephant herds, sambar deer, gaur, and rare birds roam undisturbed along the water’s edge. Beyond the jungle, the cool mountain air is infused with the scent of green cardamom, black pepper, clove, and cinnamon cultivated in lush multi-tiered organic plantations that have traded with the world for millennia.',
+    coordinates: '9.6031°N 77.1615°E',
+    elevation: '900 m – 1,800 m',
+    bestSeason: 'September – April',
     nightsMin: 2,
     nightsMax: 3,
-    imageUrl: '/images/dest_4_rafting.jpg',
+    imageUrl: '/images/destinations/thekkady.jpg',
     gallery: [
-      '/images/dest_4_rafting.jpg',
-      '/images/tour_5_wildlife.jpg',
-      '/images/dest_2_vagamon.jpg',
-      '/images/offer_1_hike.jpg'
+      '/images/destinations/thekkady.jpg',
+      '/images/destinations/thekkady_2.jpg'
     ],
     highlights: [
-      'Dawn bamboo river rafting accompanied by tribal trackers through secluded forest waterways',
-      'Private boat safari across Periyar Lake observing wild elephant families bathing at the shoreline',
-      'Hands-on organic spice plantation walk with a botanist explaining pepper pollination and vanilla curing',
-      'Night jungle scouting with armed forest rangers for nocturnal mammals and glowing flora',
-      'Traditional Kalaripayattu martial arts demonstration at an authentic earthen arena'
+      'Early morning wildlife boat cruise on Periyar Lake watching elephant herds bathe along shores',
+      'Guided sensory walking tour through certified organic cardamom, cinnamon, and pepper gardens',
+      'Bamboo river rafting and guided forest trek deep into the Periyar wilderness with tribal trackers',
+      'Exclusive front-row attendance at a traditional Kalaripayattu ancient martial arts demonstration',
+      'Highland tribal village interaction and traditional spice-infused Travancore culinary dining'
     ],
-    howToReach: 'Nearest airports: Cochin International Airport (COK), 145 km (4 hours); or Madurai Airport, 115 km (3 hours). Private SUV chauffeur provided.',
+    howToReach: 'Nearest airport: Madurai Airport (IXM), 140 km (3.5 hours); or Cochin International Airport (COK), 160 km (4 hours). Chauffeured executive SUV transfers provided.',
+    featured: true,
+    latitude: 9.6031,
+    longitude: 77.1615,
     sampleItinerary: {
-      title: 'Wild Cardamom & Forest Trails',
+      title: 'Wild Canopies & Spice Trails',
       totalNights: '2 Nights / 3 Days',
       days: [
         {
           day: 1,
-          title: 'Ascent to the Spice Foothills',
-          desc: 'Scenic drive through rubber and spice plantations into Thekkady. Check-in to your eco-lodge and evening martial arts showcase of Kalaripayattu.'
+          title: 'Arrival & Aromatic Spice Walk',
+          desc: 'Chauffeured arrival into Thekkady\'s cool mountain air. Afternoon guided tour through an organic spice plantation followed by an authentic Kalaripayattu martial arts show.'
         },
         {
           day: 2,
-          title: 'Periyar Rafting & Spice Discovery',
-          desc: 'Early morning bamboo rafting and jungle walk with indigenous forest guides. Afternoon aromatic spice tour followed by a private tribal-infused dinner.'
+          title: 'Periyar Lake Safari & Bamboo Rafting',
+          desc: 'Early dawn boat cruise on Periyar Lake spotting wild elephants and native birdlife. Midday guided nature trek with native forest naturalists.'
         },
         {
           day: 3,
-          title: 'Wildlife Watch & Departure',
-          desc: 'Morning boat safari across Periyar Lake. Relaxed breakfast before departing toward Alleppey backwaters or Madurai.'
+          title: 'Chellarkovil Viewpoint & Departure',
+          desc: 'Morning visit to Chellarkovil cliff viewpoint overlooking Tamil Nadu plains before onward private chauffeur journey.'
         }
       ]
     },
     curatedStays: [
-      { name: 'Spice Village (CGH Earth)', type: 'Tribal Eco-Sanctuary', note: 'Thatch-roofed tribal cottages built with elephant grass in a botanical haven.' },
-      { name: 'Niraamaya Retreats Cardamom Club', type: 'Luxury Mountain Hideaway', note: 'Private cottages set inside an operating 9-acre cardamom estate.' },
-      { name: 'Amritara Shalimar Spice Garden', type: 'Boutique Forest Sanctuary', note: 'Charming thatched villas surrounded by natural streams and wildlife.' }
+      { name: 'Spice Village (CGH Earth)', type: 'Eco-Luxury Tribal Hamlet', note: 'Modeled after indigenous Mannan tribal huts with elephant grass thatch, spice gardens, and zero-plastic ethos.' },
+      { name: 'Niraamaya Retreats Cardamom Club', type: 'Boutique Plantation Villas', note: 'Luxury cottages secluded amid dense cardamom hills with open-to-sky rain showers and Ayurveda therapies.' }
+    ]
+  },
+  {
+    slug: 'alleppey',
+    name: 'Alleppey',
+    region: 'Vembanad Backwaters',
+    type: 'Backwaters',
+    shortDesc: 'Alleppey is known as the Venice of the East, famous for its tranquil backwaters and luxurious houseboat experiences.',
+    description: 'Often hailed as the Venice of the East, Alleppey (Alappuzha) is the hypnotic aquatic heartland of Kerala. Here, a vast network of emerald lagoons, natural canals, and freshwater lakes intertwines with lush below-sea-level paddy fields in Kuttanad. Drifting aboard an exclusive handcrafted wooden Kettuvallam with your private captain and personal chef, experience life slowed to the soothing rhythm of lapping water, swaying coconut palms, and sunset skies mirrored in glass-flat backwaters.',
+    coordinates: '9.4981°N 76.3388°E',
+    elevation: 'Sea Level (-1m in Kuttanad)',
+    bestSeason: 'Year-Round (Peak: October – March)',
+    nightsMin: 1,
+    nightsMax: 3,
+    imageUrl: '/images/destinations/alleppey.jpg',
+    gallery: [
+      '/images/destinations/alleppey.jpg',
+      '/images/destinations/alleppey_2.jpg'
+    ],
+    highlights: [
+      'Overnight private luxury Kettuvallam houseboat charter with personal chef and starlit open deck',
+      'Dawn country-boat canoe excursions slipping silently into narrow canals lined with lotus blossoms',
+      'Cruising through Kuttanad, one of the world’s few farming systems operating below sea level',
+      'Gourmet Malabar culinary feasts featuring fresh Karimeen (pearl spot), king prawns, and tender coconut curries',
+      'Sunset champagne toast while anchored in the secluded stillness of Vembanad Lake'
+    ],
+    howToReach: 'Nearest airport: Cochin International Airport (COK), approx. 85 km (2 hours scenic drive). Alleppey Railway Station is located 4 km from boat jetty.',
+    featured: true,
+    latitude: 9.4981,
+    longitude: 76.3388,
+    sampleItinerary: {
+      title: 'Silent Waters & Kettuvallam Splendour',
+      totalNights: '2 Nights / 3 Days',
+      days: [
+        {
+          day: 1,
+          title: 'Boarding Your Floating Palace',
+          desc: 'VIP boarding of your private air-conditioned Kettuvallam at 12:00 noon. Welcome tender coconut, cruise through Vembanad Lake, authentic onboard 4-course lunch, and twilight anchoring.'
+        },
+        {
+          day: 2,
+          title: 'Dawn Canoe & Village Life',
+          desc: 'Sunrise canoe tour through intimate canal tributaries where children paddle to school. Afternoon relaxation or transfer to a luxury lakeside heritage resort.'
+        },
+        {
+          day: 3,
+          title: 'Alleppey Beach & Coir Heritage',
+          desc: 'Visit the historic Alleppey lighthouse, pier ruins, and traditional coir weaving villages before onward luxury chauffeur transit.'
+        }
+      ]
+    },
+    curatedStays: [
+      { name: 'Escora Private Houseboat Charter', type: 'Bespoke Wooden Kettuvallam', note: 'Customized luxury vessel with handcrafted jackwood staterooms, sun observation deck, and private chef.' },
+      { name: 'A premium Lake Palace Resort', type: 'Private Island Sanctuary', note: 'Waterfront luxury villas secluded on an exclusive island in Vembanad Lake accessible only by water taxi.' }
     ]
   },
   {
     slug: 'varkala',
     name: 'Varkala',
-    region: 'South Arabian Coastline',
+    region: 'South Kerala Coastline',
     type: 'Coastal',
-    shortDesc: 'Dramatic red laterite sea cliffs meeting turquoise Arabian waters, clifftop yoga shalas, sacred mineral springs, and golden sunset beaches.',
-    description: 'Varkala is uniquely breathtaking — the only place in southern India where striking red laterite cliffs plunge directly into the Arabian Sea. Beneath the dramatic cliff promenade lies Papanasam Beach, famed for its ancient purifying mineral waters. Above, bohemian clifftop cafés and open-air yoga pavilions catch ocean breezes, while nearby luxury pool villas tucked inside coconut groves offer complete barefoot tranquility.',
-    coordinates: '8.73°N 76.71°E',
-    elevation: 'Clifftop Coastline (30m above sea level)',
-    bestSeason: 'October – March',
+    shortDesc: 'Varkala is a beautiful coastal destination known for its stunning cliffs, sandy beaches, seaside cafés, and exciting beach activities.',
+    description: 'Dramatic, bohemian, and breathtakingly unique, Varkala is the only destination in southern India where monumental red laterite cliffs rise vertically from the Arabian Sea. The cliff-top promenade is dotted with vibrant artisan cafés, seafood grills, and open-air yoga shalas. Below, the holy golden sands of Papanasam Beach are cleansed by natural freshwater mineral springs emerging directly from ancient rock faces. From tandem paragliding soaring over ocean thermal winds to world-class surfing and meditative sunsets, Varkala radiates pure coastal magic.',
+    coordinates: '8.7379°N 76.7163°E',
+    elevation: 'Sea Level – 30 m Cliff',
+    bestSeason: 'October – April',
     nightsMin: 2,
     nightsMax: 4,
-    imageUrl: '/images/dest_5_varkala.jpg',
+    imageUrl: '/images/destinations/varkala.jpg',
     gallery: [
-      '/images/dest_5_varkala.jpg',
-      '/images/tour_6_coastal.jpg',
-      '/images/retreat_1_ayurveda.jpg',
-      '/images/exp_pool_villa.jpg'
+      '/images/destinations/varkala.jpg',
+      '/images/destinations/varkala_2.jpg'
     ],
     highlights: [
-      'Clifftop oceanfront yoga and pranayama sessions at sunrise with master practitioners',
-      'Sunset walks along the dramatic red laterite cliff promenade overlooking the ocean surf',
-      'Private Ayurvedic rejuvenation treatments using indigenous coastal herb oils and thermal waters',
-      'Canoe cruise through the tranquil Kappil Lake where freshwater lagoon meets the Arabian Sea',
-      'Visit to the 2,000-year-old Sree Janardanaswamy Vishnu temple on the sacred hillside'
+      'Spectacular clifftop promenade walks overlooking turquoise waves and golden sunset horizons',
+      'Tandem coastal paragliding soaring high above North Cliff with bird’s-eye Arabian Sea views',
+      'Natural mineral spring cleansing baths flowing from laterite rocks on Papanasam Beach',
+      'Sunset cliffside seafood dining with freshly caught red snapper, tiger prawns, and sea breezes',
+      'Visit to the 2,000-year-old historic Janardanaswamy Temple and serene Sivagiri Mutt'
     ],
-    howToReach: 'Nearest airport: Trivandrum International Airport (TRV), approx. 45 km (1 hour scenic coastal drive).',
+    howToReach: 'Nearest airport: Trivandrum International Airport (TRV), approx. 45 km (1 hour scenic coastal drive). Varkala Sivagiri Railway Station connects to all major trains.',
+    featured: true,
+    latitude: 8.7379,
+    longitude: 76.7163,
     sampleItinerary: {
-      title: 'Red Cliffs & Ocean Healing',
+      title: 'Red Cliffs & Coastal Freedom',
       totalNights: '3 Nights / 4 Days',
       days: [
         {
           day: 1,
-          title: 'Arrival on the Clifftop Coast',
-          desc: 'Private airport pickup from Trivandrum. Settle into your clifftop villa sanctuary with sunset drinks overlooking the crashing ocean waves.'
+          title: 'Arrival & North Cliff Sunset',
+          desc: 'Chauffeured arrival from Trivandrum. Check into your cliffside boutique villa. Evening walk along North Cliff and candlelight seafood dinner overlooking the ocean.'
         },
         {
           day: 2,
-          title: 'Ocean Yoga & Mineral Springs',
-          desc: 'Morning sunrise yoga on a private timber deck. Afternoon Ayurvedic consultation and therapeutic herbal massage, followed by a clifftop dinner.'
+          title: 'Aerial Paragliding & Beach Yoga',
+          desc: 'Morning beach yoga session under coconut palms. Afternoon tandem paragliding flight over the cliffs and relaxed swimming at Black Sand Beach.'
         },
         {
           day: 3,
-          title: 'Kappil Lagoon & Coastal Exploration',
-          desc: 'Boat excursion through Kappil Lake where the backwater kisses the sea. Afternoon beach leisure and evening temple walk.'
+          title: 'Temple Heritage & Ayurvedic Spa',
+          desc: 'Morning spiritual visit to Janardanaswamy Temple followed by restorative Ayurvedic coastal massage. Sunset café hopping.'
         },
         {
           day: 4,
-          title: 'Barefoot Dawn & Departure',
-          desc: 'Final sunrise meditation and nourishing coastal breakfast before your chauffeur transfer to Trivandrum or Kovalam.'
+          title: 'Morning Surf & Departure',
+          desc: 'Gentle coastal stroll and fresh fruit juice breakfast before private luxury transfer to Trivandrum Airport.'
         }
       ]
     },
     curatedStays: [
-      { name: 'Elixir Cliff Resort', type: 'Luxury Clifftop Hideaway', note: 'Panoramic sea-view suites perched atop the north cliff.' },
-      { name: 'Gateway Varkala (IHCL)', type: 'Clifftop Luxury Resort', note: 'Set in a quiet palm forest above the Arabian Sea with world-class dining.' },
-      { name: 'B’Canti Boutique Resort', type: 'Private Coastal Haven', note: 'Intimate cliff-edge pool resort offering classical Ayurvedic therapies.' }
+      { name: 'Elixir Cliff Beach Resort', type: 'Luxury Clifftop Suites', note: 'Perched on the quieter North Cliff with infinity pool facing direct Arabian Sea sunsets and oceanfront dining.' },
+      { name: 'B’Canti Boutique Resort', type: 'Secluded Coastal Haven', note: 'Set on North Cliff with panoramic sea views, landscaped tropical gardens, and private beach steps.' }
     ]
   },
   {
-    slug: 'bekal',
-    name: 'Bekal',
-    region: 'North Malabar Shore',
-    type: 'Coastal',
-    shortDesc: 'A monumental 17th-century laterite sea fort above pristine, untouristed Malabar beaches, and secluded backwater estuary boat charters.',
-    description: 'Located on Kerala’s northernmost coast, Bekal is defined by its monumental 17th-century laterite fort — the largest and most dramatic in Kerala. Resembling a giant keyhole extending out into the Arabian Sea, its weathered ramparts and observation towers provide sweeping 360-degree ocean vistas. Far from mass tourism, Bekal offers tranquil secluded beaches, the pristine Valiyaparamba backwaters, and ultra-luxury private sanctuaries.',
-    coordinates: '12.39°N 75.03°E',
-    elevation: 'Sea Level',
+    slug: 'trivandrum',
+    name: 'Trivandrum',
+    region: 'Capital Heritage & South Coast',
+    type: 'Heritage',
+    shortDesc: "Trivandrum, Kerala's capital city, is known for its historic temples and cultural attractions, while nearby Kovalam is famous for its beautiful beaches and seaside activities.",
+    description: "Built upon seven gentle hills, Trivandrum (Thiruvananthapuram) is Kerala's elegant capital city where regal Travancore history meets coastal tropical beauty. Marvel at the awe-inspiring Padmanabhaswamy Temple — the world's richest sacred shrine with its grand Dravidian gopuram — and explore the exquisite 19th-century Kuthiramalika (Mansion of Horses) wood carvings. Just minutes away lies Kovalam's world-famous coastline with three golden crescent beaches separated by rocky headlands, anchored by the iconic 30-meter red-and-white striped Vizhinjam lighthouse, legendary Ayurvedic sanctuaries, and thrilling water activities.",
+    coordinates: '8.5241°N 76.9366°E',
+    elevation: '10 m – 35 m',
     bestSeason: 'October – March',
     nightsMin: 2,
     nightsMax: 3,
-    imageUrl: '/images/dest_bekal.jpg',
+    imageUrl: '/images/destinations/trivandrum.jpg',
     gallery: [
-      '/images/dest_bekal.jpg',
-      '/images/dest_kannur.jpg',
-      '/images/tour_6_coastal.jpg',
-      '/images/exp_pool_villa.jpg'
+      '/images/destinations/trivandrum.jpg',
+      '/images/destinations/trivandrum_2.jpg'
     ],
     highlights: [
-      'Private sunset walk along the ramparts of Bekal Fort with waves breaking against the laterite walls',
-      'Exclusive day cruise through the uncrowded Valiyaparamba backwater islands',
-      'Barefoot strolls along golden, crowd-free Malabar sands at Kappil Beach',
-      'Private dining set in secluded beachfront coconut groves under the stars',
-      'Visit to ancient hillock meditation caves at Anandashram'
+      'Exclusive guided heritage walk around the magnificent Sree Padmanabhaswamy Temple & Kuthiramalika Palace',
+      'Panoramic 360-degree coastal views from atop the iconic 30-meter Vizhinjam Lighthouse',
+      'Three golden crescent bays of Kovalam (Lighthouse, Hawah, and Samudra) for swimming and beachside leisure',
+      'World-class physician-led authentic Ayurvedic therapies and coastal wellness sanctuaries',
+      'Private day cruise to Poovar Island where tranquil backwaters, river, and the Arabian Sea unite'
     ],
-    howToReach: 'Nearest airports: Kannur International Airport (CNN), 55 km; or Mangalore International Airport (IXE), 70 km. Executive chauffeur escort.',
+    howToReach: 'Trivandrum International Airport (TRV) is located directly inside the city, just 15 minutes from city center and 20 minutes from Kovalam beaches. Trivandrum Central (TVC) is Kerala’s busiest rail junction.',
+    featured: true,
+    latitude: 8.5241,
+    longitude: 76.9366,
     sampleItinerary: {
-      title: 'North Malabar Fortresses & Shores',
+      title: 'Royal Temples & Crescent Shores',
       totalNights: '2 Nights / 3 Days',
       days: [
         {
           day: 1,
-          title: 'Arrival in North Malabar',
-          desc: 'Private transfer from Kannur or Mangalore airport. Check into your private luxury beach villa. Evening sunset walk along the fort ramparts.'
+          title: 'Royal Travancore Heritage',
+          desc: 'Arrival at Trivandrum Airport. Private chauffeur transfer to luxury seaside resort. Afternoon heritage walk of Padmanabhaswamy Temple complex and Napier Museum.'
         },
         {
           day: 2,
-          title: 'Valiyaparamba Backwaters & Beach Leisure',
-          desc: 'Morning private solar boat charter through the secluded Valiyaparamba estuary. Afternoon rejuvenating Ayurvedic therapy and seaside dinner.'
+          title: 'Kovalam Bays & Lighthouse Sunset',
+          desc: 'Morning beach yoga and Ayurvedic massage. Afternoon visit to the historic Vizhinjam Lighthouse and seaside café exploration.'
         },
         {
           day: 3,
-          title: 'Malabar Dawn & Departure',
-          desc: 'Coastal breakfast overlooking the waves. Relaxed morning before onward transfer to Kannur for a Theyyam experience or flight departure.'
+          title: 'Poovar Estuary Boat Cruise',
+          desc: 'Private morning motorboat cruise through mangrove estuaries at Poovar Island where river meets sea, followed by airport transfer.'
         }
       ]
     },
     curatedStays: [
-      { name: 'Taj Bekal Resort & Spa', type: 'Ultra-Luxury Beach Sanctuary', note: 'Kettuvallam-inspired luxury villas with private plunge pools along the backwater estuary.' },
-      { name: 'The Lalit Resort & Spa Bekal', type: 'Luxury Riverfront Haven', note: 'Surrounded by the serene Nombili River with an internationally acclaimed spa.' }
+      { name: 'The Leela Kovalam', type: 'Luxury Clifftop Palace Resort', note: 'Spectacular cliffhead location with panoramic sea views from every room, private beach access, and royal hospitality.' },
+      { name: 'Niraamaya Retreats Surya Samudra', type: 'Heritage Wooden Cottages', note: 'Restored traditional Kerala wooden homes perched on rocky ocean promontories with renowned cliffside spa.' }
     ]
   },
   {
-    slug: 'kannur',
-    name: 'Kannur',
-    region: 'North Malabar Heritage',
+    slug: 'calicut',
+    name: 'Calicut',
+    region: 'Malabar Coast',
     type: 'Coastal',
-    shortDesc: 'The sacred heartland of the Theyyam fire ritual, Asia’s longest drive-in beach at Muzhappilangad, handloom weaving, and Thalassery spice forts.',
-    description: 'Kannur is Malabar’s untamed cultural epicentre. It is here that Theyyam — an ancient ritualistic performance where men transform into living deities through elaborate face-paint, tower-like headgears, and ecstatic fire dances — is performed in sacred groves. Kannur also boasts Muzhappilangad, India’s only true drive-in beach where vehicles glide along four kilometres of hard golden sands, and Thalassery’s celebrated culinary and weaving heritage.',
-    coordinates: '11.87°N 75.37°E',
-    elevation: 'Sea Level',
-    bestSeason: 'November – May (Theyyam ritual season)',
-    nightsMin: 2,
+    shortDesc: 'A beautiful coastal city known for its rich history, Malabar culture, traditional cuisine, and scenic beaches.',
+    description: 'Famed across world history as the City of Spices and the legendary port where Vasco da Gama first made landfall in 1498, Calicut (Kozhikode) is the cultural and culinary heart of Malabar. Walk the historic sands of Kappad and Kozhikode Beach where centuries-old piers stretch into the Arabian Sea, explore the ancient craft of handcrafted wooden Uru dhow shipbuilding at Beypore, glide in a kayak along serene Chaliyar and Kadalundi river waterways, and surrender to the world-renowned aromas of authentic Malabar Dum Biryani, Halwa, and Suleimani chai on famous SM Street.',
+    coordinates: '11.2588°N 75.7804°E',
+    elevation: '1 m – 15 m',
+    bestSeason: 'September – March',
+    nightsMin: 1,
     nightsMax: 3,
-    imageUrl: '/images/dest_kannur.jpg',
+    imageUrl: '/images/destinations/calicut.jpg',
     gallery: [
-      '/images/dest_kannur.jpg',
-      '/images/dest_bekal.jpg',
-      '/images/exp_heritage.jpg',
-      '/images/exp_kathakali.jpg'
+      '/images/destinations/calicut.jpg',
+      '/images/destinations/calicut_2.jpg'
     ],
     highlights: [
-      'Private night access to an authentic village temple grove to witness the sacred Theyyam fire dance in trance',
-      'Thrilling sunset drive along the water’s edge at Muzhappilangad, India’s longest drive-in beach',
-      'Exploration of St. Angelo Fort (built 1505) and Thalassery Fort with an architectural guide',
-      'Tasting of authentic Thalassery dum biryani and heirloom Malabar snacks at a private family table',
-      'Visits to traditional master handloom weaving cooperatives preserving century-old techniques'
+      'Immersive kayaking along scenic riverways and pristine mangrove channels of Calicut',
+      'Visiting 1,500-year-old traditional wooden Uru dhow shipbuilders at historic Beypore Port',
+      'Legendary Malabar culinary trail exploring authentic Dum Biryani, banana chips, and Kozhikodan Halwa',
+      'Sunset strolls along Kappad Beach where ancient spice trade routes shaped world history',
+      'Birdwatching and silent canoe explorations in the Kadalundi mangrove estuary'
     ],
-    howToReach: 'Nearest airport: Kannur International Airport (CNN), approx. 25 km (35 minutes drive). Kannur railway station is on the main coastal express line.',
+    howToReach: 'Calicut International Airport (CCJ) at Karipur, approx. 28 km (45 mins executive transfer). Kozhikode Railway Station (CLT) is a major A1 junction on the Southern Railway.',
+    featured: true,
+    latitude: 11.2588,
+    longitude: 75.7804,
     sampleItinerary: {
-      title: 'Sacred Theyyam & The Malabar Shore',
+      title: 'Malabar Flavors & Historic Coastlines',
       totalNights: '2 Nights / 3 Days',
       days: [
         {
           day: 1,
-          title: 'Arrival in North Malabar’s Cultural Capital',
-          desc: 'Airport greeting and transfer to your beachfront retreat. Sunset drive on the sands of Muzhappilangad Beach followed by Malabar coastal dinner.'
+          title: 'Arrival & Culinary Exploration',
+          desc: 'Arrival into Calicut. Check into your luxury coastal hotel. Afternoon walking tour of historic SM Street (Sweetmeat Street) and authentic Malabar biryani dinner.'
         },
         {
           day: 2,
-          title: 'The Living Gods: Theyyam Ritual Immersion',
-          desc: 'Day visit to St. Angelo Fort and Thalassery handloom houses. At dusk, escorted trip with a cultural custodian to a village shrine to witness Theyyam transformations.'
+          title: 'Kayaking & Beypore Heritage',
+          desc: 'Morning kayaking adventure along tranquil waterways. Afternoon visit to Beypore shipbuilding yard witnessing massive wooden dhows crafted by master artisans.'
         },
         {
           day: 3,
-          title: 'Spice Port Farewell',
-          desc: 'Morning beach stroll and traditional appam breakfast before transfer to Kannur airport or onward to Wayanad highlands.'
+          title: 'Kappad Beach & Spice Trails',
+          desc: 'Morning visit to Kappad Beach where maritime history changed the world. Fresh seafood lunch before departure.'
         }
       ]
     },
     curatedStays: [
-      { name: 'Kk Homes & Heritage', type: 'Boutique Malabar Sanctuary', note: 'Intimate coastal retreat offering insider access to local temple groves.' },
-      { name: 'The Malabar Beach Resort', type: 'Seaside Coastal Lodge', note: 'Serene rooms situated on the quiet shores of Kannur with direct beach access.' }
+      { name: 'The Gateway Hotel Beach Road (Taj)', type: 'Colonial Coastal Hotel', note: 'Historic luxury property overlooking the Arabian Sea with authentic Malabar gourmet restaurants.' },
+      { name: 'Kadavu Resort & Ayurveda Village', type: 'Riverfront Plantation Sanctuary', note: 'Sprawled along the serene banks of the Chaliyar River in traditional Mappila-style architecture.' }
     ]
   },
   {
-    slug: 'kumarakom',
-    name: 'Kumarakom',
-    region: 'Vembanad Eastern Shore',
-    type: 'Backwaters',
-    shortDesc: 'A tranquil 14-acre bird sanctuary on Vembanad Lake, private luxury lakefront villas with plunge pools, and silent dawn canoe excursions.',
-    description: 'Set on the eastern shore of Vembanad Lake, Kumarakom is the quieter, more secluded counterpart to Alleppey. Here, luxury resorts are built directly along tranquil waterways, with private villas boasting plunge pools, floating cottages, and lush gardens visited by kingfishers. The 14-acre Kumarakom Bird Sanctuary shelters migratory Siberian cranes, egrets, and darters, offering unmatched dawn birding amidst lotus ponds.',
-    coordinates: '9.62°N 76.43°E',
-    elevation: 'Sea Level',
-    bestSeason: 'November – February (Birding peak: June – August & Nov – Feb)',
+    slug: 'wayanad',
+    name: 'Wayanad',
+    region: 'Northern Highlands',
+    type: 'Highlands',
+    shortDesc: 'A scenic hill destination filled with misty mountains, lush green forests, tea plantations, and beautiful waterfalls.',
+    description: 'Cradled within the majestic peaks of the northern Western Ghats at an elevation of 700 to 2,100 metres, Wayanad is Kerala’s untamed mountain paradise. A land of ancient cloud forests, misty evergreen ridges, and fragrant coffee and spice estates, Wayanad holds human secrets dating back to the Neolithic age at Edakkal Caves. From the adrenaline of South India\'s longest glass skybridge cantilevered over deep ravines to the thunder of three-tier Soochipara Waterfalls and luxury treehouses hidden high in the forest canopy, Wayanad is nature at its most pristine.',
+    coordinates: '11.6854°N 76.1320°E',
+    elevation: '700 m – 2,100 m',
+    bestSeason: 'September – May',
     nightsMin: 2,
-    nightsMax: 3,
-    imageUrl: '/images/dest_kumarakom.jpg',
+    nightsMax: 4,
+    imageUrl: '/images/destinations/wayanad.jpg',
     gallery: [
-      '/images/dest_kumarakom.jpg',
-      '/images/exp_pool_villa.jpg',
-      '/images/tour_1_backwaters.jpg',
-      '/images/exp_houseboat.jpg'
+      '/images/destinations/wayanad.jpg',
+      '/images/destinations/wayanad_2.jpg'
     ],
     highlights: [
-      'Early morning private naturalist walking tour through Kumarakom Bird Sanctuary',
-      'Private sunset speedboat or wooden canoe tour to Pathiramanal birding island',
-      'Deep Ayurvedic rejuvenation therapies in tranquil open-air treatment pavilions over the water',
-      'Village life immersion: traditional toddy tapping demonstrations and coir fiber spinning',
-      'Private lakeside candlelit seafood dining featuring pearl spot fish and fresh tiger prawns'
+      'Walking South India’s iconic suspended transparent Glass Skybridge with panoramic rainforest views',
+      'Trekking through lush tea estates down to the thundering three-tier cascade of Soochipara Waterfalls',
+      'Exploring prehistoric Neolithic petroglyphs and cave art inside the ancient Edakkal Caves',
+      'Private guided nature safari in Wayanad Wildlife Sanctuary spotting wild Asian elephants and gaur',
+      'Secluded luxury treehouse living high above emerald rainforest canopies and spice plantations'
     ],
-    howToReach: 'Nearest airport: Cochin International Airport (COK), approx. 75 km (1.5 hours drive). Kottayam railway station is 14 km away.',
+    howToReach: 'Nearest airport: Calicut International Airport (CCJ), 85 km (2.5 hours scenic winding ghat drive with 9 hairpin bends). Calicut Railway Station is 75 km away.',
+    featured: true,
+    latitude: 11.6854,
+    longitude: 76.1320,
     sampleItinerary: {
-      title: 'Lakeside Serenity & Birding Sanctuaries',
-      totalNights: '2 Nights / 3 Days',
+      title: 'Highland Rainforests & Waterfalls',
+      totalNights: '3 Nights / 4 Days',
       days: [
         {
           day: 1,
-          title: 'Arrival on the Vembanad Waterfront',
-          desc: 'Private transfer from Cochin to Kumarakom. Check into your waterfront pool villa. Sunset cocktail cruise on the lake.'
+          title: 'Ascent into Cloud Forests',
+          desc: 'Scenic private 4x4 drive up the Thamarassery mountain pass. Check-in to your luxury treehouse or jungle villa with evening cardamom plantation walk.'
         },
         {
           day: 2,
-          title: 'Birding Island & Ayurvedic Pampering',
-          desc: 'Dawn boat safari through Kumarakom Bird Sanctuary with binoculars and naturalist. Afternoon Ayurvedic massage followed by high tea.'
+          title: 'Glass Bridge & Soochipara Falls',
+          desc: 'Morning thrill walking across the 900 Kandi Glass Bridge above misty canopies. Afternoon shaded hike down to the refreshing cascades of Soochipara Waterfalls.'
         },
         {
           day: 3,
-          title: 'Morning Waters & Departure',
-          desc: 'Relaxed breakfast by the lotus lagoon. Private transfer to Cochin airport or onwards to the hill station of Munnar.'
+          title: 'Neolithic Edakkal & Wildlife Safari',
+          desc: 'Morning hike up Ambukuthi Hill to explore 6,000-year-old rock engravings in Edakkal Caves. Afternoon jeep safari in Muthanga Wildlife Sanctuary.'
+        },
+        {
+          day: 4,
+          title: 'Banasura Lake & Departure',
+          desc: 'Morning visit to Banasura Sagar (India\'s largest earthen dam) with speedboating across island-dotted waters before chauffeured return.'
         }
       ]
     },
     curatedStays: [
-      { name: 'Kumarakom Lake Resort', type: 'Heritage Luxury Sanctuary', note: 'Recognized worldwide for traditional 16th-century ancestral Keralite villas.' },
-      { name: 'The Zuri Kumarakom', type: 'Luxury Island Resort & Spa', note: 'Features one of South India’s largest holistic spa complexes on the lagoon.' }
-    ]
-  },
-  {
-    slug: 'kovalam',
-    name: 'Kovalam',
-    region: 'South Kerala Shoreline',
-    type: 'Coastal',
-    shortDesc: 'Three golden crescent bays framed by coconut palm groves, anchored by the iconic red-and-white striped Vizhinjam lighthouse.',
-    description: 'Kovalam has been a beloved retreat for discerning global travellers since the 1930s when the Maharani of Travancore popularized its sheltered bays. Three distinct crescent beaches — Lighthouse, Hawah, and Samudra — are separated by rocky promontories. The 30-metre striped Vizhinjam lighthouse affords sweeping coastal panoramas, while world-renowned Ayurvedic treatment centres deliver authentic Panchakarma therapies right along the warm Arabian Sea.',
-    coordinates: '8.40°N 76.98°E',
-    elevation: 'Sea Level',
-    bestSeason: 'November – March',
-    nightsMin: 2,
-    nightsMax: 3,
-    imageUrl: '/images/dest_kovalam.jpg',
-    gallery: [
-      '/images/dest_kovalam.jpg',
-      '/images/dest_5_varkala.jpg',
-      '/images/retreat_1_ayurveda.jpg',
-      '/images/tour_6_coastal.jpg'
-    ],
-    highlights: [
-      'Climb the 142 steps of the 30-metre Vizhinjam lighthouse for 360-degree views of the crescent bays',
-      'Signature Ayurvedic Panchakarma therapy sessions tailored by veteran Vaidyas (hereditary physicians)',
-      'Private day excursion to the Poovar golden sand island where river, sea, and backwater converge',
-      'Fresh catch of the day dining along Lighthouse Beach with private table arrangements',
-      'Excursion into Trivandrum for the Padmanabhaswamy temple and Travancore royal palaces'
-    ],
-    howToReach: 'Nearest airport: Trivandrum International Airport (TRV), approx. 14 km (a brief 25-minute executive transfer).',
-    sampleItinerary: {
-      title: 'Crescent Bays & Ayurvedic Bliss',
-      totalNights: '2 Nights / 3 Days',
-      days: [
-        {
-          day: 1,
-          title: 'Arrival on the Royal Shore',
-          desc: 'Quick 25-minute transfer from Trivandrum airport to your luxury clifftop beach resort. Sunset walk along Lighthouse Beach.'
-        },
-        {
-          day: 2,
-          title: 'Ayurveda & Poovar Estuary',
-          desc: 'Morning consultation with an Ayurvedic physician followed by Abhyanga massage. Afternoon excursion to Poovar’s mangrove backwaters.'
-        },
-        {
-          day: 3,
-          title: 'Lighthouse Sunrise & Departure',
-          desc: 'Morning climb to Vizhinjam lighthouse before breakfast on the terrace. Leisurely check-out and airport transfer.'
-        }
-      ]
-    },
-    curatedStays: [
-      { name: 'The Leela Kovalam', type: 'Clifftop Luxury Palace', note: 'Perched on a dramatic cliff with private beach access and panoramic sea vistas.' },
-      { name: 'Niraamaya Retreats Surya Samudra', type: 'Heritage Wellness Sanctuary', note: 'Traditional Keralite wooden cottages perched on rocky shores with world-class wellness.' }
+      { name: 'Vythiri Resort', type: 'Canopy Treehouse Sanctuary', note: 'Luxury wooden treehouses and pool villas hidden deep inside pristine primary rainforest with natural stream.' },
+      { name: 'Tranquil Resort', type: 'Heritage Plantation Bungalow', note: 'Set on a 400-acre private coffee and vanilla estate with shaded trekking trails and serene veranda dining.' }
     ]
   }
 ];
 
 export function getDestinationBySlug(slug: string): DestinationDetail | undefined {
   const normalized = slug.trim().toLowerCase();
-  return KERALA_DESTINATIONS.find((d) => d.slug.toLowerCase() === normalized);
+  const aliasMap: Record<string, string> = {
+    'fort-kochi': 'kochi',
+    'kovalam': 'trivandrum',
+    'thiruvananthapuram': 'trivandrum',
+    'kozhikode': 'calicut'
+  };
+  const targetSlug = aliasMap[normalized] || normalized;
+  return KERALA_DESTINATIONS.find((d) => d.slug.toLowerCase() === targetSlug);
 }
